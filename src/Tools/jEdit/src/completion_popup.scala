@@ -21,6 +21,11 @@ import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 object Completion_Popup {
   /** options **/
 
+  def completion_enabled: Boolean = PIDE.options.bool("jedit_completion")
+  def completion_context: Boolean = PIDE.options.bool("jedit_completion_context")
+  def completion_immediate: Boolean = PIDE.options.bool("jedit_completion_immediate")
+  def completion_delay: Time = PIDE.options.seconds("jedit_completion_delay")
+
   def select_enter: Boolean = PIDE.options.bool("jedit_completion_select_enter")
   def select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
 
@@ -159,7 +164,7 @@ object Completion_Popup {
           val context =
             (for {
               rendering <- opt_rendering
-              if PIDE.options.bool("jedit_completion_context")
+              if completion_context
               caret_range = rendering.before_caret_range(text_area.getCaretPosition)
               context <- rendering.language_context(caret_range)
             } yield context) getOrElse syntax.language_context
@@ -310,11 +315,11 @@ object Completion_Popup {
       if (!evt.isConsumed) {
         val special = JEdit_Lib.special_key(evt)
 
-        if (PIDE.options.bool("jedit_completion")) {
+        if (completion_enabled) {
           dismissed()
           if (evt.getKeyChar != '\b') {
-            val immediate = PIDE.options.bool("jedit_completion_immediate")
-            if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+            val immediate = completion_immediate
+            if (completion_delay.is_zero && !special) {
               input_delay.revoke()
               action(immediate = immediate)
             }
@@ -331,9 +336,7 @@ object Completion_Popup {
     }
 
     private val input_delay =
-      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
-        action()
-      }
+      Delay.last(completion_delay, gui = true) { action() }
 
 
     /* dismiss popup */
@@ -460,11 +463,11 @@ object Completion_Popup {
     /* process key event */
 
     private def process(evt: KeyEvent): Unit = {
-      if (PIDE.options.bool("jedit_completion")) {
+      if (completion_enabled) {
         dismissed()
         if (evt.getKeyChar != '\b') {
           val special = JEdit_Lib.special_key(evt)
-          if (PIDE.options.seconds("jedit_completion_delay").is_zero && !special) {
+          if (completion_delay.is_zero && !special) {
             process_delay.revoke()
             action()
           }
@@ -474,9 +477,7 @@ object Completion_Popup {
     }
 
     private val process_delay =
-      Delay.last(PIDE.options.seconds("jedit_completion_delay"), gui = true) {
-        action()
-      }
+      Delay.last(completion_delay, gui = true) { action() }
 
     override def processKeyEvent(evt0: KeyEvent): Unit = {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)
