@@ -19,6 +19,12 @@ import org.gjt.sp.jedit.gui.{HistoryTextField, KeyEventWorkaround}
 
 
 object Completion_Popup {
+  /** options **/
+
+  def select_enter: Boolean = PIDE.options.bool("jedit_completion_select_enter")
+  def select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
+
+
   /** items with HTML rendering **/
 
   class Item(item: Completion.Item, insert: Completion.Item => Unit)
@@ -101,11 +107,11 @@ object Completion_Popup {
 
   class Text_Area private(text_area: JEditTextArea) {
     // owned by GUI thread
-    private var completion_popup: Option[Completion_Popup] = None
+    private var selection_popup: Option[Selection_Popup.Text_Area] = None
 
     def active_range: Option[Text.Range] =
-      completion_popup match {
-        case Some(completion) => completion.active_range
+      selection_popup match {
+        case Some(panel) => panel.active_range
         case None => None
       }
 
@@ -230,10 +236,6 @@ object Completion_Popup {
       val unicode = Isabelle_Encoding.is_active(buffer)
 
       def open_popup(result: Completion.Result): Unit = {
-        val font =
-          painter.getFont.deriveFont(
-            Font_Info.main_size(scale = PIDE.options.real("jedit_popup_font_scale")))
-
         val range = result.range
 
         val loc1 = text_area.offsetToXY(range.start)
@@ -244,32 +246,11 @@ object Completion_Popup {
 
           val items = result.items.map(new Item(_, insert))
           val completion =
-            new Completion_Popup(Some(range), layered, loc2, font, items) {
-              override def propagate(evt: KeyEvent): Unit = {
-                if (view.getKeyEventInterceptor == null) {
-                  JEdit_Lib.propagate_key(view, evt)
-                }
-                else if (view.getKeyEventInterceptor == inner_key_listener) {
-                  try {
-                    view.setKeyEventInterceptor(null)
-                    JEdit_Lib.propagate_key(view, evt)
-                  }
-                  finally {
-                    if (isDisplayable) view.setKeyEventInterceptor(inner_key_listener)
-                  }
-                }
-                if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
-              }
-              override def shutdown(refocus: Boolean): Unit = {
-                if (view.getKeyEventInterceptor == inner_key_listener) {
-                  view.setKeyEventInterceptor(null)
-                }
-                if (refocus) text_area.requestFocus()
-                JEdit_Lib.invalidate_range(text_area, range)
-              }
-            }
+            new Selection_Popup.Text_Area(text_area, range, loc2, items,
+              select_enter = select_enter, select_tab = select_tab
+            ) { override def input(evt: KeyEvent): Unit = Text_Area.this.input(evt) }
           dismissed()
-          completion_popup = Some(completion)
+          selection_popup = Some(completion)
           view.setKeyEventInterceptor(completion.inner_key_listener)
           JEdit_Lib.invalidate_range(text_area, range)
           Pretty_Tooltip.dismissed_all()
@@ -358,10 +339,10 @@ object Completion_Popup {
     /* dismiss popup */
 
     def dismissed(): Boolean = GUI_Thread.require {
-      completion_popup match {
-        case Some(completion) =>
-          completion.hide_popup()
-          completion_popup = None
+      selection_popup match {
+        case Some(panel) =>
+          panel.hide_popup()
+          selection_popup = None
           true
         case None =>
           false
@@ -400,7 +381,7 @@ object Completion_Popup {
     if (GUI.is_macos_laf()) text_field.setCaret(new DefaultCaret)
 
     // owned by GUI thread
-    private var completion_popup: Option[Completion_Popup] = None
+    private var completion_popup: Option[Selection_Popup] = None
 
 
     /* dismiss */
@@ -456,7 +437,10 @@ object Completion_Popup {
 
               val items = result.items.map(new Item(_, insert))
               val completion =
-                new Completion_Popup(None, layered, loc, text_field.getFont, items) {
+                new Selection_Popup(None, layered, loc, text_field.getFont, items,
+                  select_enter = select_enter,
+                  select_tab = select_tab
+                ) {
                   override def propagate(evt: KeyEvent): Unit =
                     if (!evt.isConsumed) text_field.processKeyEvent(evt)
                   override def shutdown(refocus: Boolean): Unit =
@@ -514,13 +498,3 @@ object Completion_Popup {
     }
   }
 }
-
-class Completion_Popup(
-  opt_range: Option[Text.Range],
-  layered: JLayeredPane,
-  location: Point,
-  font: Font,
-  items: List[Completion_Popup.Item]
-) extends Selection_Popup(opt_range, layered, location, font, items,
-    select_enter = PIDE.options.bool("jedit_completion_select_enter"),
-    select_tab = PIDE.options.bool("jedit_completion_select_tab"))

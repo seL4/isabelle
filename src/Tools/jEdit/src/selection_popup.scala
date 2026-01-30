@@ -16,10 +16,64 @@ import javax.swing.border.LineBorder
 
 import scala.swing.{ListView, ScrollPane}
 
+import org.gjt.sp.jedit.textarea.JEditTextArea
+
 
 object Selection_Popup {
   trait Item { def select(): Unit }
+
+
+  /* specific popup */
+
+  abstract class Text_Area(
+    text_area: JEditTextArea,
+    range: Text.Range,
+    location: Point,
+    items: List[Selection_Popup.Item],
+    select_enter: Boolean = false,
+    select_tab: Boolean = false
+  ) extends Selection_Popup(
+    Some(range),
+    text_area.getView.getLayeredPane,
+    location,
+    text_area.getPainter.getFont.deriveFont(
+      Font_Info.main_size(scale = PIDE.options.real("jedit_popup_font_scale"))),
+    items,
+    select_enter = select_enter,
+    select_tab = select_tab
+  ) {
+    def input(evt: KeyEvent): Unit
+
+    override def propagate(evt: KeyEvent): Unit = {
+      val view = text_area.getView
+      if (view.getKeyEventInterceptor == null) {
+        JEdit_Lib.propagate_key(view, evt)
+      }
+      else if (view.getKeyEventInterceptor == inner_key_listener) {
+        try {
+          view.setKeyEventInterceptor(null)
+          JEdit_Lib.propagate_key(view, evt)
+        }
+        finally {
+          if (isDisplayable) view.setKeyEventInterceptor(inner_key_listener)
+        }
+      }
+      if (evt.getID == KeyEvent.KEY_TYPED) input(evt)
+    }
+
+    override def shutdown(refocus: Boolean): Unit = {
+      val view = text_area.getView
+      if (view.getKeyEventInterceptor == inner_key_listener) {
+        view.setKeyEventInterceptor(null)
+      }
+      if (refocus) text_area.requestFocus()
+      JEdit_Lib.invalidate_range(text_area, range)
+    }
+  }
 }
+
+
+/* generic popup */
 
 class Selection_Popup(
   opt_range: Option[Text.Range],
