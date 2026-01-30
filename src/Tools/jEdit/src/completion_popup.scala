@@ -47,8 +47,7 @@ object Completion_Popup {
   object Text_Area {
     private val key = new Object
 
-    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] = {
-      GUI_Thread.require {}
+    def apply(text_area: TextArea): Option[Completion_Popup.Text_Area] = GUI_Thread.require {
       text_area.getClientProperty(key) match {
         case text_area_completion: Completion_Popup.Text_Area => Some(text_area_completion)
         case _ => None
@@ -75,8 +74,7 @@ object Completion_Popup {
         case None => false
       }
 
-    def exit(text_area: JEditTextArea): Unit = {
-      GUI_Thread.require {}
+    def exit(text_area: JEditTextArea): Unit = GUI_Thread.require {
       apply(text_area) match {
         case None =>
         case Some(text_area_completion) =>
@@ -93,8 +91,7 @@ object Completion_Popup {
       text_area_completion
     }
 
-    def dismissed(text_area: TextArea): Boolean = {
-      GUI_Thread.require {}
+    def dismissed(text_area: TextArea): Boolean = GUI_Thread.require {
       apply(text_area) match {
         case Some(text_area_completion) => text_area_completion.dismissed()
         case None => false
@@ -178,9 +175,7 @@ object Completion_Popup {
 
     /* completion action: text area */
 
-    private def insert(item: Completion.Item): Unit = {
-      GUI_Thread.require {}
-
+    private def insert(item: Completion.Item): Unit = GUI_Thread.require {
       val buffer = text_area.getBuffer
       val range = item.range
       if (buffer.isEditable) {
@@ -330,9 +325,7 @@ object Completion_Popup {
 
     /* input key events */
 
-    def input(evt: KeyEvent): Unit = {
-      GUI_Thread.require {}
-
+    def input(evt: KeyEvent): Unit = GUI_Thread.require {
       if (!evt.isConsumed) {
         val special = JEdit_Lib.special_key(evt)
 
@@ -364,9 +357,7 @@ object Completion_Popup {
 
     /* dismiss popup */
 
-    def dismissed(): Boolean = {
-      GUI_Thread.require {}
-
+    def dismissed(): Boolean = GUI_Thread.require {
       completion_popup match {
         case Some(completion) =>
           completion.hide_popup()
@@ -428,9 +419,7 @@ object Completion_Popup {
 
     /* insert */
 
-    private def insert(item: Completion.Item): Unit = {
-      GUI_Thread.require {}
-
+    private def insert(item: Completion.Item): Unit = GUI_Thread.require {
       val range = item.range
       if (text_field.isEditable) {
         val content = text_field.getText
