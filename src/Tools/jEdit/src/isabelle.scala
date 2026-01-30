@@ -406,12 +406,6 @@ object Isabelle {
   }
 
 
-  /* completion */
-
-  def complete(view: View, word_only: Boolean): Unit =
-    Completion_Popup.Text_Area.action(view.getTextArea, word_only = word_only, focus = true)
-
-
   /* control styles */
 
   def control_sub(text_area: JEditTextArea): Unit =
@@ -521,6 +515,9 @@ object Isabelle {
 
 
   /* popups */
+
+  def completion(text_area: JEditTextArea, word_only: Boolean): Unit =
+    Completion_Popup.Text_Area.action(text_area, word_only = word_only, focus = true)
 
   def dismissed_popups(view: View): Boolean = {
     var dismissed = false

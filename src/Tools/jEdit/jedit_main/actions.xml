@@ -104,7 +104,7 @@
 	</ACTION>
 	<ACTION NAME="isabelle.complete">
 	  <CODE>
-	    isabelle.jedit.Isabelle.complete(view, false);
+	    isabelle.jedit.Isabelle.completion(textArea, false);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.tooltip">
@@ -139,7 +139,7 @@
 	</ACTION>
 	<ACTION NAME="isabelle.complete-word">
 	  <CODE>
-	    isabelle.jedit.Isabelle.complete(view, true);
+	    isabelle.jedit.Isabelle.complete(textArea, true);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.control-sub">
