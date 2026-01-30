@@ -65,6 +65,11 @@ Minor INCOMPATIBILITY.
 with the list of currently active hyperlinks, e.g. for definitions of
 formal entities.
 
+* Popups from explicit actions (notably "isabelle.show-links",
+"isabelle.complete", etc.) now always get focus, and allow to select
+both with ENTER and TAB. This improves overall accessibility. Minor
+INCOMPATIBILITY.
+
 * Tooltip messages render formal entities with additional PIDE markup,
 to distinguish multiple def-positions due to locale interpretations etc.
 

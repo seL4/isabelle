@@ -523,7 +523,10 @@ object Isabelle {
       val links = rendering.hyperlinks(caret_range)
       if (links.nonEmpty) {
         val items = links.map(info => new Selection_Popup.Hyperlink(view, info.info))
-        completion.open_popup(caret_range, items, focus = true)
+        completion.open_popup(caret_range, items,
+          focus = true,
+          select_enter = true,
+          select_tab = true)
       }
     }
   }
@@ -546,7 +549,10 @@ object Isabelle {
   }
 
   def completion(text_area: JEditTextArea, word_only: Boolean): Unit =
-    Completion_Popup.Text_Area.action(text_area, word_only = word_only, focus = true)
+    Completion_Popup.Text_Area.action(text_area, word_only = word_only,
+      focus = true,
+      select_enter = true,
+      select_tab = true)
 
   def dismissed_popups(view: View): Boolean = {
     var dismissed = false
