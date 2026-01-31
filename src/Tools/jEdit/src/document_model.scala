@@ -493,8 +493,7 @@ class Buffer_Model private(
 ) extends Document_Model {
   override def toString: String = "buffer " + quote(node_name.node)
 
-  override def gui_style: GUI.Style =
-    GUI.Style_Symbol_Recoded(Isabelle_Encoding.is_active(buffer))
+  override def gui_style: GUI.Style = Isabelle_Encoding.gui_style(buffer)
 
 
   /* text */
