@@ -24,6 +24,7 @@ import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, Acces
   AccessibleEditableText, AccessibleState, AccessibleStateSet}
 import javax.swing.{JPanel, SwingUtilities}
 import javax.swing.text.{AttributeSet, SimpleAttributeSet, StyleConstants}
+import javax.swing.event.{CaretListener, CaretEvent}
 
 
 object JEdit_Accessible {
@@ -105,18 +106,15 @@ object JEdit_Accessible {
     text_area =>
 
     override def getAccessibleContext: AccessibleContext = {
-      if (accessibleContext == null) { accessibleContext = new Accessible_Context }
+      if (accessibleContext == null) {
+        val accessible_context = new Accessible_Context
+        text_area.addCaretListener(accessible_context)
+        accessibleContext = accessible_context
+      }
       accessibleContext
     }
 
-    def caret_update(caret: Int): Unit =
-      accessibleContext match {
-        case accessible_context: Accessible_Context =>
-          accessible_context.caret_update(caret)
-        case _ =>
-      }
-
-    protected class Accessible_Context extends AccessibleJPanel {
+    protected class Accessible_Context extends AccessibleJPanel with CaretListener {
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleStateSet: AccessibleStateSet = {
@@ -133,12 +131,14 @@ object JEdit_Accessible {
       override def getAccessibleChild(i: Int): Accessible = null
 
       private var old_caret = 0
-      def caret_update(caret: Int): Unit =
+      override def caretUpdate(e: CaretEvent): Unit = {
+        val caret = e.getDot
         if (old_caret != caret) {
           // see javax.swing.text.JTextComponent.AccessibleJTextComponent
           firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, old_caret, caret)
           old_caret = caret
         }
+      }
     }
 
     protected val accessible_text: AccessibleEditableText = new Accessible_Text

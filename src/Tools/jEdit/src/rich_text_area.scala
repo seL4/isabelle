@@ -726,11 +726,6 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         if (caret_visible) {
           val caret = text_area.getCaretPosition
-          text_area match {
-            case accessible_text_area: JEdit_Accessible.TextArea =>
-              accessible_text_area.caret_update(caret)
-            case _ =>
-          }
           if (caret_enabled && start <= caret && caret == end - 1) {
             val painter = text_area.getPainter
             val fm = painter.getFontMetrics
