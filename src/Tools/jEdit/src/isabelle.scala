@@ -624,10 +624,19 @@ object Isabelle {
     Java_Monitor.java_monitor_external(view, look_and_feel = GUI.current_laf())
 
 
-  /* HTTP browser_info */
+  /* PIDE HTTP services */
 
   def open_browser_info(view: View): Unit = {
     val url = Url.append_path(PIDE.plugin.http_server.url, HTTP.Browser_Info_Service.index_path())
     PIDE.editor.hyperlink_url(url).follow(view)
+  }
+
+  def open_preview(view: View, plain_text: Boolean): Unit = {
+    Document_Model.get_model(view.getBuffer) match {
+      case Some(model) =>
+        val url = Document_Model.Preview_Service.server_url(plain_text, model.node_name)
+        PIDE.editor.hyperlink_url(url).follow(view)
+      case _ =>
+    }
   }
 }

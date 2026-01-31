@@ -224,12 +224,12 @@
 	</ACTION>
 	<ACTION NAME="isabelle.preview">
 	  <CODE>
-	    isabelle.jedit.Document_Model.open_preview(view, false);
+	    isabelle.jedit.Isabelle.open_preview(view, false);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.draft">
 	  <CODE>
-	    isabelle.jedit.Document_Model.open_preview(view, true);
+	    isabelle.jedit.Isabelle.open_preview(view, true);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle-export-browser">
