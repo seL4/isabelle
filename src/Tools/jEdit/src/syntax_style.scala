@@ -166,7 +166,7 @@ object Syntax_Style {
 
     val buffer = text_area.getBuffer
 
-    val control_output = Isabelle_Encoding.gui_style(buffer).output(control_sym)
+    val control_output = Isabelle_Encoding.gui_style(buffer = buffer).output(control_sym)
 
     def update_style(text: String): String =
       Library.string_builder() { result =>

@@ -440,7 +440,7 @@ object Isabelle {
       (name, arg) <- Token.read_antiq_arg(Keyword.Keywords.empty, body_text)
       if Symbol.is_ascii_identifier(name)
     } {
-      val style = Isabelle_Encoding.gui_style(buffer)
+      val style = Isabelle_Encoding.gui_style(buffer = buffer)
       val op_text = style.output(Symbol.control_prefix + name + Symbol.control_suffix)
       val arg_text = style.output(if_proper(arg, Symbol.cartouche(arg.get)))
 

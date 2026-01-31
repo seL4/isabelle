@@ -163,7 +163,7 @@ object Completion_Popup {
       opt_rendering: Option[JEdit_Rendering]
     ): Option[Completion.Result] = {
       val buffer = text_area.getBuffer
-      val unicode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer = buffer)
 
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -271,7 +271,7 @@ object Completion_Popup {
     ): Boolean = {
       val history = PIDE.plugin.completion_history.value
       val buffer = text_area.getBuffer
-      val unicode = Isabelle_Encoding.is_active(buffer)
+      val unicode = Isabelle_Encoding.is_active(buffer = buffer)
 
       if (buffer.isEditable) {
         val caret = text_area.getCaretPosition

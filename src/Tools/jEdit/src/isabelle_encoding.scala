@@ -11,6 +11,7 @@ import isabelle._
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.io.Encoding
+import org.gjt.sp.jedit.jEdit
 
 import java.nio.charset.{CodingErrorAction, CharacterCodingException}
 import java.io.{InputStream, OutputStream, Reader, Writer, OutputStreamWriter,
@@ -22,11 +23,15 @@ import scala.io.{Codec, BufferedSource}
 object Isabelle_Encoding {
   val NAME = "UTF-8-Isabelle"
 
-  def is_active(buffer: JEditBuffer): Boolean =
-    buffer.getStringProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
+  def is_active(buffer: JEditBuffer = null): Boolean = {
+    val name =
+      if (buffer == null) jEdit.getProperty("buffer.encoding")
+      else buffer.getStringProperty(JEditBuffer.ENCODING)
+    NAME == name
+  }
 
-  def gui_style(buffer: JEditBuffer): GUI.Style_Symbol =
-    GUI.Style_Symbol_Recoded(is_active(buffer))
+  def gui_style(buffer: JEditBuffer = null): GUI.Style_Symbol =
+    GUI.Style_Symbol_Recoded(is_active(buffer = buffer))
 }
 
 class Isabelle_Encoding extends Encoding {
