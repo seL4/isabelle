@@ -143,7 +143,31 @@ lemma eq_empty_set_tree[simp]: "{} = set_tree t \<longleftrightarrow> t = Leaf"
 by (cases t) auto
 
 lemma finite_set_tree[simp]: "finite(set_tree t)"
-by(induction t) auto
+by(fact tree.set_finite)
+
+lemma finite_trees_height_le:
+  assumes "finite L"
+  shows "finite {t :: 'a tree. height t \<le> n \<and> set_tree t \<subseteq> L}"
+proof (induction n)
+  case 0
+  have "{t :: 'a tree. height t \<le> 0 \<and> set_tree t \<subseteq> L} = {Leaf}"
+    using height_tree.elims by auto
+  then show ?case by simp 
+next
+  case (Suc n)
+
+  let ?T = "\<lambda>n. {t :: 'a tree. height t \<le> n \<and> set_tree t \<subseteq> L}"
+
+  have "?T (Suc n) \<subseteq> {Leaf} \<union> (\<lambda>(l,a,r). Node l a r) ` (?T n \<times> L  \<times> ?T n)"
+    apply (auto split: prod.splits simp: image_def)
+    by (smt (verit, best) Suc_eq_plus1 add_diff_cancel_right' height_tree.elims le_diff_conv le_sup_iff subsetD
+        sup_nat_def tree.sel(2) tree.set_sel(2) tree.simps(15))
+
+  then show "finite (?T (Suc n))"
+    using Suc.IH assms
+    by (metis (no_types, lifting) finite.emptyI finite_SigmaI finite_Un finite_imageI finite_insert
+        rev_finite_subset)
+qed
 
 
 subsection \<open>\<^const>\<open>subtrees\<close>\<close>
