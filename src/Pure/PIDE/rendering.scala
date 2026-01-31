@@ -310,6 +310,13 @@ class Rendering(
   def get_text(range: Text.Range): Option[String] = None
 
 
+  /* GUI style */
+
+  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
+  def gui_name(name: String, kind: String = "", prefix: String = ""): String =
+    GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
+
+
   /* caret */
 
   def before_caret_range(caret: Text.Offset): Text.Range = {
@@ -629,10 +636,6 @@ class Rendering(
 
 
   /* tooltips */
-
-  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
-  def gui_name(name: String, kind: String = "", prefix: String = ""): String =
-    GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
 
   def timing_threshold: Time = options.seconds("editor_timing_threshold")
 
