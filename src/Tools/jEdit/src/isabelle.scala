@@ -440,13 +440,9 @@ object Isabelle {
       (name, arg) <- Token.read_antiq_arg(Keyword.Keywords.empty, body_text)
       if Symbol.is_ascii_identifier(name)
     } {
-      val op_text =
-        Isabelle_Encoding.perhaps_decode(buffer,
-          Symbol.control_prefix + name + Symbol.control_suffix)
-      val arg_text =
-        if (arg.isEmpty) ""
-        else if (Isabelle_Encoding.is_active(buffer)) Symbol.cartouche_decoded(arg.get)
-        else Symbol.cartouche(arg.get)
+      val style = Isabelle_Encoding.gui_style(buffer)
+      val op_text = style.output(Symbol.control_prefix + name + Symbol.control_suffix)
+      val arg_text = style.output(if_proper(arg, Symbol.cartouche(arg.get)))
 
       buffer.remove(antiq_range.start, antiq_range.length)
       text_area.setCaretPosition(antiq_range.start)

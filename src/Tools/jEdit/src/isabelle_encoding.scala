@@ -25,11 +25,8 @@ object Isabelle_Encoding {
   def is_active(buffer: JEditBuffer): Boolean =
     buffer.getStringProperty(JEditBuffer.ENCODING).asInstanceOf[String] == NAME
 
-  def gui_style(buffer: JEditBuffer): GUI.Style =
+  def gui_style(buffer: JEditBuffer): GUI.Style_Symbol =
     GUI.Style_Symbol_Recoded(is_active(buffer))
-
-  def perhaps_decode(buffer: JEditBuffer, s: String): String =
-    if (is_active(buffer)) Symbol.decode(s) else s
 }
 
 class Isabelle_Encoding extends Encoding {

@@ -37,7 +37,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       Action(text) {
         val text_area = view.getTextArea
         val (s1, s2) =
-          Completion.split_template(Isabelle_Encoding.perhaps_decode(text_area.getBuffer, txt))
+          Completion.split_template(Isabelle_Encoding.gui_style(text_area.getBuffer).output(txt))
         text_area.setSelectedText(s1 + s2)
         text_area.moveCaretPosition(text_area.getCaretPosition - s2.length)
         text_area.requestFocus()
@@ -94,7 +94,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         if (is_control && HTML.is_control(symbol))
           Syntax_Style.edit_control_style(text_area, symbol)
         else
-          text_area.setSelectedText(Isabelle_Encoding.perhaps_decode(text_area.getBuffer, symbol))
+          text_area.setSelectedText(Isabelle_Encoding.gui_style(text_area.getBuffer).output(symbol))
         text_area.requestFocus()
       }
     tooltip =
