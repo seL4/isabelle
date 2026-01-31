@@ -209,23 +209,27 @@ class JEdit_Editor extends Editor {
     name: String,
     line: Int = -1,
     offset: Text.Offset = -1,
+    description: String = "",
     focus: Boolean = false
   ): Hyperlink =
     new Hyperlink {
       def follow(view: View): Unit =
         goto_file(view, name, line = line, offset = offset, focus = focus)
-      override def toString: String = "file " + quote(name)
+      override def toString: String =
+        proper_string(description).getOrElse("file " + quote(name))
     }
 
   def hyperlink_source_file(
     source_name: String,
     line1: Int,
     offset: Symbol.Offset,
+    description: String = "",
     focus: Boolean = false,
   ) : Option[Hyperlink] = {
     for (platform_path <- PIDE.session.store.source_file(source_name)) yield {
       def hyperlink(pos: Line.Position) =
-        hyperlink_file(platform_path, line = pos.line, offset = pos.column, focus = focus)
+        hyperlink_file(platform_path, line = pos.line, offset = pos.column,
+          description = description, focus = focus)
 
       if (offset > 0) {
         PIDE.resources.get_file_content(PIDE.resources.node_name(platform_path)) match {
@@ -245,12 +249,14 @@ class JEdit_Editor extends Editor {
     snapshot: Document.Snapshot,
     id: Document_ID.Generic,
     offset: Symbol.Offset = 0,
+    description: String = "",
     focus: Boolean = false
   ) : Option[Hyperlink] = {
     if (snapshot.is_outdated) None
     else {
-      snapshot.find_command_position(id, offset)
-        .map(pos => hyperlink_file(pos.name, line = pos.line, offset = pos.column, focus = focus))
+      for (pos <- snapshot.find_command_position(id, offset)) yield
+        hyperlink_file(pos.name, line = pos.line, offset = pos.column,
+          description = description, focus = focus)
     }
   }
 
@@ -266,25 +272,35 @@ class JEdit_Editor extends Editor {
     } yield text_offset == start + command.chunk.decode(range.start)) getOrElse false
   }
 
-  def hyperlink_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)
-      : Option[Hyperlink] =
+  def hyperlink_position(
+    snapshot: Document.Snapshot,
+    pos: Position.T,
+    description: String = "",
+    focus: Boolean = false
+  ): Option[Hyperlink] = {
     pos match {
       case Position.Item_File(name, line, range) =>
-        hyperlink_source_file(name, line, range.start, focus = focus)
+        hyperlink_source_file(name, line, range.start, description = description, focus = focus)
       case Position.Item_Id(id, range) =>
-        hyperlink_command(snapshot, id, range.start, focus = focus)
+        hyperlink_command(snapshot, id, range.start, description = description, focus = focus)
       case _ => None
     }
+  }
 
-  def hyperlink_def_position(snapshot: Document.Snapshot, pos: Position.T, focus: Boolean = false)
-      : Option[Hyperlink] =
+  def hyperlink_def_position(
+    snapshot: Document.Snapshot,
+    pos: Position.T,
+    description: String = "",
+    focus: Boolean = false
+  ): Option[Hyperlink] = {
     pos match {
       case Position.Item_Def_File(name, line, range) =>
-        hyperlink_source_file(name, line, range.start, focus = focus)
+        hyperlink_source_file(name, line, range.start, description = description, focus = focus)
       case Position.Item_Def_Id(id, range) =>
-        hyperlink_command(snapshot, id, range.start, focus = focus)
+        hyperlink_command(snapshot, id, range.start, description = description, focus = focus)
       case _ => None
     }
+  }
 
 
   /* dispatcher thread */

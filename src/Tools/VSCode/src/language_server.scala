@@ -129,6 +129,7 @@ object Language_Server {
       snapshot: Document.Snapshot,
       id: Document_ID.Generic,
       offset: Symbol.Offset = 0,
+      description: String = "",
       focus: Boolean = false,
     ): Option[Hyperlink] = {
       if (snapshot.is_outdated) None

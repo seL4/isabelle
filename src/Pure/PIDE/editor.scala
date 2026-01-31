@@ -172,6 +172,7 @@ abstract class Editor {
     snapshot: Document.Snapshot,
     id: Document_ID.Generic,
     offset: Symbol.Offset = 0,
+    description: String = "",
     focus: Boolean = false): Option[Hyperlink]
 
 
