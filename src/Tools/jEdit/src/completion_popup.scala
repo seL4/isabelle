@@ -29,25 +29,24 @@ object Completion_Popup {
   def completion_select_tab: Boolean = PIDE.options.bool("jedit_completion_select_tab")
 
 
-  /** items with HTML rendering **/
 
-  class Item(item: Completion.Item, insert: Completion.Item => Unit)
+  /** items with GUI rendering **/
+
+  class Item(item: Completion.Item, insert: Completion.Item => Unit, style: GUI.Style)
   extends Selection_Popup.Item {
     override def select(): Unit = {
       PIDE.plugin.completion_history.update(item)
       insert(item)
     }
 
-    private val html =
+    override def toString: String =
       item.description match {
         case a :: bs =>
-          val style = GUI.Style_HTML
           style.enclose(
             style.make_bold(Symbol.print_newlines(a)) +
             style.make_text(bs.map(b => " " + Symbol.print_newlines(b)).mkString))
         case Nil => ""
       }
-    override def toString: String = html
   }
 
 
@@ -308,7 +307,8 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result.range, result.items.map(new Item(_, insert)),
+                  val style = GUI.Style_Symbol_Recoded(unicode)
+                  open_popup(result.range, result.items.map(new Item(_, insert, style)),
                     focus = focus,
                     select_enter = completion_select_enter,
                     select_tab = completion_select_tab)
@@ -452,7 +452,8 @@ object Completion_Popup {
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val items = result.items.map(new Item(_, insert))
+              val style = GUI.Style_Symbol_Decoded
+              val items = result.items.map(new Item(_, insert, style))
               val completion =
                 new Selection_Popup(None, layered, loc, text_field.getFont, items,
                   select_enter = completion_select_enter,
