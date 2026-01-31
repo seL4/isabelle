@@ -708,7 +708,7 @@ object LSP {
   object Doc_Entry {
     def apply(entry: Doc.Entry): JSON.T =
       JSON.Object(
-        "print_html" -> entry.print_html,
+        "print_html" -> entry.print(style = GUI.Style_HTML),
         "platform_path" -> File.platform_path(entry.path))
   }
 
