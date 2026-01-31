@@ -127,8 +127,6 @@ object JEdit_Accessible {
       }
       override def getAccessibleText: AccessibleText = accessible_text
       override def getAccessibleEditableText: AccessibleEditableText = accessible_text
-      override def getAccessibleChildrenCount: Int = 0
-      override def getAccessibleChild(i: Int): Accessible = null
 
       private var old_caret = 0
       override def caretUpdate(e: CaretEvent): Unit = {
