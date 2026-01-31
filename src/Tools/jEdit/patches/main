@@ -38,8 +38,8 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/syntax/Chunk.java jedit5.7.0-patched/
  			return size() > capacity;
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2024-08-03 19:53:18.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2025-08-24 16:31:35.254675884 +0200
-@@ -87,7 +87,9 @@
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/textarea/TextArea.java	2026-01-31 20:38:42.241095897 +0100
+@@ -87,11 +87,12 @@
  		//{{{ Initialize some misc. stuff
  		selectionManager = new SelectionManager(this);
  		chunkCache = new ChunkCache(this);
@@ -50,7 +50,11 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  		elasticTabstopsExpander = new ElasticTabstopsTabExpander(this);
  		gutter = new Gutter(this);
  		gutter.setMouseActionsProvider(new MouseActions(propertyManager, "gutter"));
-@@ -919,6 +921,11 @@
+-		listenerList = new EventListenerList();
+ 		caretEvent = new MutableCaretEvent();
+ 		blink = true;
+ 		offsetXY = new Point();
+@@ -919,6 +920,11 @@
  		return chunkCache.getLineInfo(screenLine).physicalLine;
  	} //}}}
  
@@ -62,7 +66,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  	//{{{ getScreenLineOfOffset() method
  	/**
  	 * Returns the screen (wrapped) line containing the specified offset.
-@@ -1627,8 +1634,8 @@
+@@ -1627,8 +1633,8 @@
  		}
  
  		// Scan backwards, trying to find a bracket
@@ -73,7 +77,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  		int count = 1;
  		char openBracket = '\0';
  		char closeBracket = '\0';
-@@ -4983,6 +4990,7 @@
+@@ -4983,6 +4989,7 @@
  	final Point offsetXY;
  
  	boolean lastLinePartial;
@@ -81,7 +85,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  
  	boolean blink;
  	//}}}
-@@ -6297,7 +6305,7 @@
+@@ -5241,7 +5248,6 @@
+ 	private final Gutter gutter;
+ 	protected final TextAreaPainter painter;
+ 
+-	private final EventListenerList listenerList;
+ 	private final MutableCaretEvent caretEvent;
+ 
+ 	private boolean caretBlinks;
+@@ -6297,7 +6303,7 @@
  		private final BreakIterator charBreaker;
  		private final int index0Offset;
  
@@ -90,7 +102,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  		{
  			final int line = textArea.getLineOfOffset(offset);
  			charBreaker = BreakIterator.getCharacterInstance();
-@@ -6348,12 +6356,12 @@
+@@ -6348,12 +6354,12 @@
  		// This class adapt CharSequence, which is used to avoid
  		// text copy, to CharacterIterator, which is used to pass
  		// a text to BreakIterator.
@@ -105,7 +117,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/TextArea.java jedit5.7.0-pa
  			{
  				this.sequence = sequence;
  				index = 0;
-@@ -6455,17 +6463,17 @@
+@@ -6455,17 +6461,17 @@
  		} //}}}
  	} //}}}
  
@@ -1589,7 +1601,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/BrowserView.java jedit5.7.0-
  		tableScroller.getViewport().setBackground(table.getBackground());
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2025-08-25 21:24:39.620005049 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2026-01-31 20:38:04.129253906 +0100
 @@ -30,6 +30,7 @@
  import javax.swing.border.EmptyBorder;
  import javax.swing.event.*;
@@ -1598,7 +1610,16 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  import java.awt.datatransfer.DataFlavor;
  import java.awt.datatransfer.Transferable;
  import java.awt.datatransfer.UnsupportedFlavorException;
-@@ -222,7 +223,7 @@
+@@ -177,8 +178,6 @@
+ 	{
+ 		super(new BorderLayout());
+ 
+-		listenerList = new EventListenerList();
+-
+ 		this.mode = mode;
+ 		this.multipleSelection = multipleSelection;
+ 		this.view = view;
+@@ -222,7 +221,7 @@
  		pathField.setInstantPopups(true);
  		pathField.setEnterAddsToHistory(false);
  		pathField.setSelectAllOnFocus(true);
@@ -1607,7 +1628,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  
  		// because its preferred size can be quite wide, we
  		// don't want it to make the browser way too big,
-@@ -239,6 +240,7 @@
+@@ -239,6 +238,7 @@
  		pathAndFilterPanel.add(pathField);
  
  		filterCheckbox = new JCheckBox(jEdit.getProperty("vfs.browser.filter"));
@@ -1615,7 +1636,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  		filterCheckbox.setMargin(new Insets(0,0,0,0));
  //		filterCheckbox.setRequestFocusEnabled(false);
  		filterCheckbox.setBorder(new EmptyBorder(0,0,0,12));
-@@ -257,9 +259,11 @@
+@@ -257,9 +257,11 @@
  			pathAndFilterPanel.add(filterCheckbox);
  		}
  
@@ -1628,7 +1649,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  		filterEditor.setInstantPopups(true);
  		filterEditor.setSelectAllOnFocus(true);
  		filterEditor.addActionListener(actionHandler);
-@@ -1195,6 +1199,7 @@
+@@ -1195,6 +1197,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
  		Buffer buffer = null;
@@ -1636,7 +1657,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  
  check_selected:
  		for (VFSFile file : selectedFiles)
-@@ -1244,7 +1249,10 @@
+@@ -1244,7 +1247,10 @@
  				}
  
  				if (_buffer != null)
@@ -1647,7 +1668,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  			}
  			// otherwise if a file is selected in OPEN_DIALOG or
  			// SAVE_DIALOG mode, just let the listener(s)
-@@ -1253,21 +1261,30 @@
+@@ -1253,21 +1259,30 @@
  
  		if(buffer != null)
  		{
@@ -1680,7 +1701,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-@@ -1751,7 +1768,7 @@
+@@ -1457,7 +1472,6 @@
+ 	}
+ 
+ 	//{{{ Instance variables
+-	private final EventListenerList listenerList;
+ 	private final View view;
+ 	private boolean horizontalLayout;
+ 	private String path;
+@@ -1751,7 +1765,7 @@
  		//{{{ MenuButton constructor
  		MenuButton()
  		{
