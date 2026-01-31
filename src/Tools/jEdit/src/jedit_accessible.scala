@@ -336,6 +336,8 @@ object JEdit_Accessible {
     }
 
     class Accessible_Context extends AccessibleJComponent {
+      override def getAccessibleName: String = "editor painter (internal)"
+      override def getAccessibleRole: AccessibleRole = AccessibleRole.PANEL
     }
   }
 }
