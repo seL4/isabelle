@@ -32,19 +32,20 @@ object Completion_Popup {
 
   /** items with GUI rendering **/
 
-  class Item(item: Completion.Item, insert: Completion.Item => Unit, style: GUI.Style)
+  class Item(item: Completion.Item, insert: Completion.Item => Unit, unicode: Boolean)
   extends Selection_Popup.Item {
     override def select(): Unit = {
       PIDE.plugin.completion_history.update(item)
       insert(item)
     }
 
-    override def toString: String =
+    override def toString: String = // Swing GUI label
       item.description match {
         case a :: bs =>
+          val style = GUI.Style_HTML
+          def output(s: String): String = Symbol.output(unicode, Symbol.print_newlines(s))
           style.enclose(
-            style.make_bold(Symbol.print_newlines(a)) +
-            style.make_text(bs.map(b => " " + Symbol.print_newlines(b)).mkString))
+            style.make_bold(output(a)) + style.make_text(bs.map(b => " " + output(b)).mkString))
         case Nil => ""
       }
   }
@@ -307,8 +308,7 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  val style = GUI.Style_Symbol_Recoded(unicode)
-                  open_popup(result.range, result.items.map(new Item(_, insert, style)),
+                  open_popup(result.range, result.items.map(new Item(_, insert, unicode)),
                     focus = focus,
                     select_enter = completion_select_enter,
                     select_tab = completion_select_tab)
@@ -440,6 +440,7 @@ object Completion_Popup {
       GUI.layered_pane(text_field) match {
         case Some(layered) if text_field.isEditable =>
           val history = PIDE.plugin.completion_history.value
+          val unicode = Isabelle_Encoding.is_active()
 
           val caret = text_field.getCaret.getDot
           val text = text_field.getText
@@ -452,8 +453,7 @@ object Completion_Popup {
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val style = GUI.Style_Symbol_Decoded
-              val items = result.items.map(new Item(_, insert, style))
+              val items = result.items.map(new Item(_, insert, unicode))
               val completion =
                 new Selection_Popup(None, layered, loc, text_field.getFont, items,
                   select_enter = completion_select_enter,
