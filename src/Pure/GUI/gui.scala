@@ -119,9 +119,12 @@ object GUI {
   }
 
   abstract class Style_Symbol extends Style {
+    def unicode_symbols: Boolean
+    override def make_text(str: String): String = Symbol.output(unicode_symbols, str)
+
     def bold: String
     override def make_bold(str: String): String =
-      Symbol.iterator(str)
+      Symbol.iterator(Symbol.output(unicode_symbols, str))
         .flatMap(s => if (Symbol.is_controllable(s)) List(bold, s) else List(s))
         .mkString
   }
@@ -132,12 +135,19 @@ object GUI {
 
   object Style_Symbol_Encoded extends Style_Symbol {
     override def toString: String = "symbol_encoded"
+    override def unicode_symbols: Boolean = false
     override def bold: String = Symbol.bold
   }
 
   object Style_Symbol_Decoded extends Style_Symbol {
     override def toString: String = "symbol_decoded"
+    override def unicode_symbols: Boolean = true
     override def bold: String = Symbol.bold_decoded
+  }
+
+  object Style_Symbol_Recoded {
+    def apply(unicode_symbols: Boolean): Style_Symbol =
+      if (unicode_symbols) Style_Symbol_Decoded else Style_Symbol_Encoded
   }
 
 
