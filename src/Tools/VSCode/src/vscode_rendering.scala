@@ -74,6 +74,8 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
 
   override def get_text(range: Text.Range): Option[String] = model.get_text(range)
 
+  override def gui_style: GUI.Style = GUI.Style_Symbol_Recoded(resources.unicode_symbols_edits)
+
 
   /* completion */
 

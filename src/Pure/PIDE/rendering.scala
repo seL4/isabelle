@@ -298,7 +298,7 @@ object Rendering {
       Markup.Markdown_Bullet.name)
 }
 
-class Rendering(
+abstract class Rendering(
   val snapshot: Document.Snapshot,
   val options: Options,
   val session: Session
@@ -312,7 +312,7 @@ class Rendering(
 
   /* GUI style */
 
-  def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
+  def gui_style: GUI.Style
   def gui_name(name: String, kind: String = "", prefix: String = ""): String =
     GUI.Name(name, kind = Word.informal(kind), prefix = prefix, style = gui_style).toString
 

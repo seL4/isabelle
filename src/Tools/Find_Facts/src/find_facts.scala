@@ -540,7 +540,10 @@ object Find_Facts {
           .filter(entity => entity.file == snapshot.node_name.node)
           .groupBy(entity => index.decode(entity.range).start))
 
-      val rendering = new Rendering(snapshot, options, session)
+      val rendering =
+        new Rendering(snapshot, options, session) {
+          override def gui_style: GUI.Style = GUI.Style_Symbol_Decoded
+        }
       val comment_ranges = rendering.comments(Text.Range.full).map(markup => ("", markup.range))
 
       for ((command, range) <- command_ranges ::: comment_ranges) yield {

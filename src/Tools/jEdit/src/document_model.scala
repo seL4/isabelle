@@ -330,6 +330,8 @@ object Document_Model {
 sealed abstract class Document_Model extends Document.Model {
   model =>
 
+  def gui_style: GUI.Style
+
 
   /* perspective */
 
@@ -400,6 +402,8 @@ case class File_Model(
   pending_edits: List[Text.Edit]
 ) extends Document_Model {
   override def toString: String = "file " + quote(node_name.node)
+
+  override def gui_style: GUI.Style = GUI.Style_Plain
 
 
   /* content */
@@ -488,6 +492,9 @@ class Buffer_Model private(
   val buffer: Buffer
 ) extends Document_Model {
   override def toString: String = "buffer " + quote(node_name.node)
+
+  override def gui_style: GUI.Style =
+    GUI.Style_Symbol_Recoded(Isabelle_Encoding.is_active(buffer))
 
 
   /* text */
