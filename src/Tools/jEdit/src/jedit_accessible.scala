@@ -160,39 +160,48 @@ object JEdit_Accessible {
           }
         }
 
-      private def get_word(offset: Text.Offset, inc: Int = 0): Option[String] =
+      private def get_word(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
           if (offset < 0 || offset >= buffer.getLength) None
           else {
-            val line = text_area.getLineOfOffset(offset)
-            val line1 = if (line > 0) line - 1 else line
-            val line2 = if (line < text_area.getLineCount - 1) line + 1 else line
+            val curr_line = text_area.getLineOfOffset(offset)
+            val prev_line = if (curr_line > 0) curr_line - 1 else curr_line
+            val next_line = if (curr_line < text_area.getLineCount - 1) curr_line + 1 else curr_line
 
-            val text_start = text_area.getLineStartOffset(line1)
-            val text_stop = text_area.getLineEndOffset(line2)
-            val text = text_area.getText(text_start, text_stop - text_start)
+            val curr_range = JEdit_Lib.trim_line_range(buffer, curr_line)
+            val prev_range = JEdit_Lib.trim_line_range(buffer, prev_line)
+            val next_range = JEdit_Lib.trim_line_range(buffer, next_line)
 
-            def word_range(pos: Int): Text.Range = {
-              val a = buffer.getStringProperty("noWordSep")
-              val b = text_area.getJoinNonWordChars
-              val start = TextUtilities.findWordStart(text, pos - text_start, a, b, false, false)
-              val stop = TextUtilities.findWordEnd(text, pos - text_start + 1, a, b, false, false)
-              Text.Range(start + text_start, stop + text_start)
-            }
+            val text_start = prev_range.start
+            val text_stop = next_range.stop
+            val text_range = Text.Range(text_start, text_stop)
 
-            val range = word_range(offset)
-            val result =
-              if (inc == 0) get_text(range)
-              else if (inc < 0 && range.start > 0) get_text(word_range(range.start - 1))
-              else if (inc > 0 && range.stop > 0 && range.stop < buffer.getLength - 1) {
-                get_text(word_range(range.stop))
+            JEdit_Lib.get_text(buffer, text_range).flatMap { (text: String) =>
+              def word_range(pos: Int): Text.Range = {
+                val a = buffer.getStringProperty("noWordSep")
+                val b = text_area.getJoinNonWordChars
+                val start = TextUtilities.findWordStart(text, pos - text_start, a, b, false, false)
+                val stop = TextUtilities.findWordEnd(text, pos - text_start + 1, a, b, false, false)
+                Text.Range(start + text_start, stop + text_start)
               }
-              else None
-            result.map(info =>
-              cat_lines(
-                split_lines(info.info)
-                  .reverse.dropWhile(_.isEmpty)
-                  .reverse.dropWhile(_.isEmpty)))
+
+              val range = word_range(offset)
+              val result =
+                if (inc == 0) get_text(range)
+                else if (inc < 0 && range.start > 0) get_text(word_range(range.start - 1))
+                else if (inc > 0 && range.stop > 0 && range.stop < buffer.getLength - 1) {
+                  get_text(word_range(range.stop))
+                }
+                else None
+
+              List.from(
+                for {
+                  res <- result.iterator
+                  r0 <- Iterator(prev_range, curr_range, next_range)
+                  r <- res.range.try_restrict(r0)
+                  s <- JEdit_Lib.get_text(buffer, r)
+                } yield Text.Info(r, s)).headOption
+            }
           }
         }
 
@@ -218,21 +227,21 @@ object JEdit_Accessible {
       override def getAtIndex(part: Int, index: Int): String =
         part match {
           case AccessibleText.CHARACTER => get_character(index).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index).orNull
+          case AccessibleText.WORD => get_word(index).map(_.info).orNull
           case _ => null
         }
 
       override def getAfterIndex(part: Int, index: Int): String =
         part match {
           case AccessibleText.CHARACTER => get_character(index, inc = 1).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index, inc = 1).orNull
+          case AccessibleText.WORD => get_word(index, inc = 1).map(_.info).orNull
           case _ => null
         }
 
       override def getBeforeIndex(part: Int, index: Int): String =
         part match {
           case AccessibleText.CHARACTER => get_character(index, inc = -1).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index, inc = -1).orNull
+          case AccessibleText.WORD => get_word(index, inc = -1).map(_.info).orNull
           case _ => null
         }
 
