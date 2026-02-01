@@ -224,6 +224,16 @@ object JEdit_Lib {
   def line_range(buffer: JEditBuffer, line: Int): Text.Range =
     Text.Range(buffer.getLineStartOffset(line), buffer.getLineEndOffset(line) min buffer.getLength)
 
+  def trim_line_range(buffer: JEditBuffer, line: Int): Text.Range = {
+    val range = line_range(buffer, line)
+    get_text(buffer, range) match {
+      case None => range
+      case Some(text) =>
+        val n = Library.trim_line(text).length
+        Text.Range(range.start, range.start + n)
+    }
+  }
+
   def caret_range(text_area: TextArea): Text.Range =
     point_range(text_area.getBuffer, text_area.getCaretPosition)
 

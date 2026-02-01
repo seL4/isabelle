@@ -95,7 +95,7 @@ object Pretty_Text_Area {
           List.from(
             for {
               line <- (start_line until buffer.getLineCount).iterator
-              line_range = JEdit_Lib.line_range(buffer, line)
+              line_range = JEdit_Lib.trim_line_range(buffer, line)
               if JEdit_Lib.can_search_text(buffer, line_range, regex)
             } yield Search_Result(buffer, highlight_style, regex, line, line_range))
         (results1.length, copy(results = results1 ::: results2))
