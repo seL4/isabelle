@@ -218,7 +218,7 @@ object JEdit_Accessible {
         yield {
           val r = new Rectangle(gfx.x, gfx.y, gfx.length, painter.getLineHeight)
           SwingUtilities.convertRectangle(painter, r, text_area)
-        }).getOrElse(new Rectangle())
+        }).orNull
 
       override def getCharCount: Int = text_area.getBufferLength
 
