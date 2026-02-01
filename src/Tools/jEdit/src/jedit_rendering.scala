@@ -245,7 +245,7 @@ extends Rendering(snapshot, options, PIDE.session) {
   /* hyperlinks */
 
   def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
-    hyperlinks(range).lastOption
+    hyperlinks(range).headOption
 
   def hyperlinks(range: Text.Range): List[Text.Info[PIDE.editor.Hyperlink]] =
     make_hyperlinks(range, elements = JEdit_Rendering.hyperlink_elements) {

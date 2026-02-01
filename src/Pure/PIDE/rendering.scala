@@ -625,13 +625,13 @@ abstract class Rendering(
   def make_hyperlinks[A](range: Text.Range, elements: Markup.Elements = Rendering.entity_elements)(
     make_info: Markup => Option[A]
   ): List[Text.Info[A]] = {
-    snapshot.cumulate[Vector[Text.Info[A]]](
-      range, Vector.empty, elements, _ =>
+    snapshot.cumulate[List[Text.Info[A]]](
+      range, Nil, elements, _ =>
         {
           case (infos, Text.Info(info_range, XML.Elem(markup, _))) =>
             for (info <- make_info(markup))
-              yield infos :+ Text.Info(snapshot.convert(info_range), info)
-        }).flatMap(_.info)
+              yield Text.Info(snapshot.convert(info_range), info) :: infos
+        }).reverse.flatMap(_.info)
   }
 
 
