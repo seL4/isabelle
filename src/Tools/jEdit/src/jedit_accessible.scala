@@ -105,14 +105,14 @@ object JEdit_Accessible {
   class TextArea(view: jedit.View) extends JEditTextArea(view: jedit.View) {
     text_area =>
 
-    override def getAccessibleContext: AccessibleContext = {
-      if (accessibleContext == null) {
-        val accessible_context = new Accessible_Context
-        text_area.addCaretListener(accessible_context)
-        accessibleContext = accessible_context
+    override def getAccessibleContext: Accessible_Context =
+      accessibleContext match {
+        case accessible_context: Accessible_Context => accessible_context
+        case _ =>
+          val accessible_context = new Accessible_Context
+          text_area.addCaretListener(accessible_context)
+          accessible_context
       }
-      accessibleContext
-    }
 
     protected class Accessible_Context
     extends AccessibleJPanel with AccessibleEditableText with CaretListener {
