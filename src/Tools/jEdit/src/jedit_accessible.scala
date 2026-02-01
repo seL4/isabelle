@@ -21,7 +21,8 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea 
 
 import java.awt.{Point, Rectangle}
 import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText,
-  AccessibleEditableText, AccessibleState, AccessibleStateSet}
+  AccessibleEditableText, AccessibleExtendedText, AccessibleState, AccessibleStateSet,
+  AccessibleTextSequence}
 import javax.swing.{JPanel, SwingUtilities}
 import javax.swing.text.{AttributeSet, SimpleAttributeSet, StyleConstants}
 import javax.swing.event.{CaretListener, CaretEvent}
@@ -115,7 +116,8 @@ object JEdit_Accessible {
       }
 
     protected class Accessible_Context
-    extends AccessibleJPanel with AccessibleEditableText with CaretListener {
+    extends AccessibleJPanel with AccessibleEditableText with AccessibleExtendedText
+      with CaretListener {
       override def getAccessibleText: AccessibleText = this
       override def getAccessibleEditableText: AccessibleEditableText = this
 
@@ -205,6 +207,29 @@ object JEdit_Accessible {
           }
         }
 
+      private def get_part(part: Int, offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
+        part match {
+          case AccessibleText.CHARACTER => get_character(offset, inc = inc)
+          case AccessibleText.WORD => get_word(offset, inc = inc)
+          case _ => None
+        }
+
+      private def get_part_sequence0(part: Int, offset: Text.Offset, inc: Int = 0): AccessibleTextSequence =
+        get_part(part, offset, inc = inc) match {
+          case Some(res) =>
+            new AccessibleTextSequence(res.range.start, res.range.stop, res.info) {
+              override def toString: String =
+                "AccessibleTextSequence(" + startIndex + ", " + endIndex + ", " + quote(text) +")"
+            }
+          case None => null
+        }
+
+      private def get_part_text0(part: Int, offset: Text.Offset, inc: Int = 0): String =
+        get_part(part, offset, inc = inc) match {
+          case Some(res) => res.info
+          case None => null
+        }
+
       override def getIndexAtPoint(p: Point): Int = {
         val q = SwingUtilities.convertPoint(text_area, p, painter)
         text_area.xyToOffset(q.x, q.y)
@@ -220,30 +245,44 @@ object JEdit_Accessible {
           SwingUtilities.convertRectangle(painter, r, text_area)
         }).orNull
 
+      override def getTextBounds(start: Int, stop: Int): Rectangle = {
+        val rs =
+          List.from(
+            for {
+              index <- ((start min stop) until (start max stop)).iterator
+              r = getCharacterBounds(index) if r != null
+            } yield r)
+        if (rs.isEmpty) null
+        else {
+          val x1 = rs.iterator.map(_.x).min
+          val y1 = rs.iterator.map(_.y).min
+          val x2 = rs.iterator.map(r => r.x + r.width).max
+          val y2 = rs.iterator.map(r => r.y + r.height).max
+          new Rectangle(x1, y1, x2 - x1, y2 - y1)
+        }
+      }
+
       override def getCharCount: Int = text_area.getBufferLength
 
       override def getCaretPosition: Int = text_area.getCaretPosition
 
+      override def getTextSequenceAt(part: Int, index: Int): AccessibleTextSequence =
+        get_part_sequence0(part, index)
+
+      override def getTextSequenceAfter(part: Int, index: Int): AccessibleTextSequence =
+        get_part_sequence0(part, index, inc = 1)
+
+      override def getTextSequenceBefore(part: Int, index: Int): AccessibleTextSequence =
+        get_part_sequence0(part, index, inc = -1)
+
       override def getAtIndex(part: Int, index: Int): String =
-        part match {
-          case AccessibleText.CHARACTER => get_character(index).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index).map(_.info).orNull
-          case _ => null
-        }
+        get_part_text0(part, index)
 
       override def getAfterIndex(part: Int, index: Int): String =
-        part match {
-          case AccessibleText.CHARACTER => get_character(index, inc = 1).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index, inc = 1).map(_.info).orNull
-          case _ => null
-        }
+        get_part_text0(part, index, inc = 1)
 
       override def getBeforeIndex(part: Int, index: Int): String =
-        part match {
-          case AccessibleText.CHARACTER => get_character(index, inc = -1).map(_.info).orNull
-          case AccessibleText.WORD => get_word(index, inc = -1).map(_.info).orNull
-          case _ => null
-        }
+        get_part_text0(part, index, inc = -1)
 
       override def getTextRange(start: Int, stop: Int): String =
         JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
