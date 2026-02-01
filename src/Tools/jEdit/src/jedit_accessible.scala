@@ -114,7 +114,11 @@ object JEdit_Accessible {
       accessibleContext
     }
 
-    protected class Accessible_Context extends AccessibleJPanel with CaretListener {
+    protected class Accessible_Context
+    extends AccessibleJPanel with AccessibleEditableText with CaretListener {
+      override def getAccessibleText: AccessibleText = this
+      override def getAccessibleEditableText: AccessibleEditableText = this
+
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleStateSet: AccessibleStateSet = {
@@ -125,8 +129,6 @@ object JEdit_Accessible {
         states.add(AccessibleState.MULTI_LINE)
         states
       }
-      override def getAccessibleText: AccessibleText = accessible_text
-      override def getAccessibleEditableText: AccessibleEditableText = accessible_text
 
       private var old_caret = 0
       override def caretUpdate(e: CaretEvent): Unit = {
@@ -137,11 +139,7 @@ object JEdit_Accessible {
           old_caret = caret
         }
       }
-    }
 
-    protected val accessible_text: AccessibleEditableText = new Accessible_Text
-
-    protected class Accessible_Text extends AccessibleEditableText {
       private def get_text(range: Text.Range): Option[Text.Info[String]] =
         JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
 
