@@ -63,9 +63,6 @@ sig
   val get_case_cong: theory -> string -> thm option
   val is_undefined: theory -> string -> bool
   val print_codesetup: theory -> unit
-
-  (*transitional*)
-  val strict_drop: bool Config.T
 end;
 
 signature CODE_DATA_ARGS =
@@ -107,11 +104,6 @@ fun string_of_const thy c =
           (Proof_Context.extern_type ctxt tyco)
     | NONE => Proof_Context.extern_const ctxt c
   end;
-
-
-(* transitional *)
-
-val strict_drop = Attrib.setup_config_bool \<^binding>\<open>code_strict_drop\<close> (K false);
 
 
 (* constants *)
@@ -1523,11 +1515,8 @@ fun declare_aborting_global c =
 val declare_aborting_global' =
   declare_from_thm declare_aborting_global;
 
-fun declare_unimplemented_global c thy =
-  if Config.get_global thy strict_drop
-    andalso is_unimplemented (the_fun_spec (specs_of thy) c)
-  then error "No implementation to drop"
-  else modify_specs (register_fun_spec c Unimplemented) thy;
+fun declare_unimplemented_global c =
+  modify_specs (register_fun_spec c Unimplemented);
 
 val declare_unimplemented_global' =
   declare_from_thm declare_unimplemented_global;
