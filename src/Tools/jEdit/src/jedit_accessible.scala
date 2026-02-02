@@ -140,6 +140,13 @@ object JEdit_Accessible {
           firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, old_caret, caret)
           old_caret = caret
         }
+        for {
+          range <- JEdit_Lib.selection_ranges(text_area).headOption
+          text <- JEdit_Lib.get_text(text_area.getBuffer, range)
+        } {
+          // see javax.swing.text.JTextComponent.AccessibleJTextComponent
+          firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, null, text)
+        }
       }
 
       private def get_text(range: Text.Range): Option[Text.Info[String]] =
