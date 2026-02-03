@@ -1383,7 +1383,7 @@ text \<open>
   \<^medskip>
   \<^emph>\<open>Explicit completion\<close> is triggered by the action @{action_ref
   "isabelle.complete"}, which is bound to the keyboard shortcut \<^verbatim>\<open>C+b\<close>, and
-  thus overrides the jEdit default for @{action_ref "complete-word"}.
+  thus overrides the classic jEdit action @{action_ref "complete-word"}.
 
   \<^emph>\<open>Implicit completion\<close> hooks into the regular keyboard input stream of the
   editor, with some event filtering and optional delays.
@@ -1571,9 +1571,10 @@ text \<open>
   \end{tabular}
   \<^medskip>
 
-  Instead of the specific @{action_ref "isabelle.complete-word"}, it is also
-  possible to use the generic @{action_ref "isabelle.complete"} with its
-  default keyboard shortcut \<^verbatim>\<open>C+b\<close>.
+  The action @{action "isabelle.complete-word"} is also available via the
+  regular menu \<^emph>\<open>Edit / Complete word\<close>. An alternative is the the generic
+  action @{action_ref "isabelle.complete"} with its default keyboard shortcut
+  \<^verbatim>\<open>C+b\<close>.
 
   \<^medskip>
   Dictionary lookup uses some educated guesses about lower-case, upper-case,

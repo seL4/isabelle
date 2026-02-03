@@ -35,6 +35,10 @@ Minor INCOMPATIBILITY.
 * The "Macros" menu has been moved into menu of "Utilities", as a
 submenu. Minor INCOMPATIBILITY.
 
+* The menu action "Edit / Complete word" now refers to
+"isabelle.complete-words" instead of "complete-word" from classic jEdit.
+Minor INCOMPATIBILITY.
+
 * Various menu shortcuts have been adjusted, to improved overall
 accessibility via keyboard actions. Minor INCOMPATIBILITY.
 

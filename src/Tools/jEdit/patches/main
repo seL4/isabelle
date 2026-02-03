@@ -436,7 +436,7 @@ diff -ru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/MarkerViewer.java jedit5.7.0-patc
  		clear.addActionListener(this);
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props	2024-08-03 19:53:20.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2026-01-28 20:33:28.296406894 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/jedit_gui.props	2026-02-03 14:32:04.391953077 +0100
 @@ -8,13 +8,15 @@
  ###
  
@@ -687,6 +687,15 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/jedit_gui.props jedit5.7.0-patched/j
  #}}}
  
  #{{{ Edit menu
+@@ -203,7 +207,7 @@
+ 	 %selection \
+ 	 - \
+ 	 word-count \
+-	 complete-word \
++	 isabelle.complete-word \
+ 	 expand-abbrev \
+ 	 - \
+ 	 goto-line \
 @@ -211,12 +215,12 @@
  	 %text \
  	 %indent \
