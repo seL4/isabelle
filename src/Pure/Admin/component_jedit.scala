@@ -317,7 +317,6 @@ isabelle.decrease-font-size.label=Decrease font size
 isabelle.decrease-font-size.shortcut2=C+SUBTRACT
 isabelle.decrease-font-size.shortcut=C+MINUS
 isabelle.decrease-font-size2.label=Decrease font size (clone)
-isabelle-documentation.shortcut=F1
 isabelle.exclude-word-permanently.label=Exclude word permanently
 isabelle.exclude-word.label=Exclude word
 isabelle.first-error.label=Go to first error

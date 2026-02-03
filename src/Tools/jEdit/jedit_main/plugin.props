@@ -58,6 +58,7 @@ isabelle-document.label=$Document panel
 isabelle-document.title=Document
 isabelle-documentation.label=Isabelle $Documentation
 isabelle-documentation.title=Documentation
+isabelle-documentation.shortcut=F1
 isabelle-export-browser.label=Browse theory exports
 isabelle-graphview.label=$Graphview panel
 isabelle-graphview.title=Graphview
