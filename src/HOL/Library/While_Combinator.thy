@@ -438,6 +438,25 @@ corollary while_saturate_finite_subset_Some:
 unfolding while_saturate_def
 using while_option_sat_finite_subset_Some assms by blast 
 
+text \<open>Hoare-like proof rules, for the whole set and for all elements of the set:\<close>
+
+theorem while_saturate_rule:
+  assumes "\<And>S. P S \<Longrightarrow> P (S \<union> F S)"
+     and "while_saturate F S = Some T"
+     and "P S"
+   shows "P T"
+using assms[unfolded while_saturate_def] while_option_rule[of P]
+by (metis (lifting))
+
+theorem while_saturate_rule1:
+  assumes "\<And>S y. (\<And>x. x \<in> S \<Longrightarrow> P x) \<Longrightarrow> y \<in> F S \<Longrightarrow> P y"
+     and "while_saturate F S = Some T"
+     and "\<And>x. x \<in> S \<Longrightarrow> P x"
+     and "y \<in> T"
+   shows "P y"
+using while_saturate_rule[OF _ assms(2), of \<open>\<lambda>S. \<forall>s\<in>S. P s\<close>]
+by (metis Un_iff assms(1,3,4))
+
 text \<open>Correctness: finds the least saturated/closed set above \<open>M\<close>\<close>
 
 lemma while_option_sat_prefix: assumes "mono f"
