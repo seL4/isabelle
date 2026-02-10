@@ -498,8 +498,7 @@ object Completion_Popup {
       if (evt != null) {
         evt.getID match {
           case KeyEvent.KEY_PRESSED =>
-            val key_code = evt.getKeyCode
-            if (key_code == KeyEvent.VK_ESCAPE) {
+            if (GUI.plain_escape(evt)) {
               if (dismissed()) evt.consume()
             }
           case KeyEvent.KEY_TYPED =>

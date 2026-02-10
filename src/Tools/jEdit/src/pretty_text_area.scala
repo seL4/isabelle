@@ -355,7 +355,8 @@ class Pretty_Text_Area(
           pretty_text_area.selectAll()
           evt.consume()
 
-        case KeyEvent.VK_ESCAPE =>
+        case KeyEvent.VK_ESCAPE
+        if GUI.no_modifier(evt) =>
           if (Isabelle.dismissed_popups(view)) evt.consume()
           else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 
