@@ -711,7 +711,7 @@ object Build_Manager {
 
   /** running build manager processes **/
 
-  abstract class Loop_Process[A](name: String, store: Store, progress: Progress)
+  abstract class Loop_Process[A](name: String, store: Store, progress: Progress = new Progress)
     extends Runnable {
     val options = store.options
 
@@ -864,9 +864,9 @@ object Build_Manager {
   class Runner(
     store: Store,
     build_hosts: List[Build_Cluster.Host],
-    isabelle_repository: Mercurial.Repository,
-    sync_dirs: List[Sync.Dir],
-    progress: Progress
+    isabelle_repository: Mercurial.Repository = Mercurial.self_repository(),
+    sync_dirs: List[Sync.Dir] = Nil,
+    progress: Progress = new Progress
   ) extends Loop_Process[Runner.State]("Runner", store, progress) {
     val rsync_context = Rsync.Context()
 
@@ -1066,11 +1066,11 @@ object Build_Manager {
   }
 
   class Poller(
-    ci_jobs: List[Build_CI.Job],
     store: Store,
-    isabelle_repository: Mercurial.Repository,
-    sync_dirs: List[Sync.Dir],
-    progress: Progress
+    ci_jobs: List[Build_CI.Job] = Nil,
+    isabelle_repository: Mercurial.Repository = Mercurial.self_repository(),
+    sync_dirs: List[Sync.Dir] = Nil,
+    progress: Progress = new Progress
   ) extends Loop_Process[Poller.State]("Poller", store, progress) {
 
     override def delay = options.seconds("build_manager_poll_delay")
@@ -1128,9 +1128,9 @@ object Build_Manager {
   }
 
   class Timer(
-    ci_jobs: List[Build_CI.Job],
     store: Store,
-    progress: Progress
+    ci_jobs: List[Build_CI.Job] = Nil,
+    progress: Progress = new Progress
   ) extends Loop_Process[Date]("Timer", store, progress) {
 
     override def delay = options.seconds("build_manager_timer_delay")
@@ -1202,10 +1202,10 @@ object Build_Manager {
   }
 
   class Web_Server(
-    port: Int,
     store: Store,
     build_hosts: List[Build_Cluster.Host],
-    progress: Progress
+    port: Int = 0,
+    progress: Progress = new Progress
   ) extends Loop_Process[Unit]("Web_Server", store, progress) {
     import Web_App.*
     import Web_Server.*
@@ -1696,7 +1696,6 @@ html { background-color: white; }"""))
     progress: Progress = new Progress
   ): Unit = {
     val store = Store(options)
-    val isabelle_repository = Mercurial.self_repository()
     val ci_jobs = space_explode(',', options.string("build_manager_ci_jobs")).map(Build_CI.the_job)
 
     progress.echo_if(ci_jobs.nonEmpty, "Managing ci jobs: " + commas_quote(ci_jobs.map(_.name)))
@@ -1706,10 +1705,10 @@ html { background-color: white; }"""))
         create = true, label = "Build_Manager.build_manager") { store.init_dirs() })
 
     val processes = List(
-      new Runner(store, build_hosts, isabelle_repository, sync_dirs, progress),
-      new Poller(ci_jobs, store, isabelle_repository, sync_dirs, progress),
-      new Timer(ci_jobs, store, progress),
-      new Web_Server(port, store, build_hosts, progress))
+      new Runner(store, build_hosts, sync_dirs = sync_dirs, progress = progress),
+      new Poller(store, ci_jobs, sync_dirs = sync_dirs, progress = progress),
+      new Timer(store, ci_jobs, progress = progress),
+      new Web_Server(store, build_hosts, port = port, progress = progress))
 
     val threads = processes.map(Isabelle_Thread.create(_))
     Exn.Interrupt.signal_handler {
