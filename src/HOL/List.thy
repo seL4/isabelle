@@ -1153,6 +1153,32 @@ next
   with xs show ?case by simp
 qed
 
+lemma map_eq_append_conv:
+  "map f xs = ys @ zs \<longleftrightarrow> (\<exists>us vs. xs = us @ vs \<and> ys = map f us \<and> zs = map f vs)"
+proof(induction xs arbitrary: ys)
+  case Nil
+  then show ?case by(auto)
+next
+  case IH: (Cons x xs)
+  show ?case (is "?L = (\<exists>us. ?R us)")
+  proof
+    assume ?L
+    show "\<exists>us. ?R us"
+    proof (cases ys)
+      case Nil then show ?thesis using \<open>?L\<close> by force
+    next
+      case [simp]: (Cons y ys')
+      with  \<open>?L\<close> have [simp]: "y = f x" and *: "map f xs = ys' @ zs" by simp+
+      from IH * obtain us vs where [simp]: "xs = us @ vs \<and> ys' = map f us \<and> zs = map f vs" by blast
+      then have "?R (x#us)" by simp
+      then show ?thesis by blast
+    qed
+  next
+    assume "\<exists>us. ?R us"
+    then show ?L using IH map_eq_Cons_conv[of f "x # xs" "f x" "map f xs"] by force
+  qed
+qed
+
 lemma map_inj_on:
   assumes map: "map f xs = map f ys" and inj: "inj_on f (set xs Un set ys)"
   shows "xs = ys"
@@ -1569,6 +1595,28 @@ lemma concat_eq_append_conv:
 lemma hd_concat: "\<lbrakk>xs \<noteq> []; hd xs \<noteq> []\<rbrakk> \<Longrightarrow> hd (concat xs) = hd (hd xs)"
   by (metis concat.simps(2) hd_Cons_tl hd_append2)
 
+lemma map_eq_concat_iff:
+  "map f xs = concat yss \<longleftrightarrow> (\<exists>xss. xs = concat xss \<and> yss = map (map f) xss)"
+proof(induction yss arbitrary: xs)
+  case Nil
+  then show ?case by auto
+next
+  case (Cons ys yss)
+  show ?case (is "?L = (\<exists>xss. ?R xss)")
+  proof
+    assume ?L
+    then obtain xs1 xs2 where "xs = xs1 @ xs2" and mapf12: "map f xs1 = ys" "map f xs2 = concat yss"
+      by (auto simp: map_eq_append_conv)
+    with Cons.IH[of xs2] obtain xss where "xs2 = concat xss" "yss = map (map f) xss" by blast
+    then have "?R (xs1#xss)" using \<open>xs = _\<close> \<open>_ = ys\<close> by simp
+    then show "(\<exists>xss. ?R xss)" ..
+  next
+    assume "\<exists>xss. ?R xss"
+    then show ?L by (auto simp add: map_concat)
+  qed
+qed
+
+lemmas append_eq_map_conv = map_eq_append_conv[THEN eq_iff_swap]
 
 simproc_setup list_neq ("(xs::'a list) = ys") = \<open>
 (*
@@ -2396,18 +2444,6 @@ proof (induct xs arbitrary: zs)
   case (Cons x xs zs) then show ?case
     by (cases zs, auto)
 qed auto
-
-lemma map_eq_append_conv:
-  "map f xs = ys @ zs \<longleftrightarrow> (\<exists>us vs. xs = us @ vs \<and> ys = map f us \<and> zs = map f vs)"
-proof -
-  have "map f xs \<noteq> ys @ zs \<and> map f xs \<noteq> ys @ zs \<or> map f xs \<noteq> ys @ zs \<or> map f xs = ys @ zs \<and>
-    (\<exists>bs bsa. xs = bs @ bsa \<and> ys = map f bs \<and> zs = map f bsa)"
-    by (metis append_eq_conv_conj append_take_drop_id drop_map take_map)
-  then show ?thesis
-    using map_append by blast
-qed
-
-lemmas append_eq_map_conv = map_eq_append_conv[THEN eq_iff_swap]
 
 lemma take_add:  "take (i+j) xs = take i xs @ take j (drop i xs)"
 proof (induct xs arbitrary: i)
