@@ -9,7 +9,7 @@ package isabelle
 import java.util.{Map => JMap}
 import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocusManager, Window,
   Point, Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
-import java.awt.event.{KeyAdapter, KeyEvent}
+import java.awt.event.{InputEvent, KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
 import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
@@ -478,6 +478,18 @@ object GUI {
     val insets = Toolkit.getDefaultToolkit.getScreenInsets(config)
     Screen_Size(bounds, insets)
   }
+
+
+  /* key event handling */
+
+  def command_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
+
+  def shift_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
+
+  def alt_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
 
 
   /* component hierachy */

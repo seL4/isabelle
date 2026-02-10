@@ -277,7 +277,7 @@ class Rich_Text_Area(
       robust_body(()) {
         val x = evt.getX
         val y = evt.getY
-        val control = JEdit_Lib.command_modifier(evt)
+        val control = GUI.command_modifier(evt)
 
         if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
@@ -291,7 +291,7 @@ class Rich_Text_Area(
                   }
                   else area.reset()
                 }
-                if (JEdit_Lib.alt_modifier(evt)) {
+                if (GUI.alt_modifier(evt)) {
                   highlight_area.info.map(_.range) match {
                     case Some(range) =>
                       text_area.requestFocus()

@@ -342,7 +342,7 @@ class Pretty_Text_Area(
   addKeyListener(JEdit_Lib.key_listener(
     key_pressed = { (evt: KeyEvent) =>
       val strict_control =
-        JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
+        GUI.command_modifier(evt) && !GUI.shift_modifier(evt)
 
       evt.getKeyCode match {
         case KeyEvent.VK_C | KeyEvent.VK_INSERT

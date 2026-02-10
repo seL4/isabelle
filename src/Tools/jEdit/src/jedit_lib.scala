@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.{File => JFile}
-import java.awt.{Component, Container, Toolkit}
+import java.awt.{Component, Container}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import java.awt.font.FontRenderContext
 import javax.swing.{ImageIcon, JScrollBar, JWindow}
@@ -458,15 +458,6 @@ object JEdit_Lib {
       !Debug.ALT_KEY_PRESSED_DISABLED ||
     (mod & InputEvent.META_DOWN_MASK) != 0
   }
-
-  def command_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
-
-  def shift_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
-
-  def alt_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
 
   def modifier_string(evt: InputEvent): String =
     KeyEventTranslator.getModifierString(evt) match {
