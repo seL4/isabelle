@@ -12,8 +12,8 @@ import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocus
 import java.awt.event.{InputEvent, KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
-  RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane, KeyStroke,
+  RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities, JComponent}
 
 import scala.swing.{Alignment, CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
 import scala.swing.Swing.EmptyIcon
@@ -503,6 +503,21 @@ object GUI {
 
   def plain_escape(evt: KeyEvent): Boolean =
     evt.getKeyCode == KeyEvent.VK_ESCAPE && no_modifier(evt)
+
+  def suppress_keystrokes(component: JComponent, pred: KeyStroke => Boolean): Unit =
+    for {
+      cond <-
+        List(JComponent.WHEN_FOCUSED,
+          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+          JComponent.WHEN_IN_FOCUSED_WINDOW)
+    } {
+      val input = component.getInputMap(cond)
+      if (input != null) {
+        val keys = input.allKeys
+        if (keys != null) { for (k <- keys.iterator if pred(k)) input.put(k, "none") }
+        component.setInputMap(cond, input)
+      }
+    }
 
 
   /* component hierachy */
