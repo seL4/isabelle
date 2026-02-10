@@ -69,6 +69,9 @@ Minor INCOMPATIBILITY.
 with the list of currently active hyperlinks, e.g. for definitions of
 formal entities.
 
+* The jEdit action "focus-textarea" is now mapped to the keyboard
+shortcut F2, for improved accessibility.
+
 * Popups from explicit actions (notably "isabelle.show-links",
 "isabelle.complete", etc.) now always get focus, and allow to select
 both with ENTER and TAB. This improves overall accessibility. Minor
