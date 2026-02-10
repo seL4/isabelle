@@ -342,7 +342,7 @@ class Pretty_Text_Area(
   addKeyListener(JEdit_Lib.key_listener(
     key_pressed = { (evt: KeyEvent) =>
       val strict_control =
-        JEdit_Lib.command_modifier(evt) && !JEdit_Lib.shift_modifier(evt)
+        GUI.command_modifier(evt) && !GUI.shift_modifier(evt)
 
       evt.getKeyCode match {
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
@@ -355,7 +355,8 @@ class Pretty_Text_Area(
           pretty_text_area.selectAll()
           evt.consume()
 
-        case KeyEvent.VK_ESCAPE =>
+        case KeyEvent.VK_ESCAPE
+        if GUI.no_modifier(evt) =>
           if (Isabelle.dismissed_popups(view)) evt.consume()
           else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 

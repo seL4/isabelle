@@ -189,7 +189,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val context_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-context") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
+        if (evt.getID == KeyEvent.KEY_PRESSED && GUI.plain_enter(evt)) {
           eval_expression()
         }
         super.processKeyEvent(evt)
@@ -206,7 +206,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   private val expression_field =
     new Completion_Popup.History_Text_Field("isabelle-debugger-expression") {
       override def processKeyEvent(evt: KeyEvent): Unit = {
-        if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) {
+        if (evt.getID == KeyEvent.KEY_PRESSED && GUI.plain_enter(evt)) {
           eval_expression()
         }
         super.processKeyEvent(evt)

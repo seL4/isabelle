@@ -56,7 +56,7 @@ diff -Nru -- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props jedit5.7.0-patc
  #}}}
 diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
 --- jedit5.7.0/jEdit/keymaps/jEdit_keys.props	2024-08-03 19:53:29.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-02-03 14:31:09.554690407 +0100
++++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-02-10 16:54:13.389951473 +0100
 @@ -1,5 +1,5 @@
  #{{{ Function keys
 -help.shortcut=F1
@@ -64,7 +64,15 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  show-context-menu.shortcut=CONTEXT_MENU
  #}}}
  
-@@ -225,7 +225,7 @@
+@@ -104,6 +104,7 @@
+ top-docking-area.shortcut=C+e C+UP
+ right-docking-area.shortcut=C+e C+RIGHT
+ bottom-docking-area.shortcut=C+e C+DOWN
++focus-textarea.shortcut=F2
+ toggle-full-screen.shortcut=F11
+ toggle-dock-areas.shortcut=F12
+ combined-options.shortcut=C+F12
+@@ -225,7 +226,7 @@
  vfs.browser.rename.shortcut=F2
  vfs.browser.roots.shortcut=/
  vfs.browser.synchronize.shortcut=-

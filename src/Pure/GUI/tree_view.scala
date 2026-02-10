@@ -93,7 +93,7 @@ class Tree_View(
 
   addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
-      if (!e.isConsumed() && e.getKeyCode == KeyEvent.VK_ENTER) {
+      if (!e.isConsumed() && GUI.plain_enter(e)) {
         e.consume()
         handle_selection(getSelectionPath)
       }
@@ -107,6 +107,8 @@ class Tree_View(
 
 
   /* init */
+
+  if (!isEditable) GUI.suppress_keystrokes(this, k => k.getKeyCode == KeyEvent.VK_F2)
 
   setCellRenderer(new Tree_View.Cell_Renderer)
 

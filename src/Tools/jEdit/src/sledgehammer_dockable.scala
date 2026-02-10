@@ -69,7 +69,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
         Options.defaults.string("sledgehammer_provers"))
   private val provers = new HistoryTextField("isabelle-sledgehammer-provers") {
     override def processKeyEvent(evt: KeyEvent): Unit = {
-      if (evt.getID == KeyEvent.KEY_PRESSED && evt.getKeyCode == KeyEvent.VK_ENTER) hammer()
+      if (evt.getID == KeyEvent.KEY_PRESSED && GUI.plain_enter(evt)) hammer()
       super.processKeyEvent(evt)
     }
     setToolTipText(provers_tooltip)

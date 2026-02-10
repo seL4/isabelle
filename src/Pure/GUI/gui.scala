@@ -9,11 +9,11 @@ package isabelle
 import java.util.{Map => JMap}
 import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocusManager, Window,
   Point, Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
-import java.awt.event.{KeyAdapter, KeyEvent}
+import java.awt.event.{InputEvent, KeyAdapter, KeyEvent}
 import java.awt.font.{FontRenderContext, LineMetrics, TextAttribute, TransformAttribute}
 import java.awt.geom.AffineTransform
-import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane,
-  RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities}
+import javax.swing.{Icon, ImageIcon, JButton, JLabel, JLayeredPane, JOptionPane, KeyStroke,
+  RootPaneContainer, JTextField, JComboBox, LookAndFeel, UIManager, SwingUtilities, JComponent}
 
 import scala.swing.{Alignment, CheckBox, ComboBox, ScrollPane, TextArea, ListView, Separator}
 import scala.swing.Swing.EmptyIcon
@@ -478,6 +478,46 @@ object GUI {
     val insets = Toolkit.getDefaultToolkit.getScreenInsets(config)
     Screen_Size(bounds, insets)
   }
+
+
+  /* key event handling */
+
+  def command_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
+
+  def shift_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
+
+  def alt_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
+
+  def no_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx &
+      (InputEvent.CTRL_DOWN_MASK |
+       InputEvent.ALT_DOWN_MASK |
+       InputEvent.META_DOWN_MASK |
+       InputEvent.SHIFT_DOWN_MASK)) == 0
+
+  def plain_enter(evt: KeyEvent): Boolean =
+    evt.getKeyCode == KeyEvent.VK_ENTER && no_modifier(evt)
+
+  def plain_escape(evt: KeyEvent): Boolean =
+    evt.getKeyCode == KeyEvent.VK_ESCAPE && no_modifier(evt)
+
+  def suppress_keystrokes(component: JComponent, pred: KeyStroke => Boolean): Unit =
+    for {
+      cond <-
+        List(JComponent.WHEN_FOCUSED,
+          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+          JComponent.WHEN_IN_FOCUSED_WINDOW)
+    } {
+      val input = component.getInputMap(cond)
+      if (input != null) {
+        val keys = input.allKeys
+        if (keys != null) { for (k <- keys.iterator if pred(k)) input.put(k, "none") }
+        component.setInputMap(cond, input)
+      }
+    }
 
 
   /* component hierachy */

@@ -148,7 +148,7 @@ class Selection_Popup(
   val inner_key_listener: KeyListener =
     JEdit_Lib.key_listener(
       key_pressed = { (e: KeyEvent) =>
-        if (!e.isConsumed) {
+        if (!e.isConsumed && GUI.no_modifier(e)) {
           e.getKeyCode match {
             case KeyEvent.VK_ENTER if select_enter =>
               if (select_current()) e.consume()
