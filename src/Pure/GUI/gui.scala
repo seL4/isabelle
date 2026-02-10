@@ -491,6 +491,19 @@ object GUI {
   def alt_modifier(evt: InputEvent): Boolean =
     (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
 
+  def no_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx &
+      (InputEvent.CTRL_DOWN_MASK |
+       InputEvent.ALT_DOWN_MASK |
+       InputEvent.META_DOWN_MASK |
+       InputEvent.SHIFT_DOWN_MASK)) == 0
+
+  def plain_enter(evt: KeyEvent): Boolean =
+    evt.getKeyCode == KeyEvent.VK_ENTER && no_modifier(evt)
+
+  def plain_escape(evt: KeyEvent): Boolean =
+    evt.getKeyCode == KeyEvent.VK_ESCAPE && no_modifier(evt)
+
 
   /* component hierachy */
 
