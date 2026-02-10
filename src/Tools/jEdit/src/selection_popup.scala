@@ -201,7 +201,11 @@ class Selection_Popup(
 
   override def getFocusTraversalKeysEnabled = false
   panel.setBorder(new LineBorder(GUI.default_foreground_color()))
-  panel.add((new ScrollPane(list_view)).peer.asInstanceOf[JComponent])
+
+  private val scroll_pane = new ScrollPane(list_view)
+  scroll_pane.horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
+  scroll_pane.verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+  panel.add(scroll_pane.peer.asInstanceOf[JComponent])
 
 
   /* popup */
