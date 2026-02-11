@@ -504,26 +504,27 @@ object GUI {
   def plain_escape(evt: KeyEvent): Boolean =
     evt.getKeyCode == KeyEvent.VK_ESCAPE && no_modifier(evt)
 
+
+  /* component input maps */
+
+  val input_maps: List[Int] =
+    List(
+      JComponent.WHEN_FOCUSED,
+      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+      JComponent.WHEN_IN_FOCUSED_WINDOW)
+
   def suppress_input(component: JComponent, pred: KeyStroke => Boolean): Unit =
-    for {
-      cond <-
-        List(JComponent.WHEN_FOCUSED,
-          JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-          JComponent.WHEN_IN_FOCUSED_WINDOW)
-    } {
-      val input = component.getInputMap(cond)
+    for (i <- input_maps) {
+      val input = component.getInputMap(i)
       if (input != null) {
         val keys = input.allKeys
         if (keys != null) { for (k <- keys.iterator if pred(k)) input.put(k, "none") }
-        component.setInputMap(cond, input)
+        component.setInputMap(i, input)
       }
     }
 
   def reset_input(component: JComponent): Unit =
-    for (cond <-
-      List(JComponent.WHEN_FOCUSED,
-        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-        JComponent.WHEN_IN_FOCUSED_WINDOW)) component.setInputMap(cond, null)
+    for (i <- input_maps) component.setInputMap(i, null)
 
 
   /* component hierachy */
