@@ -66,7 +66,7 @@ object Isabelle_Navigator {
     val empty: History = new History(Linear_Set.empty)
   }
 
-  class History(hist: Linear_Set[Pos]) {
+  final class History private(hist: Linear_Set[Pos]) {
     override def toString: String =
       size match {
         case 0 => "History.empty"
