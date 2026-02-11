@@ -514,13 +514,12 @@ object GUI {
       JComponent.WHEN_IN_FOCUSED_WINDOW)
 
   def suppress_input(component: JComponent, pred: KeyStroke => Boolean): Unit =
-    for (i <- input_maps) {
-      val input = component.getInputMap(i)
-      if (input != null) {
-        val keys = input.allKeys
-        if (keys != null) { for (k <- keys.iterator if pred(k)) input.put(k, "none") }
-      }
-    }
+    for {
+      i <- input_maps.iterator
+      input <- Option(component.getInputMap(i))
+      keys <- Option(input.allKeys)
+      key <- keys if pred(key)
+    } input.put(key, "none")
 
   def reset_input(component: JComponent): Unit =
     for (i <- input_maps) component.setInputMap(i, null)
