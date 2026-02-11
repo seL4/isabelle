@@ -30,7 +30,6 @@ options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Render
 #menu actions and dockables
 isabelle-menu.label=$Isabelle
 isabelle-menu= \
-  isabelle.options \
   isabelle.browser-info \
   isabelle-export-browser \
   isabelle-session-browser \
@@ -93,7 +92,8 @@ isabelle-timing.label=Timing panel
 isabelle-timing.title=Timing
 isabelle.browser-info.label=Browse HTML library
 isabelle.draft.label=Show draft in browser
-isabelle.options.label=Isabelle Options
+isabelle.options.label=$Isabelle Options...
+isabelle.options.icon.small=32x32/categories/preferences-system.svg?scale=0.5
 isabelle.reload-plain.icon.small=16x16/actions/view-refresh.svg
 isabelle.reload-plain.label=Reload Plain $Text
 isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg
