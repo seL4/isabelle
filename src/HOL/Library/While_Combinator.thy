@@ -413,6 +413,9 @@ lemma while_saturate_code[code]: "while_saturate f M =
 unfolding while_saturate_def Let_def while_Some_def
 by (auto intro!: while_option_cong split: if_splits)
 
+lemma while_saturate_saturated: "while_saturate F S0 = Some S \<Longrightarrow> F S \<subseteq> S"
+by (metis (mono_tags, lifting) while_option_stop while_saturate_def)
+
 text \<open>Termination:\<close>
 
 lemma while_option_sat_finite_subset_Some: fixes C :: "'a set"
@@ -456,6 +459,9 @@ theorem while_saturate_rule1:
    shows "P y"
 using while_saturate_rule[OF _ assms(2), of \<open>\<lambda>S. \<forall>s\<in>S. P s\<close>]
 by (metis Un_iff assms(1,3,4))
+
+lemma while_saturate_incr: "while_saturate F S0 = Some S \<Longrightarrow> S0 \<subseteq> S"
+by (simp add: le_supI1 while_saturate_rule)
 
 text \<open>Correctness: finds the least saturated/closed set above \<open>M\<close>\<close>
 
