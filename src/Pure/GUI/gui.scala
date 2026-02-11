@@ -504,7 +504,7 @@ object GUI {
   def plain_escape(evt: KeyEvent): Boolean =
     evt.getKeyCode == KeyEvent.VK_ESCAPE && no_modifier(evt)
 
-  def suppress_keystrokes(component: JComponent, pred: KeyStroke => Boolean): Unit =
+  def suppress_input(component: JComponent, pred: KeyStroke => Boolean): Unit =
     for {
       cond <-
         List(JComponent.WHEN_FOCUSED,
