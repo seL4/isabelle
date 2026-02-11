@@ -116,10 +116,7 @@ class Selection_Popup(
   list_view.peer.setVisibleRowCount(items.length min 8)
   list_view.peer.setSelectedIndex(0)
 
-  for (cond <-
-    List(JComponent.WHEN_FOCUSED,
-      JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
-      JComponent.WHEN_IN_FOCUSED_WINDOW)) list_view.peer.setInputMap(cond, null)
+  GUI.reset_input(list_view.peer)
 
   private def select_current(): Boolean = {
     list_view.selection.items.toList match {

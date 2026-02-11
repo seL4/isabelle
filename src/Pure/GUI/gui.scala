@@ -519,6 +519,12 @@ object GUI {
       }
     }
 
+  def reset_input(component: JComponent): Unit =
+    for (cond <-
+      List(JComponent.WHEN_FOCUSED,
+        JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT,
+        JComponent.WHEN_IN_FOCUSED_WINDOW)) component.setInputMap(cond, null)
+
 
   /* component hierachy */
 
