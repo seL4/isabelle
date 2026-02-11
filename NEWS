@@ -29,18 +29,21 @@ Minor INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
-* The "Isabelle" menu now appears in the main menu bar, instead of
-"Plugins / Isabelle". Minor INCOMPATIBILITY.
+* The menu bar of jEdit has been adapted to the requirements of
+Isabelle/jEdit, with special focus on accessibility: menus need to be
+clearly structured and provide reasonable access paths, usually with
+shortcuts. The following menus and items are particularly notable:
 
-* The "Macros" menu has been moved into menu of "Utilities", as a
-submenu. Minor INCOMPATIBILITY.
+  - Utilities / Plugin Manager: moved here from Plugins menu
+  - Utilities / Macros: moved here from main menu bar
+  - Plugins: only lists submenus from plugins
+  - Isabelle: moved here from Plugins / Isabelle
+  - Options: new menu with Buffer, Global, Plugin, Isabelle Options.
+  - Help: new item for Isabelle Documentation.
 
 * The menu action "Edit / Complete word" now refers to
 "isabelle.complete-words" instead of "complete-word" from classic jEdit.
 Minor INCOMPATIBILITY.
-
-* Various menu shortcuts have been adjusted, to improved overall
-accessibility via keyboard actions. Minor INCOMPATIBILITY.
 
 * Support for additional look-and-feels: "FlatLaf IntelliJ" and "FlatLaf
 Darcula".

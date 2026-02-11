@@ -30,7 +30,6 @@ options.isabelle-rendering.code=new isabelle.jedit.JEdit_Options$Isabelle_Render
 #menu actions and dockables
 isabelle-menu.label=$Isabelle
 isabelle-menu= \
-  isabelle.options \
   isabelle.browser-info \
   isabelle-export-browser \
   isabelle-session-browser \
@@ -93,15 +92,80 @@ isabelle-timing.label=Timing panel
 isabelle-timing.title=Timing
 isabelle.browser-info.label=Browse HTML library
 isabelle.draft.label=Show draft in browser
-isabelle.options.label=Isabelle Options
+isabelle.options.label=$Isabelle Options...
+isabelle.options.icon.small=32x32/categories/preferences-system.svg?scale=0.5
 isabelle.reload-plain.icon.small=16x16/actions/view-refresh.svg
 isabelle.reload-plain.label=Reload Plain $Text
 isabelle.reload-symbols.icon.small=16x16/actions/view-refresh.svg
 isabelle.reload-symbols.label=Reload Unicode S$ymbols
 
 #other actions
+isabelle.antiquoted_cartouche.label=Make antiquoted cartouche
+isabelle.complete-word.label=Complete word
+isabelle.complete.label=Complete Isabelle text
+isabelle.complete.shortcut2=C+b
+isabelle.control-bold.label=Control bold
+isabelle.control-bold.shortcut=C+e RIGHT
+isabelle.control-emph.label=Control emphasized
+isabelle.control-emph.shortcut=C+e LEFT
+isabelle.control-reset.label=Control reset
+isabelle.control-reset.shortcut=C+e BACK_SPACE
+isabelle.control-sub.label=Control subscript
+isabelle.control-sub.shortcut=C+e DOWN
+isabelle.control-sup.label=Control superscript
+isabelle.control-sup.shortcut=C+e UP
+isabelle.decrease-font-size.label=Decrease font size
+isabelle.decrease-font-size.shortcut2=C+SUBTRACT
+isabelle.decrease-font-size.shortcut=C+MINUS
+isabelle.decrease-font-size2.label=Decrease font size (clone)
+isabelle.exclude-word-permanently.label=Exclude word permanently
+isabelle.exclude-word.label=Exclude word
+isabelle.first-error.label=Go to first error
+isabelle.first-error.shortcut=CS+a
+isabelle.follow-link.label=Follow link at caret (e.g. to definition of formal entity)
+isabelle.follow-link.shortcut=CS+d
+isabelle.include-word-permanently.label=Include word permanently
+isabelle.include-word.label=Include word
+isabelle.increase-font-size.label=Increase font size
+isabelle.increase-font-size.shortcut2=C+ADD
+isabelle.increase-font-size.shortcut=C+PLUS
+isabelle.increase-font-size2.label=Increase font size (clone)
+isabelle.increase-font-size2.shortcut=C+EQUALS
+isabelle.last-error.label=Go to last error
+isabelle.last-error.shortcut=CS+z
+isabelle.message.label=Show message
+isabelle.message.shortcut=CS+m
+isabelle.newline.label=Newline with indentation of Isabelle keywords
+isabelle.newline.shortcut=ENTER
+isabelle.next-error.label=Go to next error
+isabelle.next-error.shortcut=CS+n
+isabelle.prev-error.label=Go to previous error
+isabelle.prev-error.shortcut=CS+p
+isabelle.reset-continuous-checking.label=Reset continuous checking
+isabelle.reset-font-size.label=Reset font size
+isabelle.reset-node-required.label=Reset node required
+isabelle.reset-words.label=Reset non-permanent words
+isabelle.select-entity.label=Select all occurences of formal entity at caret
+isabelle.select-entity.shortcut=CS+ENTER
+isabelle.select-structure.label=Select structure around selection or caret
+isabelle.select-structure.shortcut=C+7
+isabelle.set-continuous-checking.label=Set continuous checking
+isabelle.set-node-required.label=Set node required
 isabelle.show-links.label=Show hyperlinks at caret
 isabelle.show-links.shortcut=CS+h
+isabelle.toggle-breakpoint.label=Toggle Breakpoint
+isabelle.toggle-continuous-checking.label=Toggle continuous checking
+isabelle.toggle-continuous-checking.shortcut=C+e ENTER
+isabelle.toggle-node-required.label=Toggle node required
+isabelle.toggle-node-required.shortcut=C+e SPACE
+isabelle.tooltip.label=Show tooltip
+isabelle.tooltip.shortcut=CS+b
+isabelle.update-state.label=Update state output
+isabelle.update-state.shortcut=S+ENTER
+navigate-backwards.label=Navigate backwards
+navigate-backwards.shortcut=AS+LEFT
+navigate-forwards.label=Navigate forwards
+navigate-forwards.shortcut=AS+RIGHT
 
 #SideKick
 mode.isabelle-news.folding=sidekick
