@@ -519,7 +519,6 @@ object GUI {
       if (input != null) {
         val keys = input.allKeys
         if (keys != null) { for (k <- keys.iterator if pred(k)) input.put(k, "none") }
-        component.setInputMap(i, input)
       }
     }
 
