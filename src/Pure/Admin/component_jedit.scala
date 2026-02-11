@@ -281,7 +281,6 @@ firstTime=false
 focus-buffer-switcher.shortcut2=A+CIRCUMFLEX
 foldPainter=Circle
 gatchan.highlight.overview=false
-help.label=Original jEdit $Help
 helpviewer.font=Isabelle DejaVu Serif
 helpviewer.fontsize=12
 home.shortcut=

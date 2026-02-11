@@ -1,6 +1,6 @@
 diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props
 --- jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props	2024-08-03 19:53:22.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-01-28 20:23:01.014592467 +0100
++++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-02-11 14:44:35.500773547 +0100
 @@ -70,7 +70,7 @@
  #}}}
  
@@ -54,6 +54,15 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  no-recent-dirs.label=No Recent Directories
  #}}}
  
+@@ -414,7 +414,7 @@
+ #{{{ Help menu
+ help-menu.label=$Help
+ about.label=$About jEdit...
+-help.label=jEdit $Help
++help.label=Original jEdit $Help
+ tip-of-the-day.label=$Tip of the Day
+ userFeedback.label=Make a suggestion...
+ #}}}
 @@ -1282,8 +1282,7 @@
  	The most likely reason is that the JAR file is corrupt; try\n\
  	reinstalling it. See Utilities->Troubleshooting->Activity Log\n\
