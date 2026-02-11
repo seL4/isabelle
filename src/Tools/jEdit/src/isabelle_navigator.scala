@@ -112,9 +112,6 @@ object Isabelle_Navigator {
         }
       )
   }
-
-  final class State private[Isabelle_Navigator](view: View) {
-  }
 }
 
 class Isabelle_Navigator {
