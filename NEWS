@@ -108,6 +108,12 @@ For example:
       card_le_card_if_mem_imp_ex_mem
       card_Range_le
 
+* Theory "HOL.Map":
+  - Added lemmas.
+      eq_card_ran
+      inj_on_the_image_dom
+      ran_conv_dom
+
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
 reasonable implementation, but a lot of implementations would require
