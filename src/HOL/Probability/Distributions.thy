@@ -1234,7 +1234,7 @@ proof -
     done
 
   also have "... =
-    (\<lambda>x. (normal_density 0 (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) x) * \<integral>\<^sup>+y. ennreal( normal_density (\<tau>\<^sup>2* x / (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) ?\<sigma> y) \<partial>lborel)"
+    (\<lambda>x. (normal_density 0 (sqrt (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) x) * (\<integral>\<^sup>+y. ennreal( normal_density (\<tau>\<^sup>2* x / (\<sigma>\<^sup>2 + \<tau>\<^sup>2)) ?\<sigma> y) \<partial>lborel))"
     by (subst nn_integral_cmult[symmetric])
        (auto simp: \<sigma>'_def \<tau>'_def normal_density_def ennreal_mult'[symmetric])
 

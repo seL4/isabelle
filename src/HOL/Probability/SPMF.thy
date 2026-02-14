@@ -941,7 +941,7 @@ lemma nn_integral_embed_spmf_eq_1:
 proof -
   have "?lhs = \<integral>\<^sup>+ x. ?f x * indicator {None} x + ?f x * indicator (range Some) x \<partial>?M"
     by(rule nn_integral_cong)(auto split: split_indicator)
-  also have "\<dots> = (1 - enn2real (\<integral>\<^sup>+ x. ennreal (f x) \<partial>count_space UNIV)) + \<integral>\<^sup>+ x. ?f x * indicator (range Some) x \<partial>?M"
+  also have "\<dots> = (1 - enn2real (\<integral>\<^sup>+ x. ennreal (f x) \<partial>count_space UNIV)) + (\<integral>\<^sup>+ x. ?f x * indicator (range Some) x \<partial>?M)"
     (is "_ = ?None + ?Some")
     by(subst nn_integral_add)(simp_all add: AE_count_space max_def le_diff_eq real_le_ereal_iff one_ereal_def[symmetric] prob split: option.split)
   also have "?Some = \<integral>\<^sup>+ x. ?f x \<partial>count_space (range Some)"
@@ -2173,7 +2173,7 @@ where
 lemma scale_spmf_le_1:
   "(\<integral>\<^sup>+ x. min (inverse (weight_spmf p)) (max 0 r) * spmf p x \<partial>count_space UNIV) \<le> 1" (is "?lhs \<le> _")
 proof -
-  have "?lhs = min (inverse (weight_spmf p)) (max 0 r) * \<integral>\<^sup>+ x. spmf p x \<partial>count_space UNIV"
+  have "?lhs = min (inverse (weight_spmf p)) (max 0 r) * (\<integral>\<^sup>+ x. spmf p x \<partial>count_space UNIV)"
     by(subst nn_integral_cmult[symmetric])(simp_all add: weight_spmf_nonneg max_def min_def ennreal_mult)
   also have "\<dots> \<le> 1" unfolding weight_spmf_eq_nn_integral_spmf[symmetric]
     by(simp add: min_def max_def weight_spmf_nonneg order.strict_iff_order field_simps ennreal_mult[symmetric])
@@ -2689,7 +2689,7 @@ lemma spmf_try_spmf:
 proof -
   have "ennreal (spmf (TRY p ELSE q) x) = \<integral>\<^sup>+ y. ennreal (spmf q x) * indicator {None} y + indicator {Some x} y \<partial>measure_pmf p"
     unfolding try_spmf_def ennreal_pmf_bind by(rule nn_integral_cong)(simp split: option.split split_indicator)
-  also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (spmf q x) * indicator {None} y \<partial>measure_pmf p) + \<integral>\<^sup>+ y. indicator {Some x} y \<partial>measure_pmf p"
+  also have "\<dots> = (\<integral>\<^sup>+ y. ennreal (spmf q x) * indicator {None} y \<partial>measure_pmf p) + (\<integral>\<^sup>+ y. indicator {Some x} y \<partial>measure_pmf p)"
     by(simp add: nn_integral_add)
   also have "\<dots> = ennreal (spmf q x) * pmf p None + spmf p x" by(simp add: emeasure_pmf_single)
   finally show ?thesis by(simp flip: ennreal_plus ennreal_mult)

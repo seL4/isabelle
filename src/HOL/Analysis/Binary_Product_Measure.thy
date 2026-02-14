@@ -917,8 +917,8 @@ proof (rule measure_eqI)
   interpret D2: sigma_finite_measure "density M2 g" by fact
 
   fix A assume A: "A \<in> sets ?L"
-  with f g have "(\<integral>\<^sup>+ x. f x * \<integral>\<^sup>+ y. g y * indicator A (x, y) \<partial>M2 \<partial>M1) =
-    (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f x * g y * indicator A (x, y) \<partial>M2 \<partial>M1)"
+  with f g have "(\<integral>\<^sup>+ x. f x * (\<integral>\<^sup>+ y. g y * indicator A (x, y) \<partial>M2) \<partial>M1) =
+                 (\<integral>\<^sup>+ x. \<integral>\<^sup>+ y. f x * g y * indicator A (x, y) \<partial>M2 \<partial>M1)"
     by (intro nn_integral_cong_AE)
        (auto simp add: nn_integral_cmult[symmetric] ac_simps)
   with A f g show "emeasure ?L A = emeasure ?R A"

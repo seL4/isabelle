@@ -320,7 +320,7 @@ next
     by (simp add: measurable_emeasure_subprob_algebra)
 next
   case (mult f c)
-  then have "(\<lambda>M'. \<integral>\<^sup>+M''. c * f M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. c * \<integral>\<^sup>+M''. f M'' \<partial>M') \<in> ?B"
+  then have "(\<lambda>M'. \<integral>\<^sup>+M''. c * f M'' \<partial>M') \<in> ?B \<longleftrightarrow> (\<lambda>M'. c * (\<integral>\<^sup>+M''. f M'' \<partial>M')) \<in> ?B"
     by (intro measurable_cong nn_integral_cmult) (auto simp add: space_subprob_algebra)
   with mult show ?case
     by simp
@@ -835,7 +835,7 @@ next
     using M by (simp add: emeasure_join)
 next
   case (mult f c)
-  have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. c * f x \<partial>M' \<partial>M) = (\<integral>\<^sup>+ M'. c * \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"
+  have "(\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. c * f x \<partial>M' \<partial>M) = (\<integral>\<^sup>+ M'. c * (\<integral>\<^sup>+ x. f x \<partial>M') \<partial>M)"
     using mult M M[THEN sets_eq_imp_space_eq]
     by (intro nn_integral_cong nn_integral_cmult) (auto simp add: space_subprob_algebra)
   also have "\<dots> = c * (\<integral>\<^sup>+ M'. \<integral>\<^sup>+ x. f x \<partial>M' \<partial>M)"

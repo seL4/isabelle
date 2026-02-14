@@ -586,7 +586,7 @@ proof (safe intro!: has_bochner_integral.intros elim!: has_bochner_integral.case
   proof (rule tendsto_sandwich)
     show "eventually (\<lambda>n. 0 \<le> ?f n) sequentially" "(\<lambda>_. 0) \<longlonglongrightarrow> 0"
       by auto
-    show "eventually (\<lambda>i. ?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) \<partial>M) + \<integral>\<^sup>+ x. (norm (g x - sg i x)) \<partial>M) sequentially"
+    show "eventually (\<lambda>i. ?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) \<partial>M) + (\<integral>\<^sup>+ x. (norm (g x - sg i x)) \<partial>M)) sequentially"
       (is "eventually (\<lambda>i. ?f i \<le> ?g i) sequentially")
     proof (intro always_eventually allI)
       fix i have "?f i \<le> (\<integral>\<^sup>+ x. (norm (f x - sf i x)) + ennreal (norm (g x - sg i x)) \<partial>M)"
