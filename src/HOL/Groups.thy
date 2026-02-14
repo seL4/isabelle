@@ -1341,7 +1341,7 @@ qed
 end
 
 lemma dense_eq0_I:
-  fixes x::"'a::{dense_linorder,ordered_ab_group_add_abs}"
+  fixes x::"'a::{dense_order,ordered_ab_group_add_abs}"
   assumes "\<And>e. 0 < e \<Longrightarrow> \<bar>x\<bar> \<le> e"
   shows "x = 0"
 proof (cases "\<bar>x\<bar> = 0")
@@ -1351,7 +1351,7 @@ proof (cases "\<bar>x\<bar> = 0")
   then obtain z where "0 < z" "z < \<bar>x\<bar>"
     using dense by force
   then show ?thesis
-    using assms by (simp flip: not_less)
+    using assms[of z] by auto
 qed auto
 
 hide_fact (open) ab_diff_conv_add_uminus add_0 mult_1 ab_left_minus

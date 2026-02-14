@@ -1528,12 +1528,13 @@ lemma Suc_funpow[simp]: "Suc ^^ n = ((+) n)"
 lemma id_funpow[simp]: "id ^^ n = id"
   by (induct n) simp_all
 
-lemma funpow_mono: "mono f \<Longrightarrow> A \<le> B \<Longrightarrow> (f ^^ n) A \<le> (f ^^ n) B"
-  for f :: "'a \<Rightarrow> ('a::order)"
-  by (induct n) (auto simp: mono_def)
+lemma funpow_mono: "mono_on UNIV f \<Longrightarrow> A \<le> B \<Longrightarrow> (f ^^ n) A \<le> (f ^^ n) B"
+  for f :: "'a \<Rightarrow> ('a::preorder)"
+  by (induct n) (auto simp: mono_on_def)
 
 lemma funpow_mono2:
-  assumes "mono f"
+  fixes f :: "'a \<Rightarrow> 'a :: preorder"
+  assumes "mono_on UNIV f"
     and "i \<le> j"
     and "x \<le> y"
     and "x \<le> f x"
@@ -1548,12 +1549,13 @@ next
   proof(cases "i = Suc j")
     case True
     with assms(1) Suc show ?thesis
-      by (simp del: funpow.simps add: funpow_simps_right monoD funpow_mono)
+      by (simp del: funpow.simps add: funpow_simps_right mono_onD funpow_mono)
   next
     case False
-    with assms(1,4) Suc show ?thesis
+    have "x \<le> f y"
+      using assms(4) Suc(3) mono_onD[OF assms(1)] order.trans[of x "f x" "f y"] by simp
+    with False Suc(1,2) show ?thesis
       by (simp del: funpow.simps add: funpow_simps_right le_eq_less_or_eq less_Suc_eq_le)
-        (simp add: Suc.hyps monoD order_subst1)
   qed
 qed
 
@@ -1619,9 +1621,9 @@ proof (rule antisym)
     using Kleene_iter_lpfp[OF assms(1)] lfp_unfold[OF assms(1)] by simp
 qed
 
-lemma mono_pow: "mono f \<Longrightarrow> mono (f ^^ n)"
-  for f :: "'a \<Rightarrow> 'a::order"
-  by (induct n) (auto simp: mono_def)
+lemma mono_pow: "mono_on UNIV f \<Longrightarrow> mono_on UNIV (f ^^ n)"
+  for f :: "'a \<Rightarrow> 'a::preorder"
+  by (induct n) (auto simp: mono_on_def)
 
 lemma lfp_funpow:
   assumes f: "mono f"
@@ -2023,19 +2025,22 @@ lemma lift_Suc_mono_less_iff: "(\<And>n. f n < f (Suc n)) \<Longrightarrow> f n 
 
 end
 
-lemma mono_iff_le_Suc: "mono f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
-  unfolding mono_def by (auto intro: lift_Suc_mono_le [of f])
+lemma mono_iff_le_Suc: "mono_on UNIV f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
+  for f :: "nat \<Rightarrow> 'a::preorder"
+  unfolding mono_on_def by (auto intro: lift_Suc_mono_le [of f])
 
-lemma antimono_iff_le_Suc: "antimono f \<longleftrightarrow> (\<forall>n. f (Suc n) \<le> f n)"
-  unfolding antimono_def by (auto intro: lift_Suc_antimono_le [of f])
+lemma antimono_iff_le_Suc: "antimono_on UNIV f \<longleftrightarrow> (\<forall>n. f (Suc n) \<le> f n)"
+  for f :: "nat \<Rightarrow> 'a::preorder"
+  unfolding monotone_on_def by (auto intro: lift_Suc_antimono_le [of f])
 
-lemma strict_mono_Suc_iff: "strict_mono f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
-proof (intro iffI strict_monoI)
+lemma strict_mono_Suc_iff: "strict_mono_on UNIV f \<longleftrightarrow> (\<forall>n. f n < f (Suc n))"
+  for f :: "nat \<Rightarrow> 'a::preorder"
+proof (intro iffI strict_mono_onI)
   assume *: "\<forall>n. f n < f (Suc n)"
   fix m n :: nat assume "m < n"
   thus "f m < f n"
-    by (induction rule: less_Suc_induct) (use * in auto)
-qed (auto simp: strict_mono_def)
+    by (induction rule: less_Suc_induct) (use * in \<open>auto intro: order.strict_trans\<close>)
+qed (auto simp: strict_mono_on_def)
 
 lemma strict_mono_add: "strict_mono (\<lambda>n::'a::linordered_semidom. n + k)"
   by (auto simp: strict_mono_def)
