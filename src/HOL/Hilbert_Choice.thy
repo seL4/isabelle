@@ -434,7 +434,7 @@ qed
 
 
 lemma mono_inv:
-  fixes f::"'a::linorder \<Rightarrow> 'b::linorder"
+  fixes f::"'a::linorder \<Rightarrow> 'b::order"
   assumes "mono f" "bij f"
   shows "mono (inv f)"
 proof
@@ -454,14 +454,14 @@ proof
 qed
 
 lemma strict_mono_inv_on_range:
-  fixes f :: "'a::linorder \<Rightarrow> 'b::order"
-  assumes "strict_mono f"
+  fixes f :: "'a::linorder \<Rightarrow> 'b::preorder"
+  assumes "strict_mono_on UNIV f"
   shows "strict_mono_on (range f) (inv f)"
 proof (clarsimp simp: strict_mono_on_def)
   fix x y
   assume "f x < f y"
   then show "inv f (f x) < inv f (f y)"
-    using assms strict_mono_imp_inj_on strict_mono_less by fastforce
+    using assms strict_mono_on_imp_inj_on strict_mono_less by fastforce
 qed
 
 lemma mono_bij_Inf:

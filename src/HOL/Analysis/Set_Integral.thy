@@ -804,7 +804,7 @@ proof -
   then have "AE x\<in>A in M. False" using assms(3) by auto
   then show "A \<in> null_sets M" using assms(2) by (simp add: AE_iff_null_sets)
 qed
-
+                                    
 text\<open>The next lemma is a variant of \<open>density_unique\<close>. Note that it uses the notation
 for nonnegative set integrals introduced earlier.\<close>
 

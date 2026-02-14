@@ -14,6 +14,25 @@ theory Equivalence_Lebesgue_Henstock_Integration
     Cartesian_Euclidean_Space
 begin
 
+lemma nn_integral_uminus:
+  fixes f :: "real \<Rightarrow> ennreal"
+  assumes f_borel: "f \<in> borel_measurable lborel"
+  shows "(\<integral>\<^sup>+ x. f (-x) \<partial>lborel) = (\<integral>\<^sup>+ x. f x \<partial>lborel)"
+proof -
+  have "(\<integral>\<^sup>+ x. f (-x) \<partial>lborel) = (\<integral>\<^sup>+ a. f a \<partial>distr lborel lborel uminus)"
+    using assms by (subst nn_integral_distr [where T="uminus"]) auto
+  also have "... = (\<integral>\<^sup>+ x. f x \<partial>lborel)"
+    by (simp add: distr_cong lborel_distr_uminus)
+  finally show ?thesis .
+qed
+
+lemma set_nn_integral_reflection:
+  fixes f :: "real \<Rightarrow> ennreal"
+  assumes f_borel: "f \<in> borel_measurable borel"
+  shows "(\<integral>\<^sup>+x\<in>{-b..}. (f (- x)) \<partial>lborel) = (\<integral>\<^sup>+x\<in>{..b}. (f x)\<partial>lborel)"
+  using assms nn_integral_uminus [of "(\<lambda>x. f x * _ x)", symmetric]
+  by (simp add: indicator_def minus_le_iff)
+
 lemma LIMSEQ_if_less: "(\<lambda>k. if i < k then a else b) \<longlonglongrightarrow> a"
   by (rule_tac k="Suc i" in LIMSEQ_offset) auto
 
@@ -4049,6 +4068,26 @@ proof -
   qed (auto simp: incseq_def intro!: ennreal_le_iff[THEN iffD2] F_mono)
   finally show ?thesis .
 qed
+
+lemma nn_integral_FTC_atMost:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f_borel: "f \<in> borel_measurable borel"
+  assumes f: "\<And>x. x \<le> b \<Longrightarrow> DERIV F x :> f x"
+  assumes nonneg: "\<And>x. x \<le> b \<Longrightarrow> 0 \<le> f x"
+  assumes lim: "(F \<longlongrightarrow> U) at_bot"
+  shows "(\<integral>\<^sup>+x\<in>{..b}. ennreal (f x)\<partial>lborel) = F b - U"
+proof -
+  have 1: "((uminus \<circ> F \<circ> uminus) \<longlongrightarrow> -U) at_top"
+    by (metis at_bot_mirror filterlim_def lim tendsto_compose_filtermap tendsto_mono
+        tendsto_uminus_nhds)
+  have 2: "DERIV (uminus \<circ> F \<circ> uminus) x :> (f \<circ> uminus) x" if "x \<ge> -b" for x
+    unfolding o_def using DERIV_mirror f[of "-x"] that
+    by (metis Deriv.field_differentiable_minus add.inverse_inverse minus_le_iff)
+  show ?thesis
+    using nn_integral_FTC_atLeast [OF _ 2 _ 1, of "-b"] assms set_nn_integral_reflection [of "ennreal o f"]    
+    by auto
+qed
+
 
 lemma integral_power:
   "a \<le> b \<Longrightarrow> (\<integral>x. x^k * indicator {a..b} x \<partial>lborel) = (b^Suc k - a^Suc k) / Suc k"

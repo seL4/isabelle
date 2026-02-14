@@ -819,7 +819,7 @@ definition\<^marker>\<open>tag important\<close> nn_integral :: "'a measure \<Ri
   "integral\<^sup>N M f = (SUP g \<in> {g. simple_function M g \<and> g \<le> f}. integral\<^sup>S M g)"
 
 syntax
-  "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>(\<open>indent=2 notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+(2 _./ _)/ \<partial>_)\<close> [60,61] 110)
+  "_nn_integral" :: "pttrn \<Rightarrow> ennreal \<Rightarrow> 'a measure \<Rightarrow> ennreal" (\<open>(\<open>indent=2 notation=\<open>binder integral\<close>\<close>\<integral>\<^sup>+(2 _./ _)/ \<partial>_)\<close> [60,61] 61)
 syntax_consts
   "_nn_integral" == nn_integral
 translations
@@ -1503,7 +1503,7 @@ proof -
     proof -
       { fix n :: nat
         have "emeasure M {x \<in> ?A. 1 \<le> of_nat n * u x} \<le>
-                of_nat n * \<integral>\<^sup>+ x. u x * indicator ?A x \<partial>M"
+                of_nat n * (\<integral>\<^sup>+ x. u x * indicator ?A x \<partial>M)"
           by (intro nn_integral_Markov_inequality) auto
         also have "{x \<in> ?A. 1 \<le> of_nat n * u x} = (?M n \<inter> ?A)"
           by (auto simp: ennreal_of_nat_eq_real_of_nat u_eq * )
@@ -1797,12 +1797,7 @@ lemma nn_integral_distr:
 proof induct
   case (cong f g)
   with T show ?case
-    apply (subst nn_integral_cong[of _ f g])
-    apply simp
-    apply (subst nn_integral_cong[of _ "\<lambda>x. f (T x)" "\<lambda>x. g (T x)"])
-    apply (simp add: measurable_def Pi_iff)
-    apply simp
-    done
+    by (metis (no_types, lifting) measurable_space nn_integral_cong space_distr)
 next
   case (set A)
   then have eq: "\<And>x. x \<in> space M \<Longrightarrow> indicator A (T x) = indicator (T -` A \<inter> space M) x"

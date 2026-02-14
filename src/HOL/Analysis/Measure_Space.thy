@@ -2281,7 +2281,8 @@ qed (auto simp: iter le_fun_def INF_apply[abs_def] intro!: meas cont)
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Counting space\<close>
 
 lemma strict_monoI_Suc:
-  assumes "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
+  fixes f :: "nat \<Rightarrow> 'a::preorder"
+  assumes "(\<And>n. f n < f (Suc n))" shows "strict_mono_on UNIV f"
   by (simp add: assms strict_mono_Suc_iff)
 
 lemma emeasure_count_space:
