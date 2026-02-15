@@ -482,6 +482,15 @@ object GUI {
 
   /* key event handling */
 
+  private val key_modifier_mask: Int =
+    InputEvent.CTRL_DOWN_MASK |
+    InputEvent.ALT_DOWN_MASK |
+    InputEvent.META_DOWN_MASK |
+    InputEvent.SHIFT_DOWN_MASK
+
+  def no_modifier(evt: InputEvent): Boolean =
+    (evt.getModifiersEx & key_modifier_mask) == 0
+
   def command_modifier(evt: InputEvent): Boolean =
     (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
 
@@ -490,13 +499,6 @@ object GUI {
 
   def alt_modifier(evt: InputEvent): Boolean =
     (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
-
-  def no_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx &
-      (InputEvent.CTRL_DOWN_MASK |
-       InputEvent.ALT_DOWN_MASK |
-       InputEvent.META_DOWN_MASK |
-       InputEvent.SHIFT_DOWN_MASK)) == 0
 
   def plain_enter(evt: KeyEvent): Boolean =
     evt.getKeyCode == KeyEvent.VK_ENTER && no_modifier(evt)
