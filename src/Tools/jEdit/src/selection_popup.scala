@@ -145,27 +145,27 @@ class Selection_Popup(
   val inner_key_listener: KeyListener =
     JEdit_Lib.key_listener(
       key_pressed = { (e: KeyEvent) =>
-        if (!e.isConsumed && GUI.no_modifier(e)) {
+        if (!e.isConsumed) {
           e.getKeyCode match {
             case KeyEvent.VK_ENTER if select_enter =>
-              if (select_current()) e.consume()
+              if (select_current() && GUI.no_modifier(e)) e.consume()
               hide_popup()
             case KeyEvent.VK_TAB if select_tab =>
-              if (select_current()) e.consume()
+              if (select_current() && GUI.no_modifier(e)) e.consume()
               hide_popup()
             case KeyEvent.VK_ESCAPE =>
+              if (GUI.no_modifier(e)) e.consume()
               hide_popup()
-              e.consume()
-            case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi =>
+            case KeyEvent.VK_UP | KeyEvent.VK_KP_UP if multi && GUI.no_modifier(e) =>
               move_items(-1)
               e.consume()
-            case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi =>
+            case KeyEvent.VK_DOWN | KeyEvent.VK_KP_DOWN if multi && GUI.no_modifier(e) =>
               move_items(1)
               e.consume()
-            case KeyEvent.VK_PAGE_UP if multi =>
+            case KeyEvent.VK_PAGE_UP if multi && GUI.no_modifier(e) =>
               move_pages(-1)
               e.consume()
-            case KeyEvent.VK_PAGE_DOWN if multi =>
+            case KeyEvent.VK_PAGE_DOWN if multi && GUI.no_modifier(e) =>
               move_pages(1)
               e.consume()
             case _ =>
