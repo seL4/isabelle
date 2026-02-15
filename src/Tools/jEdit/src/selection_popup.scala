@@ -182,7 +182,7 @@ class Selection_Popup(
 
   list_view.peer.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit = {
-      if (!e.isConsumed() && e.getClickCount == 1) {
+      if (!e.isConsumed() && e.getClickCount == 1 && GUI.no_modifier(e)) {
         if (select_current()) e.consume()
         hide_popup()
       }
