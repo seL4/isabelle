@@ -148,10 +148,10 @@ class Selection_Popup(
         if (!e.isConsumed) {
           e.getKeyCode match {
             case KeyEvent.VK_ENTER if select_enter =>
-              if (select_current() && GUI.no_modifier(e)) e.consume()
+              if (GUI.no_modifier(e) && select_current()) e.consume()
               hide_popup()
             case KeyEvent.VK_TAB if select_tab =>
-              if (select_current() && GUI.no_modifier(e)) e.consume()
+              if (GUI.no_modifier(e) && select_current()) e.consume()
               hide_popup()
             case KeyEvent.VK_ESCAPE =>
               if (GUI.no_modifier(e)) e.consume()
