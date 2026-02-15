@@ -341,17 +341,14 @@ class Pretty_Text_Area(
 
   addKeyListener(JEdit_Lib.key_listener(
     key_pressed = { (evt: KeyEvent) =>
-      val strict_control =
-        GUI.command_modifier(evt) && !GUI.shift_modifier(evt)
-
       evt.getKeyCode match {
         case KeyEvent.VK_C | KeyEvent.VK_INSERT
-        if strict_control && pretty_text_area.getSelectionCount != 0 =>
+        if GUI.command_modifier(evt, only = true) && pretty_text_area.getSelectionCount != 0 =>
           Registers.copy(pretty_text_area, '$')
           evt.consume()
 
         case KeyEvent.VK_A
-        if strict_control =>
+        if GUI.command_modifier(evt, only = true) =>
           pretty_text_area.selectAll()
           evt.consume()
 
