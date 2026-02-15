@@ -32,6 +32,9 @@ simp_trace now qualified in Isabelle/ML. Rare INCOMPATIBILITY.
 * Functions fold_rule, fold_goals_tac, norm_hhf, norm_hhf_protect from structure
 "Simplifier" are now qualified. Rare INCOMPATIBILITY.
 
+* Discontinued alias "Raw_Simplifier.rewrite"; use "Simplifier.rewrite_wrt"
+instead. Rare INCOMPATIBILITY.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

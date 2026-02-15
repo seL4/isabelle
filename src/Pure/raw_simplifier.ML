@@ -114,13 +114,7 @@ sig
   val norm_hhf_protect: Proof.context -> thm -> thm
 end;
 
-signature LEGACY_RAW_SIMPLIFIER =
-sig
-  include RAW_SIMPLIFIER
-  val rewrite: Proof.context -> bool -> thm list -> conv
-end
-
-structure Raw_Simplifier: LEGACY_RAW_SIMPLIFIER =
+structure Raw_Simplifier: RAW_SIMPLIFIER =
 struct
 
 (** datatype simpset **)
