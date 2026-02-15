@@ -26,6 +26,9 @@ parameter.
 * Code generation: transitional legacy attribute [code del] is discontinued.
 Minor INCOMPATIBILITY.
 
+* Config options simp_depth_limit, simp_trace_depth_limit, simp_debug,
+simp_trace now qualified in Isabelle/ML. Rare INCOMPATIBILITY.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

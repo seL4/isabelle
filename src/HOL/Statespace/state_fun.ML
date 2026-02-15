@@ -156,7 +156,7 @@ val lookup_simproc =
             Thm.cterm_of ctxt
               (Const (\<^const_name>\<open>StateFun.lookup\<close>, lT) $ destr $ n $ fst (mk_upds s));
           val basic_ss = #1 (Data.get (Context.Proof ctxt));
-          val ctxt' = ctxt |> Config.put simp_depth_limit 100 |> put_simpset basic_ss;
+          val ctxt' = ctxt |> Config.put Simplifier.simp_depth_limit 100 |> put_simpset basic_ss;
           val thm = Simplifier.rewrite ctxt' ct;
         in
           if (op aconv) (Logic.dest_equals (Thm.prop_of thm))
@@ -253,7 +253,7 @@ val update_simproc =
                   end
               | mk_updterm _ t = init_seed t;
 
-            val ctxt0 = Config.put simp_depth_limit 100 ctxt;
+            val ctxt0 = Config.put Simplifier.simp_depth_limit 100 ctxt;
             val ctxt1 = put_simpset ss' ctxt0;
             val ctxt2 = put_simpset (#1 (Data.get (Context.Proof ctxt0))) ctxt0;
           in
@@ -291,7 +291,7 @@ val ex_lookup_eq_simproc =
         val t = Thm.term_of ct;
 
         val ex_lookup_ss = #2 (Data.get (Context.Proof ctxt));
-        val ctxt' = ctxt |> Config.put simp_depth_limit 100 |> put_simpset ex_lookup_ss;
+        val ctxt' = ctxt |> Config.put Simplifier.simp_depth_limit 100 |> put_simpset ex_lookup_ss;
         fun prove prop =
           Goal.prove_global thy [] [] prop
             (fn _ => Record.split_simp_tac ctxt [] (K ~1) 1 THEN simp_tac ctxt' 1);

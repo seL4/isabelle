@@ -1168,7 +1168,7 @@ fun apply_functrans ctxt functrans =
     fun trace_eqns s eqns =
       Pretty.writeln (Pretty.chunks
         (Pretty.str s :: map (Thm.pretty_thm ctxt o fst) eqns));
-    val tracing = if Config.get ctxt simp_trace then trace_eqns else (K o K) ();
+    val tracing = if Config.get ctxt Simplifier.simp_trace then trace_eqns else (K o K) ();
   in
     tap (tracing "before function transformation")
     #> (perhaps o perhaps_loop o perhaps_apply) functrans

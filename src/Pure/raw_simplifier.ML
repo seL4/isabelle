@@ -6,10 +6,6 @@ Higher-order Simplification.
 
 signature BASIC_RAW_SIMPLIFIER =
 sig
-  val simp_depth_limit: int Config.T
-  val simp_trace_depth_limit: int Config.T
-  val simp_debug: bool Config.T
-  val simp_trace: bool Config.T
   type cong_name = bool * string
   type rrule
   val mk_rrules: Proof.context -> thm -> rrule list
@@ -49,6 +45,10 @@ signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
   exception SIMPLIFIER of string * thm list
+  val simp_depth_limit: int Config.T
+  val simp_trace_depth_limit: int Config.T
+  val simp_debug: bool Config.T
+  val simp_trace: bool Config.T
   val dest_simps: simpset -> (Thm_Name.T * thm) list
   val dest_congs: simpset -> (cong_name * thm) list
   val dest_ss: simpset ->

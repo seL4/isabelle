@@ -354,7 +354,7 @@ fun switch_trace c ctxt =
       then tracing ("Preprocessing function equations for "
         ^ Code.string_of_const (Proof_Context.theory_of ctxt) c)
       else ();
-  in Config.put simp_trace switch ctxt end;
+  in Config.put Simplifier.simp_trace switch ctxt end;
 
 
 (** the Waisenhaus algorithm **)

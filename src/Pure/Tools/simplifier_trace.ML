@@ -64,7 +64,7 @@ val get_data = Data.get o Context.Proof
 val put_data = Context.proof_map o Data.put
 
 val disable =
-  Config.put simp_trace false #>
+  Config.put Simplifier.simp_trace false #>
   (Context.proof_map o Data.map)
     (fn {max_depth, mode = _, interactive, parent, memory, breakpoints} =>
       {max_depth = max_depth, mode = Disabled, interactive = interactive, parent = parent,
