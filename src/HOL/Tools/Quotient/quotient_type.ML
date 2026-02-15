@@ -195,7 +195,7 @@ fun add_quotient_type overloaded
     val quotient_thm_name = Binding.prefix_name "Quotient3_" qty_name
     val quotient_thm =
       (quot_thm RS @{thm quot_type.Quotient})
-      |> fold_rule lthy3 [abs_def, rep_def]
+      |> Simplifier.fold_rule lthy3 [abs_def, rep_def]
 
     (* name equivalence theorem *)
     val equiv_thm_name = Binding.suffix_name "_equivp" qty_name

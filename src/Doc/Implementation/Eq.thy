@@ -113,7 +113,7 @@ text %mlref \<open>
   @{define_ML rewrite_goals_rule: "Proof.context -> thm list -> thm -> thm"} \\
   @{define_ML rewrite_goal_tac: "Proof.context -> thm list -> int -> tactic"} \\
   @{define_ML rewrite_goals_tac: "Proof.context -> thm list -> tactic"} \\
-  @{define_ML fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
+  @{define_ML Simplifier.fold_goals_tac: "Proof.context -> thm list -> tactic"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>rewrite_rule\<close>~\<open>ctxt rules thm\<close> rewrites the whole theorem by the
@@ -130,7 +130,7 @@ text %mlref \<open>
   \<^descr> \<^ML>\<open>rewrite_goals_tac\<close>~\<open>ctxt rules\<close> rewrites all subgoals by the given
   rewrite rules.
 
-  \<^descr> \<^ML>\<open>fold_goals_tac\<close>~\<open>ctxt rules\<close> essentially uses \<^ML>\<open>rewrite_goals_tac\<close>
+  \<^descr> \<^ML>\<open>Simplifier.fold_goals_tac\<close>~\<open>ctxt rules\<close> essentially uses \<^ML>\<open>rewrite_goals_tac\<close>
   with the symmetric form of each member of \<open>rules\<close>, re-ordered to fold longer
   expression first. This supports to idea to fold primitive definitions that
   appear in expended form in the proof state.

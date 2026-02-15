@@ -319,7 +319,7 @@ fun apply_subst_in_asm ctxt i st rule ((cfvs, j, _, pth),m) =
     val st2 = Thm.rotate_rule (j - 1) i st; (* put premice first *)
     val preelimrule =
       RW_Inst.rw ctxt m rule pth
-      |> (Seq.hd o prune_params_tac ctxt)
+      |> (Seq.hd o Simplifier.prune_params_tac ctxt)
       |> Thm.permute_prems 0 ~1 (* put old asm first *)
       |> unfix_frees cfvs (* unfix any global params *)
       |> Conv.fconv_rule Drule.beta_eta_conversion; (* normal form *)

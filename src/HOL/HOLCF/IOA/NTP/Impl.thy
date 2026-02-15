@@ -224,7 +224,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
     (@{thm raw_inv1} RS @{thm invariantE})] 1\<close>)
 
   apply (tactic "tac2 1")
-  apply (tactic \<open>fold_goals_tac \<^context> [rewrite_rule \<^context> [@{thm Packet.hdr_def}]
+  apply (tactic \<open>Simplifier.fold_goals_tac \<^context> [rewrite_rule \<^context> [@{thm Packet.hdr_def}]
     (@{thm Impl.hdr_sum_def})]\<close>)
   apply arith
 
@@ -242,7 +242,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
                                (@{thm raw_inv1} RS @{thm invariantE}) RS conjunct2] 1\<close>)
   apply (intro strip)
   apply (erule conjE)+
-  apply (tactic \<open>fold_goals_tac \<^context>
+  apply (tactic \<open>Simplifier.fold_goals_tac \<^context>
     [rewrite_rule \<^context> [@{thm Packet.hdr_def}] (@{thm Impl.hdr_sum_def})]\<close>)
   apply simp
 

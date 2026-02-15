@@ -163,7 +163,7 @@ fun export_morphism inner outer =
     val assms0 = local_assumptions_of inner outer
       |> (map o apsnd o map) Thm.trim_context_cterm;
     fun thm thy =
-      let val norm = norm_hhf_protect (Proof_Context.init_global thy)
+      let val norm = Raw_Simplifier.norm_hhf_protect (Proof_Context.init_global thy)
       in norm #> thm_export false assms0 #> norm end;
     val term = term_export assms0;
     val typ = Logic.type_map term;

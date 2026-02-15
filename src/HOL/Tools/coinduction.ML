@@ -119,7 +119,7 @@ fun coinduction_context_tactic raw_vars opt_raw_thms prems =
                           Ctr_Sugar_General_Tactics.unfold_thms_tac ctxt eqs
                         end)) ctxt)))])
           end) ctxt) THEN'
-        K (prune_params_tac ctxt)) i) st
+        K (Simplifier.prune_params_tac ctxt)) i) st
       |> Seq.maps (fn st' =>
         CONTEXT_CASES (Rule_Cases.make_common ctxt (Thm.prop_of st') cases) all_tac (ctxt, st'))
     end);

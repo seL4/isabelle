@@ -155,7 +155,7 @@ fun mk_auto_tac ctxt m n =
     TRY (Classical.safe_tac ctxt) THEN
     REPEAT_DETERM (FIRSTGOAL main_tac) THEN
     TRY (Classical.safe_tac (addSss ctxt)) THEN
-    prune_params_tac ctxt
+    Simplifier.prune_params_tac ctxt
   end;
 
 fun auto_tac ctxt = mk_auto_tac ctxt 4 2;

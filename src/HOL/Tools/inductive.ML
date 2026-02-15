@@ -581,7 +581,7 @@ fun simp_case_tac ctxt i =
 
 in
 
-fun mk_cases_tac ctxt = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac ctxt;
+fun mk_cases_tac ctxt = ALLGOALS (simp_case_tac ctxt) THEN Simplifier.prune_params_tac ctxt;
 
 fun mk_cases ctxt prop =
   let

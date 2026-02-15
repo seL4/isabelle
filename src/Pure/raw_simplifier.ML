@@ -34,11 +34,6 @@ sig
   val rewrite_goals_rule: Proof.context -> thm list -> thm -> thm
   val rewrite_goals_tac: Proof.context -> thm list -> tactic
   val rewrite_goal_tac: Proof.context -> thm list -> int -> tactic
-  val prune_params_tac: Proof.context -> tactic
-  val fold_rule: Proof.context -> thm list -> thm -> thm
-  val fold_goals_tac: Proof.context -> thm list -> tactic
-  val norm_hhf: Proof.context -> thm -> thm
-  val norm_hhf_protect: Proof.context -> thm -> thm
 end;
 
 signature RAW_SIMPLIFIER =
@@ -113,6 +108,11 @@ sig
   val rewrite0: Proof.context -> bool -> conv
   val rewrite_wrt: Proof.context -> bool -> thm list -> conv
   val rewrite0_rule: Proof.context -> thm -> thm
+  val prune_params_tac: Proof.context -> tactic
+  val fold_rule: Proof.context -> thm list -> thm -> thm
+  val fold_goals_tac: Proof.context -> thm list -> tactic
+  val norm_hhf: Proof.context -> thm -> thm
+  val norm_hhf_protect: Proof.context -> thm -> thm
 end;
 
 signature LEGACY_RAW_SIMPLIFIER =

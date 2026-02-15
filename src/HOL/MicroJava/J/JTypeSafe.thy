@@ -327,7 +327,7 @@ apply( case_tac "x2")
   apply(  fast intro: hext_trans)
 
 
-apply( tactic "prune_params_tac \<^context>")
+apply( tactic "Simplifier.prune_params_tac \<^context>")
 \<comment> \<open>Level 52\<close>
 
 \<comment> \<open>1 Call\<close>

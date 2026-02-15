@@ -925,7 +925,7 @@ fun create_nom_typedecls ak_names thy =
             ||>> add_thmss_string
               let
                 val thms1 = inst_pt_at [all_eqvt];
-                val thms2 = map (fold_rule ctxt32 [inductive_forall_def]) thms1
+                val thms2 = map (Simplifier.fold_rule ctxt32 [inductive_forall_def]) thms1
               in
                 [(("all_eqvt", thms1 @ thms2), [NominalThmDecls.eqvt_force_add])]
               end
