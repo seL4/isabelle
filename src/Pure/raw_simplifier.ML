@@ -108,7 +108,6 @@ sig
   val rewrite0: Proof.context -> bool -> conv
   val rewrite_wrt: Proof.context -> bool -> thm list -> conv
   val rewrite0_rule: Proof.context -> thm -> thm
-  val prune_params_tac: Proof.context -> tactic
   val fold_rule: Proof.context -> thm list -> thm -> thm
   val fold_goals_tac: Proof.context -> thm list -> tactic
   val norm_hhf: Proof.context -> thm -> thm
@@ -1522,9 +1521,6 @@ fun generic_rewrite_goal_tac mode prover_tac ctxt i thm =
 
 fun rewrite_goal_tac ctxt thms =
   generic_rewrite_goal_tac (true, false, false) (K no_tac) (init_simpset thms ctxt);
-
-(*Prunes all redundant parameters from the proof state by rewriting.*)
-fun prune_params_tac ctxt = rewrite_goals_tac ctxt [Drule.triv_forall_equality];
 
 
 (* for folding definitions, handling critical pairs *)

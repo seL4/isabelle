@@ -63,6 +63,7 @@ sig
   val unsafe_solver: solver
   val safe_solver_tac: Proof.context -> int -> tactic
   val safe_solver: solver
+  val prune_params_tac: Proof.context -> tactic
 end;
 
 structure Simplifier: SIMPLIFIER =
@@ -358,6 +359,9 @@ val safe_asm_simp_tac = generic_simp_tac true (false, true, false);
 val safe_full_simp_tac = generic_simp_tac true (true, false, false);
 val safe_asm_lr_simp_tac = generic_simp_tac true (true, true, false);
 val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
+
+(*Prunes all redundant parameters from the proof state by rewriting.*)
+fun prune_params_tac ctxt = rewrite_goals_tac ctxt [Drule.triv_forall_equality];
 
 
 (* conversions *)
