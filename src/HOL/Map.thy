@@ -922,7 +922,7 @@ by(subst map_add_eq_empty_iff[symmetric])(rule eq_commute)
 
 subsection \<open>Various\<close>
 
-lemma eq_card_ran: "inj_on mu (dom mu) \<Longrightarrow> card (dom mu) = card (ran mu)"
+lemma card_dom_eq_card_range: "inj_on mu (dom mu) \<Longrightarrow> card (dom mu) = card (ran mu)"
   by (simp only: ran_conv_dom card_image inj_on_the_image_dom)
 
 lemma set_map_of_compr:

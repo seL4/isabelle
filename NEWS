@@ -119,7 +119,7 @@ For example:
 
 * Theory "HOL.Map":
   - Added lemmas.
-      eq_card_ran
+      card_dom_eq_card_range
       inj_on_the_image_dom
       ran_conv_dom
 
