@@ -35,6 +35,9 @@ simp_trace now qualified in Isabelle/ML. Rare INCOMPATIBILITY.
 * Discontinued alias "Raw_Simplifier.rewrite"; use "Simplifier.rewrite_wrt"
 instead. Rare INCOMPATIBILITY.
 
+* Discontinued infixes "addsimprocs" and "delsimprocs"; use explicit
+"Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor INCOMPATIBILITY.
+
 
 *** Isabelle/jEdit Prover IDE ***
 
