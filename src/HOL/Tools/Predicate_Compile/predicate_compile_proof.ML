@@ -34,10 +34,11 @@ fun assert_tac ctxt pos pred =
 (** special setup for simpset **)
 
 val HOL_basic_ss' =
-  simpset_of (put_simpset HOL_basic_ss \<^context>
-    |> Simplifier.add_simps @{thms simp_thms prod.inject}
-    |> Simplifier.set_unsafe_solver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
-    |> Simplifier.set_unsafe_solver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI})))
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context> (
+    (Simplifier.add_simps @{thms simp_thms prod.inject}
+    #> Simplifier.set_unsafe_solver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
+    #> Simplifier.set_unsafe_solver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI}))))
 
 
 (* auxillary functions *)

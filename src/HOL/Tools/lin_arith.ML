@@ -865,8 +865,8 @@ val init_arith_data =
     inj_thms = inj_thms,
     lessD = lessD,
     neqE = map Thm.trim_context @{thms linorder_neqE_nat linorder_neqE_linordered_idom} @ neqE,
-    simpset =
-      put_simpset HOL_basic_ss \<^context> |> Simplifier.add_cong @{thm if_weak_cong} |> simpset_of,
+    simpset = HOL_basic_ss
+      |> Simplifier.simpset_map \<^context> (Simplifier.add_cong @{thm if_weak_cong}),
     number_of = number_of});
 
 (* FIXME !?? *)

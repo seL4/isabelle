@@ -300,7 +300,7 @@ fun cartouche_thm ctxt = cartouche_term ctxt o Thm.prop_of
 
 (* TODO: rewrite to use nets and/or to reuse existing data structures *)
 fun clasimpset_rule_table_of ctxt =
-  let val simps = ctxt |> simpset_of |> Simplifier.dest_simps in
+  let val simps = ctxt |> Simplifier.simpset_of |> Simplifier.dest_simps in
     if length simps >= max_simps_for_clasimpset then
       Termtab.empty
     else

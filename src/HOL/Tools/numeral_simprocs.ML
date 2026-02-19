@@ -163,7 +163,7 @@ and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
 end;
 
 val num_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.set_term_ord numterm_ord);
+  HOL_basic_ss |> Simplifier.simpset_map \<^context> (Simplifier.set_term_ord numterm_ord);
 
 (*Maps 1 to Numeral1 so that arithmetic isn't complicated by the abstract 1.*)
 val numeral_syms = @{thms numeral_One [symmetric]};
@@ -219,17 +219,16 @@ val mult_minus_simps =
     @{thms mult.assoc minus_mult_right minus_mult_commute numeral_times_minus_swap};
 
 val norm_ss1 =
-  simpset_of (put_simpset num_ss \<^context>
-    |> Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @
-        diff_simps @ @{thms minus_zero ac_simps}))
+  num_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ diff_simps @ @{thms minus_zero ac_simps}))
 
 val norm_ss2 =
-  simpset_of (put_simpset num_ss \<^context>
-    |> Simplifier.add_simps (non_add_simps @ mult_minus_simps))
+  num_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps (non_add_simps @ mult_minus_simps))
 
 val norm_ss3 =
-  simpset_of (put_simpset num_ss \<^context>
-    |> Simplifier.add_simps (minus_from_mult_simps @ @{thms ac_simps minus_mult_commute}))
+  num_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps (minus_from_mult_simps @ @{thms ac_simps minus_mult_commute}))
 
 structure CancelNumeralsCommon =
 struct
@@ -246,7 +245,7 @@ struct
     THEN ALLGOALS (simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps simps)
+    HOL_basic_ss |> Simplifier.simpset_map \<^context> (Simplifier.add_simps simps)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
@@ -300,7 +299,7 @@ struct
     THEN ALLGOALS (simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps simps)
+    HOL_basic_ss |> Simplifier.simpset_map \<^context> (Simplifier.add_simps simps)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq post_simps
@@ -323,15 +322,16 @@ struct
   val trans_tac = trans_tac
 
   val norm_ss1a =
-    simpset_of (put_simpset norm_ss1 \<^context> |> Simplifier.add_simps (inverse_1s @ divide_simps))
+    norm_ss1 |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (inverse_1s @ divide_simps))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1a ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss3 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (simps @ @{thms add_frac_eq not_False_eq_True}))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (simps @ @{thms add_frac_eq not_False_eq_True}))
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq field_post_simps
@@ -351,8 +351,8 @@ val field_combine_numerals = FieldCombineNumerals.proc
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
   val assoc_ss =
-    simpset_of
-      (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps @{thms ac_simps minus_mult_commute})
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps @{thms ac_simps minus_mult_commute})
   val eq_reflection = eq_reflection
   val is_numeral = can HOLogic.dest_number
 end;
@@ -368,14 +368,14 @@ struct
   val trans_tac = trans_tac
 
   val norm_ss1 =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (minus_from_mult_simps @ mult_1s))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (minus_from_mult_simps @ mult_1s))
   val norm_ss2 =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (simps @ mult_minus_simps))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (simps @ mult_minus_simps))
   val norm_ss3 =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps @{thms ac_simps minus_mult_commute numeral_times_minus_swap})
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps @{thms ac_simps minus_mult_commute numeral_times_minus_swap})
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
@@ -384,8 +384,8 @@ struct
   (* simp_thms are necessary because some of the cancellation rules below
   (e.g. mult_less_cancel_left) introduce various logical connectives *)
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (simps @ @{thms simp_thms}))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (simps @ @{thms simp_thms}))
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = Arith_Data.simplify_meta_eq
@@ -456,9 +456,6 @@ val field_eq_cancel_numeral_factor =
     ("(l::'a::field) * m = n" | "(l::'a::field) = m * n") =
     \<open>K EqCancelNumeralFactor.proc\<close>\<close>;
 
-val field_cancel_numeral_factors =
-  [field_divide_cancel_numeral_factor, field_eq_cancel_numeral_factor]
-
 
 (** Declarations for ExtractCommonTerm **)
 
@@ -506,8 +503,8 @@ struct
   val find_first = find_first_t []
   val trans_tac = trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (mult_1s @ @{thms ac_simps minus_mult_commute}))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (mult_1s @ @{thms ac_simps minus_mult_commute}))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq
@@ -706,9 +703,9 @@ val ord_frac_simproc =
     \<open>K (K ord_frac_proc)\<close>\<close>
 
 val field_comp_ss =
-  simpset_of
-    (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps @{thms semiring_norm
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context> (
+      Simplifier.add_simps @{thms semiring_norm
         mult_numeral_1
         mult_numeral_1_right
         divide_numeral_1
@@ -726,9 +723,9 @@ val field_comp_ss =
         inverse_divide
         divide_inverse_commute [symmetric]
         simp_thms}
-      |> fold Simplifier.add_proc field_cancel_numeral_factors
-      |> fold Simplifier.add_proc [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
-      |> Simplifier.add_cong @{thm if_weak_cong})
+      #> fold Simplifier.add_proc [field_divide_cancel_numeral_factor, field_eq_cancel_numeral_factor]
+      #> fold Simplifier.add_proc [add_frac_frac_simproc, add_frac_num_simproc, ord_frac_simproc]
+      #> Simplifier.add_cong @{thm if_weak_cong})
 
 in
 

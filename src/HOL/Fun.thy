@@ -1411,7 +1411,7 @@ simproc_setup fun_upd2 ("f(v := w, x := y)") = \<open>
           | find t = NONE
       in gen_fun_upd A B x y (find f) end
 
-    val ss = simpset_of \<^context>
+    val ss = Simplifier.simpset_of \<^context>
   in
     fn _ => fn ctxt => fn ct =>
       let val t = Thm.term_of ct in

@@ -56,9 +56,9 @@ fun gen_qelim_conv ctxt precv postcv simpex_conv ins env atcv ncv qcv =
 local
 
 val ss =
-  simpset_of
-   (put_simpset HOL_basic_ss \<^context>
-    |> Simplifier.add_simps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
 
 fun pcv ctxt = Simplifier.rewrite (put_simpset ss ctxt)
 

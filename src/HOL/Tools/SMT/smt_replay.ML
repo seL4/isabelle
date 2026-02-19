@@ -151,10 +151,10 @@ local
     \<^simproc_setup>\<open>passive antisym_less ("\<not> (x::'a::linorder) < y") = \<open>K prove_antisym_less\<close>\<close>
 
   val basic_simpset =
-    simpset_of (put_simpset HOL_ss \<^context>
-      |> Simplifier.add_simps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
+    HOL_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
         arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
-      |> fold Simplifier.add_proc [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
+      #> fold Simplifier.add_proc [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
         antisym_le_simproc, antisym_less_simproc])
 
   structure Simpset = Generic_Data
@@ -166,10 +166,10 @@ local
 in
 
 fun add_simproc simproc context =
-  Simpset.map (simpset_map (Context.proof_of context) (Simplifier.add_proc simproc)) context
+  Simpset.map (Simplifier.simpset_map (Context.proof_of context) (Simplifier.add_proc simproc)) context
 
 fun make_simpset ctxt rules =
-  simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt |> Simplifier.add_simps rules)
+  Simpset.get (Context.Proof ctxt) |> Simplifier.simpset_map ctxt (Simplifier.add_simps rules)
 
 end
 

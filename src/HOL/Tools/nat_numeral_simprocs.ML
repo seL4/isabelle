@@ -28,7 +28,7 @@ struct
 (*Maps n to #n for n = 1, 2*)
 val numeral_syms = [@{thm numeral_One} RS sym, @{thm numeral_2_eq_2} RS sym];
 val numeral_sym_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps numeral_syms);
+  HOL_basic_ss |> Simplifier.simpset_map \<^context> (Simplifier.add_simps numeral_syms);
 
 (*Utilities*)
 
@@ -157,19 +157,21 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @
-        [@{thm Suc_eq_plus1_left}] @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss
+    |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ @{thms Suc_eq_plus1_left ac_simps}))
   val norm_ss2 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps (bin_simps @ @{thms ac_simps} @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss
+    |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (bin_simps @ @{thms ac_simps}))
   fun norm_tac ctxt = 
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (add_0s @ bin_simps));
+    HOL_basic_ss
+    |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (add_0s @ bin_simps));
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt));
   val simplify_meta_eq  = simplify_meta_eq
@@ -230,18 +232,18 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ @{thms Suc_eq_plus1 ac_simps}))
   val norm_ss2 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps (bin_simps @ @{thms ac_simps} @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (bin_simps @ @{thms ac_simps}))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (add_0s @ bin_simps));
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (add_0s @ bin_simps));
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = simplify_meta_eq
@@ -261,18 +263,18 @@ struct
   val trans_tac = Numeral_Simprocs.trans_tac
 
   val norm_ss1 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps
-          (numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (numeral_syms @ add_0s @ mult_1s @ @{thms Suc_eq_plus1_left ac_simps}))
   val norm_ss2 =
-    simpset_of (put_simpset Numeral_Simprocs.num_ss \<^context>
-      |> Simplifier.add_simps (bin_simps @ @{thms ac_simps} @ @{thms ac_simps}))
+    Numeral_Simprocs.num_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (bin_simps @ @{thms ac_simps}))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
   val numeral_simp_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps bin_simps)
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps bin_simps)
   fun numeral_simp_tac ctxt =
     ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = simplify_meta_eq
@@ -357,8 +359,8 @@ struct
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps (mult_1s @ @{thms ac_simps}))
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (mult_1s @ @{thms ac_simps}))
   fun norm_tac ctxt =
     ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq

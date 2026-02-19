@@ -63,7 +63,7 @@ fun mk_gfp_rec_sugar_transfer_tac ctxt f_def corec_def type_definitions dtor_cor
 
     val case_distribs = map instantiate_with_lambda case_distribs;
     val simps = case_distribs @ disc_eq_cases @ cases @ @{thms if_True if_False};
-    val ctxt'' = put_simpset (simpset_of (ss_only simps ctxt)) ctxt';
+    val ctxt'' = ctxt' |> put_simpset (Simplifier.simpset_of ctxt) |> ss_only simps;
   in
     unfold_thms_tac ctxt ([f_def, corec_def] @ @{thms split_beta if_conn}) THEN
     HEADGOAL (simp_tac (fold Simplifier.add_cong case_congs ctxt'')) THEN

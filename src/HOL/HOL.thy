@@ -1447,7 +1447,7 @@ lemmas [simp] =
 lemmas [cong] = imp_cong simp_implies_cong
 lemmas [split] = if_split
 
-ML \<open>val HOL_ss = simpset_of \<^context>\<close>
+ML \<open>val HOL_ss = Simplifier.simpset_of \<^context>\<close>
 
 text \<open>Simplifies \<open>x\<close> assuming \<open>c\<close> and \<open>y\<close> assuming \<open>\<not> c\<close>.\<close>
 lemma if_cong:
@@ -2191,8 +2191,8 @@ ML \<open>
 
   local
     val nnf_ss =
-      simpset_of (put_simpset HOL_basic_ss \<^context>
-        |> Simplifier.add_simps @{thms simp_thms nnf_simps});
+      HOL_basic_ss
+      |> Simplifier.simpset_map \<^context> (Simplifier.add_simps @{thms simp_thms nnf_simps});
   in
     fun nnf_conv ctxt = Simplifier.rewrite (put_simpset nnf_ss ctxt);
   end

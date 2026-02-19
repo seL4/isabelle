@@ -50,15 +50,14 @@ fun check \<^Const_>\<open>Groups.one \<^Type>\<open>int\<close>\<close> = false
   | check _ = false;
 
 val conv_ss =
-  \<^context>
-  |> put_simpset HOL_basic_ss
-  |> fold (Simplifier.add_simp o (fn th => th RS sym))
-       @{thms of_int_add of_int_mult
-         of_int_diff of_int_minus of_int_less_iff
-         of_int_le_iff of_int_eq_iff}
-  |> Simplifier.add_proc zero_to_of_int_zero_simproc
-  |> Simplifier.add_proc one_to_of_int_one_simproc
-  |> simpset_of;
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context> (
+    Simplifier.add_simps
+       @{thms of_int_add [symmetric] of_int_mult [symmetric]
+         of_int_diff [symmetric] of_int_minus [symmetric] of_int_less_iff [symmetric]
+         of_int_le_iff [symmetric] of_int_eq_iff [symmetric]}
+    #> Simplifier.add_proc zero_to_of_int_zero_simproc
+    #> Simplifier.add_proc one_to_of_int_one_simproc);
 
 val zero_one_idom_simproc =
   \<^simproc_setup>\<open>passive zero_one_idom

@@ -21,8 +21,8 @@ struct
 
 (* Theory dependencies *)
 val sumcase_split_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context>
-    |> Simplifier.add_simps (@{thm Product_Type.split} :: @{thms sum.case}))
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context> (Simplifier.add_simps @{thms Product_Type.split sum.case})
 
 (* top-down access in balanced tree *)
 fun access_top_down {left, right, init} len i =

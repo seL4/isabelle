@@ -1060,8 +1060,9 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = \<open>
       | butlast xs = Const(\<^const_name>\<open>Nil\<close>, fastype_of xs);
 
     val rearr_ss =
-      simpset_of (put_simpset HOL_basic_ss \<^context>
-        |> Simplifier.add_simps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}]);
+      HOL_basic_ss
+      |> Simplifier.simpset_map \<^context>
+        (Simplifier.add_simps @{thms append_assoc append_Nil append_Cons});
 
     fun list_eq ctxt (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let
@@ -1636,7 +1637,7 @@ fun len (Const(\<^const_name>\<open>Nil\<close>,_)) acc = acc
     = len (Const(\<^const_name>\<open>concat\<close>,T) $ xss) acc
   | len t (ts,n) = (t::ts,n);
 
-val ss = simpset_of \<^context>;
+val ss = Simplifier.simpset_of \<^context>;
 
 fun list_neq ctxt ct =
   let

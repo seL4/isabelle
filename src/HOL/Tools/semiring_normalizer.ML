@@ -107,7 +107,8 @@ fun match ctxt tm =
 (* extra-logical functions *)
 
 val semiring_norm_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps @{thms semiring_norm});
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms semiring_norm});
 
 val semiring_funs =
    {is_const = can HOLogic.dest_number o Thm.term_of,
@@ -265,10 +266,10 @@ fun zero1_numeral_conv ctxt =
 fun zerone_conv ctxt cv =
   zero1_numeral_conv ctxt then_conv cv then_conv numeral01_conv ctxt;
 
-val nat_add_ss = simpset_of
-  (put_simpset HOL_basic_ss \<^context>
-     |> Simplifier.add_simps (@{thms arith_simps} @ @{thms diff_nat_numeral} @ @{thms rel_simps}
-       @ @{thms if_False if_True Nat.add_0 add_Suc add_numeral_left Suc_eq_plus1}
+val nat_add_ss =
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps
+       (@{thms arith_simps diff_nat_numeral rel_simps if_False if_True Nat.add_0 add_Suc add_numeral_left Suc_eq_plus1}
        @ map (fn th => th RS sym) @{thms numerals}));
 
 fun nat_add_conv ctxt =
@@ -848,10 +849,9 @@ fun polynomial_conv ctxt tm =
 end;
 
 val nat_exp_ss =
-  simpset_of
-   (put_simpset HOL_basic_ss \<^context>
-    |> Simplifier.add_simps (@{thms eval_nat_numeral} @ @{thms diff_nat_numeral} @ @{thms arith_simps} @ @{thms rel_simps})
-    |> Simplifier.add_simps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}]);
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps (@{thms eval_nat_numeral diff_nat_numeral arith_simps rel_simps})
+    #> Simplifier.add_simps @{thms Let_def if_False if_True Nat.add_0 add_Suc});
 
 
 (* various normalizing conversions *)

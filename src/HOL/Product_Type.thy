@@ -498,10 +498,10 @@ ML \<open>
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
       | exists_paired_all _ = false;
     val ss =
-      simpset_of
-       (put_simpset HOL_basic_ss \<^context>
-        |> Simplifier.add_simps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-        |> Simplifier.add_proc \<^simproc>\<open>unit_eq\<close>);
+      HOL_basic_ss
+      |> Simplifier.simpset_map \<^context> (
+        Simplifier.add_simps @{thms split_paired_all unit_all_eq2 unit_abs_eta_conv}
+        #> Simplifier.add_proc \<^simproc>\<open>unit_eq\<close>);
   in
     fun split_all_tac ctxt = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then safe_full_simp_tac (put_simpset ss ctxt) i else no_tac);
@@ -538,7 +538,8 @@ text \<open>
 ML \<open>
 local
   val cond_case_prod_eta_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps @{thms cond_case_prod_eta});
+    HOL_basic_ss
+    |> Simplifier.simpset_map \<^context> (Simplifier.add_simps @{thms cond_case_prod_eta});
   fun Pair_pat k 0 (Bound m) = (m = k)
     | Pair_pat k i (Const (\<^const_name>\<open>Pair\<close>,  _) $ Bound m $ t) =
         i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t

@@ -229,8 +229,8 @@ structure Data = Generic_Data
     ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)),
-     simpset_of ((empty_simpset \<^context>
-      |> Simplifier.add_proc rearrange_eqs_simproc) |> Simplifier.add_simp Drule.norm_hhf_eq));
+     Simplifier.empty_ss |> Simplifier.simpset_map \<^context>
+       (Simplifier.add_proc rearrange_eqs_simproc #> Simplifier.add_simp Drule.norm_hhf_eq));
   fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1), simpset1),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2), simpset2)) =
     ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),

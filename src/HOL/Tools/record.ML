@@ -2137,9 +2137,9 @@ fun definition overloaded (alphas, binding) parent (parents: parent_info list) r
 
     val record_ss = get_simpset defs_thy;
     val sel_upd_ss =
-      simpset_of
-        (put_simpset record_ss defs_ctxt
-          |> Simplifier.add_simps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
+      record_ss
+      |> Simplifier.simpset_map defs_ctxt
+          (Simplifier.add_simps (sel_defs @ accessor_thms @ upd_defs @ updator_thms));
 
     val (sel_convs, upd_convs) =
       timeit_msg defs_ctxt "record sel_convs/upd_convs proof:" (fn () =>

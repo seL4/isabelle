@@ -185,21 +185,21 @@ val mksimps_pairs =
   (\<^const_name>\<open>If\<close>, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  empty_simpset \<^context>
-  |> Simplifier.set_safe_solver safe_solver
-  |> Simplifier.set_unsafe_solver unsafe_solver
-  |> Simplifier.set_subgoaler asm_simp_tac
-  |> Simplifier.set_mksimps (mksimps mksimps_pairs)
-  |> Simplifier.set_mkeqTrue mk_eq_True
-  |> Simplifier.set_mkcong mk_meta_cong
-  |> simpset_of;
+  empty_ss
+  |> Simplifier.simpset_map \<^context> (
+    Simplifier.set_safe_solver safe_solver
+    #> Simplifier.set_unsafe_solver unsafe_solver
+    #> Simplifier.set_subgoaler asm_simp_tac
+    #> Simplifier.set_mksimps (mksimps mksimps_pairs)
+    #> Simplifier.set_mkeqTrue mk_eq_True
+    #> Simplifier.set_mkcong mk_meta_cong);
 
 fun hol_simplify ctxt rews =
-  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps rews);
+  full_simplify (ctxt |> Simplifier.put_simpset HOL_basic_ss |> Simplifier.add_simps rews);
 
 fun unfold_tac ctxt ths =
   ALLGOALS (full_simp_tac
-    (clear_simpset (put_simpset HOL_basic_ss ctxt) |> Simplifier.add_simps ths));
+    (ctxt |> Simplifier.put_simpset HOL_basic_ss |> Simplifier.clear_simpset |> Simplifier.add_simps ths));
 
 end;
 
