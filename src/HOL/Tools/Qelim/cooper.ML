@@ -70,7 +70,7 @@ val FWD = Drule.implies_elim_list;
 
 val true_tm = \<^cterm>\<open>True\<close>;
 val false_tm = \<^cterm>\<open>False\<close>;
-val presburger_ss =
+val presburger_ss = (*TODO: avoid arbitrary starting point for simpset*)
   \<^context> |> Simplifier.add_simps @{thms zdvd1_eq} |> Simplifier.simpset_of
 val lin_ss =
   presburger_ss
