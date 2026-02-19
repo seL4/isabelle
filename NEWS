@@ -38,6 +38,9 @@ instead. Rare INCOMPATIBILITY.
 * Discontinued infixes "addsimprocs" and "delsimprocs"; use explicit
 "Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor INCOMPATIBILITY.
 
+* Discontinued infix "delsimps"; use explicit "Simplifier.del_simps" instead.
+Minor INCOMPATIBILITY.
+
 
 *** Isabelle/jEdit Prover IDE ***
 

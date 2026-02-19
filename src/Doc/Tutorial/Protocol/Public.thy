@@ -159,7 +159,7 @@ lemma insert_Key_image: "insert (Key K) (Key`KK \<union> C) = Key ` (insert K KK
 ML \<open>
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ctxt delsimps [used_Says]))
+    (ALLGOALS (simp_tac (ctxt |> Simplifier.del_simp used_Says))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}]));

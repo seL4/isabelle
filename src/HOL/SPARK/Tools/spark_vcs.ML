@@ -225,8 +225,8 @@ fun add_enum_type tyname tyname' thy =
          resolve_tac ctxt @{thms subset_antisym} 1 THEN
          simp_tac ctxt 1 THEN
          resolve_tac ctxt @{thms subsetI} 1 THEN
-         asm_full_simp_tac (ctxt addsimps @{thms interval_expand}
-           delsimps @{thms atLeastLessThan_iff}) 1);
+         asm_full_simp_tac (ctxt |> Simplifier.add_simps @{thms interval_expand}
+           |> Simplifier.del_simps @{thms atLeastLessThan_iff}) 1);
 
     val lthy' =
       Class.prove_instantiation_instance (fn ctxt =>

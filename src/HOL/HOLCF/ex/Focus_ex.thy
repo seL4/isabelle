@@ -203,9 +203,9 @@ apply simp
 done
 
 lemma lemma4: "is_g g \<longrightarrow> def_g g"
-apply (tactic \<open>simp_tac (put_simpset HOL_ss \<^context>
-  delsimps (@{thms HOL.ex_simps} @ @{thms HOL.all_simps})
-  addsimps [@{thm lemma1}, @{thm lemma2}, @{thm def_g_def}]) 1\<close>)
+apply (tactic \<open>simp_tac (\<^context> |> put_simpset HOL_ss
+  |> Simplifier.del_simps @{thms HOL.ex_simps HOL.all_simps}
+  |> Simplifier.add_simps @{thms lemma1 lemma2 def_g_def}) 1\<close>)
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)

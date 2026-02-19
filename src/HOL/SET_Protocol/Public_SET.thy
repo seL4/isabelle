@@ -344,7 +344,7 @@ ML
 (*Tactic for possibility theorems*)
 fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ctxt delsimps [@{thm used_Says}, @{thm used_Notes}]))
+    (ALLGOALS (simp_tac (ctxt |> Simplifier.del_simps @{thms used_Says used_Notes}))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac ctxt [refl, conjI, @{thm Nonce_supply}]))
