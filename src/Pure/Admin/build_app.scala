@@ -128,14 +128,13 @@ object Build_App {
 
       /* java runtime */
 
-      val runtime_dir = app_prefix + Path.basic("runtime")
-
       val jdk_dir =
         Components.Directory(app_dir).read_components().filter(_.containsSlice("jdk")) match {
           case List(jdk) => app_dir + Path.explode(jdk) + Path.basic(platform_name)
           case _ => error("Failed to determine jdk component")
         }
 
+      val runtime_dir = app_prefix + Path.basic("runtime")
       Isabelle_System.rm_tree(runtime_dir)
 
       if (platform.is_linux) {
