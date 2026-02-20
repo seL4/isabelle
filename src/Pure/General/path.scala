@@ -283,6 +283,10 @@ final class Path private(
   def exe_if(b: Boolean): Path = if (b) exe else this
   def platform_exe: Path = exe_if(Platform.is_windows)
 
+  def app: Path = ext("app")
+  def app_if(b: Boolean): Path = if (b) app else this
+  def platform_app: Path = app_if(Platform.is_macos)
+
   private val Ext = new Regex("(.*)\\.([^.]*)")
 
   def split_ext: (Path, String) = {

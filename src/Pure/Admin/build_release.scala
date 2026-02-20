@@ -729,7 +729,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             progress.echo("Packaging " + bundle_info.name + " ...")
 
-            val isabelle_app = Path.explode(isabelle_name + ".app")
+            val isabelle_app = Path.explode(isabelle_name).app
             Isabelle_System.move_file(tmp_dir + Path.explode(isabelle_name),
               tmp_dir + isabelle_app)
 
