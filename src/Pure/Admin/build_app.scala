@@ -151,17 +151,18 @@ object Build_App {
           case _ => error("Failed to determine jdk component")
         }
 
+      val jdk_relative_path = File.perhaps_relative_path(isabelle_home, jdk_dir)
+
       val runtime_dir = app_prefix + Path.basic("runtime")
       Isabelle_System.rm_tree(runtime_dir)
 
       if (platform.is_linux) {
-        Isabelle_System.symlink(
-          Path.parent + File.perhaps_relative_path(isabelle_home, jdk_dir), runtime_dir)
+        Isabelle_System.symlink(Path.parent + jdk_relative_path, runtime_dir)
       }
       else if (platform.is_macos) {
         val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
         Isabelle_System.symlink(
-          File.perhaps_relative_path(contents_dir, jdk_dir),
+          Path.parent + Path.parent + jdk_relative_path,
           contents_dir + Path.explode("Home"))
       }
       else if (platform.is_windows) {
