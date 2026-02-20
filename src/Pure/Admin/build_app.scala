@@ -93,6 +93,8 @@ object Build_App {
         " --copyright 'Isabelle contributors: various open-source lincenses'" +
         " --description 'Isabelle prover platform'" +
         " --vendor 'Isabelle'" +
+        if_proper(platform.is_macos,
+          " --mac-package-identifier " + Bash.string("isabelle." + app_name)) +
         if_proper(app_icon, " --icon " + File.bash_platform_path(app_icon.get)) +
         if_proper(progress.verbose, " --verbose"))
 
