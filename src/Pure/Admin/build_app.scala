@@ -74,7 +74,8 @@ object Build_App {
       }
 
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
-      val app_prefix = target_dir.absolute + Path.basic(app_name) + platform_prefix
+      val app_prefix =
+        target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
       val app_dir = app_prefix + Path.basic("app")
 
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
@@ -125,7 +126,19 @@ object Build_App {
         }
 
       Isabelle_System.rm_tree(runtime_dir)
-      Isabelle_System.symlink(File.perhaps_relative_path(app_prefix, jdk_dir), runtime_dir)
+
+      if (platform.is_linux) {
+        Isabelle_System.symlink(File.perhaps_relative_path(app_prefix, jdk_dir), runtime_dir)
+      }
+      else if (platform.is_macos) {
+        val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
+        Isabelle_System.symlink(
+          File.perhaps_relative_path(contents_dir, jdk_dir),
+          contents_dir + Path.explode("Home"))
+      }
+      else if (platform.is_windows) {
+        Isabelle_System.copy_dir(jdk_dir, runtime_dir)
+      }
     }
   }
 
