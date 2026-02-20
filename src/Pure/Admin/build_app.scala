@@ -123,6 +123,7 @@ object Build_App {
 
       if (platform.is_linux) {
         Isabelle_System.symlink(Path.basic("bin") + Path.basic(app_name), isabelle_home)
+        (app_prefix + Path.basic("lib") + Path.basic(app_name).png).file.delete
       }
 
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),

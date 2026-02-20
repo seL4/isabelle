@@ -260,6 +260,7 @@ final class Path private(
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")
   def pdf: Path = ext("pdf")
+  def png: Path = ext("png")
   def shasum: Path = ext("shasum")
   def tar: Path = ext("tar")
   def tex: Path = ext("tex")
