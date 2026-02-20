@@ -99,6 +99,7 @@ directory individually.
   val ISABELLE_ID: Path = Path.explode("etc/ISABELLE_ID")
   val ISABELLE_TAGS: Path = Path.explode("etc/ISABELLE_TAGS")
   val ISABELLE_IDENTIFIER: Path = Path.explode("etc/ISABELLE_IDENTIFIER")
+  val ISABELLE_APP: Path = Path.explode("lib/scripts/Isabelle_app")
 
   object Release_Archive {
     def make(bytes: Bytes, rename: String = ""): Release_Archive = {
@@ -333,7 +334,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
 """ else "") + """  isabelle.jedit.JEdit_Main "$@"
 """
-    val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
+    val script_path = isabelle_target + ISABELLE_APP
     File.write(script_path, script)
     File.set_executable(script_path)
 
