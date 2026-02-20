@@ -116,6 +116,12 @@ object Build_App {
       } yield path.check_file.file.delete
 
       if (platform.is_macos) {
+        File.change_lines(isabelle_home + Path.explode("etc/settings")) { lines =>
+          lines.map(line =>
+            line.replace(
+              "$USER_HOME/.isabelle",
+              "$USER_HOME/Library/Application Support/Isabelle"))
+        }
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
       }
 
