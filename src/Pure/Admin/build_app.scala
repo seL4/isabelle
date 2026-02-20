@@ -98,6 +98,7 @@ object Build_App {
       for { path <-
         List(
           Build_Release.isabelle_options_path(platform_family, app_dir, isabelle_identifier),
+          app_dir + Build_Release.ISABELLE_APP,
           app_dir + Path.basic(isabelle_identifier).exe_if(platform.is_windows))
       } yield path.check_file.file.delete
 
