@@ -101,6 +101,9 @@ directory individually.
   val ISABELLE_IDENTIFIER: Path = Path.explode("etc/ISABELLE_IDENTIFIER")
   val ISABELLE_APP: Path = Path.explode("lib/scripts/Isabelle_app")
 
+  val ISABELLE_ICNS: Path = Path.explode("lib/logo/isabelle.icns")
+  val THEORY_ICNS: Path = Path.explode("lib/logo/theory.icns")
+
   object Release_Archive {
     def make(bytes: Bytes, rename: String = ""): Release_Archive = {
       Isabelle_System.with_tmp_dir("build_release")(dir =>
@@ -710,8 +713,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val app_contents = isabelle_target + Path.explode("Contents")
 
-            for (icon <- List("lib/logo/isabelle.icns", "lib/logo/theory.icns")) {
-              Isabelle_System.copy_file(isabelle_target + Path.explode(icon),
+            for (icon <- List(ISABELLE_ICNS, THEORY_ICNS)) {
+              Isabelle_System.copy_file(isabelle_target + icon,
                 Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
             }
 

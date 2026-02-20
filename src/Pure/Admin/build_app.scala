@@ -82,9 +82,7 @@ object Build_App {
       val app_prefix =
         target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
 
-      val app_icon =
-        if (platform.is_macos) Some(dist_dir + Path.explode("Contents/Resources/isabelle.icns"))
-        else None
+      val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
       jpackage(
