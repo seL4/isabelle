@@ -59,7 +59,8 @@ object Build_App {
       }
 
       val java_options =
-        Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier)
+        Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier) :::
+          List("-splash:$APPDIR/lib/logo/isabelle.gif")
 
 
       /* java app package */
