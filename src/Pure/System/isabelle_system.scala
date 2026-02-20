@@ -274,7 +274,6 @@ object Isabelle_System {
       else isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
     }
 
-
     try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
     catch {
       case _: UnsupportedOperationException if Platform.is_windows => cygwin_link()
