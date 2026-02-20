@@ -84,7 +84,8 @@ object Build_App {
         " --main-jar " + File.bash_platform_path(dist_dir + Path.explode("lib/classes/isabelle.jar")) +
         " --copyright 'Isabelle contributors: various open-source lincenses'" +
         " --description 'Isabelle prover platform'" +
-        " --vendor 'Isabelle'")
+        " --vendor 'Isabelle'" +
+        if_proper(progress.verbose, " --verbose"))
 
 
       /* Isabelle directory structure */
