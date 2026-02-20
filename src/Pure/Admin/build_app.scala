@@ -60,7 +60,9 @@ object Build_App {
 
       val java_options =
         Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier) :::
-          List("-splash:$APPDIR/lib/logo/isabelle.gif")
+          List("-splash:$APPDIR/lib/logo/isabelle.gif") :::
+          (if (platform.is_macos) List("-Xdock:icon=$APPDIR/lib/logo/isabelle_transparent-128.png")
+           else Nil)
 
 
       /* java app package */
@@ -78,6 +80,10 @@ object Build_App {
         target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
       val app_dir = app_prefix + Path.basic("app")
 
+      val app_icon =
+        if (platform.is_macos) Some(dist_dir + Path.explode("Contents/Resources/isabelle.icns"))
+        else None
+
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
       jpackage(
         " --name " + Bash.string(app_name) +
@@ -87,6 +93,7 @@ object Build_App {
         " --copyright 'Isabelle contributors: various open-source lincenses'" +
         " --description 'Isabelle prover platform'" +
         " --vendor 'Isabelle'" +
+        if_proper(app_icon, " --icon " + File.bash_platform_path(app_icon.get)) +
         if_proper(progress.verbose, " --verbose"))
 
 
@@ -102,6 +109,10 @@ object Build_App {
           app_dir + Build_Release.ISABELLE_APP,
           app_dir + Path.basic(isabelle_identifier).exe_if(platform.is_windows))
       } yield path.check_file.file.delete
+
+      if (platform.is_macos) {
+        Isabelle_System.rm_tree(app_dir + Path.explode("Contents"))
+      }
 
       File.write(app_dir + Path.basic(app_name + ".cfg"),
         Library.cat_lines(
