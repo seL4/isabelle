@@ -121,6 +121,10 @@ object Build_App {
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
       }
 
+      if (platform.is_linux) {
+        Isabelle_System.symlink(Path.basic("bin") + Path.basic(app_name), isabelle_home)
+      }
+
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           "[Application]" ::
