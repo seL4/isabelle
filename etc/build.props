@@ -11,6 +11,7 @@ sources = \
   src/HOL/Tools/Mirabelle/mirabelle.scala \
   src/HOL/Tools/Nitpick/kodkod.scala \
   src/Pure/Admin/afp.scala \
+  src/Pure/Admin/build_app.scala \
   src/Pure/Admin/build_doc.scala \
   src/Pure/Admin/build_history.scala \
   src/Pure/Admin/build_log.scala \
