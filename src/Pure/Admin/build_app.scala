@@ -31,6 +31,8 @@ object Build_App {
         else if (platform.is_macos) Path.explode("Contents")
         else Path.explode("lib")
 
+      val platform_suffix = if (platform.is_macos) "/Contents" else ""
+
 
       /* Isabelle distribution directory */
 
@@ -60,8 +62,9 @@ object Build_App {
 
       val java_options =
         Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier) :::
-          List("-splash:$APPDIR/lib/logo/isabelle.gif") :::
-          (if (platform.is_macos) List("-Xdock:icon=$APPDIR/lib/logo/isabelle_transparent-128.png")
+          List("-splash:$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
+          (if (platform.is_macos)
+            List("-Xdock:icon=$ROOTDIR/Contents/lib/logo/isabelle_transparent-128.png")
            else Nil)
 
 
@@ -78,7 +81,6 @@ object Build_App {
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
       val app_prefix =
         target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
-      val app_dir = app_prefix + Path.basic("app")
 
       val app_icon =
         if (platform.is_macos) Some(dist_dir + Path.explode("Contents/Resources/isabelle.icns"))
@@ -101,36 +103,42 @@ object Build_App {
 
       progress.echo("Preparing Isabelle directory structure ...")
 
-      Isabelle_System.copy_dir(dist_dir, app_dir, direct = true)
+      val isabelle_home =
+        if (platform.is_macos) app_prefix
+        else target_dir.absolute + Path.basic(app_name)
+
+      Isabelle_System.make_directory(isabelle_home)
+      Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
 
       for { path <-
         List(
-          Build_Release.isabelle_options_path(platform_family, app_dir, isabelle_identifier),
-          app_dir + Build_Release.ISABELLE_APP,
-          app_dir + Path.basic(isabelle_identifier).exe_if(platform.is_windows))
+          Build_Release.isabelle_options_path(platform_family, isabelle_home, isabelle_identifier),
+          isabelle_home + Build_Release.ISABELLE_APP,
+          isabelle_home + Path.basic(isabelle_identifier).exe_if(platform.is_windows))
       } yield path.check_file.file.delete
 
       if (platform.is_macos) {
-        Isabelle_System.rm_tree(app_dir + Path.explode("Contents"))
+        Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
       }
 
-      File.write(app_dir + Path.basic(app_name + ".cfg"),
+      File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           "[Application]" ::
-          java_classpath.map(s => "app.classpath=" + s.replace("ISABELLE_HOME", "APPDIR")) :::
+          java_classpath.map(s =>
+            "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
             "",
             "[JavaOptions]",
             "java-options=-Djpackage.app-version=1.0",
-            "java-options=-Disabelle.root=$APPDIR") :::
+            "java-options=-Disabelle.root=$ROOTDIR" + platform_suffix) :::
           java_options.map("java-options=" + _)))
 
 
       /* java runtime */
 
       val jdk_dir =
-        Components.Directory(app_dir).read_components().filter(_.containsSlice("jdk")) match {
-          case List(jdk) => app_dir + Path.explode(jdk) + Path.basic(platform_name)
+        Components.Directory(isabelle_home).read_components().filter(_.containsSlice("jdk")) match {
+          case List(jdk) => isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
           case _ => error("Failed to determine jdk component")
         }
 
