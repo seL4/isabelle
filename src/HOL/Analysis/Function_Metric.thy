@@ -348,8 +348,7 @@ proof
     fix e assume [simp]: "e>(0::real)"
     have i: "\<exists>K. \<forall>n\<ge>K. dist (u n i) (x i) < e/4" for i
       by (rule metric_LIMSEQ_D, auto simp add: *)
-    have "\<exists>K. \<forall>i. \<forall>n\<ge>K i. dist (u n i) (x i) < e/4"
-      apply (rule choice) using i by auto
+    then have "\<exists>K. \<forall>i. \<forall>n\<ge>K i. dist (u n i) (x i) < e/4" by metis
     then obtain K where K: "\<And>i n. n \<ge> K i \<Longrightarrow> dist (u n i) (x i) < e/4"
       by blast
 
