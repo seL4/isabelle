@@ -150,7 +150,8 @@ object Build_App {
       Isabelle_System.rm_tree(runtime_dir)
 
       if (platform.is_linux) {
-        Isabelle_System.symlink(File.perhaps_relative_path(app_prefix, jdk_dir), runtime_dir)
+        Isabelle_System.symlink(
+          Path.parent + File.perhaps_relative_path(isabelle_home, jdk_dir), runtime_dir)
       }
       else if (platform.is_macos) {
         val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
