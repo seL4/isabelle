@@ -67,6 +67,19 @@ object Build_App {
            else Nil)
 
 
+      /* file associations */
+
+      val file_associations = tmp_dir + Path.explode("file-associations.props")
+
+      File.write(file_associations,
+"""
+extension=thy
+icon=theory.icns
+description=Isabelle theory file
+mac.CFBundleTypeRole=Editor
+""")
+
+
       /* java app package */
 
       Isabelle_System.make_directory(target_dir)
@@ -86,6 +99,7 @@ object Build_App {
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
       jpackage(
         " --name " + Bash.string(app_name) +
+        " --file-associations " + File.bash_platform_path(file_associations) +
         " --type app-image" +
         " --input " + File.bash_platform_path(dummy_dir) +
         " --main-jar " + File.bash_platform_path(dist_dir + Path.explode("lib/classes/isabelle.jar")) +
@@ -124,6 +138,8 @@ object Build_App {
               "$USER_HOME/Library/Application Support/Isabelle"))
         }
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
+        Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS,
+          app_prefix + Path.explode("Resources"))
       }
 
       if (platform.is_linux) {
