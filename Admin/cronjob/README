@@ -21,8 +21,8 @@ Administrative Isabelle cronjob
 Build Log Database Server
 =========================
 
-- Ubuntu 20.04 LTS Linux Server standard installation
-  https://help.ubuntu.com/lts/serverguide
+- Ubuntu 24.04 LTS Linux Server standard installation
+  https://documentation.ubuntu.com/server/how-to/databases/install-postgresql
 
 - apt install unattended-upgrades
 
@@ -37,19 +37,16 @@ Build Log Database Server
   $ sudo -u postgres psql template1
   ALTER USER postgres with encrypted password '***';
 
-  $ edit /etc/postgresql/10/main/pg_hba.conf
-  local all postgres md5
-  local all all md5
+  $ /etc/postgresql/16/main/pg_hba.conf
+  scram-sha-256 ~> md5
 
   $ systemctl restart postgresql.service
 
-  $ createuser -U postgres --interactive isatest
-  ALTER USER isatest with encrypted password '***';
-
-  $ createdb -E UTF8 -T template0 --locale=en_US.utf8 -U postgres -O isatest isatest
+  $ createuser -U postgres --pwprompt isatest
+  $ createdb -U postgres --encoding=UTF8 --locale=en_US.utf8 --template=template0 --owner=isatest build_log
 
 - Database backup or migration:
-  https://www.postgresql.org/docs/12/backup-dump.html
+  https://www.postgresql.org/docs/16/backup-dump.html
 
-     pg_dump -U postgres -Fc -v isatest > db.dump
-  pg_restore -U postgres -Fc -v -d isatest < db.dump
+     pg_dump -U postgres --format=custom -v build_log > db.dump
+  pg_restore -U postgres --format=custom -v --dbname=build_log < db.dump
