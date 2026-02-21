@@ -140,22 +140,18 @@ object Build_App {
           case _ => error("Failed to determine jdk component")
         }
 
-      val jdk_relative_path = File.perhaps_relative_path(isabelle_home, jdk_dir)
+      val jdk_relative_path =
+        File.relative_path(isabelle_home, jdk_dir)
+          .getOrElse(error("Cannot determine relative path from " + jdk_dir))
 
       val runtime_dir = app_prefix + Path.basic("runtime")
       Isabelle_System.rm_tree(runtime_dir)
 
-      if (platform.is_linux) {
-        Isabelle_System.symlink(Path.parent + jdk_relative_path, runtime_dir)
-      }
-      else if (platform.is_macos) {
+      if (platform.is_macos) {
         val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
         Isabelle_System.symlink(
           Path.parent + Path.parent + jdk_relative_path,
           contents_dir + Path.explode("Home"))
-      }
-      else if (platform.is_windows) {
-        Isabelle_System.copy_dir(jdk_dir, runtime_dir)
       }
 
 
@@ -164,7 +160,8 @@ object Build_App {
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           List("[Application]",
-            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
+            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif",
+            "app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode) :::
           java_classpath.map(s =>
             "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
