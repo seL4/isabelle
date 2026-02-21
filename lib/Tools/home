@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: display notable values from Isabelle settings environment
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG"
+  echo
+  echo "  Display notable values from Isabelle settings environment:"
+  echo "  ISABELLE_HOME ISABELLE_HOME_USER ISABELLE_IDENTIFIER"
+  exit 1
+}
+
+
+## main
+
+[ "$1" = "-?" -o "$#" -gt 0 ] && usage
+
+isabelle getenv ISABELLE_HOME ISABELLE_HOME_USER ISABELLE_IDENTIFIER

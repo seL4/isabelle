@@ -378,6 +378,22 @@ text \<open>
 \<close>
 
 
+section \<open>Display notable values from settings environment \label{sec:tool-home}\<close>
+
+text \<open>
+  The @{tool_def home} tool provides a convenient shortcut for @{tool_ref
+  getenv} (\secref{sec:tool-getenv}) to display notable values from the
+  Isabelle settings environment :
+
+  @{verbatim [display]
+\<open>Usage: isabelle home
+
+  Display notable values from Isabelle settings environment:
+  ISABELLE_HOME ISABELLE_HOME_USER ISABELLE_IDENTIFIER
+\<close>}
+\<close>
+
+
 section \<open>Installing standalone Isabelle executables \label{sec:tool-install}\<close>
 
 text \<open>
