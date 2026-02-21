@@ -16,7 +16,6 @@ object Build_App {
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
-      val dist_dir = Isabelle_System.new_directory(tmp_dir + Path.explode("dist"))
       val dummy_dir = Isabelle_System.new_directory(tmp_dir + Path.explode("dummy"))
 
 
@@ -36,17 +35,20 @@ object Build_App {
 
       /* Isabelle distribution directory */
 
-      val dist_archive_path =
-        Url.get_base_name(dist_archive) match {
-          case Some(name) if Url.is_wellformed(dist_archive) =>
-            val download_dir = Isabelle_System.make_directory(tmp_dir + Path.basic("download"))
-            val download_path = download_dir + Path.basic(name)
-            Isabelle_System.download_file(dist_archive, download_path, progress = progress)
-            download_path
-          case _ => Path.explode(dist_archive)
-        }
-
-      Isabelle_System.extract(dist_archive_path, dist_dir, strip = true)
+      val dist_dir = {
+        val dist_archive_path =
+          Url.get_base_name(dist_archive) match {
+            case Some(name) if Url.is_wellformed(dist_archive) =>
+              val download_dir = Isabelle_System.make_directory(tmp_dir + Path.basic("download"))
+              val download_path = download_dir + Path.basic(name)
+              Isabelle_System.download_file(dist_archive, download_path, progress = progress)
+              download_path
+            case _ => Path.explode(dist_archive)
+          }
+        val dist_parent = Isabelle_System.new_directory(tmp_dir + Path.explode("dist"))
+        Isabelle_System.extract(dist_archive_path, dist_parent)
+        File.get_dir(dist_parent, title = dist_archive)
+      }
 
       val isabelle_identifier = File.read(dist_dir + Build_Release.ISABELLE_IDENTIFIER)
 
