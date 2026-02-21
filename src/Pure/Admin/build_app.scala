@@ -132,18 +132,6 @@ object Build_App {
         (app_prefix + Path.basic("lib") + Path.basic(app_name).png).file.delete
       }
 
-      File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
-        Library.cat_lines(
-          "[Application]" ::
-          java_classpath.map(s =>
-            "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
-          List("app.mainclass=isabelle.jedit.JEdit_Main",
-            "",
-            "[JavaOptions]",
-            "java-options=-Djpackage.app-version=1.0",
-            "java-options=-Disabelle.root=$ROOTDIR" + platform_suffix) :::
-          java_options.map("java-options=" + _)))
-
 
       /* java runtime */
 
@@ -170,6 +158,21 @@ object Build_App {
       else if (platform.is_windows) {
         Isabelle_System.copy_dir(jdk_dir, runtime_dir)
       }
+
+
+      /* app configuration */
+
+      File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
+        Library.cat_lines(
+          "[Application]" ::
+          java_classpath.map(s =>
+            "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
+          List("app.mainclass=isabelle.jedit.JEdit_Main",
+            "",
+            "[JavaOptions]",
+            "java-options=-Djpackage.app-version=1.0",
+            "java-options=-Disabelle.root=$ROOTDIR" + platform_suffix) :::
+          java_options.map("java-options=" + _)))
     }
   }
 
