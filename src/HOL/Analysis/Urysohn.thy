@@ -673,17 +673,17 @@ theorem Urysohn_metrization:
   fixes X :: \<open>'a topology\<close>
 assumes \<open>regular_space X\<close> and \<open>second_countable X\<close> and \<open>t1_space X\<close>  shows \<open>metrizable_space X\<close>
 proof -
-  \<comment> \<open>Obtain a countable basis for X\<close>
+  \<comment> \<open>Obtain a countable basis for @{term X}\<close>
   obtain \<B> where \<B>_count: \<open>countable \<B>\<close>
     and \<B>_open: \<open>\<forall>V \<in> \<B>. openin X V\<close>
     and \<B>_base: \<open>\<forall>U x. openin X U \<and> x \<in> U \<longrightarrow> (\<exists>V \<in> \<B>. x \<in> V \<and> V \<subseteq> U)\<close>
     using assms(2) second_countable_def by metis
-  \<comment> \<open>X is normal (regular + Lindelöf \<Longrightarrow> normal)\<close>
+  \<comment> \<open>@{term X} is normal (because regular and Lindelöf)\<close>
   have normal: \<open>normal_space X\<close>
     using assms regular_Lindelof_imp_normal_space second_countable_imp_Lindelof_space by blast
-  \<comment> \<open>For each pair (Bn, Bm) from the basis with closure of Bn \<subseteq> Bm,
+  (*For each pair (Bn, Bm) from the basis with closure of Bn \<subseteq> Bm,
       apply Urysohn's lemma to obtain g Bn Bm : X \<rightarrow> [0,1] continuous with
-      g Bn Bm ` (X closure_of Bn) \<subseteq> {1} and g Bn Bm ` (topspace X - Bm) \<subseteq> {0}\<close>
+      g Bn Bm ` (X closure_of Bn) \<subseteq> {1} and g Bn Bm ` (topspace X - Bm) \<subseteq> {0}*)
   define pairs where \<open>pairs \<equiv> {(Bn, Bm). Bn \<in> \<B> \<and> Bm \<in> \<B> \<and> X closure_of Bn \<subseteq> Bm}\<close>
   have pairs_count: \<open>countable pairs\<close>
     unfolding pairs_def using \<B>_count by (auto intro: countable_subset[OF _ countable_SIGMA[OF \<B>_count]])
@@ -723,17 +723,17 @@ proof -
     and g_one: \<open>\<And>Bn Bm. (Bn, Bm) \<in> pairs \<Longrightarrow>
       g Bn Bm ` (X closure_of Bn) \<subseteq> {1}\<close>
     using gp unfolding g_def by (fastforce simp: image_subset_iff)+
-  \<comment> \<open>The separation property of the family {g Bn Bm}: for any x0 in X and
+  (*The separation property of the family {g Bn Bm}: for any x0 in X and
       any open neighbourhood U of x0, there exist Bn, Bm in the basis with
-      (Bn, Bm) \<in> pairs, g Bn Bm x0 = 1 > 0, and g Bn Bm vanishes outside U.\<close>
+      (Bn, Bm) \<in> pairs, g Bn Bm x0 = 1 > 0, and g Bn Bm vanishes outside U.*)
   have separation: \<open>\<exists>Bn Bm. (Bn, Bm) \<in> pairs \<and> g Bn Bm x0 = 1 \<and>
       (\<forall>x \<in> topspace X - U. g Bn Bm x = 0)\<close>
     if \<open>openin X U\<close> and \<open>x0 \<in> U\<close> for x0 U
   proof -
-    \<comment> \<open>Step 1: choose basis element Bm with x0 \<in> Bm \<subseteq> U\<close>
+    (*Step 1: choose basis element Bm with x0 \<in> Bm \<subseteq> U*)
     obtain Bm where Bm_in: \<open>Bm \<in> \<B>\<close> and x0_Bm: \<open>x0 \<in> Bm\<close> and Bm_sub: \<open>Bm \<subseteq> U\<close>
       using \<B>_base that \<open>openin X U\<close> \<open>x0 \<in> U\<close> by blast
-    \<comment> \<open>Step 2: by regularity, find open U' and closed V with x0 \<in> U' \<subseteq> V \<subseteq> Bm\<close>
+    (*Step 2: by regularity, find open U' and closed V with x0 \<in> U' \<subseteq> V \<subseteq> Bm*)
     have \<open>x0 \<in> topspace X\<close>
       using that openin_subset by blast
     then obtain U' V where U'_open: \<open>openin X U'\<close> and V_closed: \<open>closedin X V\<close>
@@ -741,37 +741,35 @@ proof -
       using \<open>regular_space X\<close>[unfolded neighbourhood_base_of_closedin[symmetric]
         neighbourhood_base_of_def neighbourhood_base_at_def]
         \<B>_open Bm_in x0_Bm by meson
-    \<comment> \<open>Step 3: choose basis element Bn with x0 \<in> Bn \<subseteq> U'\<close>
+    (*Step 3: choose basis element Bn with x0 \<in> Bn \<subseteq> U'*)
     obtain Bn where Bn_in: \<open>Bn \<in> \<B>\<close> and x0_Bn: \<open>x0 \<in> Bn\<close> and Bn_sub: \<open>Bn \<subseteq> U'\<close>
       using \<B>_base U'_open x0_U' by blast
-    \<comment> \<open>Bn \<subseteq> U' \<subseteq> V (closed), so closure_of Bn \<subseteq> V \<subseteq> Bm\<close>
+    (*Bn \<subseteq> U' \<subseteq> V (closed), so closure_of Bn \<subseteq> V \<subseteq> Bm*)
     have cl_Bn_Bm: \<open>X closure_of Bn \<subseteq> Bm\<close>
       using Bn_sub U'_V V_Bm V_closed closure_of_minimal by (meson order_trans)
-    \<comment> \<open>Hence (Bn, Bm) \<in> pairs\<close>
-    have pair_in: \<open>(Bn, Bm) \<in> pairs\<close>
-      unfolding pairs_def using Bn_in Bm_in cl_Bn_Bm by blast
-    \<comment> \<open>g Bn Bm x0 = 1 since x0 \<in> Bn \<subseteq> closure_of Bn\<close>
+    hence pair_in: \<open>(Bn, Bm) \<in> pairs\<close>
+      unfolding pairs_def using Bn_in Bm_in by blast
     have \<open>x0 \<in> X closure_of Bn\<close>
       using x0_Bn closure_of_subset openin_subset \<B>_open Bn_in by (meson in_mono)
     then have \<open>g Bn Bm x0 = 1\<close>
       using g_one[OF pair_in] by (auto simp: image_subset_iff)
-    \<comment> \<open>g Bn Bm vanishes outside U since X - U \<subseteq> X - Bm\<close>
+    (*g Bn Bm vanishes outside U since X - U \<subseteq> X - Bm*)
     moreover have \<open>\<forall>x \<in> topspace X - U. g Bn Bm x = 0\<close>
       using g_zero[OF pair_in] Bm_sub by (fastforce simp: image_subset_iff)
     ultimately show ?thesis
       using pair_in by blast
   qed
-  \<comment> \<open>Reindex the countable family {gp p | p \<in> pairs} with natural numbers.
-      Since pairs is countable, we can enumerate it using from_nat_into.\<close>
+  (*Reindex the countable family {gp p | p \<in> pairs} with natural numbers.
+      Since pairs is countable, we can enumerate it using from_nat_into.*)
   define f where \<open>f \<equiv> \<lambda>n. gp (from_nat_into pairs n)\<close>
   have f_cont: \<open>continuous_map X (top_of_set {0..1::real}) (f n)\<close>
     if \<open>pairs \<noteq> {}\<close> for n
     using gp from_nat_into[OF that] unfolding f_def by blast
   have f_surj: \<open>\<forall>p \<in> pairs. \<exists>n. f n = gp p\<close>
     using from_nat_into_surj[OF pairs_count] unfolding f_def by metis
-  \<comment> \<open>The key separation property of the reindexed family:
+  (*The key separation property of the reindexed family:
       for any x0 \<in> X and open U ∋ x0, there exists n with f n x0 > 0
-      and f n vanishing outside U.\<close>
+      and f n vanishing outside U.*)
   have f_sep: \<open>\<exists>n. f n x0 > 0 \<and> (\<forall>x \<in> topspace X - U. f n x = 0)\<close>
     if \<open>openin X U\<close> and \<open>x0 \<in> U\<close> for x0 U
   proof -
@@ -785,13 +783,13 @@ proof -
     with val1 van show ?thesis
       by (metis zero_less_one)
   qed  
-    \<comment> \<open>Define F : X \<rightarrow> \<real>^\<omega> by F(x) = (f 0 x, f 1 x, f 2 x, ...)\<close>
+    \<comment> \<open>Define @{text \<open>F : X \<rightarrow> \<real>^\<omega>\<close>} by @{text\<open>F(x) = (f 0 x, f 1 x, f 2 x, ...)\<close>}\<close>
   define F where \<open>F \<equiv> \<lambda>x. \<lambda>n. f n x\<close>
     \<comment> \<open>If the topspace is nonempty, pairs is nonempty.\<close>
   have pairs_nonempty: \<open>pairs \<noteq> {}\<close> if \<open>topspace X \<noteq> {}\<close>
     using separation that by blast
-    \<comment> \<open>F is continuous: \<real>^\<omega> has the product topology, so it suffices
-      to show each component f n is continuous as a map X \<rightarrow> \<real>.\<close>
+    (*F is continuous: \<real>^\<omega> has the product topology, so it suffices
+      to show each component f n is continuous as a map X \<rightarrow> \<real>.*)
   have F_cont: \<open>continuous_map X (product_topology (\<lambda>_::nat. euclideanreal) UNIV) F\<close>
     if nonempty: \<open>topspace X \<noteq> {}\<close>
   proof -
@@ -801,9 +799,9 @@ proof -
     then show ?thesis
       by (simp add: F_def continuous_map_componentwise_UNIV)
   qed
-    \<comment> \<open>F is injective: given x \<noteq> y in X, since X is T1 there is an
+    (*F is injective: given x \<noteq> y in X, since X is T1 there is an
       open set U containing y but not x. By f_sep there exists n
-      with f n y > 0 and f n x = 0, so F x \<noteq> F y.\<close>
+      with f n y > 0 and f n x = 0, so F x \<noteq> F y.*)
   have F_inj: \<open>inj_on F (topspace X)\<close>
   proof (rule inj_onI)
     fix x y
@@ -811,10 +809,10 @@ proof -
     show \<open>x = y\<close>
     proof (rule ccontr)
       assume \<open>x \<noteq> y\<close>
-        \<comment> \<open>By T1, there exists an open set U containing y but not x\<close>
+        (*By T1, there exists an open set U containing y but not x*)
       then obtain U where U_open: \<open>openin X U\<close> and yU: \<open>y \<in> U\<close> and xU: \<open>x \<notin> U\<close>
         using \<open>t1_space X\<close>[unfolded t1_space_def, rule_format, OF yX xX] by auto
-          \<comment> \<open>By f_sep, there exists n with f n y > 0 and f n x = 0\<close>
+          (*By f_sep, there exists n with f n y > 0 and f n x = 0*)
       then obtain n where \<open>f n y > 0\<close> and \<open>f n x = 0\<close>
         using f_sep[OF U_open yU] xU xX by auto
           \<comment> \<open>But F x = F y means f n x = f n y for all n, contradiction\<close>
@@ -842,12 +840,12 @@ proof -
         then obtain x0 where x0U: \<open>x0 \<in> U\<close> and y_eq: \<open>y = F x0\<close> by auto
         obtain n where fn_pos: \<open>f n x0 > 0\<close> and fn_van: \<open>\<forall>x \<in> topspace X - U. f n x = 0\<close>
           using f_sep[OF U_open x0U] by auto
-        \<comment> \<open>The set W = {z \<in> topspace Y. z n > 0} is open in Y\<close>
+        (*The set W = {z \<in> topspace Y. z n > 0} is open in Y*)
         let ?W = \<open>{z \<in> topspace ?Y. z n \<in> {0<..}}\<close>
         have W_open: \<open>openin ?Y ?W\<close>
           by (rule openin_continuous_map_preimage[OF continuous_map_product_projection[of n UNIV]])
              (simp_all add: open_openin[symmetric])
-        \<comment> \<open>The set T = W \<inter> F ` topspace X is open in the subtopology\<close>
+        (*The set T = W \<inter> F ` topspace X is open in the subtopology*)
         let ?T = \<open>?W \<inter> F ` topspace X\<close>
         have T_open: \<open>openin (subtopology ?Y (F ` topspace X)) ?T\<close>
           by (rule openin_subtopology_Int) (rule W_open)
@@ -860,20 +858,20 @@ proof -
           using T_open by blast
       qed
     qed
-    \<comment> \<open>F is continuous into the subtopology\<close>
+    \<comment> \<open>@{term F} is continuous into the subtopology\<close>
     have F_cont_sub: \<open>continuous_map X (subtopology ?Y (F ` topspace X)) F\<close>
       by (rule continuous_map_into_subtopology[OF F_cont[OF ne]]) auto
-    \<comment> \<open>F is an embedding\<close>
+    \<comment> \<open>@{term F} is an embedding\<close>
     have F_emb: \<open>embedding_map X ?Y F\<close>
       using injective_open_imp_embedding_map[OF F_cont_sub F_open F_inj]
       by (simp add: embedding_map_in_subtopology)
-    \<comment> \<open>X is homeomorphic to a subspace of Y\<close>
+    \<comment> \<open>@{term X} is homeomorphic to a subspace of @{term Y}\<close>
     have \<open>X homeomorphic_space subtopology ?Y (F ` topspace X)\<close>
       using embedding_map_imp_homeomorphic_space[OF F_emb] .
-    \<comment> \<open>Y is metrizable, hence so is any subspace\<close>
+    \<comment> \<open>@{term Y} is metrizable, hence so is any subspace\<close>
     moreover have \<open>metrizable_space (subtopology ?Y (F ` topspace X))\<close>
       by (simp add: euclidean_product_topology metrizable_space_euclidean metrizable_space_subtopology)
-    \<comment> \<open>Therefore X is metrizable\<close>
+    \<comment> \<open>Therefore @{term X} is metrizable\<close>
     ultimately show ?thesis
       using homeomorphic_metrizable_space by blast
   qed
