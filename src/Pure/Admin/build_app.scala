@@ -46,7 +46,11 @@ object Build_App {
             case _ => Path.explode(dist_archive)
           }
         val dist_parent = Isabelle_System.new_directory(tmp_dir + Path.explode("dist"))
-        Isabelle_System.extract(dist_archive_path, dist_parent)
+        if (dist_archive.endsWith(".exe")) {
+          Isabelle_System.bash(
+            "7z x -y " + File.bash_platform_path(dist_archive_path), cwd = dist_parent).check
+        }
+        else Isabelle_System.extract(dist_archive_path, dist_parent)
         File.get_dir(dist_parent, title = dist_archive)
       }
 
