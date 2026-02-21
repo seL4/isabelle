@@ -62,7 +62,6 @@ object Build_App {
 
       val java_options =
         Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier) :::
-          List("-splash:$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
           (if (platform.is_macos)
             List("-Xdock:icon=$ROOTDIR/Contents/lib/logo/isabelle_transparent-128.png")
            else Nil)
@@ -164,7 +163,8 @@ object Build_App {
 
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
-          "[Application]" ::
+          List("[Application]",
+            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
           java_classpath.map(s =>
             "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
