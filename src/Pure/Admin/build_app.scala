@@ -160,8 +160,9 @@ object Build_App {
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           List("[Application]",
-            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif",
-            "app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode) :::
+            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
+          (if (platform.is_macos) Nil
+           else List("app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode)) :::
           java_classpath.map(s =>
             "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
