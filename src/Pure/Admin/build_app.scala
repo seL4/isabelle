@@ -59,12 +59,29 @@ object Build_App {
 
       /* java classpath and options */
 
-      val java_classpath: List[String] = {
-        val Pattern = """^\s*-classpath\s*"([^"]*)".*$""".r
-        split_lines(File.read(dist_dir + Build_Release.ISABELLE_APP))
-          .collectFirst({ case Pattern(s) => Library.space_explode(':', s) })
-          .getOrElse(error("Failed to retrieve classpath from " + Build_Release.ISABELLE_APP))
-      }
+      val java_classpath: List[String] =
+        if (platform.is_windows) {
+          val exe =
+            File.get_entry(dist_dir,
+              pred = (path: Path) => path.is_file && path.implode.endsWith(".exe"),
+              title = "Isabelle distribution: main exe")
+          val list =
+            for {
+              b <- Bytes.read(dist_dir + exe).space_explode(0)
+              s <- b.wellformed_text
+              if s.containsSlice(".jar")
+            } yield s.replace("\\", "/").replace("%EXEDIR%", "$ISABELLE_HOME")
+          list match {
+            case List(s) => space_explode(';', s)
+            case _ => error("Failed to retrieve classpath from " + exe)
+          }
+        }
+        else {
+          val Pattern = """^\s*-classpath\s*"([^"]*)".*$""".r
+          split_lines(File.read(dist_dir + Build_Release.ISABELLE_APP))
+            .collectFirst({ case Pattern(s) => Library.space_explode(':', s) })
+            .getOrElse(error("Failed to retrieve classpath from " + Build_Release.ISABELLE_APP))
+        }
 
       val java_options =
         Build_Release.read_isabelle_options(platform_family, dist_dir, isabelle_identifier) :::
@@ -132,8 +149,10 @@ mac.CFBundleTypeRole=Editor
       for { path <-
         List(
           Build_Release.isabelle_options_path(platform_family, isabelle_home, isabelle_identifier),
-          isabelle_home + Build_Release.ISABELLE_APP,
-          isabelle_home + Path.basic(isabelle_identifier).exe_if(platform.is_windows))
+          isabelle_home + Path.basic(isabelle_identifier).exe_if(platform.is_windows)) :::
+        (if (platform.is_windows)
+          List(isabelle_home + Path.explode(isabelle_identifier).exe.ext("manifest"))
+         else List(isabelle_home + Build_Release.ISABELLE_APP))
       } yield path.check_file.file.delete
 
       if (platform.is_macos) {
@@ -192,6 +211,8 @@ mac.CFBundleTypeRole=Editor
             "[JavaOptions]",
             "java-options=-Djpackage.app-version=1.0",
             "java-options=-Disabelle.root=$ROOTDIR" + platform_suffix) :::
+          (if (platform.is_windows) List("java-options=-Dcygwin.root=$ROOTDIR/contrib/cygwin")
+           else Nil) :::
           java_options.map("java-options=" + _)))
     }
   }
