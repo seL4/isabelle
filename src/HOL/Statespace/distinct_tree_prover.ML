@@ -361,12 +361,12 @@ fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
     | _ => no_tac))
 
 fun distinctFieldSolver names =
-  mk_solver "distinctFieldSolver" (distinctTree_tac names);
+  Simplifier.mk_solver "distinctFieldSolver" (distinctTree_tac names);
 
 fun distinct_simproc names =
   Simplifier.make_simproc \<^context>
    {name = "DistinctTreeProver.distinct_simproc",
-    kind = Simproc,
+    kind = Simplifier.Simproc,
     lhss = [\<^term>\<open>x = y\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       (case Thm.term_of ct of

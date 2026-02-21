@@ -49,7 +49,7 @@ structure Data = Generic_Data
   type T = simpset * term list;
   val empty = (HOL_ss, allowed_consts);
   fun merge ((ss1, ts1), (ss2, ts2)) =
-    (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
+    (Simplifier.merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
 );
 
 val get = Data.get o Context.Proof;

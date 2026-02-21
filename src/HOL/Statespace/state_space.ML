@@ -290,7 +290,7 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
       | NONE => no_tac)
   | _ => no_tac));
 
-val distinctNameSolver = mk_solver "distinctNameSolver" distinctTree_tac;
+val distinctNameSolver = Simplifier.mk_solver "distinctNameSolver" distinctTree_tac;
 
 val distinct_simproc =
   \<^simproc_setup>\<open>passive distinct_simproc ("x = y") =

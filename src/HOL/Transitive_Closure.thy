@@ -1600,10 +1600,10 @@ structure Tranclp_Tac = Trancl_Tac
 
 setup \<open>
   map_theory_simpset (fn ctxt => ctxt
-    |> Simplifier.add_unsafe_solver (mk_solver "Trancl" Trancl_Tac.trancl_tac)
-    |> Simplifier.add_unsafe_solver (mk_solver "Rtrancl" Trancl_Tac.rtrancl_tac)
-    |> Simplifier.add_unsafe_solver (mk_solver "Tranclp" Tranclp_Tac.trancl_tac)
-    |> Simplifier.add_unsafe_solver (mk_solver "Rtranclp" Tranclp_Tac.rtrancl_tac))
+    |> Simplifier.add_unsafe_solver (Simplifier.mk_solver "Trancl" Trancl_Tac.trancl_tac)
+    |> Simplifier.add_unsafe_solver (Simplifier.mk_solver "Rtrancl" Trancl_Tac.rtrancl_tac)
+    |> Simplifier.add_unsafe_solver (Simplifier.mk_solver "Tranclp" Tranclp_Tac.trancl_tac)
+    |> Simplifier.add_unsafe_solver (Simplifier.mk_solver "Rtranclp" Tranclp_Tac.rtrancl_tac))
 \<close>
 
 lemma transp_rtranclp [simp]: "transp R\<^sup>*\<^sup>*"

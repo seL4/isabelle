@@ -40,7 +40,7 @@ val anyt = Free ("t", TFree ("'t", []));
 fun strong_ind_simproc tab =
   Simplifier.make_simproc \<^context>
    {name = "strong_ind",
-    kind = Simproc,
+    kind = Simplifier.Simproc,
     lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let
@@ -317,7 +317,7 @@ fun to_pred_simproc rules =
   in
     Simplifier.make_simproc \<^context>
       {name = "to_pred",
-       kind = Simproc,
+       kind = Simplifier.Simproc,
        lhss = [anyt],
        proc = fn _ => fn ctxt => fn ct =>
         lookup_rule (Proof_Context.theory_of ctxt)

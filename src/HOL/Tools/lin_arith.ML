@@ -946,7 +946,7 @@ end;
 
 val global_setup =
   map_theory_simpset (fn ctxt => ctxt
-    |> Simplifier.add_unsafe_solver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac))) #>
+    |> Simplifier.add_unsafe_solver (Simplifier.mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac))) #>
   Attrib.setup \<^binding>\<open>linarith_split\<close> (Scan.succeed (Thm.declaration_attribute add_split))
     "declaration of split rules for arithmetic procedure" #>
   Method.setup \<^binding>\<open>linarith\<close>

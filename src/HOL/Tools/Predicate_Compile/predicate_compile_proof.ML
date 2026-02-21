@@ -37,8 +37,8 @@ val HOL_basic_ss' =
   HOL_basic_ss
   |> Simplifier.simpset_map \<^context> (
     (Simplifier.add_simps @{thms simp_thms prod.inject}
-    #> Simplifier.set_unsafe_solver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
-    #> Simplifier.set_unsafe_solver (mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI}))))
+    #> Simplifier.set_unsafe_solver (Simplifier.mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
+    #> Simplifier.set_unsafe_solver (Simplifier.mk_solver "True_solver" (fn ctxt => resolve_tac ctxt @{thms TrueI}))))
 
 
 (* auxillary functions *)

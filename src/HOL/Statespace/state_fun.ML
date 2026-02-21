@@ -102,9 +102,9 @@ val ex_lookup_ss =
 structure Data = Generic_Data
 (
   type T = simpset * simpset * bool;  (*lookup simpset, ex_lookup simpset, are simprocs installed*)
-  val empty = (empty_ss, empty_ss, false);
+  val empty = (Simplifier.empty_ss, Simplifier.empty_ss, false);
   fun merge ((ss1, ex_ss1, b1), (ss2, ex_ss2, b2)) =
-    (merge_ss (ss1, ss2), merge_ss (ex_ss1, ex_ss2), b1 orelse b2);
+    (Simplifier.merge_ss (ss1, ss2), Simplifier.merge_ss (ex_ss1, ex_ss2), b1 orelse b2);
 );
 
 fun trace_data context =

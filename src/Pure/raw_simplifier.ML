@@ -8,21 +8,10 @@ signature BASIC_RAW_SIMPLIFIER =
 sig
   type cong_name = bool * string
   type rrule
-  val mk_rrules: Proof.context -> thm -> rrule list
-  val eq_rrule: rrule * rrule -> bool
   type proc = Proof.context -> cterm -> thm option
-  type solver
-  val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
-  type simpset
-  val empty_ss: simpset
-  val merge_ss: simpset * simpset -> simpset
-  datatype proc_kind = Simproc | Congproc of bool
   type simproc
-  val cert_simproc: theory ->
-    {name: string, kind: proc_kind, lhss: term list,
-      proc: proc Morphism.entity, identifier: thm list} -> simproc
-  val transform_simproc: morphism -> simproc -> simproc
-  val trim_context_simproc: simproc -> simproc
+  type solver
+  type simpset
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
@@ -39,6 +28,17 @@ end;
 signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
+  val mk_rrules: Proof.context -> thm -> rrule list
+  val eq_rrule: rrule * rrule -> bool
+  datatype proc_kind = Simproc | Congproc of bool
+  val cert_simproc: theory ->
+    {name: string, kind: proc_kind, lhss: term list,
+      proc: proc Morphism.entity, identifier: thm list} -> simproc
+  val transform_simproc: morphism -> simproc -> simproc
+  val trim_context_simproc: simproc -> simproc
+  val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
+  val empty_ss: simpset
+  val merge_ss: simpset * simpset -> simpset
   exception SIMPLIFIER of string * thm list
   val simp_depth_limit: int Config.T
   val simp_trace_depth_limit: int Config.T

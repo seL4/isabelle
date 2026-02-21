@@ -25,7 +25,7 @@ fun merge_modes Disabled m = m
 
 val empty_breakpoints =
   (Item_Net.init (op aconv) single,
-   Item_Net.init eq_rrule (single o Thm.full_prop_of o #thm))
+   Item_Net.init Simplifier.eq_rrule (single o Thm.full_prop_of o #thm))
 
 fun merge_breakpoints ((term_bs1, thm_bs1), (term_bs2, thm_bs2)) =
   (Item_Net.merge (term_bs1, term_bs2),
@@ -87,7 +87,7 @@ fun add_term_breakpoint term =
 
 fun add_thm_breakpoint thm context =
   let
-    val rrules = mk_rrules (Context.proof_of context) thm
+    val rrules = Simplifier.mk_rrules (Context.proof_of context) thm
   in
     map_breakpoints (apsnd (fold Item_Net.update rrules)) context
   end
@@ -102,7 +102,7 @@ fun check_breakpoint (term, rrule) ctxt =
         (Item_Net.retrieve_matching term_bs term)
 
     val thm_matches =
-      exists (eq_rrule o pair rrule)
+      exists (Simplifier.eq_rrule o pair rrule)
         (Item_Net.retrieve_matching thm_bs (Thm.full_prop_of (#thm rrule)))
   in
     (term_matches, thm_matches)

@@ -225,7 +225,7 @@ declare if_weak_cong [cong del]
 *)
 ML \<open>
   val config_fast_solver = Attrib.setup_config_bool \<^binding>\<open>fast_solver\<close> (K false);
-  val fast_solver = mk_solver "fast_solver" (fn ctxt =>
+  val fast_solver = Simplifier.mk_solver "fast_solver" (fn ctxt =>
     if Config.get ctxt config_fast_solver
     then assume_tac ctxt ORELSE' (eresolve_tac ctxt [notE])
     else K no_tac);

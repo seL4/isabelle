@@ -129,7 +129,7 @@ structure Data = Generic_Data
 
   val empty : T =
    {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
-    lessD = [], neqE = [], simpset = empty_ss,
+    lessD = [], neqE = [], simpset = Simplifier.empty_ss,
     number_of = NONE};
   fun merge
     ({add_mono_thms = add_mono_thms1, mult_mono_thms = mult_mono_thms1, inj_thms = inj_thms1,
@@ -141,7 +141,7 @@ structure Data = Generic_Data
      inj_thms = Thm.merge_thms (inj_thms1, inj_thms2),
      lessD = Thm.merge_thms (lessD1, lessD2),
      neqE = Thm.merge_thms (neqE1, neqE2),
-     simpset = merge_ss (simpset1, simpset2),
+     simpset = Simplifier.merge_ss (simpset1, simpset2),
      number_of = merge_options (number_of1, number_of2)};
 );
 

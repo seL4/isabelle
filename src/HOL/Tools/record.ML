@@ -1330,7 +1330,7 @@ val eq_simproc = \<^simproc_setup>\<open>eq ("r = s") = \<open>K eq_proc\<close>
 fun split_simproc P =
   Simplifier.make_simproc \<^context>
    {name = "record_split",
-    kind = Simproc,
+    kind = Simplifier.Simproc,
     lhss = [\<^term>\<open>x::'a::{}\<close>],
     proc = fn _ => fn ctxt => fn ct =>
       let

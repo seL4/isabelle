@@ -46,7 +46,7 @@ fun mk_perm_bool ctxt pi th =
 fun mk_perm_bool_simproc names =
   Simplifier.make_simproc \<^context>
    {name = "perm_bool",
-    kind = Simproc,
+    kind = Simplifier.Simproc,
     lhss = [\<^term>\<open>perm pi x\<close>],
     proc = fn _ => fn _ => fn ct =>
       (case Thm.term_of ct of

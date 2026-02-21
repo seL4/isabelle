@@ -1924,7 +1924,7 @@ lemma ASSUMPTION_D: "ASSUMPTION A \<Longrightarrow> A"
 
 setup \<open>
   (map_theory_simpset o Simplifier.add_unsafe_solver) (
-    mk_solver "ASSUMPTION" (fn ctxt =>
+    Simplifier.mk_solver "ASSUMPTION" (fn ctxt =>
       resolve_tac ctxt @{thms ASSUMPTION_I} THEN'
       resolve_tac ctxt (Simplifier.prems_of ctxt)))
 \<close>

@@ -236,7 +236,7 @@ structure Data = Generic_Data
     ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),
      (Item_Net.merge (inductT1, inductT2), Item_Net.merge (inductP1, inductP2)),
      (Item_Net.merge (coinductT1, coinductT2), Item_Net.merge (coinductP1, coinductP2)),
-     merge_ss (simpset1, simpset2));
+     Simplifier.merge_ss (simpset1, simpset2));
 );
 
 val get_local = Data.get o Context.Proof;

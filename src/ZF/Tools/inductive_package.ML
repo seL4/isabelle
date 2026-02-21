@@ -343,7 +343,7 @@ let
      val min_ss =
            empty_simpset ctxt4
            |> Simplifier.set_mksimps (fn ctxt => map mk_eq o ZF_atomize o Variable.gen_all ctxt)
-           |> Simplifier.set_unsafe_solver (mk_solver "minimal"
+           |> Simplifier.set_unsafe_solver (Simplifier.mk_solver "minimal"
                       (fn ctxt => resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt)
                                    ORELSE' assume_tac ctxt
                                    ORELSE' eresolve_tac ctxt @{thms FalseE}));

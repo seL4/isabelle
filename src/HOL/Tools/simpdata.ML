@@ -132,7 +132,7 @@ fun unsafe_solver_tac ctxt =
     (fn i => REPEAT_DETERM (match_tac ctxt @{thms simp_impliesI} i)) THEN' sol_tac
   end;
 
-val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
+val unsafe_solver = Simplifier.mk_solver "HOL unsafe" unsafe_solver_tac;
 
 
 (*No premature instantiation of variables during simplification*)
@@ -141,7 +141,7 @@ fun safe_solver_tac ctxt =
   FIRST' [match_tac ctxt (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
     eq_assume_tac, ematch_tac ctxt @{thms FalseE}];
 
-val safe_solver = mk_solver "HOL safe" safe_solver_tac;
+val safe_solver = Simplifier.mk_solver "HOL safe" safe_solver_tac;
 
 structure Splitter = Splitter
 (
@@ -185,7 +185,7 @@ val mksimps_pairs =
   (\<^const_name>\<open>If\<close>, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  empty_ss
+  Simplifier.empty_ss
   |> Simplifier.simpset_map \<^context> (
     Simplifier.set_safe_solver safe_solver
     #> Simplifier.set_unsafe_solver unsafe_solver

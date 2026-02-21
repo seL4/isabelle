@@ -125,8 +125,8 @@ fun safe_solver ctxt =
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
   empty_simpset \<^context>
-  |> Simplifier.set_safe_solver (mk_solver "FOL safe" safe_solver)
-  |> Simplifier.set_unsafe_solver (mk_solver "FOL unsafe" unsafe_solver)
+  |> Simplifier.set_safe_solver (Simplifier.mk_solver "FOL safe" safe_solver)
+  |> Simplifier.set_unsafe_solver (Simplifier.mk_solver "FOL unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps mksimps_pairs)
   |> Simplifier.set_mkcong mk_meta_cong

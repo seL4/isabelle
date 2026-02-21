@@ -25,12 +25,12 @@ struct
 structure Simpset = Theory_Data
 (
   type T = simpset;
-  val empty = empty_ss;
-  val merge = merge_ss;
+  val empty = Simplifier.empty_ss;
+  val merge = Simplifier.merge_ss;
 );
 
 fun map_ss f thy =
-  Simpset.map (simpset_map (Proof_Context.init_global thy) f) thy;
+  Simpset.map (Simplifier.simpset_map (Proof_Context.init_global thy) f) thy;
 
 fun simpset_default ctxt some_ss =
   the_default (Simpset.get (Proof_Context.theory_of ctxt)) some_ss;
@@ -63,7 +63,7 @@ val add_program = Code_Symbol.Graph.fold (add_stmt o fst o snd);
 
 val simpset_program =
   Code_Preproc.timed "building simpset" #ctxt
-  (fn { ctxt, some_ss, program } => simpset_map ctxt (add_program program) (simpset_default ctxt some_ss));
+  (fn { ctxt, some_ss, program } => Simplifier.simpset_map ctxt (add_program program) (simpset_default ctxt some_ss));
 
 fun rewrite_modulo ctxt some_ss program =
   let
