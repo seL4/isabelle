@@ -224,7 +224,7 @@ class Rich_Text_Area(
   private val mouse_listener = new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit = {
       robust_body(()) {
-        if (!e.isConsumed() && e.getClickCount == 1 && GUI.no_modifier(e)) {
+        if (!e.isConsumed() && e.getClickCount == 1) {
           hyperlink_area.info match {
             case Some(Text.Info(range, link)) =>
               if (!link.external) {
