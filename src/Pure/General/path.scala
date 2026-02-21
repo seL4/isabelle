@@ -260,6 +260,7 @@ final class Path private(
   def orig: Path = ext("orig")
   def patch: Path = ext("patch")
   def pdf: Path = ext("pdf")
+  def png: Path = ext("png")
   def shasum: Path = ext("shasum")
   def tar: Path = ext("tar")
   def tex: Path = ext("tex")
@@ -282,6 +283,10 @@ final class Path private(
   def exe: Path = ext("exe")
   def exe_if(b: Boolean): Path = if (b) exe else this
   def platform_exe: Path = exe_if(Platform.is_windows)
+
+  def app: Path = ext("app")
+  def app_if(b: Boolean): Path = if (b) app else this
+  def platform_app: Path = app_if(Platform.is_macos)
 
   private val Ext = new Regex("(.*)\\.([^.]*)")
 

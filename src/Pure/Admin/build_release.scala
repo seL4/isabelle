@@ -99,6 +99,10 @@ directory individually.
   val ISABELLE_ID: Path = Path.explode("etc/ISABELLE_ID")
   val ISABELLE_TAGS: Path = Path.explode("etc/ISABELLE_TAGS")
   val ISABELLE_IDENTIFIER: Path = Path.explode("etc/ISABELLE_IDENTIFIER")
+  val ISABELLE_APP: Path = Path.explode("lib/scripts/Isabelle_app")
+
+  val ISABELLE_ICNS: Path = Path.explode("lib/logo/isabelle.icns")
+  val THEORY_ICNS: Path = Path.explode("lib/logo/theory.icns")
 
   object Release_Archive {
     def make(bytes: Bytes, rename: String = ""): Release_Archive = {
@@ -270,7 +274,19 @@ directory individually.
 
   /* Isabelle application */
 
-  def make_isabelle_options(path: Path, options: List[String], line_ending: String = "\n"): Unit = {
+  def isabelle_options_path(platform: Platform.Family, dir: Path, name: String): Path =
+    if (platform == Platform.Family.windows) dir + Path.basic(name + ".l4j.ini")
+    else dir + Path.basic("Isabelle.options")
+
+  def read_isabelle_options(platform: Platform.Family, dir: Path, name: String): List[String] =
+    Library.trim_split_lines(File.read(isabelle_options_path(platform, dir, name)))
+      .filterNot(line => line.startsWith("#") || line.trim.isEmpty)
+
+  def make_isabelle_options(
+    platform: Platform.Family, dir: Path, name: String, options: List[String]
+  ): Unit = {
+    val line_ending = if (platform == Platform.Family.windows) "\n\r" else "\n"
+    val path = isabelle_options_path(platform, dir, name)
     val title = "# Java runtime options"
     File.write(path, (title :: options).map(_ + line_ending).mkString)
   }
@@ -321,7 +337,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 """ + (if (dock_icon) """"-Xdock:icon=$ISABELLE_HOME/lib/logo/isabelle_transparent-128.png" \
 """ else "") + """  isabelle.jedit.JEdit_Main "$@"
 """
-    val script_path = isabelle_target + Path.explode("lib/scripts/Isabelle_app")
+    val script_path = isabelle_target + ISABELLE_APP
     File.write(script_path, script)
     File.set_executable(script_path)
 
@@ -675,8 +691,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         platform match {
           case Platform.Family.linux_arm | Platform.Family.linux =>
-            make_isabelle_options(
-              isabelle_target + Path.explode("Isabelle.options"), java_options)
+            make_isabelle_options(platform, isabelle_target, isabelle_name, java_options)
 
             make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component, classpath)
 
@@ -698,8 +713,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val app_contents = isabelle_target + Path.explode("Contents")
 
-            for (icon <- List("lib/logo/isabelle.icns", "lib/logo/theory.icns")) {
-              Isabelle_System.copy_file(isabelle_target + Path.explode(icon),
+            for (icon <- List(ISABELLE_ICNS, THEORY_ICNS)) {
+              Isabelle_System.copy_file(isabelle_target + icon,
                 Isabelle_System.make_directory(app_contents + Path.explode("Resources")))
             }
 
@@ -709,9 +724,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             make_isabelle_app(platform, isabelle_target, isabelle_name, jdk_component,
               classpath, dock_icon = true)
 
-            val isabelle_options = Path.explode("Isabelle.options")
-            make_isabelle_options(
-              isabelle_target + isabelle_options,
+            make_isabelle_options(platform, isabelle_target, isabelle_name,
               java_options ::: List("-Disabelle.app=true"))
 
 
@@ -719,7 +732,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             progress.echo("Packaging " + bundle_info.name + " ...")
 
-            val isabelle_app = Path.explode(isabelle_name + ".app")
+            val isabelle_app = Path.explode(isabelle_name).app
             Isabelle_System.move_file(tmp_dir + Path.explode(isabelle_name),
               tmp_dir + isabelle_app)
 
@@ -740,9 +753,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val app_template = Path.explode("~~/Admin/Windows/launch4j")
 
-            make_isabelle_options(
-              isabelle_target + Path.explode(isabelle_name + ".l4j.ini"),
-              java_options, line_ending = "\r\n")
+            make_isabelle_options(platform, isabelle_target, isabelle_name, java_options)
 
             val isabelle_xml = Path.explode("isabelle.xml")
             val isabelle_exe = bundle_info.path

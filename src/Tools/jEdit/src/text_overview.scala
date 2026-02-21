@@ -33,7 +33,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
 
   addMouseListener(new MouseAdapter {
     override def mousePressed(event: MouseEvent): Unit = {
-      if (!event.isConsumed()) {
+      if (!event.isConsumed() && GUI.no_modifier(event)) {
         val line = (event.getY * lines()) / getHeight
         if (line >= 0 && line < text_area.getLineCount) {
           event.consume()

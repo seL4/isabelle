@@ -102,7 +102,9 @@ class Tree_View(
 
   addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit =
-      if (e.getClickCount == 1) handle_selection(getPathForLocation(e.getX, e.getY))
+      if (e.getClickCount == 1 && GUI.no_modifier(e)) {
+        handle_selection(getPathForLocation(e.getX, e.getY))
+      }
   })
 
 

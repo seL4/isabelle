@@ -482,21 +482,28 @@ object GUI {
 
   /* key event handling */
 
-  def command_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx) != 0
-
-  def shift_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & InputEvent.SHIFT_DOWN_MASK) != 0
-
-  def alt_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx & InputEvent.ALT_DOWN_MASK) != 0
+  private val key_modifier_mask: Int =
+    InputEvent.CTRL_DOWN_MASK |
+    InputEvent.ALT_DOWN_MASK |
+    InputEvent.META_DOWN_MASK |
+    InputEvent.SHIFT_DOWN_MASK
 
   def no_modifier(evt: InputEvent): Boolean =
-    (evt.getModifiersEx &
-      (InputEvent.CTRL_DOWN_MASK |
-       InputEvent.ALT_DOWN_MASK |
-       InputEvent.META_DOWN_MASK |
-       InputEvent.SHIFT_DOWN_MASK)) == 0
+    (evt.getModifiersEx & key_modifier_mask) == 0
+
+  def key_modifier(evt: InputEvent, mask: Int, only: Boolean = false): Boolean = {
+    val mods = evt.getModifiersEx & key_modifier_mask
+    (mods & mask) != 0 && (!only || (mods & ~mask) == 0)
+  }
+
+  def command_modifier(evt: InputEvent, only: Boolean = false): Boolean =
+    key_modifier(evt, Toolkit.getDefaultToolkit.getMenuShortcutKeyMaskEx, only = only)
+
+  def shift_modifier(evt: InputEvent, only: Boolean = false): Boolean =
+    key_modifier(evt, InputEvent.SHIFT_DOWN_MASK, only = only)
+
+  def alt_modifier(evt: InputEvent, only: Boolean = false): Boolean =
+    key_modifier(evt, InputEvent.ALT_DOWN_MASK, only = only)
 
   def plain_enter(evt: KeyEvent): Boolean =
     evt.getKeyCode == KeyEvent.VK_ENTER && no_modifier(evt)

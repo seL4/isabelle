@@ -68,7 +68,7 @@ extends BorderPanel {
   })
   tree.addMouseListener(new MouseAdapter {
     override def mousePressed(e: MouseEvent): Unit =
-      if (!e.isConsumed() && e.getClickCount == 2) {
+      if (!e.isConsumed() && e.getClickCount == 2 && GUI.no_modifier(e)) {
         e.consume()
         point_action(tree.getPathForLocation(e.getX, e.getY))
       }
