@@ -56,7 +56,7 @@ object Build_App {
         else if (platform.is_macos) Path.explode("Contents")
         else Path.explode("lib")
 
-      val platform_suffix = if (platform.is_macos) "/Contents" else ""
+      val platform_suffix = if (platform.is_macos) "/Contents/Resources" else ""
 
 
       /* Isabelle distribution directory */
@@ -134,6 +134,7 @@ mac.CFBundleTypeRole=Editor
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
       val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
       val app_prefix = app_root + platform_prefix
+      val app_resources = app_prefix + Path.explode("Resources")
       val app_identifier = "isabelle." + app_name
       val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
@@ -157,7 +158,7 @@ mac.CFBundleTypeRole=Editor
 
       progress.echo("Preparing Isabelle directory structure ...")
 
-      val isabelle_home = if (platform.is_macos) app_prefix else app_root
+      val isabelle_home = if (platform.is_macos) app_resources else app_root
 
       Isabelle_System.make_directory(isabelle_home)
       Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
@@ -179,8 +180,26 @@ mac.CFBundleTypeRole=Editor
               "$USER_HOME/Library/Application Support/Isabelle"))
         }
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
-        Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS,
-          app_prefix + Path.explode("Resources"))
+        Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS, app_resources)
+
+        val bad_files =
+          File.find_files(app_root.file, pred = { file =>
+            try { Files.getPosixFilePermissions(file.toPath); false }
+            catch { case _: IOException => true }
+          })
+        for (file <- bad_files) {
+          progress.echo_warning("Suppressing bad file " + File.path(file))
+          file.delete
+        }
+
+        for {
+          name <- Components.Directory(isabelle_home).read_components()
+          if name.containsSlice("jdk") || name.containsSlice("vscodium")
+        } {
+          val dir = isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated)
+          progress.echo_warning("Suppressing redundant " + dir)
+          Isabelle_System.rm_tree(dir)
+        }
       }
 
       if (platform.is_linux) {
@@ -233,28 +252,9 @@ mac.CFBundleTypeRole=Editor
           java_options.map("java-options=" + _)))
 
 
-      /* macOS codesigning */
+      /* macOS packaging */
 
-      if (platform.is_macos) {
-        val bad_files =
-          File.find_files(app_root.file, pred = { file =>
-            try { Files.getPosixFilePermissions(file.toPath); false }
-            catch { case _: IOException => true }
-          })
-        for (file <- bad_files) {
-          progress.echo_warning("Suppressing bad file " + File.path(file))
-          file.delete
-        }
-
-        for {
-          name <- Components.Directory(isabelle_home).read_components()
-          if name.containsSlice("jdk") || name.containsSlice("vscodium")
-        } {
-          val dir = isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated)
-          progress.echo_warning("Suppressing redundant " + dir)
-          Isabelle_System.rm_tree(dir)
-        }
-
+      if (platform.is_macos && codesign_user.nonEmpty) {
         progress.echo("Building signed dmg ...")
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
