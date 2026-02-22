@@ -6,23 +6,49 @@ Build standalone desktop app from Isabelle distribution archive.
 
 package isabelle
 
+import java.io.IOException
+import java.nio.file.Files
+
 
 object Build_App {
+  /** resources **/
+
+  val ADMIN_MACOS_ENTITLEMENTS: Path =
+    Path.explode("~~/Admin/macOS/app/entitlements.plist")
+
+
+
   /** build app **/
 
   def build_app(dist_archive: String,
     dist_name: String = "",
     target_dir: Path = Path.current,
+    codesign_keychain: String = "",
+    codesign_user: String = "",
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       val dummy_dir = Isabelle_System.new_directory(tmp_dir + Path.explode("dummy"))
 
 
+      /* target directory */
+
+      Isabelle_System.make_directory(target_dir)
+
+      def execute(script: String): Process_Result = {
+        progress.echo_if(progress.verbose, script)
+        progress.bash(script, cwd = target_dir, echo = progress.verbose).check
+      }
+
+      def jpackage(args: String): Process_Result =
+        execute("isabelle_java jpackage " + args)
+
+
       /* platform */
 
       val platform = Isabelle_Platform.local
       val platform_name = platform.ISABELLE_PLATFORM(windows = true, apple = true)
+      val platform_name_emulated = platform.ISABELLE_PLATFORM()
       val platform_family = Platform.Family.from_platform(platform_name)
 
       val platform_prefix =
@@ -30,7 +56,7 @@ object Build_App {
         else if (platform.is_macos) Path.explode("Contents")
         else Path.explode("lib")
 
-      val platform_suffix = if (platform.is_macos) "/Contents" else ""
+      val platform_suffix = if (platform.is_macos) "/Contents/Resources" else ""
 
 
       /* Isabelle distribution directory */
@@ -105,18 +131,11 @@ mac.CFBundleTypeRole=Editor
 
       /* java app package */
 
-      Isabelle_System.make_directory(target_dir)
-
-      def jpackage(args: String): Unit = {
-        val script = "isabelle_java jpackage" + args
-        progress.echo_if(progress.verbose, script)
-        progress.bash(script, cwd = target_dir, echo = progress.verbose).check
-      }
-
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
-      val app_prefix =
-        target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
-
+      val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
+      val app_prefix = app_root + platform_prefix
+      val app_resources = app_prefix + Path.explode("Resources")
+      val app_identifier = "isabelle." + app_name
       val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
@@ -130,7 +149,7 @@ mac.CFBundleTypeRole=Editor
         " --vendor 'Isabelle'" +
         if_proper(platform.is_macos,
           " --file-associations " + File.bash_platform_path(file_associations) +
-          " --mac-package-identifier " + Bash.string("isabelle." + app_name)) +
+          " --mac-package-identifier " + Bash.string(app_identifier)) +
         if_proper(app_icon, " --icon " + File.bash_platform_path(app_icon.get)) +
         if_proper(progress.verbose, " --verbose"))
 
@@ -139,9 +158,7 @@ mac.CFBundleTypeRole=Editor
 
       progress.echo("Preparing Isabelle directory structure ...")
 
-      val isabelle_home =
-        if (platform.is_macos) app_prefix
-        else target_dir.absolute + Path.basic(app_name)
+      val isabelle_home = if (platform.is_macos) app_resources else app_root
 
       Isabelle_System.make_directory(isabelle_home)
       Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
@@ -163,8 +180,26 @@ mac.CFBundleTypeRole=Editor
               "$USER_HOME/Library/Application Support/Isabelle"))
         }
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
-        Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS,
-          app_prefix + Path.explode("Resources"))
+        Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS, app_resources)
+
+        val bad_files =
+          File.find_files(app_root.file, pred = { file =>
+            try { Files.getPosixFilePermissions(file.toPath); false }
+            catch { case _: IOException => true }
+          })
+        for (file <- bad_files) {
+          progress.echo_warning("Suppressing bad file " + File.path(file))
+          file.delete
+        }
+
+        for {
+          name <- Components.Directory(isabelle_home).read_components()
+          if name.containsSlice("jdk") || name.containsSlice("vscodium")
+        } {
+          val dir = isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated)
+          progress.echo_warning("Suppressing redundant " + dir)
+          Isabelle_System.rm_tree(dir)
+        }
       }
 
       if (platform.is_linux) {
@@ -177,7 +212,17 @@ mac.CFBundleTypeRole=Editor
 
       val jdk_dir =
         Components.Directory(isabelle_home).read_components().filter(_.containsSlice("jdk")) match {
-          case List(jdk) => isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
+          case List(jdk) =>
+            val platform_dir = isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
+            if (platform.is_macos) {
+              File.get_entry(platform_dir,
+                pred = { path =>
+                  val name = path.file_name
+                  name.startsWith("zulu-") && name.endsWith(".jdk")
+                },
+                title = "zulu-*.jdk")
+            }
+            else platform_dir
           case _ => error("Failed to determine jdk component")
         }
 
@@ -185,15 +230,7 @@ mac.CFBundleTypeRole=Editor
         File.relative_path(isabelle_home, jdk_dir)
           .getOrElse(error("Cannot determine relative path from " + jdk_dir))
 
-      val runtime_dir = app_prefix + Path.basic("runtime")
-      Isabelle_System.rm_tree(runtime_dir)
-
-      if (platform.is_macos) {
-        val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
-        Isabelle_System.symlink(
-          Path.parent + Path.parent + jdk_relative_path,
-          contents_dir + Path.explode("Home"))
-      }
+      Isabelle_System.rm_tree(app_prefix + Path.basic("runtime"))
 
 
       /* app configuration */
@@ -201,9 +238,8 @@ mac.CFBundleTypeRole=Editor
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           List("[Application]",
-            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
-          (if (platform.is_macos) Nil
-           else List("app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode)) :::
+            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif",
+            "app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode) :::
           java_classpath.map(s =>
             "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
@@ -214,6 +250,23 @@ mac.CFBundleTypeRole=Editor
           (if (platform.is_windows) List("java-options=-Dcygwin.root=$ROOTDIR/contrib/cygwin")
            else Nil) :::
           java_options.map("java-options=" + _)))
+
+
+      /* macOS packaging */
+
+      if (platform.is_macos && codesign_user.nonEmpty) {
+        progress.echo("Building signed dmg ...")
+        jpackage(
+          " --app-image " + File.bash_platform_path(app_root) +
+          " --type dmg --dest " + Bash.string(app_name + ".dmg") +
+          " --mac-sign" +
+          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
+          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
+          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
+          if_proper(codesign_keychain,
+            " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
+          if_proper(progress.verbose, " --verbose"))
+      }
     }
   }
 
@@ -226,6 +279,8 @@ mac.CFBundleTypeRole=Editor
       { args =>
           var target_dir = Path.current
           var dist_name = ""
+          var codesign_keychain = ""
+          var codesign_user = ""
           var verbose = false
 
           val getopts = Getopts("""
@@ -233,12 +288,16 @@ Usage: Admin/build_app [OPTIONS] ARCHIVE
 
   Options are:
     -D DIR       target directory (default ".")
+    -K NAME      macOS codesign keychain name (e.g. "login.keychain")
+    -S NAME      macOS codesign user name (e.g. "John Doe (M2NGOH5LAE)")
     -n NAME      app name (default ISABELLE_IDENTIFIER)
     -v           verbose
 
   Build standalone desktop app from Isabelle distribution archive (file or URL).
 """,
             "D:" -> (arg => target_dir = Path.explode(arg)),
+            "K:" -> (arg => codesign_keychain = arg),
+            "S:" -> (arg => codesign_user = arg),
             "n:" -> (arg => dist_name = arg),
             "v" -> (_ => verbose = true))
 
@@ -251,6 +310,8 @@ Usage: Admin/build_app [OPTIONS] ARCHIVE
 
           val progress = new Console_Progress(verbose = verbose)
 
-          build_app(dist_archive, dist_name = dist_name, target_dir = target_dir, progress = progress)
+          build_app(dist_archive, dist_name = dist_name, target_dir = target_dir,
+            codesign_keychain = codesign_keychain, codesign_user = codesign_user,
+            progress = progress)
         })
 }
