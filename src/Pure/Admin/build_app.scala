@@ -6,6 +6,9 @@ Build standalone desktop app from Isabelle distribution archive.
 
 package isabelle
 
+import java.io.IOException
+import java.nio.file.Files
+
 
 object Build_App {
   /** resources **/
@@ -230,17 +233,28 @@ mac.CFBundleTypeRole=Editor
 
       /* macOS codesigning */
 
-      if (platform.is_macos && codesign_user.nonEmpty) {
-        progress.echo("Signing app " + quote(app_name) + " for " + platform_name + " ...")
+      if (platform.is_macos) {
+        val bad_files =
+          File.find_files(app_root.file, pred = { file =>
+            try { Files.getPosixFilePermissions(file.toPath); false }
+            catch { case _: IOException => true }
+          })
+        for (file <- bad_files) {
+          progress.echo_warning("Suppressing bad file " + File.path(file))
+          file.delete
+        }
+
+        progress.echo("Building signed dmg ...")
         jpackage(
-          " --type dmg" +
           " --app-image " + File.bash_platform_path(app_root) +
-          " --mac-sign" +
-          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
-          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
-          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
-          if_proper(codesign_keychain,
-            " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
+          " --type dmg --dest " + Bash.string(app_name + ".dmg") +
+          if_proper (codesign_user.nonEmpty,
+            " --mac-sign" +
+            " --mac-package-signing-prefix " + Bash.string(app_identifier) +
+            " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
+            " --mac-signing-key-user-name " + Bash.string(codesign_user) +
+            if_proper(codesign_keychain,
+              " --mac-signing-keychain " + Bash.string(codesign_keychain))) +
           if_proper(progress.verbose, " --verbose"))
       }
     }
