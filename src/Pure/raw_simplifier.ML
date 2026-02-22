@@ -28,24 +28,8 @@ end;
 signature RAW_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
-  val mk_rrules: Proof.context -> thm -> rrule list
-  val eq_rrule: rrule * rrule -> bool
-  datatype proc_kind = Simproc | Congproc of bool
-  val cert_simproc: theory ->
-    {name: string, kind: proc_kind, lhss: term list,
-      proc: proc Morphism.entity, identifier: thm list} -> simproc
-  val transform_simproc: morphism -> simproc -> simproc
-  val trim_context_simproc: simproc -> simproc
-  val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
-  exception SIMPLIFIER of string * thm list
-  val simp_depth_limit: int Config.T
-  val simp_trace_depth_limit: int Config.T
-  val simp_debug: bool Config.T
-  val simp_trace: bool Config.T
-  val dest_simps: simpset -> (Thm_Name.T * thm) list
-  val dest_congs: simpset -> (cong_name * thm) list
   val dest_ss: simpset ->
    {simps: (Thm_Name.T * thm) list,
     simprocs: (string * term list) list,
@@ -55,13 +39,21 @@ sig
     loopers: string list,
     unsafe_solvers: string list,
     safe_solvers: string list}
-  val init_simpset: thm list -> Proof.context -> Proof.context
-  type trace_ops
-  val set_trace_ops: trace_ops -> theory -> theory
+  val dest_simps: simpset -> (Thm_Name.T * thm) list
+  val dest_congs: simpset -> (cong_name * thm) list
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
+  val init_simpset: thm list -> Proof.context -> Proof.context
+  val eq_rrule: rrule * rrule -> bool
+  val mk_rrules: Proof.context -> thm -> rrule list
   val mksimps: Proof.context -> thm -> thm list
   val get_mksimps_context: Proof.context -> (thm -> Proof.context -> thm list * Proof.context)
   val set_mksimps_context: (thm -> Proof.context -> thm list * Proof.context) ->
+    Proof.context -> Proof.context
+  val default_mk_sym: Proof.context -> thm -> thm option
+  val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
+  val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
+  val set_term_ord: term ord -> Proof.context -> Proof.context
+  val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
     Proof.context -> Proof.context
   val add_simps: thm list -> Proof.context -> Proof.context
   val add_simp: thm -> Proof.context -> Proof.context
@@ -75,19 +67,21 @@ sig
   val del_eqcong: thm -> Proof.context -> Proof.context
   val add_cong: thm -> Proof.context -> Proof.context
   val del_cong: thm -> Proof.context -> Proof.context
+  datatype proc_kind = Simproc | Congproc of bool
+  val cert_simproc: theory ->
+    {name: string, kind: proc_kind, lhss: term list,
+      proc: proc Morphism.entity, identifier: thm list} -> simproc
+  val transform_simproc: morphism -> simproc -> simproc
+  val trim_context_simproc: simproc -> simproc
   val add_proc: simproc -> Proof.context -> Proof.context
   val del_proc: simproc -> Proof.context -> Proof.context
-  val set_mksym: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_mkeqTrue: (Proof.context -> thm -> thm option) -> Proof.context -> Proof.context
-  val set_term_ord: term ord -> Proof.context -> Proof.context
   val subgoal_tac: Proof.context -> int -> tactic
   val set_subgoaler: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
-  val prems_of: Proof.context -> thm list
-  val add_prems: thm list -> Proof.context -> Proof.context
   val loop_tac: Proof.context -> int -> tactic
   val set_loop: (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val add_loop: string * (Proof.context -> int -> tactic) -> Proof.context -> Proof.context
   val del_loop: string -> Proof.context -> Proof.context
+  val mk_solver: string -> (Proof.context -> int -> tactic) -> solver
   val solvers: Proof.context -> solver list * solver list
   val solver: Proof.context -> solver -> int -> tactic
   val set_safe_solver: solver -> Proof.context -> Proof.context
@@ -95,9 +89,10 @@ sig
   val set_unsafe_solver: solver -> Proof.context -> Proof.context
   val add_unsafe_solver: solver -> Proof.context -> Proof.context
   val set_solvers: solver list -> Proof.context -> Proof.context
-  val default_mk_sym: Proof.context -> thm -> thm option
-  val set_reorient: (Proof.context -> term list -> term -> term -> bool) ->
-    Proof.context -> Proof.context
+  val prems_of: Proof.context -> thm list
+  val add_prems: thm list -> Proof.context -> Proof.context
+  type trace_ops
+  val set_trace_ops: trace_ops -> theory -> theory
   val rewrite_cterm: bool * bool * bool ->
     (Proof.context -> thm -> thm option) -> Proof.context -> conv
   val rewrite_term: theory -> thm list -> (term -> term option) list -> term -> term
@@ -112,6 +107,11 @@ sig
   val fold_goals_tac: Proof.context -> thm list -> tactic
   val norm_hhf: Proof.context -> thm -> thm
   val norm_hhf_protect: Proof.context -> thm -> thm
+  exception SIMPLIFIER of string * thm list
+  val simp_depth_limit: int Config.T
+  val simp_trace_depth_limit: int Config.T
+  val simp_debug: bool Config.T
+  val simp_trace: bool Config.T
 end;
 
 structure Raw_Simplifier: RAW_SIMPLIFIER =
