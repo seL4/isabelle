@@ -259,13 +259,12 @@ mac.CFBundleTypeRole=Editor
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
           " --type dmg --dest " + Bash.string(app_name + ".dmg") +
-          if_proper (codesign_user.nonEmpty,
-            " --mac-sign" +
-            " --mac-package-signing-prefix " + Bash.string(app_identifier) +
-            " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
-            " --mac-signing-key-user-name " + Bash.string(codesign_user) +
-            if_proper(codesign_keychain,
-              " --mac-signing-keychain " + Bash.string(codesign_keychain))) +
+          " --mac-sign" +
+          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
+          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
+          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
+          if_proper(codesign_keychain,
+            " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
           if_proper(progress.verbose, " --verbose"))
       }
     }
