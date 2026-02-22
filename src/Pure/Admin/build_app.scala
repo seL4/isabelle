@@ -193,7 +193,17 @@ mac.CFBundleTypeRole=Editor
 
       val jdk_dir =
         Components.Directory(isabelle_home).read_components().filter(_.containsSlice("jdk")) match {
-          case List(jdk) => isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
+          case List(jdk) =>
+            val platform_dir = isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
+            if (platform.is_macos) {
+              File.get_entry(platform_dir,
+                pred = { path =>
+                  val name = path.file_name
+                  name.startsWith("zulu-") && name.endsWith(".jdk")
+                },
+                title = "zulu-*.jdk")
+            }
+            else platform_dir
           case _ => error("Failed to determine jdk component")
         }
 
@@ -201,15 +211,7 @@ mac.CFBundleTypeRole=Editor
         File.relative_path(isabelle_home, jdk_dir)
           .getOrElse(error("Cannot determine relative path from " + jdk_dir))
 
-      val runtime_dir = app_prefix + Path.basic("runtime")
-      Isabelle_System.rm_tree(runtime_dir)
-
-      if (platform.is_macos) {
-        val contents_dir = Isabelle_System.make_directory(runtime_dir + Path.explode("Contents"))
-        Isabelle_System.symlink(
-          Path.parent + Path.parent + jdk_relative_path,
-          contents_dir + Path.explode("Home"))
-      }
+      Isabelle_System.rm_tree(app_prefix + Path.basic("runtime"))
 
 
       /* app configuration */
@@ -217,9 +219,8 @@ mac.CFBundleTypeRole=Editor
       File.write(app_prefix + Path.explode("app/" + app_name + ".cfg"),
         Library.cat_lines(
           List("[Application]",
-            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif") :::
-          (if (platform.is_macos) Nil
-           else List("app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode)) :::
+            "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif",
+            "app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode) :::
           java_classpath.map(s =>
             "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix)) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
@@ -235,8 +236,6 @@ mac.CFBundleTypeRole=Editor
       /* macOS codesigning */
 
       if (platform.is_macos) {
-        progress.echo("Building signed dmg ...")
-
         val bad_files =
           File.find_files(app_root.file, pred = { file =>
             try { Files.getPosixFilePermissions(file.toPath); false }
@@ -256,6 +255,7 @@ mac.CFBundleTypeRole=Editor
           Isabelle_System.rm_tree(dir)
         }
 
+        progress.echo("Building signed dmg ...")
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
           " --type dmg --dest " + Bash.string(app_name + ".dmg") +
