@@ -48,6 +48,7 @@ object Build_App {
 
       val platform = Isabelle_Platform.local
       val platform_name = platform.ISABELLE_PLATFORM(windows = true, apple = true)
+      val platform_name_emulated = platform.ISABELLE_PLATFORM()
       val platform_family = Platform.Family.from_platform(platform_name)
 
       val platform_prefix =
@@ -234,6 +235,8 @@ mac.CFBundleTypeRole=Editor
       /* macOS codesigning */
 
       if (platform.is_macos) {
+        progress.echo("Building signed dmg ...")
+
         val bad_files =
           File.find_files(app_root.file, pred = { file =>
             try { Files.getPosixFilePermissions(file.toPath); false }
@@ -244,7 +247,15 @@ mac.CFBundleTypeRole=Editor
           file.delete
         }
 
-        progress.echo("Building signed dmg ...")
+        for {
+          name <- Components.Directory(isabelle_home).read_components()
+          if name.containsSlice("jdk") || name.containsSlice("vscodium")
+        } {
+          val dir = isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated)
+          progress.echo_warning("Suppressing redundant " + dir)
+          Isabelle_System.rm_tree(dir)
+        }
+
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
           " --type dmg --dest " + Bash.string(app_name + ".dmg") +
