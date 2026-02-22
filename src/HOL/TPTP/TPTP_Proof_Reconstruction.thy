@@ -976,7 +976,7 @@ ML \<open>
 fun ex_expander_tac ctxt i =
    let
      val simpset =
-       empty_simpset ctxt (*NOTE for some reason, Bind exception gets raised if ctxt's simpset isn't emptied*)
+       Simplifier.empty_simpset ctxt (*NOTE for some reason, Bind exception gets raised if ctxt's simpset isn't emptied*)
        |> Simplifier.add_simp @{lemma "Ex P == (\<not> (\<forall>x. \<not> P x))" by auto}
    in
      CHANGED (asm_full_simp_tac simpset i)
@@ -1965,7 +1965,7 @@ ML \<open>
 fun split_simp_tac (ctxt : Proof.context) i =
    let
      val simpset =
-       fold Simplifier.add_simp @{thms split_tranfs} (empty_simpset ctxt)
+       fold Simplifier.add_simp @{thms split_tranfs} (Simplifier.empty_simpset ctxt)
    in
      CHANGED (asm_full_simp_tac simpset i)
    end

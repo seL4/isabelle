@@ -145,7 +145,7 @@ fun gen_hyp_subst_tac ctxt bnd =
   SUBGOAL (fn (Bi, i) =>
     let
       val (k, (orient, is_free)) = eq_var bnd true true Bi
-      val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
+      val hyp_subst_ctxt = Simplifier.empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
     in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
       if not is_free then eresolve_tac ctxt [thin_rl] i
         else if orient then eresolve_tac ctxt [Data.rev_mp] i

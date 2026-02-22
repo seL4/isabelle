@@ -80,7 +80,7 @@ fun la_farkas_tac ({context = ctxt, prems, concl,  ...}: Subgoal.focus) args thm
     val _ = trace (fn () => @{print} combined)
     fun arith_full_simps ctxt thms =
       ctxt
-       |> empty_simpset
+       |> Simplifier.empty_simpset
        |> put_simpset HOL_basic_ss
        |> Simplifier.add_simps thms
        |> Simplifier.add_simps arith_thms
@@ -104,7 +104,7 @@ fun REPEAT' tac = fn i => REPEAT (tac i)
 
 fun rewrite_only_thms ctxt thms =
   ctxt
-  |> empty_simpset
+  |> Simplifier.empty_simpset
   |> put_simpset HOL_basic_ss
   |> Simplifier.add_simps thms
   |> Simplifier.full_simp_tac

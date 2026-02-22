@@ -33,7 +33,7 @@ struct
 (* Since HOL_basic_ss is too "big" for us, we *)
 (* need to set up our own minimal simpset.    *)
 fun mk_minimal_simpset ctxt =
-  empty_simpset ctxt
+  Simplifier.empty_simpset ctxt
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps [])
 

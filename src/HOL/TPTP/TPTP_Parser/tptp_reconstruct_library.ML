@@ -640,7 +640,7 @@ fun batter_tac ctxt i =
 fun dist_all_and_tac ctxt i =
    let
      val simpset =
-       empty_simpset ctxt
+       Simplifier.empty_simpset ctxt
        |> Simplifier.add_simp
            @{lemma "\<forall>x. P x \<and> Q x \<equiv> (\<forall>x. P x) \<and> (\<forall>x. Q x)"
               by (rule eq_reflection, auto)}

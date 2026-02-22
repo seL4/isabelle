@@ -60,7 +60,7 @@ fun atomizeD ctxt thm =
   in map zero_var_indexes (at thm) end;
 
 val atomize_ss =
-  (empty_simpset \<^context> |> Simplifier.set_mksimps (mksimps mksimps_pairs))
+  (Simplifier.empty_simpset \<^context> |> Simplifier.set_mksimps (mksimps mksimps_pairs))
   addsimps [
         @{thm all_conj_distrib}, (* "(! x. P x & Q x) = ((! x. P x) & (! x. Q x))" *)
         @{thm imp_conjL} RS sym, (* "(D :- G1 :- G2) = (D :- G1 & G2)" *)

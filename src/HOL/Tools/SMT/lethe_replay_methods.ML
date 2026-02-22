@@ -383,7 +383,7 @@ fun eqsubst_all ctxt thms =
 
 fun simplify_tac ctxt thms =
   ctxt
-  |> empty_simpset
+  |> Simplifier.empty_simpset
   |> put_simpset HOL_basic_ss
   |> Simplifier.add_simps @{thms simp_thms}
   |> Simplifier.add_simps thms
@@ -400,7 +400,7 @@ fun requires_local_input _ t =
 (*This is a weaker simplification form. It is weaker, but is also less likely to loop*)
 fun partial_simplify_tac ctxt thms =
   ctxt
-  |> empty_simpset
+  |> Simplifier.empty_simpset
   |> put_simpset HOL_basic_ss
   |> Simplifier.add_simps @{thms simp_thms}
   |> Simplifier.add_simps thms
@@ -990,7 +990,7 @@ fun ite_intro ctxt _ t =
   let
     fun simplify_ite ctxt thms =
       ctxt
-      |> empty_simpset
+      |> Simplifier.empty_simpset
       |> put_simpset HOL_basic_ss
       |> Simplifier.add_simps (thms @ @{thms if_True if_False refl simp_thms if_cancel})
       |> Simplifier.add_eqcong @{thm verit_ite_if_cong}
@@ -1018,7 +1018,7 @@ fun qnt_rm_unused ctxt _ t = SMT_Replay_Methods.prove ctxt t (fn _ =>
 
 fun onepoint ctxt prems t = SMT_Replay_Methods.prove ctxt t (fn _ =>
   Method.insert_tac ctxt prems
-  THEN' Simplifier.full_simp_tac (put_simpset HOL_basic_ss (empty_simpset ctxt)
+  THEN' Simplifier.full_simp_tac (put_simpset HOL_basic_ss (Simplifier.empty_simpset ctxt)
     |> Simplifier.add_simps @{thms HOL.simp_thms HOL.all_simps}
     |> Simplifier.add_proc @{simproc HOL.defined_All}
     |> Simplifier.add_proc @{simproc HOL.defined_Ex})
@@ -1118,7 +1118,7 @@ cover all the simplification below).
 local
   fun rewrite_only_thms ctxt thms =
     ctxt
-    |> empty_simpset
+    |> Simplifier.empty_simpset
     |> put_simpset HOL_basic_ss
     |> Simplifier.add_simps thms
     |> Simplifier.full_simp_tac
@@ -1128,7 +1128,7 @@ local
 
   fun rewrite_thms ctxt thms =
     ctxt
-    |> empty_simpset
+    |> Simplifier.empty_simpset
     |> put_simpset HOL_basic_ss
     |> Simplifier.add_eqcong @{thm eq_reflection[OF imp_cong]}
     |> Simplifier.add_simps thms

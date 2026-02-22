@@ -1448,7 +1448,7 @@ fun restricted t = is_some (USyntax.find_term
 
 fun CONTEXT_REWRITE_RULE main_ctxt (func, G, cut_lemma, congs) th =
  let val globals = func::G
-     val ctxt0 = empty_simpset main_ctxt
+     val ctxt0 = Simplifier.empty_simpset main_ctxt
      val pbeta_reduce = simpl_conv ctxt0 [@{thm split_conv} RS eq_reflection];
      val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val cut_lemma' = cut_lemma RS eq_reflection

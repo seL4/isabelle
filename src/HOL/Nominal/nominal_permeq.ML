@@ -220,7 +220,7 @@ fun perm_compose_tac ctxt i =
   ("analysing permutation compositions on the lhs",
    fn st => EVERY
      [resolve_tac ctxt [trans] i,
-      asm_full_simp_tac (empty_simpset ctxt |> Simplifier.add_proc perm_compose_simproc) i,
+      asm_full_simp_tac (Simplifier.empty_simpset ctxt |> Simplifier.add_proc perm_compose_simproc) i,
       asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [perm_aux_fold]) i] st);
 
 fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);

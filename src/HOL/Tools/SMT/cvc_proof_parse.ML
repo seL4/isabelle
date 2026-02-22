@@ -39,7 +39,7 @@ fun cvc_matching_assms ctxt rewrite_rules ll_defs th th' =
        #> Thm.prop_of
        #> snd o Logic.dest_equals
        #> Simplifier.rewrite_term (Proof_Context.theory_of
-          (empty_simpset ctxt |> Simplifier.add_simps rewrite_rules (*@ @{thms eq_True} still useful?*))) rewrite_rules []
+          (Simplifier.empty_simpset ctxt |> Simplifier.add_simps rewrite_rules (*@ @{thms eq_True} still useful?*))) rewrite_rules []
 
 
     val normalize = 
@@ -48,7 +48,7 @@ fun cvc_matching_assms ctxt rewrite_rules ll_defs th th' =
        #> Thm.prop_of
        #> snd o Logic.dest_equals
        #> Simplifier.rewrite_term (Proof_Context.theory_of
-          (empty_simpset ctxt |> Simplifier.add_simps (rewrite_rules @ @{thms eq_True}))) rewrite_rules []
+          (Simplifier.empty_simpset ctxt |> Simplifier.add_simps (rewrite_rules @ @{thms eq_True}))) rewrite_rules []
   in (expand th) aconv (normalize th') end
 
 fun parse_proof_unsatcore ({ll_defs, assms, ...} : SMT_Translate.replay_data) xfacts prems _ output =

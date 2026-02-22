@@ -728,7 +728,7 @@ fun prems_lin_arith_tac ctxt =
   simpset_lin_arith_tac ctxt;
 
 fun lin_arith_tac ctxt =
-  simpset_lin_arith_tac (empty_simpset ctxt);
+  simpset_lin_arith_tac (Simplifier.empty_simpset ctxt);
 
 
 

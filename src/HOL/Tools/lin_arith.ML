@@ -105,7 +105,7 @@ val neq_limit = Attrib.setup_config_int \<^binding>\<open>linarith_neq_limit\<cl
 val trace = Attrib.setup_config_bool \<^binding>\<open>linarith_trace\<close> (K false);
 
 fun nnf_simpset ctxt =
-  empty_simpset ctxt
+  Simplifier.empty_simpset ctxt
   |> Simplifier.set_mkeqTrue mk_eq_True
   |> Simplifier.set_mksimps (mksimps mksimps_pairs)
   |> Simplifier.add_simps @{thms imp_conv_disj iff_conv_conj_imp de_Morgan_disj

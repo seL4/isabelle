@@ -399,7 +399,7 @@ fun arith_th_lemma_tac_with_wo ctxt prems =
   Method.insert_tac ctxt prems
   THEN' SELECT_GOAL (Local_Defs.unfold0_tac ctxt @{thms z3div_def z3mod_def int_distrib})
   THEN' Simplifier.asm_full_simp_tac
-     (empty_simpset ctxt |> fold Simplifier.add_proc
+     (Simplifier.empty_simpset ctxt |> fold Simplifier.add_proc
        [(*@{simproc linordered_ring_strict_eq_cancel_factor_poly},
           @{simproc linordered_ring_strict_le_cancel_factor_poly},
           @{simproc linordered_ring_strict_less_cancel_factor_poly},
@@ -473,7 +473,7 @@ fun cong_unfolding_trivial ctxt thms t =
 fun cong_unfolding_first ctxt thms t =
   let val ctxt =
         ctxt
-        |> empty_simpset
+        |> Simplifier.empty_simpset
         |> put_simpset HOL_basic_ss
         |> Simplifier.add_simps @{thms not_not eq_commute}
   in

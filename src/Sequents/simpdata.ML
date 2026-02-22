@@ -67,7 +67,7 @@ fun safe_solver ctxt =
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  empty_simpset \<^context>
+  Simplifier.empty_simpset \<^context>
   |> Simplifier.set_safe_solver (Simplifier.mk_solver "safe" safe_solver)
   |> Simplifier.set_unsafe_solver (Simplifier.mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac

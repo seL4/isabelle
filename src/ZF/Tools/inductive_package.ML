@@ -341,7 +341,7 @@ let
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
      val min_ss =
-           empty_simpset ctxt4
+           Simplifier.empty_simpset ctxt4
            |> Simplifier.set_mksimps (fn ctxt => map mk_eq o ZF_atomize o Variable.gen_all ctxt)
            |> Simplifier.set_unsafe_solver (Simplifier.mk_solver "minimal"
                       (fn ctxt => resolve_tac ctxt (triv_rls @ Simplifier.prems_of ctxt)
