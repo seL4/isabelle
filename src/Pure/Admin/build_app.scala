@@ -130,6 +130,7 @@ mac.CFBundleTypeRole=Editor
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
       val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
       val app_prefix = app_root + platform_prefix
+      val app_identifier = "isabelle." + app_name
       val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
@@ -143,7 +144,7 @@ mac.CFBundleTypeRole=Editor
         " --vendor 'Isabelle'" +
         if_proper(platform.is_macos,
           " --file-associations " + File.bash_platform_path(file_associations) +
-          " --mac-package-identifier " + Bash.string("isabelle." + app_name)) +
+          " --mac-package-identifier " + Bash.string(app_identifier)) +
         if_proper(app_icon, " --icon " + File.bash_platform_path(app_icon.get)) +
         if_proper(progress.verbose, " --verbose"))
 
@@ -235,7 +236,7 @@ mac.CFBundleTypeRole=Editor
           " --type dmg" +
           " --app-image " + File.bash_platform_path(app_root) +
           " --mac-sign" +
-          " --mac-package-signing-prefix " + Bash.string("isabelle." + app_name) +
+          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
           " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
           " --mac-signing-key-user-name " + Bash.string(codesign_user) +
           if_proper(codesign_keychain,
