@@ -284,7 +284,7 @@ mac.CFBundleTypeRole=Editor
           var verbose = false
 
           val getopts = Getopts("""
-Usage: Admin/build_app [OPTIONS] ARCHIVE
+Usage: isabelle build_app [OPTIONS] ARCHIVE
 
   Options are:
     -D DIR       target directory (default ".")
