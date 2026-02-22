@@ -28,6 +28,19 @@ object Build_App {
       val dummy_dir = Isabelle_System.new_directory(tmp_dir + Path.explode("dummy"))
 
 
+      /* target directory */
+
+      Isabelle_System.make_directory(target_dir)
+
+      def execute(script: String): Process_Result = {
+        progress.echo_if(progress.verbose, script)
+        progress.bash(script, cwd = target_dir, echo = progress.verbose).check
+      }
+
+      def jpackage(args: String): Process_Result =
+        execute("isabelle_java jpackage " + args)
+
+
       /* platform */
 
       val platform = Isabelle_Platform.local
@@ -113,14 +126,6 @@ mac.CFBundleTypeRole=Editor
 
 
       /* java app package */
-
-      Isabelle_System.make_directory(target_dir)
-
-      def jpackage(args: String): Unit = {
-        val script = "isabelle_java jpackage" + args
-        progress.echo_if(progress.verbose, script)
-        progress.bash(script, cwd = target_dir, echo = progress.verbose).check
-      }
 
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
       val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
