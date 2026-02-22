@@ -8,11 +8,20 @@ package isabelle
 
 
 object Build_App {
+  /** resources **/
+
+  val ADMIN_MACOS_ENTITLEMENTS: Path =
+    Path.explode("~~/Admin/macOS/app/entitlements.plist")
+
+
+
   /** build app **/
 
   def build_app(dist_archive: String,
     dist_name: String = "",
     target_dir: Path = Path.current,
+    codesign_keychain: String = "",
+    codesign_user: String = "",
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
@@ -114,9 +123,8 @@ mac.CFBundleTypeRole=Editor
       }
 
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
-      val app_prefix =
-        target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos) + platform_prefix
-
+      val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
+      val app_prefix = app_root + platform_prefix
       val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
@@ -139,9 +147,7 @@ mac.CFBundleTypeRole=Editor
 
       progress.echo("Preparing Isabelle directory structure ...")
 
-      val isabelle_home =
-        if (platform.is_macos) app_prefix
-        else target_dir.absolute + Path.basic(app_name)
+      val isabelle_home = if (platform.is_macos) app_prefix else app_root
 
       Isabelle_System.make_directory(isabelle_home)
       Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
@@ -214,6 +220,23 @@ mac.CFBundleTypeRole=Editor
           (if (platform.is_windows) List("java-options=-Dcygwin.root=$ROOTDIR/contrib/cygwin")
            else Nil) :::
           java_options.map("java-options=" + _)))
+
+
+      /* macOS codesigning */
+
+      if (platform.is_macos && codesign_user.nonEmpty) {
+        progress.echo("Signing app " + quote(app_name) + " for " + platform_name + " ...")
+        jpackage(
+          " --type dmg" +
+          " --app-image " + File.bash_platform_path(app_root) +
+          " --mac-sign" +
+          " --mac-package-signing-prefix " + Bash.string("isabelle." + app_name) +
+          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
+          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
+          if_proper(codesign_keychain,
+            " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
+          if_proper(progress.verbose, " --verbose"))
+      }
     }
   }
 
@@ -226,6 +249,8 @@ mac.CFBundleTypeRole=Editor
       { args =>
           var target_dir = Path.current
           var dist_name = ""
+          var codesign_keychain = ""
+          var codesign_user = ""
           var verbose = false
 
           val getopts = Getopts("""
@@ -233,12 +258,16 @@ Usage: Admin/build_app [OPTIONS] ARCHIVE
 
   Options are:
     -D DIR       target directory (default ".")
+    -K NAME      macOS codesign keychain name (e.g. "login.keychain")
+    -S NAME      macOS codesign user name (e.g. "John Doe (M2NGOH5LAE)")
     -n NAME      app name (default ISABELLE_IDENTIFIER)
     -v           verbose
 
   Build standalone desktop app from Isabelle distribution archive (file or URL).
 """,
             "D:" -> (arg => target_dir = Path.explode(arg)),
+            "K:" -> (arg => codesign_keychain = arg),
+            "S:" -> (arg => codesign_user = arg),
             "n:" -> (arg => dist_name = arg),
             "v" -> (_ => verbose = true))
 
@@ -251,6 +280,8 @@ Usage: Admin/build_app [OPTIONS] ARCHIVE
 
           val progress = new Console_Progress(verbose = verbose)
 
-          build_app(dist_archive, dist_name = dist_name, target_dir = target_dir, progress = progress)
+          build_app(dist_archive, dist_name = dist_name, target_dir = target_dir,
+            codesign_keychain = codesign_keychain, codesign_user = codesign_user,
+            progress = progress)
         })
 }
