@@ -197,23 +197,38 @@ mac.CFBundleTypeRole=Editor
           file.delete
         }
 
-        def rm_tree(dir: Path): Unit = {
+        def rm_tree(dir: Path, msg: String): Unit = {
           if (dir.is_dir) {
-            progress.echo_warning("Suppressing redundant " + dir)
+            progress.echo_warning("Suppressing " + msg + " " + dir)
             Isabelle_System.rm_tree(dir)
           }
         }
 
-        for {
-          name <- File.read_dir(isabelle_heaps)
-          if name.endsWith(platform_name_emulated) ||
-             name.endsWith(Build_History.make_64_32(platform_name_emulated))
-        } rm_tree(isabelle_heaps + Path.explode(name))
+        val invalid_heaps =
+          isabelle_components.flatMap(name =>
+            if (name.containsSlice("polyml")) {
+              File.find_files((isabelle_home + Path.explode(name)).file,
+                pred = file => file.getName == "poly.uuid")
+            }
+            else Nil).isEmpty
+
+        if (invalid_heaps) rm_tree(isabelle_heaps, "invalid")
+        else {
+          for {
+            name <- File.read_dir(isabelle_heaps)
+            if name.endsWith(platform_name_emulated) ||
+               name.endsWith(Build_History.make_64_32(platform_name_emulated))
+          } rm_tree(isabelle_heaps + Path.explode(name), "redundant")
+        }
 
         for {
           name <- isabelle_components
           if name.containsSlice("jdk") || name.containsSlice("vscodium")
-        } rm_tree(isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated))
+        } {
+          rm_tree(
+            isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated),
+            "redundant")
+        }
       }
 
       if (platform.is_linux) {
