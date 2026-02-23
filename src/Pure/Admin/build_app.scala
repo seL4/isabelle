@@ -198,8 +198,10 @@ mac.CFBundleTypeRole=Editor
           if name.containsSlice("jdk") || name.containsSlice("vscodium")
         } {
           val dir = isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated)
-          progress.echo_warning("Suppressing redundant " + dir)
-          Isabelle_System.rm_tree(dir)
+          if (dir.is_dir) {
+            progress.echo_warning("Suppressing redundant " + dir)
+            Isabelle_System.rm_tree(dir)
+          }
         }
       }
 
