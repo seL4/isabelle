@@ -139,10 +139,22 @@ mac.CFBundleTypeRole=Editor
       val app_identifier = "isabelle." + app_name
       val app_icon = if (platform.is_macos) Some(dist_dir + Build_Release.ISABELLE_ICNS) else None
 
+      val mac_sign_options =
+        if (platform.is_macos && codesign_user.nonEmpty) {
+          " --mac-sign" +
+          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
+          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
+          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
+          if_proper(codesign_keychain,
+            " --mac-signing-keychain " + Bash.string(codesign_keychain))
+        }
+        else ""
+
       progress.echo("Building app " + quote(app_name) + " for " + platform_name + " ...")
       jpackage(
         " --name " + Bash.string(app_name) +
         " --type app-image" +
+        mac_sign_options +
         " --input " + File.bash_platform_path(dummy_dir) +
         " --main-jar " + File.bash_platform_path(dist_dir + Path.explode("lib/classes/isabelle.jar")) +
         " --copyright 'Isabelle contributors: various open-source lincenses'" +
@@ -288,12 +300,7 @@ mac.CFBundleTypeRole=Editor
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
           " --type dmg" +
-          " --mac-sign" +
-          " --mac-package-signing-prefix " + Bash.string(app_identifier) +
-          " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
-          " --mac-signing-key-user-name " + Bash.string(codesign_user) +
-          if_proper(codesign_keychain,
-            " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
+          mac_sign_options +
           if_proper(progress.verbose, " --verbose"))
         Isabelle_System.move_file(
           app_target.dir + Path.basic(app_target.file_name + "-1.0").ext("dmg"),
