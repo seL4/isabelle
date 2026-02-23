@@ -149,7 +149,8 @@ mac.CFBundleTypeRole=Editor
         " --vendor 'Isabelle'" +
         if_proper(platform.is_macos,
           " --file-associations " + File.bash_platform_path(file_associations) +
-          " --mac-package-identifier " + Bash.string(app_identifier)) +
+          " --mac-package-identifier " + Bash.string(app_identifier) +
+          " --mac-app-category public.app-category.developer-tools") +
         if_proper(app_icon, " --icon " + File.bash_platform_path(app_icon.get)) +
         if_proper(progress.verbose, " --verbose"))
 
