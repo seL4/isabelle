@@ -161,11 +161,11 @@ mac.CFBundleTypeRole=Editor
       progress.echo("Preparing Isabelle directory structure ...")
 
       val isabelle_home = if (platform.is_macos) app_resources else app_root
-      val isabelle_home_heaps = isabelle_home + Path.basic("heaps")
 
       Isabelle_System.make_directory(isabelle_home)
       Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
 
+      val isabelle_heaps = isabelle_home + Path.basic("heaps")
       val isabelle_components = Components.Directory(isabelle_home).read_components()
 
       for { path <-
@@ -205,10 +205,10 @@ mac.CFBundleTypeRole=Editor
         }
 
         for {
-          name <- File.read_dir(isabelle_home_heaps)
+          name <- File.read_dir(isabelle_heaps)
           if name.endsWith(platform_name_emulated) ||
              name.endsWith(Build_History.make_64_32(platform_name_emulated))
-        } rm_tree(isabelle_home_heaps + Path.explode(name))
+        } rm_tree(isabelle_heaps + Path.explode(name))
 
         for {
           name <- isabelle_components
