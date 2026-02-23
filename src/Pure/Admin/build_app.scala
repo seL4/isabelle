@@ -190,7 +190,7 @@ mac.CFBundleTypeRole=Editor
             catch { case _: IOException => true }
           })
         for (file <- bad_files) {
-          progress.echo_warning("Suppressing bad file " + File.path(file))
+          progress.echo_warning("Suppressing bad " + File.path(file))
           file.delete
         }
 
