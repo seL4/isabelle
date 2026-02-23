@@ -166,6 +166,8 @@ mac.CFBundleTypeRole=Editor
       Isabelle_System.make_directory(isabelle_home)
       Isabelle_System.copy_dir(dist_dir, isabelle_home, direct = true)
 
+      val isabelle_components = Components.Directory(isabelle_home).read_components()
+
       for { path <-
         List(
           Build_Release.isabelle_options_path(platform_family, isabelle_home, isabelle_identifier),
@@ -209,7 +211,7 @@ mac.CFBundleTypeRole=Editor
         } rm_tree(isabelle_home_heaps + Path.explode(name))
 
         for {
-          name <- Components.Directory(isabelle_home).read_components()
+          name <- isabelle_components
           if name.containsSlice("jdk") || name.containsSlice("vscodium")
         } rm_tree(isabelle_home + Path.explode(name) + Path.basic(platform_name_emulated))
       }
@@ -223,7 +225,7 @@ mac.CFBundleTypeRole=Editor
       /* java runtime */
 
       val jdk_dir =
-        Components.Directory(isabelle_home).read_components().filter(_.containsSlice("jdk")) match {
+        isabelle_components.filter(_.containsSlice("jdk")) match {
           case List(jdk) =>
             val platform_dir = isabelle_home + Path.explode(jdk) + Path.basic(platform_name)
             if (platform.is_macos) {
