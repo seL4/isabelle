@@ -132,7 +132,8 @@ mac.CFBundleTypeRole=Editor
       /* java app package */
 
       val app_name = proper_string(dist_name).getOrElse(isabelle_identifier)
-      val app_root = target_dir.absolute + Path.basic(app_name).app_if(platform.is_macos)
+      val app_target = target_dir.absolute + Path.basic(app_name)
+      val app_root = app_target.app_if(platform.is_macos)
       val app_prefix = app_root + platform_prefix
       val app_resources = app_prefix + Path.explode("Resources")
       val app_identifier = "isabelle." + app_name
@@ -277,6 +278,9 @@ mac.CFBundleTypeRole=Editor
           if_proper(codesign_keychain,
             " --mac-signing-keychain " + Bash.string(codesign_keychain)) +
           if_proper(progress.verbose, " --verbose"))
+        Isabelle_System.move_file(
+          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext("dmg"),
+          app_target.ext("dmg"))
       }
     }
   }
