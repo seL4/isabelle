@@ -258,7 +258,7 @@ mac.CFBundleTypeRole=Editor
         progress.echo("Building signed dmg ...")
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
-          " --type dmg --dest " + Bash.string(app_name + ".dmg") +
+          " --type dmg" +
           " --mac-sign" +
           " --mac-package-signing-prefix " + Bash.string(app_identifier) +
           " --mac-entitlements " + File.bash_platform_path(ADMIN_MACOS_ENTITLEMENTS) +
