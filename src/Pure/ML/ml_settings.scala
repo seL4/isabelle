@@ -54,5 +54,8 @@ abstract class ML_Settings {
   def polyml_exe: Path =
     ml_home + Path.basic("poly").exe_if(ml_platform_is_windows)
 
+  def polyml_uuid: Path =
+    ml_home + Path.basic("poly.uuid")
+
   override def toString: String = ml_identifier
 }

@@ -197,6 +197,8 @@ object Component_PolyML {
       mingw = platform_context.mingw,
       filter = platform_info.libs)
 
+    File.write(platform_dir + Path.basic("poly.uuid"), UUID.random_string())
+
 
     /* polyc: directory prefix */
 

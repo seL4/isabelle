@@ -382,7 +382,7 @@ class Store private(
   /* heap shasum */
 
   def make_shasum(ancestors: List[SHA1.Shasum]): SHA1.Shasum =
-    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(ml_settings.polyml_exe))
+    if (ancestors.isEmpty) SHA1.shasum_meta_info(SHA1.digest(ml_settings.polyml_uuid))
     else SHA1.flat_shasum(ancestors)
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
