@@ -1183,10 +1183,10 @@ fun unmangled_const s =
 
 val unmangled_invert_const = invert_const o hd o unmangled_const_name
 
-fun vars_of_iterm (IConst ((s, _), _, _)) = [s]
-  | vars_of_iterm (IVar ((s, _), _)) = [s]
+fun vars_of_iterm (IConst ((_, s), _, _)) = [s]
+  | vars_of_iterm (IVar ((_, s), _)) = [s]
   | vars_of_iterm (IApp (tm1, tm2)) = union (op =) (vars_of_iterm tm1) (vars_of_iterm tm2)
-  | vars_of_iterm (IAbs (((s, _), _), tm)) = insert (op =) s (vars_of_iterm tm)
+  | vars_of_iterm (IAbs (((_, s), _), tm)) = insert (op =) s (vars_of_iterm tm)
 
 fun generate_unique_name gen unique n =
   let val x = gen n in
