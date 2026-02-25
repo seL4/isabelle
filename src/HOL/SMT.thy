@@ -21,7 +21,7 @@ fun moura_tac ctxt =
   REPEAT o EqSubst.eqsubst_tac ctxt [0]
     @{thms choice_iff[symmetric] bchoice_iff[symmetric]} THEN'
   TRY o Simplifier.asm_full_simp_tac
-    (clear_simpset ctxt |> Simplifier.add_simps @{thms all_simps ex_simps ex_iff_push}) THEN_ALL_NEW
+    (Simplifier.clear_simpset ctxt |> Simplifier.add_simps @{thms all_simps ex_simps ex_iff_push}) THEN_ALL_NEW
   Metis_Tactic.metis_tac (take 1 ATP_Proof_Reconstruct.partial_type_encs)
     ATP_Proof_Reconstruct.default_metis_lam_trans ctxt []
 \<close>

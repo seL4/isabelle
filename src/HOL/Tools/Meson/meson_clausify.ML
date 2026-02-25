@@ -295,7 +295,7 @@ fun zap pos ct =
         else Conv.all_conv
       | _ => Conv.all_conv)
 
-fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) |> Simplifier.add_simps ths
+fun ss_only ths ctxt = Simplifier.clear_simpset (put_simpset HOL_basic_ss ctxt) |> Simplifier.add_simps ths
 
 val cheat_choice =
   \<^prop>\<open>\<forall>x. \<exists>y. Q x y \<Longrightarrow> \<exists>f. \<forall>x. Q x (f x)\<close>

@@ -133,7 +133,7 @@ val FOL_basic_ss =
   |> simpset_of;
 
 fun unfold_tac ctxt ths =
-  ALLGOALS (full_simp_tac (clear_simpset (put_simpset FOL_basic_ss ctxt) |> Simplifier.add_simps ths));
+  ALLGOALS (full_simp_tac (Simplifier.clear_simpset (put_simpset FOL_basic_ss ctxt) |> Simplifier.add_simps ths));
 
 
 (*** integration of simplifier with classical reasoner ***)

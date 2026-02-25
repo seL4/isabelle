@@ -30,9 +30,9 @@ Minor INCOMPATIBILITY.
 simp_trace now qualified in Isabelle/ML. Rare INCOMPATIBILITY.
 
 * Operations mk_rrules, eq_rrule, cert_simproc, transform_simproc,
-trim_context_simproc, mk_solver, empty_ss, merge_ss, empty_simpset, fold_rule,
-fold_goals_tac, norm_hhf, norm_hhf_protect from structure "Simplifier" are now
-qualified.  Minor INCOMPATIBILITY.
+trim_context_simproc, mk_solver, empty_ss, merge_ss, empty_simpset,
+clear_simpset, fold_rule, fold_goals_tac, norm_hhf, norm_hhf_protect from
+structure "Simplifier" are now qualified.  Minor INCOMPATIBILITY.
 
 * Datatype proc_kind from structure "Simplifier" is now qualified. Rare
 INCOMPATIBILITY.
