@@ -94,7 +94,7 @@ object Store {
       stored match {
         case Some(build) =>
           def trim(shasum: SHA1.Shasum): SHA1.Shasum =
-            if (build_thorough) shasum else shasum.filter(s => !Sessions.is_build_prefs(s))
+            if (build_thorough) shasum else shasum.filter(s => !Sessions.detect_build_prefs(s))
 
           !fresh_build &&
             build.ok &&

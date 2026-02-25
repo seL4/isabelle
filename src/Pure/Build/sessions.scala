@@ -584,7 +584,7 @@ object Sessions {
   def make_build_prefs(name: String): String =
     BUILD_PREFS_BG + name + BUILD_PREFS_EN
 
-  def is_build_prefs(s: String): Boolean = {
+  def detect_build_prefs(s: String): Boolean = {
     val i = s.indexOf('<')
     i >= 0 && {
       val s1 = s.substring(i)
