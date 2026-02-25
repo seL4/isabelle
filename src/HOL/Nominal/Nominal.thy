@@ -392,7 +392,7 @@ ML \<open>
   val mksimps_pairs = (\<^const_name>\<open>Nominal.fresh\<close>, @{thms fresh_prodD}) :: mksimps_pairs;
 \<close>
 declaration \<open>fn _ =>
-  Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))
+  Simplifier.map_simpset (Simplifier.set_mksimps (mksimps mksimps_pairs))
 \<close>
 
 section \<open>Abstract Properties for Permutations and  Atoms\<close>

@@ -399,7 +399,7 @@ end;
 open Simpdata;
 \<close>
 
-declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksimps (mksimps mksimps_pairs))\<close>
+declaration \<open>fn _ => Simplifier.map_simpset (Simplifier.set_mksimps (mksimps mksimps_pairs))\<close>
 
 lemma ballE [elim]: "\<forall>x\<in>A. P x \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> (x \<notin> A \<Longrightarrow> Q) \<Longrightarrow> Q"
   unfolding Ball_def by blast

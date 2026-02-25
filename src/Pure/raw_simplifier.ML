@@ -38,7 +38,7 @@ sig
   val dest_simps: simpset -> (Thm_Name.T * thm) list
   val dest_congs: simpset -> (cong_name * thm) list
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
-  val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
+  val map_simpset: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
   val map_theory_simpset: (Proof.context -> Proof.context) -> theory -> theory
   val empty_simpset: Proof.context -> Proof.context
   val clear_simpset: Proof.context -> Proof.context
@@ -387,11 +387,11 @@ structure Simpset = Generic_Data
 
 val simpset_of = Simpset.get o Context.Proof;
 
-fun map_simpset f = Context.proof_map (Simpset.map f);
-fun map_simpset1 f = map_simpset (fn Simpset (ss1, ss2) => Simpset (map_ss1 f ss1, ss2));
-fun map_simpset2 f = map_simpset (fn Simpset (ss1, ss2) => Simpset (ss1, map_ss2 f ss2));
+fun map_ss' f = Context.proof_map (Simpset.map f);
+fun map_ss1' f = map_ss' (fn Simpset (ss1, ss2) => Simpset (map_ss1 f ss1, ss2));
+fun map_ss2' f = map_ss' (fn Simpset (ss1, ss2) => Simpset (ss1, map_ss2 f ss2));
 
-fun put_simpset ss = map_simpset (K ss);
+fun put_simpset ss = map_ss' (K ss);
 
 fun simpset_map ctxt f ss = ctxt |> put_simpset ss |> f |> simpset_of;
 
@@ -403,10 +403,10 @@ fun map_theory_simpset f thy =
     val thy' = Proof_Context.theory_of ctxt';
   in Context.theory_map (Simpset.map (K (simpset_of ctxt'))) thy' end;
 
-fun map_ss f = Context.mapping (map_theory_simpset (f o Context_Position.not_really)) f;
+fun map_simpset f = Context.mapping (map_theory_simpset (f o Context_Position.not_really)) f;
 
 val clear_simpset =
-  map_simpset (fn Simpset ({depth, ...}, {mk_rews, term_ord, subgoal_tac, solvers, ...}) =>
+  map_ss' (fn Simpset ({depth, ...}, {mk_rews, term_ord, subgoal_tac, solvers, ...}) =>
     init_ss depth mk_rews term_ord subgoal_tac solvers);
 
 val get_mk_rews = simpset_of #> (fn Simpset (_, {mk_rews, ...}) => mk_rews);
@@ -434,7 +434,7 @@ val simp_depth_limit = Config.declare_int ("simp_depth_limit", \<^here>) (K 40);
 val simp_trace_depth_limit = Config.declare_int ("simp_trace_depth_limit", \<^here>) (K 1);
 
 fun inc_simp_depth ctxt =
-  ctxt |> map_simpset1 (fn (rules, prems, (depth, exceeded)) =>
+  ctxt |> map_ss1' (fn (rules, prems, (depth, exceeded)) =>
     (rules, prems,
       (depth + 1,
         if depth = Config.get ctxt simp_trace_depth_limit
@@ -491,13 +491,13 @@ fun prems_of ctxt =
   let val Simpset ({prems, ...}, _) = simpset_of ctxt in prems end;
 
 fun add_prems ths =
-  map_simpset1 (fn (rules, prems, depth) => (rules, ths @ prems, depth));
+  map_ss1' (fn (rules, prems, depth) => (rules, ths @ prems, depth));
 
 
 (* maintain simp rules *)
 
 fun del_rrule loud (rrule as {thm, elhs, ...}) ctxt =
-  ctxt |> map_simpset1 (fn (rules, prems, depth) =>
+  ctxt |> map_ss1' (fn (rules, prems, depth) =>
     (Net.delete_term eq_rrule (Thm.term_of elhs, rrule) rules, prems, depth))
   handle Net.DELETE =>
     (if not loud then ()
@@ -506,7 +506,7 @@ fun del_rrule loud (rrule as {thm, elhs, ...}) ctxt =
 
 fun insert_rrule (rrule as {thm, name, ...}) ctxt =
  (cond_tracing ctxt (fn () => print_thm ctxt "Adding rewrite rule" (name, thm));
-  ctxt |> map_simpset1 (fn (rules, prems, depth) =>
+  ctxt |> map_ss1' (fn (rules, prems, depth) =>
     let
       val rrule2 as {elhs, ...} = mk_rrule2 rrule;
       val rules' = Net.insert_term eq_rrule (Thm.term_of elhs, trim_context_rrule rrule2) rules;
@@ -714,7 +714,7 @@ in
 
 fun mk_cong ctxt = #mk_cong (get_mk_rews ctxt) ctxt;
 
-fun add_eqcong thm ctxt = ctxt |> map_simpset2
+fun add_eqcong thm ctxt = ctxt |> map_ss2'
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
@@ -727,7 +727,7 @@ fun add_eqcong thm ctxt = ctxt |> map_simpset2
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) end);
 
-fun del_eqcong thm ctxt = ctxt |> map_simpset2
+fun del_eqcong thm ctxt = ctxt |> map_ss2'
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val (lhs, _) = Logic.dest_equals (Thm.concl_of thm)
@@ -779,7 +779,7 @@ local
 fun add_proc1 (proc as Procedure {name, kind, lhs, ...}) ctxt =
  (cond_tracing ctxt (fn () =>
     print_term ctxt ("Adding " ^ print_proc_kind kind ^ " " ^ quote name ^ " for") lhs);
-  ctxt |> map_simpset2
+  ctxt |> map_ss2'
     (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
       (congs, map_procs kind (Net.insert_term eq_procedure_id (lhs, proc)) procs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
@@ -789,7 +789,7 @@ fun add_proc1 (proc as Procedure {name, kind, lhs, ...}) ctxt =
       ctxt));
 
 fun del_proc1 (proc as Procedure {name, kind, lhs, ...}) ctxt =
-  ctxt |> map_simpset2
+  ctxt |> map_ss2'
     (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
       (congs, map_procs kind (Net.delete_term eq_procedure_id (lhs, proc)) procs,
         mk_rews, term_ord, subgoal_tac, loop_tacs, solvers))
@@ -813,7 +813,7 @@ end;
 local
 
 fun map_mk_rews f =
-  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     let
       val {mk, mk_cong, mk_sym, mk_eq_True, reorient} = mk_rews;
       val (mk', mk_cong', mk_sym', mk_eq_True', reorient') =
@@ -848,49 +848,49 @@ end;
 (* term_ord *)
 
 fun set_term_ord term_ord =
-  map_simpset2 (fn (congs, procs, mk_rews, _, subgoal_tac, loop_tacs, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, _, subgoal_tac, loop_tacs, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
 
 (* tactics *)
 
 fun set_subgoaler subgoal_tac =
-  map_simpset2 (fn (congs, procs, mk_rews, term_ord, _, loop_tacs, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, term_ord, _, loop_tacs, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers));
 
 fun set_loop tac =
-  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, _, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, term_ord, subgoal_tac, _, solvers) =>
    (congs, procs, mk_rews, term_ord, subgoal_tac, [("", tac)], solvers));
 
 fun add_loop (name, tac) =
-  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac,
      AList.update (op =) (name, tac) loop_tacs, solvers));
 
 fun del_loop name ctxt = ctxt |>
-  map_simpset2 (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
+  map_ss2' (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac,
      (if AList.defined (op =) loop_tacs name then ()
       else cond_warning ctxt (fn () => "No such looper in simpset: " ^ quote name);
       AList.delete (op =) name loop_tacs), solvers));
 
-fun set_safe_solver solver = map_simpset2
+fun set_safe_solver solver = map_ss2'
   (fn (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
     (congs, procs, mk_rews, term_ord, subgoal_tac, loop_tacs, (unsafe_solvers, [solver])));
 
-fun add_safe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun add_safe_solver solver = map_ss2' (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (unsafe_solvers, insert eq_solver solver solvers)));
 
-fun set_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun set_unsafe_solver solver = map_ss2' (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (_, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, ([solver], solvers)));
 
-fun add_unsafe_solver solver = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun add_unsafe_solver solver = map_ss2' (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (unsafe_solvers, solvers)) => (congs, procs, mk_rews, term_ord,
     subgoal_tac, loop_tacs, (insert eq_solver solver unsafe_solvers, solvers)));
 
-fun set_solvers solvers = map_simpset2 (fn (congs, procs, mk_rews, term_ord,
+fun set_solvers solvers = map_ss2' (fn (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, _) => (congs, procs, mk_rews, term_ord,
   subgoal_tac, loop_tacs, (solvers, solvers)));
 

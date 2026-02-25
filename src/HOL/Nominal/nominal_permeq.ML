@@ -409,7 +409,7 @@ fun local_simp_meth_setup tac =
 (* uses HOL_basic_ss only and fails if the tactic does not solve the subgoal *)
 
 fun basic_simp_meth_setup debug tac =
-  Scan.depend (fn context => Scan.succeed (Simplifier.map_ss (put_simpset HOL_basic_ss) context, ())) --
+  Scan.depend (fn context => Scan.succeed (Simplifier.map_simpset (put_simpset HOL_basic_ss) context, ())) --
   Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
   (K (SIMPLE_METHOD' o (if debug then tac else SOLVED' o tac)));
 

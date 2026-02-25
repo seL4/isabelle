@@ -52,7 +52,7 @@ lemma finiteR_mksch': "\<not> Finite tr \<Longrightarrow> \<not> Finite (mksch A
   by (blast intro: finiteR_mksch)
 
 
-declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksym (K (K NONE)))\<close>
+declaration \<open>K (Simplifier.map_simpset (Simplifier.set_mksym (K (K NONE))))\<close>
 
 
 subsection "mksch rewrite rules"
@@ -935,6 +935,6 @@ lemma compositionality_tr_modules:
   done
 
 
-declaration \<open>fn _ => Simplifier.map_ss (Simplifier.set_mksym Simplifier.default_mk_sym)\<close>
+declaration \<open>K (Simplifier.map_simpset (Simplifier.set_mksym Simplifier.default_mk_sym))\<close>
 
 end

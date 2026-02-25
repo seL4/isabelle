@@ -396,7 +396,7 @@ val _ =
                 (Simplifier.simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
           val activate_simprocs =
             if simprocs_active then I
-            else Simplifier.map_ss (fold Simplifier.add_proc [lookup_simproc, update_simproc]);
+            else Simplifier.map_simpset (Simplifier.add_proc lookup_simproc #> Simplifier.add_proc update_simproc);
         in
           context
           |> activate_simprocs

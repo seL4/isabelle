@@ -35,6 +35,10 @@ clear_simpset, simpset_map, map_theory_simpset, fold_rule, fold_goals_tac,
 norm_hhf, norm_hhf_protect from structure "Simplifier" are now qualified.
 Minor INCOMPATIBILITY.
 
+* Operation map_ss from structure "Simplifier" renamed by Simplifier.map_simpset,
+following the convention that "ss" refers to a "bare" simpset only.
+Minor INCOMPATIBILITY.
+
 * Datatype proc_kind from structure "Simplifier" is now qualified. Rare
 INCOMPATIBILITY.
 

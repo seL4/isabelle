@@ -66,8 +66,8 @@ by (rule transrec3_def [THEN def_transrec, THEN trans], force)
 
 
 declaration \<open>fn _ =>
-  Simplifier.map_ss (Simplifier.set_mksimps (fn ctxt =>
-    map mk_eq o Ord_atomize o Variable.gen_all ctxt))
+  Simplifier.map_simpset
+    (Simplifier.set_mksimps (fn ctxt => map mk_eq o Ord_atomize o Variable.gen_all ctxt))
 \<close>
 
 end

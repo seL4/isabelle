@@ -350,8 +350,8 @@ val Ord_atomize =
     ZF_conn_pairs, ZF_mem_pairs);
 \<close>
 declaration \<open>fn _ =>
-  Simplifier.map_ss (Simplifier.set_mksimps (fn ctxt =>
-    map mk_eq o Ord_atomize o Variable.gen_all ctxt))
+  Simplifier.map_simpset (Simplifier.set_mksimps
+    (fn ctxt => map mk_eq o Ord_atomize o Variable.gen_all ctxt))
 \<close>
 
 text \<open>Setting up the one-point-rule simproc\<close>

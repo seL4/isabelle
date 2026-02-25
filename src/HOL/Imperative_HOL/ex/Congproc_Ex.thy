@@ -502,7 +502,7 @@ let
 in
   Context.theory_map (fn context =>
     let val old_mksimps = Simplifier.get_mksimps_context (Context.proof_of context)
-    in context |> Simplifier.map_ss (Simplifier.set_mksimps_context (my_mksimps old_mksimps)) end)
+    in context |> Simplifier.map_simpset (Simplifier.set_mksimps_context (my_mksimps old_mksimps)) end)
 end
 \<close>
 

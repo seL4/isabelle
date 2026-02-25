@@ -812,7 +812,7 @@ inductive_cases eval_elim_cases [cases set]:
         "G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> (x, s')"
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
-declaration \<open>K (Simplifier.map_ss (fn ss => ss |> Simplifier.add_loop ("split_all_tac", split_all_tac)))\<close>
+declaration \<open>K (Simplifier.map_simpset (Simplifier.add_loop ("split_all_tac", split_all_tac)))\<close>
 declare if_split     [split] if_split_asm     [split] 
         option.split [split] option.split_asm [split]
 
