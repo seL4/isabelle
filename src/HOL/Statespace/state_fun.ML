@@ -391,9 +391,9 @@ val _ =
           val (lookup_ss', ex_lookup_ss') =
             (case Thm.concl_of thm of
               (_ $ ((Const (\<^const_name>\<open>Ex\<close>, _) $ _))) =>
-                (lookup_ss, simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
+                (lookup_ss, Simplifier.simpset_map ctxt (Simplifier.add_simp thm) ex_lookup_ss)
             | _ =>
-                (simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
+                (Simplifier.simpset_map ctxt (Simplifier.add_simp thm) lookup_ss, ex_lookup_ss));
           val activate_simprocs =
             if simprocs_active then I
             else Simplifier.map_ss (fold Simplifier.add_proc [lookup_simproc, update_simproc]);

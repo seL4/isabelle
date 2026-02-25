@@ -161,7 +161,7 @@ fun map_lessD f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, 
 fun map_simpset f context =
   map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =>
     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-      lessD = lessD, neqE = neqE, simpset = simpset_map (Context.proof_of context) f simpset,
+      lessD = lessD, neqE = neqE, simpset = Simplifier.simpset_map (Context.proof_of context) f simpset,
       number_of = number_of}) context;
 
 fun add_inj_thms thms = map_data (map_inj_thms (append (map Thm.trim_context thms)));

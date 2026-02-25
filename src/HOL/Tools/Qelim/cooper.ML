@@ -56,12 +56,12 @@ val get = Data.get o Context.Proof;
 
 fun add ts = Thm.declaration_attribute (fn th => fn context =>
   context |> Data.map (fn (ss, ts') =>
-     (simpset_map (Context.proof_of context) (Simplifier.add_simp th) ss,
+     (Simplifier.simpset_map (Context.proof_of context) (Simplifier.add_simp th) ss,
       merge (op aconv) (ts', ts))))
 
 fun del ts = Thm.declaration_attribute (fn th => fn context =>
   context |> Data.map (fn (ss, ts') =>
-     (simpset_map (Context.proof_of context) (Simplifier.del_simp th) ss,
+     (Simplifier.simpset_map (Context.proof_of context) (Simplifier.del_simp th) ss,
       subtract (op aconv) ts' ts)))
 
 fun simp_thms_conv ctxt =

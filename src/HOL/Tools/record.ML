@@ -477,8 +477,8 @@ fun put_sel_upd names more depth simps defs thy =
       make_data records
         {selectors = fold Symtab.update_new sels selectors,
           updates = fold Symtab.update_new upds updates,
-          simpset = simpset_map ctxt0 (Simplifier.add_simps simps) simpset,
-          defset = simpset_map ctxt0 (Simplifier.add_simps defs) defset}
+          simpset = Simplifier.simpset_map ctxt0 (Simplifier.add_simps simps) simpset,
+          defset = Simplifier.simpset_map ctxt0 (Simplifier.add_simps defs) defset}
          equalities extinjects extsplit splits extfields fieldext;
   in Data.put data thy end;
 

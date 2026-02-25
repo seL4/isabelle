@@ -115,7 +115,7 @@ val map_data = Code_Preproc_Data.map o map_thmproc;
 val map_pre_post = map_data o apfst;
 
 fun map_simpset which f thy =
-  map_pre_post (which (simpset_map (Proof_Context.init_global thy) f)) thy;
+  map_pre_post (which (Simplifier.simpset_map (Proof_Context.init_global thy) f)) thy;
 val map_pre = map_simpset apfst;
 val map_post = map_simpset apsnd;
 
@@ -129,8 +129,8 @@ fun process_abbrev add_del raw_thm thy =
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
-      (pre |> simpset_map ctxt (add_del thm_sym),
-       post |> simpset_map ctxt (add_del thm)))
+      (pre |> Simplifier.simpset_map ctxt (add_del thm_sym),
+       post |> Simplifier.simpset_map ctxt (add_del thm)))
   end;
 
 fun add_functrans (name, f) = (map_data o apsnd)
