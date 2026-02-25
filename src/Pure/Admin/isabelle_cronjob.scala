@@ -346,7 +346,7 @@ object Isabelle_Cronjob {
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(Remote_Build("Linux C", "linux-netcup-g12", history = 90,
-        options = "-m32 -B -M1x4,2x4,4x2,8",
+        options = "-m32 -B -M1x4,2x4,4x2,8", args = "-a -d '~~/src/Benchmarks'",
         count = () => 2)),
       List(
         Remote_Build("macOS 12 Monterey (Intel)", "mini1-monterey",
