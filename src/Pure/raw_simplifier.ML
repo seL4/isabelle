@@ -15,7 +15,6 @@ sig
   val simpset_of: Proof.context -> simpset
   val put_simpset: simpset -> Proof.context -> Proof.context
   val simpset_map: Proof.context -> (Proof.context -> Proof.context) -> simpset -> simpset
-  val map_theory_simpset: (Proof.context -> Proof.context) -> theory -> theory
 
   val rewrite_rule: Proof.context -> thm list -> thm -> thm
   val rewrite_goals_rule: Proof.context -> thm list -> thm -> thm
@@ -40,6 +39,7 @@ sig
   val dest_simps: simpset -> (Thm_Name.T * thm) list
   val dest_congs: simpset -> (cong_name * thm) list
   val map_ss: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
+  val map_theory_simpset: (Proof.context -> Proof.context) -> theory -> theory
   val empty_simpset: Proof.context -> Proof.context
   val clear_simpset: Proof.context -> Proof.context
   val init_simpset: thm list -> Proof.context -> Proof.context

@@ -108,7 +108,7 @@ val type_solver =
     type_solver_tac ctxt (Simplifier.prems_of ctxt));
 
 val _ =
-  Theory.setup (map_theory_simpset (fn ctxt => ctxt |> Simplifier.set_unsafe_solver type_solver));
+  Theory.setup (Simplifier.map_theory_simpset (Simplifier.set_unsafe_solver type_solver));
 
 
 (* concrete syntax *)

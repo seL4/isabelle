@@ -357,7 +357,7 @@ val FOL_ss =
 \<close>
 
 setup \<open>
-  map_theory_simpset (put_simpset FOL_ss) #>
+  Simplifier.map_theory_simpset (put_simpset FOL_ss) #>
   Simplifier.method_setup Splitter.split_modifiers
 \<close>
 

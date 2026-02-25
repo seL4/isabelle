@@ -201,7 +201,7 @@ lemma eq_sym_conv: "\<turnstile> x = y \<longleftrightarrow> y = x"
   by (fast add!: subst)
 
 ML_file \<open>simpdata.ML\<close>
-setup \<open>map_theory_simpset (put_simpset LK_ss)\<close>
+setup \<open>Simplifier.map_theory_simpset (put_simpset LK_ss)\<close>
 setup \<open>Simplifier.method_setup []\<close>
 
 

@@ -455,7 +455,7 @@ notation (ASCII)
 declare not_None_eq [simp del] 
 declare if_split [split del] if_split_asm [split del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
+setup \<open>Simplifier.map_theory_simpset (Simplifier.del_loop "split_all_tac")\<close>
 
 inductive_cases wt_elim_cases [cases set]:
         "E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
@@ -491,7 +491,7 @@ inductive_cases wt_elim_cases [cases set]:
 declare not_None_eq [simp] 
 declare if_split [split] if_split_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
-setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
+setup \<open>Simplifier.map_theory_simpset (Simplifier.add_loop ("split_all_tac", split_all_tac))\<close>
 
 lemma is_acc_class_is_accessible: 
   "is_acc_class G P C \<Longrightarrow> G\<turnstile>(Class C) accessible_in P"

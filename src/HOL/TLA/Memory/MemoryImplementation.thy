@@ -231,7 +231,7 @@ ML \<open>
     else K no_tac);
 \<close>
 
-setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.add_safe_solver fast_solver)\<close>
+setup \<open>Simplifier.map_theory_simpset (Simplifier.add_safe_solver fast_solver)\<close>
 
 ML \<open>val temp_elim = make_elim oo temp_use\<close>
 

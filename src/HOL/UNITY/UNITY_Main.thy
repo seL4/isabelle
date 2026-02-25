@@ -21,9 +21,10 @@ method_setup ensures_tac = \<open>
 \<close> "for proving progress properties"
 
 setup \<open>
-  map_theory_simpset (fn ctxt => ctxt
-    addsimps (make_o_equivs ctxt @{thm fst_o_funPair} @ make_o_equivs ctxt @{thm snd_o_funPair})
-    addsimps (make_o_equivs ctxt @{thm fst_o_lift_map} @ make_o_equivs ctxt @{thm snd_o_lift_map}))
+  Simplifier.map_theory_simpset (fn ctxt =>
+    ctxt
+    |> Simplifier.add_simps (make_o_equivs ctxt @{thm fst_o_funPair} @ make_o_equivs ctxt @{thm snd_o_funPair})
+    |> Simplifier.add_simps (make_o_equivs ctxt @{thm fst_o_lift_map} @ make_o_equivs ctxt @{thm snd_o_lift_map}))
 \<close>
 
 end

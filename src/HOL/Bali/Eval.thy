@@ -774,7 +774,7 @@ done
 
 declare not_None_eq [simp del] (* IntDef.Zero_def [simp del] *)
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
+setup \<open>Simplifier.map_theory_simpset (Simplifier.del_loop "split_all_tac")\<close>
 
 inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
 

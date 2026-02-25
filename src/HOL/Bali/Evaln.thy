@@ -197,7 +197,7 @@ declare if_split     [split del] if_split_asm     [split del]
         option.split [split del] option.split_asm [split del]
         not_None_eq [simp del] 
         split_paired_All [simp del] split_paired_Ex [simp del]
-setup \<open>map_theory_simpset (fn ctxt => ctxt |> Simplifier.del_loop "split_all_tac")\<close>
+setup \<open>Simplifier.map_theory_simpset (Simplifier.del_loop "split_all_tac")\<close>
 
 inductive_cases evaln_cases: "G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (v, s')"
 
