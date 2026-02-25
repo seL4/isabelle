@@ -52,7 +52,7 @@ object Store {
 
 
 
-  /* session build info */
+  /* session build info (database) vs. build output (file-system) */
 
   sealed case class Build_Info(
     sources: SHA1.Shasum,
@@ -62,6 +62,45 @@ object Store {
     uuid: String
   ) {
     def ok: Boolean = return_code == 0
+  }
+
+  object Build_Output {
+    val none: Build_Output =
+      new Build_Output(None, SHA1.no_shasum, SHA1.no_shasum, SHA1.no_shasum)
+
+    def make(
+      build: Build_Info,
+      sources_shasum: SHA1.Shasum,
+      input_shasum: SHA1.Shasum,
+      output_shasum: SHA1.Shasum): Build_Output =
+        new Build_Output(Some(build), sources_shasum, input_shasum, output_shasum)
+  }
+
+  class Build_Output private [Store](
+    stored: Option[Build_Info],
+    val sources_shasum: SHA1.Shasum,
+    val input_shasum: SHA1.Shasum,
+    val output_shasum: SHA1.Shasum
+  ) {
+    override def toString: String =
+      (sources_shasum ::: input_shasum ::: output_shasum).toString
+
+    def current(
+      build_thorough: Boolean = false,
+      fresh_build: Boolean = false,
+      store_heap: Boolean = false
+    ): Boolean = {
+      stored match {
+        case Some(build) =>
+          !fresh_build &&
+            build.ok &&
+            Sessions.eq_sources(build_thorough, build.sources, sources_shasum) &&
+            build.input_heaps == input_shasum &&
+            build.output_heap == output_shasum &&
+            !(store_heap && output_shasum.is_empty)
+        case None => false
+      }
+    }
   }
 
 
@@ -539,31 +578,22 @@ class Store private(
     database_server: Option[SQL.Database],
     name: String,
     sources_shasum: SHA1.Shasum,
-    input_shasum: SHA1.Shasum,
-    build_thorough: Boolean = false,
-    fresh_build: Boolean = false,
-    store_heap: Boolean = false
-  ): (Boolean, SHA1.Shasum) = {
-    def no_check: (Boolean, SHA1.Shasum) = (false, SHA1.no_shasum)
-
-    def check(db: SQL.Database): (Boolean, SHA1.Shasum) =
+    input_shasum: SHA1.Shasum
+  ): Store.Build_Output = {
+    def check(db: SQL.Database): Store.Build_Output =
       read_build(db, name) match {
         case Some(build) =>
           val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
-          val current =
-            !fresh_build &&
-              build.ok &&
-              Sessions.eq_sources(build_thorough, build.sources, sources_shasum) &&
-              build.input_heaps == input_shasum &&
-              build.output_heap == output_shasum &&
-              !(store_heap && output_shasum.is_empty)
-          (current, output_shasum)
-        case None => no_check
+          Store.Build_Output.make(build,
+            sources_shasum = sources_shasum,
+            input_shasum = input_shasum,
+            output_shasum = output_shasum)
+        case None => Store.Build_Output.none
       }
 
     database_server match {
-      case Some(db) => if (session_info_exists(db)) check(db) else no_check
-      case None => using_option(try_open_database(name))(check) getOrElse no_check
+      case Some(db) => if (session_info_exists(db)) check(db) else Store.Build_Output.none
+      case None => using_option(try_open_database(name))(check) getOrElse Store.Build_Output.none
     }
   }
 

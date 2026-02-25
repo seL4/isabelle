@@ -1163,13 +1163,18 @@ extends AutoCloseable {
     val sources_shasum = state.sessions(session_name).sources_shasum
     val input_shasum = store.make_shasum(ancestor_results.map(_.output_shasum))
     val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
-    val (current, output_shasum) =
+
+    val build_output =
       store.check_output(_database_server, session_name,
         sources_shasum = sources_shasum,
-        input_shasum = input_shasum,
+        input_shasum = input_shasum)
+
+    val current =
+      build_output.current(
         build_thorough = build_context.sessions_structure(session_name).build_thorough,
         fresh_build = build_context.fresh_build,
         store_heap = store_heap)
+    val output_shasum = build_output.output_shasum
 
     val finished = current && ancestor_results.forall(_.current)
     val skipped = build_context.no_build

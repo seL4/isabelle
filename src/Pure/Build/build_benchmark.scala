@@ -67,8 +67,8 @@ object Build_Benchmark {
         def get_shasum(name: String): SHA1.Shasum =
           store.check_output(database_server, name,
             sources_shasum = sessions(name).sources_shasum,
-            input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum)),
-            build_thorough = build_context.sessions_structure(name).build_thorough)._2
+            input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum))
+          ).output_shasum
 
         val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
         val background = deps.background(benchmark_session_name)
