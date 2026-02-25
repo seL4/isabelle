@@ -227,9 +227,9 @@ object Build {
                   case Some(db) =>
                     try {
                       val current =
-                        store.check_output(Some(db), name,
-                          sources_shasum = deps0.sources_shasum(name),
-                          input_shasum = SHA1.no_shasum
+                        store.check_output(name,
+                          opened_db = Some(db),
+                          sources_shasum = deps0.sources_shasum(name)
                         ).current(deps0.sessions_structure(name).build_thorough)
                       if (current) None else Some(name)
                     }

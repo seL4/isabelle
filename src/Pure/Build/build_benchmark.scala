@@ -65,7 +65,8 @@ object Build_Benchmark {
         for (db <- database_server) ML_Heap.restore(db, hierachy, cache = store.cache.compress)
 
         def get_shasum(name: String): SHA1.Shasum =
-          store.check_output(database_server, name,
+          store.check_output(name,
+            opened_db = database_server,
             sources_shasum = sessions(name).sources_shasum,
             input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum))
           ).output_shasum

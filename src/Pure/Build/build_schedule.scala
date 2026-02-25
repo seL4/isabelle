@@ -1129,8 +1129,8 @@ object Build_Schedule {
     def is_current(state: Build_Process.State, session_name: String): Boolean =
       state.ancestor_results(session_name) match {
         case Some(ancestor_results) if ancestor_results.forall(_.current) =>
-          store.check_output(
-            _database_server, session_name,
+          store.check_output(session_name,
+            opened_db = _database_server,
             sources_shasum = state.sessions(session_name).sources_shasum,
             input_shasum = store.make_shasum(ancestor_results.map(_.output_shasum))
           ).current(

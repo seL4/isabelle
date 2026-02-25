@@ -577,10 +577,10 @@ class Store private(
   }
 
   def check_output(
-    opened_db: Option[SQL.Database],
     name: String,
-    sources_shasum: SHA1.Shasum,
-    input_shasum: SHA1.Shasum
+    opened_db: Option[SQL.Database] = None,
+    sources_shasum: SHA1.Shasum = SHA1.no_shasum,
+    input_shasum: SHA1.Shasum = SHA1.no_shasum
   ): Store.Build_Output = {
     def check(db: SQL.Database): Store.Build_Output =
       read_build(db, name) match {
