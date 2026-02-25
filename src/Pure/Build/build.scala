@@ -228,8 +228,8 @@ object Build {
                     using(db)(store.read_build(_, name)) match {
                       case Some(build) if build.ok =>
                         val sources_shasum = deps0.sources_shasum(name)
-                        val thorough = deps0.sessions_structure(name).build_thorough
-                        if (Sessions.eq_sources(thorough, build.sources, sources_shasum)) None
+                        val build_thorough = deps0.sessions_structure(name).build_thorough
+                        if (Sessions.eq_sources(build_thorough, build.sources, sources_shasum)) None
                         else Some(name)
                       case _ => Some(name)
                     }
