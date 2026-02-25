@@ -86,18 +86,20 @@ object Store {
       (sources_shasum ::: input_shasum ::: output_shasum).toString
 
     def current(
-      build_thorough: Boolean = false,
       fresh_build: Boolean = false,
-      store_heap: Boolean = false
+      build_thorough: Boolean = false,
+      soft_build: Boolean = false,
+      store_heap: Boolean = false,
     ): Boolean = {
       stored match {
         case Some(build) =>
           !fresh_build &&
             build.ok &&
             Sessions.eq_sources(build_thorough, build.sources, sources_shasum) &&
-            build.input_heaps == input_shasum &&
-            build.output_heap == output_shasum &&
-            !(store_heap && output_shasum.is_empty)
+            (soft_build ||
+              build.input_heaps == input_shasum &&
+              build.output_heap == output_shasum &&
+              !(store_heap && output_shasum.is_empty))
         case None => false
       }
     }
@@ -575,7 +577,7 @@ class Store private(
   }
 
   def check_output(
-    database_server: Option[SQL.Database],
+    opened_db: Option[SQL.Database],
     name: String,
     sources_shasum: SHA1.Shasum,
     input_shasum: SHA1.Shasum
@@ -591,7 +593,7 @@ class Store private(
         case None => Store.Build_Output.none
       }
 
-    database_server match {
+    opened_db match {
       case Some(db) => if (session_info_exists(db)) check(db) else Store.Build_Output.none
       case None => using_option(try_open_database(name))(check) getOrElse Store.Build_Output.none
     }

@@ -225,14 +225,15 @@ object Build {
               deps0.sessions_structure.build_topological_order.flatMap(name =>
                 store.try_open_database(name, server = server) match {
                   case Some(db) =>
-                    using(db)(store.read_build(_, name)) match {
-                      case Some(build) if build.ok =>
-                        val sources_shasum = deps0.sources_shasum(name)
-                        val build_thorough = deps0.sessions_structure(name).build_thorough
-                        if (Sessions.eq_sources(build_thorough, build.sources, sources_shasum)) None
-                        else Some(name)
-                      case _ => Some(name)
+                    try {
+                      val current =
+                        store.check_output(Some(db), name,
+                          sources_shasum = deps0.sources_shasum(name),
+                          input_shasum = SHA1.no_shasum
+                        ).current(deps0.sessions_structure(name).build_thorough)
+                      if (current) None else Some(name)
                     }
+                    finally { db.close }
                   case None => Some(name)
                 })
 
