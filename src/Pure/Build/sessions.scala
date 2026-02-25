@@ -592,15 +592,6 @@ object Sessions {
     }
   }
 
-  def eq_sources(thorough: Boolean, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
-    if (thorough) shasum1 == shasum2
-    else {
-      def trim(shasum: SHA1.Shasum): SHA1.Shasum =
-        shasum.filter(s => !is_build_prefs(s))
-
-      trim(shasum1) == trim(shasum2)
-    }
-
   sealed case class Chapter_Info(
     name: String,
     pos: Position.T,

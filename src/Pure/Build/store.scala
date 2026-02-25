@@ -93,9 +93,12 @@ object Store {
     ): Boolean = {
       stored match {
         case Some(build) =>
+          def trim(shasum: SHA1.Shasum): SHA1.Shasum =
+            if (build_thorough) shasum else shasum.filter(s => !Sessions.is_build_prefs(s))
+
           !fresh_build &&
             build.ok &&
-            Sessions.eq_sources(build_thorough, build.sources, sources_shasum) &&
+            trim(build.sources) == trim(sources_shasum) &&
             (soft_build ||
               build.input_heaps == input_shasum &&
               build.output_heap == output_shasum &&
