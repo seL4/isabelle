@@ -77,13 +77,19 @@ object Store {
   }
 
   class Build_Output private [Store](
-    stored: Option[Build_Info],
+    val stored: Option[Build_Info],
     val sources_shasum: SHA1.Shasum,
     val input_shasum: SHA1.Shasum,
     val output_shasum: SHA1.Shasum
   ) {
-    override def toString: String =
-      (sources_shasum ::: input_shasum ::: output_shasum).toString
+    def stored_shasum: SHA1.Shasum =
+      stored match {
+        case None => SHA1.no_shasum
+        case Some(build) => build.sources ::: build.input_heaps ::: build.output_heap
+      }
+
+    def shasum: SHA1.Shasum = sources_shasum ::: input_shasum ::: output_shasum
+    override def toString: String = shasum.toString
 
     def current(
       fresh_build: Boolean = false,
