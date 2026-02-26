@@ -92,8 +92,8 @@ object Store {
     override def toString: String = shasum.toString
 
     def current(
-      fresh_build: Boolean = false,
       build_thorough: Boolean = false,
+      fresh_build: Boolean = false,
       soft_build: Boolean = false,
       store_heap: Boolean = false,
     ): Boolean = {
