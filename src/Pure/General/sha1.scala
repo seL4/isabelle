@@ -68,6 +68,8 @@ object SHA1 {
     override def hashCode: Int = rep.hashCode
     override def toString: String = Library.terminate_lines(rep)
 
+    def print: String = proper_string(Library.trim_line(toString)).getOrElse("<empty>")
+
     def is_empty: Boolean = rep.isEmpty
 
     def diff(other: Shasum): Option[(Shasum, Shasum)] =

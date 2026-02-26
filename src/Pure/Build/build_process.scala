@@ -150,10 +150,7 @@ object Build_Process {
                 err("ancestors disagree", commas_quote(ancestors0), commas_quote(ancestors))
               }
               sources_shasum0 diff sources_shasum match {
-                case Some((a, b)) =>
-                  err("sources disagree",
-                    Library.trim_line(a.toString),
-                    Library.trim_line(b.toString))
+                case Some((a, b)) => err("sources disagree", a.print, b.print)
                 case None =>
               }
 
