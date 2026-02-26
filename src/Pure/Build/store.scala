@@ -96,18 +96,33 @@ object Store {
       fresh_build: Boolean = false,
       soft_build: Boolean = false,
       store_heap: Boolean = false,
+      build_debug: Boolean = false,
+      progress: Progress = new Progress
     ): Boolean = {
       stored match {
         case Some(build) =>
+          def test(what: String, shasum1: SHA1.Shasum, shasum2: SHA1.Shasum): Boolean =
+            if (build_debug) {
+              shasum1 diff shasum2 match {
+                case Some((a, b)) =>
+                  progress.echo("differing " + what + ":\n" +
+                    Library.indent_lines(2, a.print) + "\nvs.\n" +
+                    Library.indent_lines(2, b.print))
+                  false
+                case None => true
+              }
+            }
+            else shasum1 == shasum2
+
           def trim(shasum: SHA1.Shasum): SHA1.Shasum =
             if (build_thorough) shasum else shasum.filter(s => !Sessions.detect_build_prefs(s))
 
           !fresh_build &&
             build.ok &&
-            trim(build.sources) == trim(sources_shasum) &&
+            test("sources", trim(build.sources), trim(sources_shasum)) &&
             (soft_build ||
-              build.input_heaps == input_shasum &&
-              build.output_heap == output_shasum &&
+              test("input heaps", build.input_heaps, input_shasum) &&
+              test("output heap", build.output_heap, output_shasum) &&
               !(store_heap && output_shasum.is_empty))
         case None => false
       }

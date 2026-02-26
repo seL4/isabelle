@@ -1171,7 +1171,9 @@ extends AutoCloseable {
       build_output.current(
         build_thorough = build_context.sessions_structure(session_name).build_thorough,
         fresh_build = build_context.fresh_build,
-        store_heap = store_heap)
+        store_heap = store_heap,
+        build_debug = store.options.bool("build_debug"),
+        progress = progress)
     val output_shasum = build_output.output_shasum
 
     val finished = current && ancestor_results.forall(_.current)

@@ -197,6 +197,9 @@ public option ML_system_apple : bool = true for build
 
 section "Build Process"
 
+option build_debug : bool = false
+  -- "print details about differing sources and heaps"
+
 option build_thorough : bool = false
   -- "observe dependencies on options with tag 'content' or 'document'"
 
