@@ -155,7 +155,7 @@ object Library {
     isabelle.setup.Library.prefix_lines(prfx, str)
 
   def indent_lines(n: Int, str: String): String =
-    prefix_lines(Symbol.spaces(n), str)
+    if (n == 0) str else prefix_lines(Symbol.spaces(n), str)
 
   def first_line(source: CharSequence): String = {
     val lines = separated_chunks(_ == '\n', source)

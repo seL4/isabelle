@@ -106,8 +106,7 @@ object Store {
               shasum1 diff shasum2 match {
                 case Some((a, b)) =>
                   progress.echo("differing " + what + ":\n" +
-                    Library.indent_lines(2, a.print) + "\nvs.\n" +
-                    Library.indent_lines(2, b.print))
+                    a.print(indent = 2) + "\nvs.\n" + b.print(indent = 2))
                   false
                 case None => true
               }

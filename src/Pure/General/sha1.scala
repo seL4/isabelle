@@ -68,7 +68,9 @@ object SHA1 {
     override def hashCode: Int = rep.hashCode
     override def toString: String = Library.terminate_lines(rep)
 
-    def print: String = proper_string(Library.trim_line(toString)).getOrElse("<empty>")
+    def print(indent: Int = 0): String =
+      Library.indent_lines(indent,
+        proper_string(Library.trim_line(toString)).getOrElse("<empty>"))
 
     def is_empty: Boolean = rep.isEmpty
 
