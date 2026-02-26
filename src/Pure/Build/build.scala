@@ -230,7 +230,7 @@ object Build {
                         store.check_output(name,
                           opened_db = Some(db),
                           sources_shasum = deps0.sources_shasum(name)
-                        ).current(deps0.sessions_structure(name).build_thorough)
+                        ).current(build_thorough = deps0.sessions_structure(name).build_thorough)
                       if (current) None else Some(name)
                     }
                     finally { db.close }
