@@ -149,12 +149,12 @@ object Build_Process {
               if (ancestors0 != ancestors) {
                 err("ancestors disagree", commas_quote(ancestors0), commas_quote(ancestors))
               }
-              if (sources_shasum0 != sources_shasum) {
-                val a = sources_shasum0 - sources_shasum
-                val b = sources_shasum - sources_shasum0
-                err("sources disagree",
-                  Library.trim_line(a.toString),
-                  Library.trim_line(b.toString))
+              sources_shasum0 diff sources_shasum match {
+                case Some((a, b)) =>
+                  err("sources disagree",
+                    Library.trim_line(a.toString),
+                    Library.trim_line(b.toString))
+                case None =>
               }
 
               graph0

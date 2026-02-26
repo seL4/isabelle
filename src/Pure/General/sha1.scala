@@ -70,7 +70,13 @@ object SHA1 {
 
     def is_empty: Boolean = rep.isEmpty
 
-    def - (other: Shasum): Shasum = new Shasum(rep.filterNot(other.rep.toSet.contains))
+    def diff(other: Shasum): Option[(Shasum, Shasum)] =
+      if (this == other) None
+      else {
+        val a = rep.filterNot(other.rep.toSet.contains)
+        val b = other.rep.filterNot(rep.toSet.contains)
+        Some((new Shasum(a), new Shasum(b)))
+      }
 
     def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
