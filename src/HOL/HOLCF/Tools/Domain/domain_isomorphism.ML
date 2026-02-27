@@ -34,8 +34,8 @@ structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
 struct
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context>
-    addsimps @{thms simp_thms} |> Simplifier.add_proc \<^simproc>\<open>beta_cfun_proc\<close>)
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms simp_thms} #> Simplifier.add_proc \<^simproc>\<open>beta_cfun_proc\<close>)
 
 fun is_cpo thy T = Sign.of_sort thy (T, \<^sort>\<open>cpo\<close>)
 

@@ -11,9 +11,9 @@ structure Ferrack_Tac: FERRACK_TAC =
 struct
 
 val ferrack_ss =
-  let val ths = [@{thm of_int_eq_iff}, @{thm of_int_less_iff}, @{thm of_int_le_iff}]
-  in \<^context> |> Simplifier.del_simps ths |> Simplifier.add_simps (map (fn th => th RS sym) ths)
-  end |> simpset_of;
+  \<^context> (*TODO prefer stable vase*)
+  |> Simplifier.flip_simps @{thms of_int_eq_iff of_int_less_iff of_int_le_iff}
+  |> Simplifier.simpset_of;
 
 val binarith = @{thms arith_simps}
 val comp_arith = binarith @ @{thms simp_thms}

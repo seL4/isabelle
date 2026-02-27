@@ -130,15 +130,17 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
 
   val norm_ss1 =
-    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ add_succs @ mult_1s @ @{thms add_ac}))
+    ZF_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (add_0s @ add_succs @ mult_1s @ @{thms add_ac}))
   val norm_ss2 =
-    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ mult_1s @ @{thms add_ac} @
-      @{thms mult_ac} @ tc_rules @ natifys))
+    ZF_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (add_0s @ mult_1s @ @{thms add_ac mult_ac} @ tc_rules @ natifys))
   fun norm_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
     THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
   val numeral_simp_ss =
-    simpset_of (put_simpset ZF_ss \<^context> |> Simplifier.add_simps (add_0s @ tc_rules @ natifys))
+    ZF_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps (add_0s @ tc_rules @ natifys))
   fun numeral_simp_tac ctxt =
     ALLGOALS (asm_simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = simplify_meta_eq final_rules

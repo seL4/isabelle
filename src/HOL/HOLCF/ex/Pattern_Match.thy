@@ -382,7 +382,9 @@ val beta_rules =
   @{thms cont2cont_fst cont2cont_snd cont2cont_Pair};
 
 val beta_ss =
-  simpset_of (put_simpset HOL_basic_ss \<^context> addsimps (@{thms simp_thms} @ beta_rules));
+  HOL_basic_ss
+  |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps (@{thms simp_thms} @ beta_rules));
 
 fun define_consts
     (specs : (binding * term * mixfix) list)

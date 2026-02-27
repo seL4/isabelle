@@ -76,7 +76,7 @@ fun rewrite_interpret_form_tac ctxt prec splitting taylor i st = let
             lemma (schematic)
               \<open>n = length xs \<Longrightarrow> approx_form prec f (replicate n None) ss \<Longrightarrow> interpret_form f xs\<close>
               by (rule approx_form)\<close>] i
-        THEN simp_tac (put_simpset (simpset_of \<^context>) ctxt) i) st
+        THEN simp_tac (put_simpset (Simplifier.simpset_of \<^context>) ctxt) i) st
      end
 
    | SOME t =>

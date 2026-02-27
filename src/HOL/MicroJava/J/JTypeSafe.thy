@@ -202,7 +202,7 @@ apply( unfold c_hupd_def)
 apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac \<^context> [impI, allI])")
 apply( tactic \<open>ALLGOALS (eresolve_tac \<^context> [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of \<^theory_context>\<open>Conform\<close>) \<^context>)))\<close>)
+  THEN_ALL_NEW (full_simp_tac (put_simpset (Simplifier.simpset_of \<^theory_context>\<open>Conform\<close>) \<^context>)))\<close>)
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (eresolve_tac \<^context> [conjE]), REPEAT o hyp_subst_tac \<^context>])")
 
 \<comment> \<open>Level 7\<close>

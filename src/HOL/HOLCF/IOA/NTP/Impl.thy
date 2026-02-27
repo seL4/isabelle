@@ -102,14 +102,14 @@ declare split_paired_All [simp del]
 3) renname_ss unfolds transitions and the abstract channel *)
 
 ML \<open>
-val ss = simpset_of (\<^context> addsimps @{thms "transitions"});
-val rename_ss = simpset_of (put_simpset ss \<^context> addsimps @{thms unfold_renaming});
+val ss = \<^context> |> Simplifier.add_simps @{thms transitions} |> Simplifier.simpset_of;
+val rename_ss = ss |> Simplifier.simpset_map \<^context> (Simplifier.add_simps @{thms unfold_renaming});
 
 fun tac ctxt =
-  asm_simp_tac (put_simpset ss ctxt
+  asm_simp_tac (ctxt |> put_simpset ss
     |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm if_split})
 fun tac_ren ctxt =
-  asm_simp_tac (put_simpset rename_ss ctxt
+  asm_simp_tac (ctxt |> put_simpset rename_ss
     |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm if_split})
 \<close>
 

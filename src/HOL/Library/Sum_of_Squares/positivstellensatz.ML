@@ -717,7 +717,8 @@ end;
 
 local
   val absmaxmin_elim_ss1 =
-    simpset_of (put_simpset HOL_basic_ss \<^context> |> Simplifier.add_simps real_abs_thms1)
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps real_abs_thms1)
   fun absmaxmin_elim_conv1 ctxt =
     Simplifier.rewrite (put_simpset absmaxmin_elim_ss1 ctxt)
 

@@ -238,10 +238,11 @@ structure OtwayReesBella =
 struct
 
 val analz_image_freshK_ss =
-  simpset_of
-   (\<^context> |> Simplifier.del_simps @{thms image_insert image_Un}
-      |> Simplifier.del_simps @{thms imp_disjL}    (*reduces blow-up*)
-      |> Simplifier.add_simps @{thms analz_image_freshK_simps})
+  \<^context>
+   |> Simplifier.del_simps @{thms image_insert image_Un}
+   |> Simplifier.del_simps @{thms imp_disjL}    (*reduces blow-up*)
+   |> Simplifier.add_simps @{thms analz_image_freshK_simps}
+   |> Simplifier.simpset_of
 
 end
 \<close>

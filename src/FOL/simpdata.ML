@@ -124,16 +124,16 @@ fun safe_solver ctxt =
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
-  Simplifier.empty_simpset \<^context>
-  |> Simplifier.set_safe_solver (Simplifier.mk_solver "FOL safe" safe_solver)
-  |> Simplifier.set_unsafe_solver (Simplifier.mk_solver "FOL unsafe" unsafe_solver)
-  |> Simplifier.set_subgoaler asm_simp_tac
-  |> Simplifier.set_mksimps (mksimps mksimps_pairs)
-  |> Simplifier.set_mkcong mk_meta_cong
-  |> simpset_of;
+  Simplifier.empty_ss
+  |> Simplifier.simpset_map \<^context>
+    (Simplifier.set_safe_solver (Simplifier.mk_solver "FOL safe" safe_solver)
+    #> Simplifier.set_unsafe_solver (Simplifier.mk_solver "FOL unsafe" unsafe_solver)
+    #> Simplifier.set_subgoaler asm_simp_tac
+    #> Simplifier.set_mksimps (mksimps mksimps_pairs)
+    #> Simplifier.set_mkcong mk_meta_cong);
 
 fun unfold_tac ctxt ths =
-  ALLGOALS (full_simp_tac (Simplifier.clear_simpset (put_simpset FOL_basic_ss ctxt) |> Simplifier.add_simps ths));
+  ALLGOALS (full_simp_tac (ctxt |> put_simpset FOL_basic_ss |> Simplifier.clear_simpset |> Simplifier.add_simps ths));
 
 
 (*** integration of simplifier with classical reasoner ***)

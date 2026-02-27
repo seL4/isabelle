@@ -74,7 +74,7 @@ fun mk_new ([],[]) = \<^Const>\<open>True\<close>
       Balanced_Tree.make FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
-val datatype_ss = simpset_of \<^context>;
+val datatype_ss = Simplifier.simpset_of \<^context>;
 
 fun proc ctxt ct =
   let

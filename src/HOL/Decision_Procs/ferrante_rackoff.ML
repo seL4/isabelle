@@ -199,9 +199,8 @@ in h end;
 fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset = ss}) tm =
  let
    val ss' =
-     Simplifier.merge_ss (simpset_of
-      (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps
-        @{thms simp_thms ex_simps all_simps not_all all_not_ex ex_disj_distrib}), ss);
+     Simplifier.merge_ss (HOL_basic_ss |> Simplifier.simpset_map ctxt
+      (Simplifier.add_simps @{thms simp_thms ex_simps all_simps not_all all_not_ex ex_disj_distrib}), ss);
    val pcv = Simplifier.rewrite (put_simpset ss' ctxt);
    val postcv = Simplifier.rewrite (put_simpset ss ctxt);
    val nnf = K (nnf_conv ctxt then_conv postcv)

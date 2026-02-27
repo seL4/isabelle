@@ -510,7 +510,6 @@ declare ferrack_axiom [ferrack minf: minf_thms pinf: pinf_thms
 
 declaration \<open>
 let
-  fun simps phi = map (Morphism.thm phi) [@{thm "not_less"}, @{thm "not_le"}]
   fun generic_whatis phi =
     let
       val [lt, le] = map (Morphism.term phi) [\<^term>\<open>(\<sqsubset>)\<close>, \<^term>\<open>(\<sqsubseteq>)\<close>]
@@ -533,10 +532,11 @@ let
                  else Ferrante_Rackoff_Data.Nox
        | _ => Ferrante_Rackoff_Data.Nox
   in h end
+  fun simps phi = map (Morphism.thm phi) @{thms not_less not_le}
   fun ss phi ctxt =
-    simpset_of (put_simpset HOL_ss ctxt |> Simplifier.add_simps (simps phi))
+    HOL_ss |> Simplifier.simpset_map ctxt (Simplifier.add_simps (simps phi))
 in
-  Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
+  Ferrante_Rackoff_Data.funs @{thm ferrack_axiom}
     {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
 end
 \<close>
@@ -812,7 +812,7 @@ local
   val less_iff_diff_less_0 = mk_meta_eq @{thm "less_iff_diff_less_0"}
   val le_iff_diff_le_0 = mk_meta_eq @{thm "le_iff_diff_le_0"}
   val eq_iff_diff_eq_0 = mk_meta_eq @{thm "eq_iff_diff_eq_0"}
-  val ss = simpset_of \<^context>
+  val ss = Simplifier.simpset_of \<^context> (*TODO prefer stable base*)
 in
 fun field_isolate_conv phi ctxt vs ct = case Thm.term_of ct of
   \<^Const_>\<open>less _ for a b\<close> =>
@@ -868,9 +868,9 @@ fun classfield_whatis phi =
    | _ => Ferrante_Rackoff_Data.Nox
  in h end;
 fun class_field_ss phi ctxt =
-  simpset_of (put_simpset HOL_basic_ss ctxt
-    |> Simplifier.add_simps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
-    |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}])
+  HOL_basic_ss |> Simplifier.simpset_map ctxt
+    (Simplifier.add_simps @{thms linorder_not_less linorder_not_le}
+    #> fold Splitter.add_split @{thms abs_split split_max split_min})
 
 in
 Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}

@@ -3019,10 +3019,10 @@ lemmas uint_arith_simps =
 ML \<open>
 val unat_arith_simpset =
   @{context} (* TODO: completely explicitly determined simpset *)
-  |> fold Simplifier.add_simp @{thms unat_arith_simps}
+  |> Simplifier.add_simps @{thms unat_arith_simps}
   |> fold Splitter.add_split @{thms if_split_asm}
   |> fold Simplifier.add_cong @{thms power_False_cong}
-  |> simpset_of
+  |> Simplifier.simpset_of
 
 fun unat_arith_tacs ctxt =
   let
@@ -3054,10 +3054,10 @@ method_setup unat_arith =
 ML \<open>
 val uint_arith_simpset =
   @{context} (* TODO: completely explicitly determined simpset *)
-  |> fold Simplifier.add_simp @{thms uint_arith_simps}
+  |> Simplifier.add_simps @{thms uint_arith_simps}
   |> fold Splitter.add_split @{thms if_split_asm}
   |> fold Simplifier.add_cong @{thms power_False_cong}
-  |> simpset_of;
+  |> Simplifier.simpset_of;
   
 fun uint_arith_tacs ctxt =
   let

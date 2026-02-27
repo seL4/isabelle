@@ -342,18 +342,18 @@ simproc_setup defined_all("\<And>x. PROP P(x)") = \<open>K Quantifier1.rearrange
 ML \<open>
 (*intuitionistic simprules only*)
 val IFOL_ss =
-  put_simpset FOL_basic_ss \<^context>
-  |> Simplifier.add_simps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps subst_all}
-  |> Simplifier.add_proc \<^simproc>\<open>defined_All\<close>
-  |> Simplifier.add_proc \<^simproc>\<open>defined_Ex\<close>
-  |> Simplifier.add_cong @{thm imp_cong}
-  |> simpset_of;
+  FOL_basic_ss
+  |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps subst_all}
+    #> Simplifier.add_proc \<^simproc>\<open>defined_All\<close>
+    #> Simplifier.add_proc \<^simproc>\<open>defined_Ex\<close>
+    #> Simplifier.add_cong @{thm imp_cong})
 
 (*classical simprules too*)
 val FOL_ss =
-  put_simpset IFOL_ss \<^context>
-  |> Simplifier.add_simps @{thms cla_simps cla_ex_simps cla_all_simps}
-  |> simpset_of;
+  IFOL_ss
+  |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms cla_simps cla_ex_simps cla_all_simps})
 \<close>
 
 setup \<open>

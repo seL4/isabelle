@@ -86,17 +86,16 @@ fun string_eq_simp_tac ctxt =
 end;
 
 val lookup_ss =
-  simpset_of ((put_simpset HOL_basic_ss \<^context>
-    addsimps (@{thms list.inject} @ @{thms char.inject}
-      @ @{thms list.distinct} @ @{thms simp_thms}
-      @ [@{thm StateFun.lookup_update_id_same}, @{thm StateFun.id_id_cancel},
-        @{thm StateFun.lookup_update_same}, @{thm StateFun.lookup_update_other}])
-    |> Simplifier.add_proc lazy_conj_simproc)
-    |> Simplifier.add_unsafe_solver StateSpace.distinctNameSolver
-    |> fold Simplifier.add_cong @{thms block_conj_cong});
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms list.inject char.inject list.distinct simp_thms
+      StateFun.lookup_update_id_same StateFun.id_id_cancel StateFun.lookup_update_same StateFun.lookup_update_other}
+    #> Simplifier.add_proc lazy_conj_simproc
+    #> Simplifier.add_unsafe_solver StateSpace.distinctNameSolver
+    #> fold Simplifier.add_cong @{thms block_conj_cong});
 
 val ex_lookup_ss =
-  simpset_of (put_simpset HOL_ss \<^context> addsimps @{thms StateFun.ex_id});
+  HOL_basic_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms StateFun.ex_id});
 
 
 structure Data = Generic_Data
@@ -170,12 +169,11 @@ local
 
 val meta_ext = @{thm StateFun.meta_ext};
 val ss' =
-  simpset_of (put_simpset HOL_ss \<^context> addsimps
-    (@{thm StateFun.update_apply} :: @{thm Fun.o_apply} :: @{thms list.inject} @ @{thms char.inject}
-      @ @{thms list.distinct})
-    |> Simplifier.add_proc lazy_conj_simproc
-    |> Simplifier.add_proc StateSpace.distinct_simproc
-    |> fold Simplifier.add_cong @{thms block_conj_cong});
+  HOL_ss |> Simplifier.simpset_map \<^context>
+    (Simplifier.add_simps @{thms StateFun.update_apply Fun.o_apply list.inject char.inject list.distinct}
+    #> Simplifier.add_proc lazy_conj_simproc
+    #> Simplifier.add_proc StateSpace.distinct_simproc
+    #> fold Simplifier.add_cong @{thms block_conj_cong});
 
 in
 

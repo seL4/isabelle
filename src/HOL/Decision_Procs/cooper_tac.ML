@@ -10,7 +10,7 @@ end
 structure Cooper_Tac: COOPER_TAC =
 struct
 
-val cooper_ss = simpset_of \<^context>;
+val cooper_ss = Simplifier.simpset_of \<^context>; (*TODO prefer stable base*)
 
 fun prepare_for_linz q fm =
   let

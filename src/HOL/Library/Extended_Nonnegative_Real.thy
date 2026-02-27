@@ -396,8 +396,8 @@ struct
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss =
-    simpset_of (put_simpset HOL_basic_ss \<^context>
-      |> Simplifier.add_simps @{thms ac_simps add_0_left add_0_right})
+    HOL_basic_ss |> Simplifier.simpset_map \<^context>
+      (Simplifier.add_simps @{thms ac_simps add_0_left add_0_right})
   fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   fun simplify_meta_eq ctxt cancel_th th =
     Arith_Data.simplify_meta_eq [] ctxt

@@ -16,7 +16,7 @@ setup \<open>
       #> Simplifier.add_cong @{thm if_weak_cong})
 \<close>
 
-ML \<open>val ZF_ss = simpset_of \<^context>\<close>
+ML \<open>val ZF_ss = Simplifier.simpset_of \<^context>\<close>
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) \<and> Q(x)") = \<open>
   K (Quantifier1.rearrange_Bex (fn ctxt => unfold_tac ctxt @{thms Bex_def}))

@@ -11,9 +11,10 @@ structure Mir_Tac: MIR_TAC =
 struct
 
 val mir_ss = 
-  simpset_of (\<^context>
-    |> Simplifier.del_simps [@{thm "of_int_eq_iff"}, @{thm "of_int_less_iff"}, @{thm "of_int_le_iff"}]
-    |> Simplifier.add_simps @{thms "iff_real_of_int"});
+  \<^context> (*TODO prefer stable base*)
+  |> Simplifier.del_simps @{thms of_int_eq_iff of_int_less_iff of_int_le_iff}
+  |> Simplifier.add_simps @{thms "iff_real_of_int"}
+  |> Simplifier.simpset_of
 
 val nT = HOLogic.natT;
   val nat_arith = [@{thm diff_nat_numeral}];
