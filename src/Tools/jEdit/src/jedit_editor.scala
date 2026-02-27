@@ -125,21 +125,13 @@ class JEdit_Editor extends Editor {
 
     PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
 
-    def buffer_target(buffer: Buffer): Option[Text.Offset] =
-      if (buffer != null && (line >= 0 || offset >= 0)) {
-        val n = buffer.getLength
-        val line_offset =
-          if (line < 0) 0
-          else if (line >= buffer.getLineCount) n
-          else buffer.getLineStartOffset(line)
-        Some((line_offset + offset.max(0)) min n)
-      }
-      else None
-
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        for (target <- buffer_target(buffer)) view.getTextArea.setCaretPosition(target)
+        val target = Isabelle_Navigator.Target(line = line, offset = offset)
+        for (caret <- target.caret_offset(buffer)) {
+          view.getTextArea.setCaretPosition(caret)
+        }
 
       case None =>
         val is_dir =
@@ -152,23 +144,8 @@ class JEdit_Editor extends Editor {
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
-          val buffer = jEdit.openFile(view, name)
-          if (buffer_target(buffer).isDefined) {
-            AwtRunnableQueue.INSTANCE.runAfterIoTasks({ () =>
-              for (target <- buffer_target(buffer)) {
-                if (view.getBuffer == buffer) {
-                  view.getTextArea.setCaretPosition(target)
-                  buffer.setIntegerProperty(Buffer.CARET, target)
-                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                }
-                else {
-                  buffer.setIntegerProperty(Buffer.CARET, target)
-                  buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
-                  buffer.unsetProperty(Buffer.SCROLL_VERT)
-                }
-              }
-            })
-          }
+          PIDE.plugin.navigator.goto_target(name, line = line, offset = offset)
+          jEdit.openFile(view, name)
         }
     }
   }

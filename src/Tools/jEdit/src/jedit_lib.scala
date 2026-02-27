@@ -409,12 +409,16 @@ object JEdit_Lib {
     Text.Edit.make(ins, edit_range.start, edit_text)
   }
 
-  def buffer_listener(handle: (Buffer, Text.Edit) => Unit): BufferListener =
+  def buffer_listener(
+    handle: (Buffer, Text.Edit) => Unit,
+    loaded: Buffer => Unit = _ => ()
+  ): BufferListener =
     new BufferAdapter {
       override def contentInserted(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
         handle(buf.asInstanceOf[Buffer], buffer_edit(true, buf, i, n))
       override def preContentRemoved(buf: JEditBuffer, line: Int, i: Int, lines: Int, n: Int): Unit =
         handle(buf.asInstanceOf[Buffer], buffer_edit(false, buf, i, n))
+      override def bufferLoaded(buf: JEditBuffer): Unit = loaded(buf.asInstanceOf[Buffer])
     }
 
 

@@ -112,6 +112,22 @@ object Isabelle_Navigator {
         }
       )
   }
+
+
+  /* target position */
+
+  sealed case class Target(line: Int = -1, offset: Text.Offset = -1) {
+    def caret_offset(buffer: Buffer): Option[Text.Offset] =
+      if (buffer != null && (line >= 0 || offset >= 0)) {
+        val n = buffer.getLength
+        val line_offset =
+          if (line < 0) 0
+          else if (line >= buffer.getLineCount) n
+          else buffer.getLineStartOffset(line)
+        Some((line_offset + offset.max(0)) min n)
+      }
+      else None
+  }
 }
 
 class Isabelle_Navigator {
@@ -119,6 +135,7 @@ class Isabelle_Navigator {
   private var _bypass = false
   private var _backward = Isabelle_Navigator.History.empty
   private var _forward = Isabelle_Navigator.History.empty
+  private var _goto_target = Map.empty[String, Isabelle_Navigator.Target]
 
   def current: Isabelle_Navigator.Pos = _backward.top
   def recurrent: Isabelle_Navigator.Pos = _forward.top
@@ -138,8 +155,30 @@ class Isabelle_Navigator {
     _forward = _forward.close(names)
   }
 
+  def goto_target(name: String, line: Int = -1, offset: Text.Offset = -1): Unit =
+    GUI_Thread.require {
+      val target = Isabelle_Navigator.Target(line = line, offset = offset)
+      _goto_target = _goto_target + (name -> target)
+    }
+
+  private def init_caret(buffer: Buffer): Unit = GUI_Thread.require {
+    val name = JEdit_Lib.buffer_name(buffer)
+    for (target <- _goto_target.get(name)) {
+      _goto_target = _goto_target - name
+      for (caret <- target.caret_offset(buffer)) {
+        val text_areas = JEdit_Lib.jedit_text_areas(buffer).toList
+        for (text_area <- text_areas) text_area.setCaretPosition(caret)
+        if (text_areas.isEmpty) buffer.unsetProperty(Buffer.SCROLL_VERT)
+        buffer.setIntegerProperty(Buffer.CARET, caret)
+        buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
+      }
+    }
+  }
+
   private val buffer_listener =
-    JEdit_Lib.buffer_listener((buffer, edit) => convert(JEdit_Lib.buffer_name(buffer), edit))
+    JEdit_Lib.buffer_listener(
+      (buffer, edit) => convert(JEdit_Lib.buffer_name(buffer), edit),
+      loaded = init_caret)
 
   def exit(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
     buffers.iterator.foreach(_.removeBufferListener(buffer_listener))
