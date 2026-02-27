@@ -100,17 +100,6 @@ object Isabelle_Navigator {
             else h.delete_after(prev).insert_after(prev, pos1)
         }
       )
-
-    def close(names: Set[String]): History =
-      new History(
-        hist.foldLeft(hist) {
-          case (h, pos) =>
-            val prev = h.prev(pos)
-            val pos0 = prev.getOrElse(Pos.none)
-            if (names.contains(pos.name) || pos.equiv(pos0)) h.delete_after(prev)
-            else h
-        }
-      )
   }
 
 
@@ -150,11 +139,6 @@ class Isabelle_Navigator {
     _forward = _forward.convert(name, edit)
   }
 
-  private def close(names: Set[String]): Unit = GUI_Thread.require {
-    _backward = _backward.close(names)
-    _forward = _forward.close(names)
-  }
-
   def goto_target(name: String, line: Int = -1, offset: Text.Offset = -1): Unit =
     GUI_Thread.require {
       val target = Isabelle_Navigator.Target(line = line, offset = offset)
@@ -177,12 +161,11 @@ class Isabelle_Navigator {
 
   private val buffer_listener =
     JEdit_Lib.buffer_listener(
-      (buffer, edit) => convert(JEdit_Lib.buffer_name(buffer), edit),
+      (buffer, edit) => if (!buffer.isLoading) convert(JEdit_Lib.buffer_name(buffer), edit),
       loaded = init_caret)
 
   def exit(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
     buffers.iterator.foreach(_.removeBufferListener(buffer_listener))
-    close(buffers.iterator.map(JEdit_Lib.buffer_name).toSet)
   }
 
   def init(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
