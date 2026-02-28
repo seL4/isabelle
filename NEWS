@@ -76,7 +76,7 @@ Darcula".
 * The FlatLaf look-and-feel has been patched slightly, to recover the
 regular Java/Swing behavior of the F10 key on all platforms, notably
 Windows. F10 should focus the menu bar and open the first menu, which
-can be reversed via the ESCAPE. Consequently, the NVDA Screen Reader
+can be reversed via the ESCAPE key. Consequently, the NVDA Screen Reader
 will display the menu title on the Braille display properly ---
 otherwise no action was indicated. Minor INCOMPATIBILITY with native
 Windows GUI behavior of F10, which FlatLaf attempted to imitate here.
