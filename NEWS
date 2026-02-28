@@ -88,6 +88,9 @@ These actions also appear as menu items "File / Reload Plain Text" and
 "File / Reload Unicode Symbols". This helps to see the true text behind
 the superficial Unicode rendering, which is usually enabled by default.
 
+* The built-in navigator has become more robust, thanks to careful
+interaction with GUI vs. IO events in jEdit.
+
 * The built-in navigator provides a separate history for each editor
 view, instead of just one global history. INCOMPATIBILITY.
 
