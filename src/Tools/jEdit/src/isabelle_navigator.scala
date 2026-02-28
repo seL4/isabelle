@@ -139,11 +139,8 @@ class Isabelle_Navigator {
     _forward = _forward.convert(name, edit)
   }
 
-  def goto_target(name: String, line: Int = -1, offset: Text.Offset = -1): Unit =
-    GUI_Thread.require {
-      val target = Isabelle_Navigator.Target(line = line, offset = offset)
-      _goto_target = _goto_target + (name -> target)
-    }
+  def goto_target(name: String, target: Isabelle_Navigator.Target): Unit =
+    GUI_Thread.require { _goto_target = _goto_target + (name -> target) }
 
   private def init_caret(buffer: Buffer): Unit = GUI_Thread.require {
     val name = JEdit_Lib.buffer_name(buffer)

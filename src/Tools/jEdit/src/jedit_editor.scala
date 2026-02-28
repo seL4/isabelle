@@ -123,12 +123,13 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
+    val target = Isabelle_Navigator.Target(line = line, offset = offset)
+
     PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) =>
         if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        val target = Isabelle_Navigator.Target(line = line, offset = offset)
         for (caret <- target.caret_offset(buffer)) {
           view.getTextArea.setCaretPosition(caret)
         }
@@ -144,7 +145,7 @@ class JEdit_Editor extends Editor {
 
         if (is_dir) VFSBrowser.browseDirectory(view, name)
         else if (!Isabelle_System.open_external_file(name)) {
-          PIDE.plugin.navigator.goto_target(name, line = line, offset = offset)
+          PIDE.plugin.navigator.goto_target(name, target)
           jEdit.openFile(view, name)
         }
     }
