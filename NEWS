@@ -96,8 +96,8 @@ or "C+e g", using proper "find-prev.shortcut" instead of undefined
 "find-previous.shortcut" before.
 
 * The jEdit action "isabelle.goto-entity" with keyboard shortcut CS+d
-has been removed. INCOMPATIBILITY, use the more general "follow-link"
-with keyboard shortcut AS+DOWN instead.
+has been removed. INCOMPATIBILITY, use the more general
+"isabelle.follow-link" with keyboard shortcut AS+DOWN instead.
 
 * The jEdit action "isabelle.follow-link" (keyboard shortcut AS+DOWN)
 follows the hyperlink under the current caret, using the same notion of
