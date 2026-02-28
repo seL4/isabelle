@@ -66,6 +66,12 @@ object PIDE {
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
 
+  def navigator(view: View): Isabelle_Navigator =
+    get_plugin match {
+      case None => Isabelle_Navigator.none
+      case Some(pide) => pide.navigator(view)
+    }
+
   object editor extends JEdit_Editor
 }
 
@@ -105,7 +111,28 @@ class Main_Plugin extends EBPlugin {
 
   val completion_history = new Completion.History_Variable
   val spell_checker = new Spell_Checker_Variable
-  val navigator = new Isabelle_Navigator
+
+
+  /* per-view navigators */
+
+  private val navigators = Synchronized(Map.empty[View, Isabelle_Navigator_View])
+
+  private def init_navigator(view: View): Unit =
+    if (view != null) navigators.change(_ + (view -> new Isabelle_Navigator_View(view)))
+
+  private def exit_navigator(view: View): Unit =
+    if (view != null) navigators.change(_ - view)
+
+  def navigator(view: View): Isabelle_Navigator =
+    navigators.value.getOrElse(view, Isabelle_Navigator.none)
+
+  def navigators_add_listener(buffers: List[Buffer]): Unit = GUI_Thread.require {
+    navigators.value.valuesIterator.foreach(_.add_listener(buffers))
+  }
+
+  def navigators_del_listener(buffers: List[Buffer]): Unit = GUI_Thread.require {
+    navigators.value.valuesIterator.foreach(_.del_listener(buffers))
+  }
 
 
   /* theory files */
@@ -362,7 +389,11 @@ class Main_Plugin extends EBPlugin {
           val what = msg.getWhat
           val view = msg.getView
           what match {
-            case ViewUpdate.CREATED if view != null => init_title(view)
+            case ViewUpdate.CREATED if view != null =>
+              init_title(view)
+              init_navigator(view)
+            case ViewUpdate.CLOSED if view != null =>
+              exit_navigator(view)
             case _ =>
           }
 
@@ -384,8 +415,8 @@ class Main_Plugin extends EBPlugin {
 
           if (buffer != null && !buffer.isUntitled) {
             what match {
-              case BufferUpdate.CREATED => navigator.init(Set(buffer))
-              case BufferUpdate.CLOSED => navigator.exit(Set(buffer))
+              case BufferUpdate.CREATED => navigators_add_listener(List(buffer))
+              case BufferUpdate.CLOSED => navigators_del_listener(List(buffer))
               case _ =>
             }
           }
@@ -395,6 +426,7 @@ class Main_Plugin extends EBPlugin {
           val edit_pane = msg.getEditPane
           val buffer = if (edit_pane == null) null else edit_pane.getBuffer
           val text_area = if (edit_pane == null) null else edit_pane.getTextArea
+          val view = if (text_area == null) null else text_area.getView
 
           if (buffer != null && text_area != null) {
             if (what == EditPaneUpdate.BUFFER_CHANGED || what == EditPaneUpdate.CREATED) {
@@ -402,7 +434,7 @@ class Main_Plugin extends EBPlugin {
             }
 
             if (what == EditPaneUpdate.BUFFER_CHANGING || what == EditPaneUpdate.DESTROYED) {
-              Isabelle.dismissed_popups(text_area.getView)
+              Isabelle.dismissed_popups(view)
               exit_view(buffer, text_area)
             }
 
@@ -413,7 +445,7 @@ class Main_Plugin extends EBPlugin {
 
           if (msg.isInstanceOf[PositionChanging]) {
             JEdit_Mouse_Handler.jump(edit_pane)
-            navigator.record(Isabelle_Navigator.Pos(edit_pane))
+            navigator(view).record(Isabelle_Navigator.Pos(edit_pane))
           }
 
         case _: PropertiesChanged =>
@@ -482,8 +514,11 @@ class Main_Plugin extends EBPlugin {
 
       init_menus()
 
-      JEdit_Lib.jedit_views().foreach(init_title)
-      navigator.init(JEdit_Lib.jedit_buffers())
+      for (view <- JEdit_Lib.jedit_views()) {
+        init_title(view)
+        init_navigator(view)
+      }
+      navigators_add_listener(JEdit_Lib.jedit_buffers().toList)
 
       Syntax_Style.set_extender(Syntax_Style.Main_Extender)
       init_mode_provider()

@@ -84,8 +84,8 @@ object Isabelle {
 
   /* navigation */
 
-  def navigate_backwards(view: View): Unit = PIDE.plugin.navigator.backward(view)
-  def navigate_forwards(view: View): Unit = PIDE.plugin.navigator.forward(view)
+  def navigate_backwards(view: View): Unit = PIDE.plugin.navigator(view).backward()
+  def navigate_forwards(view: View): Unit = PIDE.plugin.navigator(view).forward()
 
 
   /* text structure */

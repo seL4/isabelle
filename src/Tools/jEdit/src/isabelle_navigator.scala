@@ -14,6 +14,11 @@ import isabelle._
 
 
 object Isabelle_Navigator {
+  val none: Isabelle_Navigator = new Isabelle_Navigator
+
+
+  /* source position */
+
   object Pos {
     val none: Pos = new Pos(Document_ID.none, "", 0)
     def make(name: String, offset: Int): Pos = new Pos(Document_ID.make(), name, offset)
@@ -60,6 +65,9 @@ object Isabelle_Navigator {
       else this
     }
   }
+
+
+  /* history */
 
   object History {
     val limit: Int = 500
@@ -120,14 +128,31 @@ object Isabelle_Navigator {
 }
 
 class Isabelle_Navigator {
+  override def toString: String = "Isabelle_Navigator.none"
+  def current: Isabelle_Navigator.Pos = Isabelle_Navigator.Pos.none
+  def recurrent: Isabelle_Navigator.Pos = Isabelle_Navigator.Pos.none
+  def del_listener(buffers: List[Buffer]): Unit = ()
+  def add_listener(buffers: List[Buffer]): Unit = ()
+  def record(pos: Isabelle_Navigator.Pos): Unit = ()
+  def goto_buffer(buffer: Buffer, target: Isabelle_Navigator.Target, focus: Boolean = false): Unit = ()
+  def open_file(name: String, target: Isabelle_Navigator.Target): Unit = ()
+  def goto_current(): Unit = ()
+  def backward(): Unit = ()
+  def forward(): Unit = ()
+}
+
+class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
+  require(view != null)
+
+
   // owned by GUI thread
   private var _bypass = false
   private var _backward = Isabelle_Navigator.History.empty
   private var _forward = Isabelle_Navigator.History.empty
   private var _goto_target = Map.empty[String, Isabelle_Navigator.Target]
 
-  def current: Isabelle_Navigator.Pos = _backward.top
-  def recurrent: Isabelle_Navigator.Pos = _forward.top
+  override def current: Isabelle_Navigator.Pos = _backward.top
+  override def recurrent: Isabelle_Navigator.Pos = _forward.top
 
   override def toString: String = {
     val size = _backward.size + _forward.size
@@ -161,24 +186,23 @@ class Isabelle_Navigator {
       (buffer, edit) => if (!buffer.isLoading) convert(JEdit_Lib.buffer_name(buffer), edit),
       loaded = init_caret)
 
-  def exit(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
+  override def del_listener(buffers: List[Buffer]): Unit = GUI_Thread.later {
     buffers.iterator.foreach(_.removeBufferListener(buffer_listener))
   }
 
-  def init(buffers: IterableOnce[Buffer]): Unit = GUI_Thread.later {
-    exit(buffers)
+  override def add_listener(buffers: List[Buffer]): Unit = GUI_Thread.later {
+    del_listener(buffers)
     buffers.iterator.foreach(_.addBufferListener(buffer_listener))
   }
 
-  def record(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
+  override def record(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
     if (!_bypass && pos.defined && !pos.equiv(current)) {
       _backward = _backward.push(pos)
       _forward = Isabelle_Navigator.History.empty
     }
   }
 
-  def goto_buffer(
-    view: View,
+  override def goto_buffer(
     buffer: Buffer,
     target: Isabelle_Navigator.Target,
     focus: Boolean = false
@@ -189,13 +213,13 @@ class Isabelle_Navigator {
     }
   }
 
-  def open_file(view: View, name: String, target: Isabelle_Navigator.Target): Unit = {
+  override def open_file(name: String, target: Isabelle_Navigator.Target): Unit = {
     require(JEdit_Lib.jedit_buffer(name).isEmpty, "File already open: " + quote(name))
     goto_target(name, target)
     jEdit.openFile(view, name)
   }
 
-  def goto_current(view: View): Unit = GUI_Thread.require {
+  override def goto_current(): Unit = GUI_Thread.require {
     if (current.defined) {
       val b = _bypass
       try {
@@ -206,19 +230,19 @@ class Isabelle_Navigator {
     }
   }
 
-  def backward(view: View): Unit = GUI_Thread.require {
+  override def backward(): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
       _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view))
       _backward = _backward.pop
-      goto_current(view)
+      goto_current()
     }
   }
 
-  def forward(view: View): Unit = GUI_Thread.require {
+  override def forward(): Unit = GUI_Thread.require {
     if (!_forward.is_empty) {
       _backward = _backward.push(recurrent)
       _forward = _forward.pop
-      goto_current(view)
+      goto_current()
     }
   }
 }

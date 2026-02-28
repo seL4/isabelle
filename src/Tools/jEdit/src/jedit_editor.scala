@@ -122,16 +122,16 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
-    val navigator = PIDE.plugin.navigator
+    val navigator = PIDE.plugin.navigator(view)
     val target = Isabelle_Navigator.Target(line = line, offset = offset)
 
     navigator.record(Isabelle_Navigator.Pos(view))
 
     JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) => navigator.goto_buffer(view, buffer, target, focus = focus)
+      case Some(buffer) => navigator.goto_buffer(buffer, target, focus = focus)
       case None if JEdit_Lib.is_virtual_dir(view, name) => VFSBrowser.browseDirectory(view, name)
       case None =>
-        if (!Isabelle_System.open_external_file(name)) navigator.open_file(view, name, target)
+        if (!Isabelle_System.open_external_file(name)) navigator.open_file(name, target)
     }
   }
 
