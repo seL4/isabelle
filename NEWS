@@ -108,8 +108,15 @@ a popup with the list of hyperlinks under the current caret, using the
 same notion of link as C-hover-click via mouse, but showing all
 possibilities.
 
+* The keyboard shortcut "F1" now refers to jEdit action
+"isabelle-documentation" to activate the Documentation panel of
+Isabelle/jEdit. That is more useful than the original jEdit help, which
+is also available as PDF from the Documentation panel.
+
 * The jEdit action "focus-textarea" is now mapped to the keyboard
-shortcut S+F1, for improved accessibility.
+shortcut "S+F1", for improved accessibility. Together with "F1" for
+"isabelle-documentation", this allows to explore Isabelle examples
+quickly via keyboard only.
 
 * Popups from explicit actions (notably "isabelle.show-links",
 "isabelle.complete", etc.) now always get focus, and allow to select
