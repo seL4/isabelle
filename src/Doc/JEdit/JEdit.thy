@@ -1282,15 +1282,28 @@ text \<open>
   pressed). Such jumps to other text locations are recorded by the builtin
   navigator, which provides actions to move backwards or forwards, with arrow
   icons in the \<^emph>\<open>Incremental Search Bar\<close> (action @{action_ref
-  "quick-search"}). The following keyboard shortcuts are available:
+  "quick-search"}).
+
+  As an alternative to mouse clicks, the subsequent keyboard actions
+  help to manage hyperlinks:
 
   \<^medskip>
-  \begin{tabular}[t]{l}
-  @{action_ref "navigate-backwards"} (\<^verbatim>\<open>AS+LEFT\<close>) \\
-  @{action_ref "navigate-forwards"} (\<^verbatim>\<open>AS+RIGHT\<close>) \\
-  \end{tabular}\quad
+  \begin{tabular}[t]{ll}
+  @{action_def "isabelle.follow-link"} (\<^verbatim>\<open>AS+DOWN\<close>) \\
+  @{action_def "isabelle.show-links"} (\<^verbatim>\<open>AS+UP\<close>) \\
+  @{action_def "navigate-backwards"} (\<^verbatim>\<open>AS+LEFT\<close>) \\
+  @{action_def "navigate-forwards"} (\<^verbatim>\<open>AS+RIGHT\<close>) \\
+  \end{tabular}
   \<^medskip>
 
+  The action @{action "isabelle.follow-link"} follows the last (most specific)
+  link, as done via mouse hovering. The action @{action "isabelle.show-links"}
+  opens a popup with all possibilities; this allows to select one link via
+  mouse or keyboard (see also \secref{sec:completion}). The actions @{action
+  "navigate-backwards"} and @{action "navigate-forwards"} correspond to the
+  navigator arrows below the menu bar.
+
+  \<^medskip>
   Note that the link target may be a file that is itself not subject to formal
   document processing of the editor session and thus prevents further
   exploration: the chain of hyperlinks may end in Isabelle/ML source files
@@ -1332,7 +1345,7 @@ text \<open>
   highlighted in the text according to the cursor position, see also
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
-  modifier, or the action @{action_def "isabelle.follow-link"} (shortcut
+  modifier, or the action @{action_ref "isabelle.follow-link"} (shortcut
   \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position. Alternatively, the action
   @{action_def "isabelle.show-links"} (shortcut \<^verbatim>\<open>AS+UP\<close>) opens a popup with
   the list of currently active hyperlinks, with the possibility to select one
