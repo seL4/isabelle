@@ -7,7 +7,7 @@ Navigate history of notable source positions.
 package isabelle.jedit
 
 
-import org.gjt.sp.jedit.{View, Buffer, EditPane}
+import org.gjt.sp.jedit.{jEdit, View, Buffer, EditPane}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
 import isabelle._
@@ -139,7 +139,7 @@ class Isabelle_Navigator {
     _forward = _forward.convert(name, edit)
   }
 
-  def goto_target(name: String, target: Isabelle_Navigator.Target): Unit =
+  private def goto_target(name: String, target: Isabelle_Navigator.Target): Unit =
     GUI_Thread.require { _goto_target = _goto_target + (name -> target) }
 
   private def init_caret(buffer: Buffer): Unit = GUI_Thread.require {
@@ -175,6 +175,24 @@ class Isabelle_Navigator {
       _backward = _backward.push(pos)
       _forward = Isabelle_Navigator.History.empty
     }
+  }
+
+  def goto_buffer(
+    view: View,
+    buffer: Buffer,
+    target: Isabelle_Navigator.Target,
+    focus: Boolean = false
+  ): Unit = GUI_Thread.require {
+    if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
+    for (caret <- target.caret_offset(buffer)) {
+      view.getTextArea.setCaretPosition(caret)
+    }
+  }
+
+  def open_file(view: View, name: String, target: Isabelle_Navigator.Target): Unit = {
+    require(JEdit_Lib.jedit_buffer(name).isEmpty, "File already open: " + quote(name))
+    goto_target(name, target)
+    jEdit.openFile(view, name)
   }
 
   def goto_current(view: View): Unit = GUI_Thread.require {

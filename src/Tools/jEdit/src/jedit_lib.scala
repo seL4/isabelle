@@ -21,7 +21,7 @@ import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
-import org.gjt.sp.jedit.io.{FileVFS, VFSManager}
+import org.gjt.sp.jedit.io.{VFSFile, FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
 import org.gjt.sp.jedit.buffer.{BufferListener, BufferAdapter, JEditBuffer, LineManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection, AntiAlias}
@@ -71,6 +71,17 @@ object JEdit_Lib {
 
   def check_file(name: String): Option[JFile] =
     if (is_file(name)) Some(new JFile(name)) else None
+
+
+  /* directories */
+
+  def is_dir(view: View, name: String): Boolean =
+    try {
+      val vfs = VFSManager.getVFSForPath(name)
+      val vfs_file = vfs._getFile((), name, view)
+      vfs_file != null && vfs_file.getType == VFSFile.DIRECTORY
+    }
+    catch { case ERROR(_) => false }
 
 
   /* buffers */

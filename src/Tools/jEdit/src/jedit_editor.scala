@@ -10,10 +10,9 @@ package isabelle.jedit
 import isabelle._
 
 
-import org.gjt.sp.jedit.{jEdit, View, Buffer}
+import org.gjt.sp.jedit.{View, Buffer}
 import org.gjt.sp.jedit.browser.VFSBrowser
 import org.gjt.sp.jedit.textarea.TextArea
-import org.gjt.sp.jedit.io.{VFSManager, VFSFile}
 import org.gjt.sp.util.AwtRunnableQueue
 
 
@@ -123,31 +122,16 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
+    val navigator = PIDE.plugin.navigator
     val target = Isabelle_Navigator.Target(line = line, offset = offset)
 
-    PIDE.plugin.navigator.record(Isabelle_Navigator.Pos(view))
+    navigator.record(Isabelle_Navigator.Pos(view))
 
     JEdit_Lib.jedit_buffer(name) match {
-      case Some(buffer) =>
-        if (focus) view.goToBuffer(buffer) else view.showBuffer(buffer)
-        for (caret <- target.caret_offset(buffer)) {
-          view.getTextArea.setCaretPosition(caret)
-        }
-
+      case Some(buffer) => navigator.goto_buffer(view, buffer, target, focus = focus)
+      case None if JEdit_Lib.is_dir(view, name) => VFSBrowser.browseDirectory(view, name)
       case None =>
-        val is_dir =
-          try {
-            val vfs = VFSManager.getVFSForPath(name)
-            val vfs_file = vfs._getFile((), name, view)
-            vfs_file != null && vfs_file.getType == VFSFile.DIRECTORY
-          }
-          catch { case ERROR(_) => false }
-
-        if (is_dir) VFSBrowser.browseDirectory(view, name)
-        else if (!Isabelle_System.open_external_file(name)) {
-          PIDE.plugin.navigator.goto_target(name, target)
-          jEdit.openFile(view, name)
-        }
+        if (!Isabelle_System.open_external_file(name)) navigator.open_file(view, name, target)
     }
   }
 
