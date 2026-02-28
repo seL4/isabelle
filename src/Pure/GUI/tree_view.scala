@@ -110,8 +110,6 @@ class Tree_View(
 
   /* init */
 
-  if (!isEditable) GUI.suppress_input(this, k => k.getKeyCode == KeyEvent.VK_F2)
-
   setCellRenderer(new Tree_View.Cell_Renderer)
 
   setRowHeight(0)
