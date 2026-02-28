@@ -30,7 +30,7 @@ extends Resources(session_background) {
   /* document node name */
 
   def node_name(path: String): Document.Node.Name =
-    JEdit_Lib.check_file(path).flatMap(find_theory) getOrElse {
+    JEdit_Lib.get_local_file(path).flatMap(find_theory) getOrElse {
       val vfs = VFSManager.getVFSForPath(path)
       val node = if (vfs.isInstanceOf[FileVFS]) MiscUtilities.resolveSymlinks(path) else path
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))

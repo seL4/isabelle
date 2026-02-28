@@ -385,7 +385,7 @@ object File_Model {
   ): File_Model = {
     val node_name = content.node_name
 
-    val file = JEdit_Lib.check_file(node_name.node)
+    val file = JEdit_Lib.get_local_file(node_name.node)
     file.foreach(PIDE.plugin.file_watcher.register_parent(_))
 
     val node_required1 = node_required || File_Format.registry.is_theory(node_name)

@@ -64,18 +64,15 @@ object JEdit_Lib {
   }
 
 
-  /* plain files */
+  /* virtual file-systems */
 
-  def is_file(name: String): Boolean =
-    name != null && name.nonEmpty && VFSManager.getVFSForPath(name).isInstanceOf[FileVFS]
+  def get_local_file(name: String): Option[JFile] =
+    if (name != null && name.nonEmpty && VFSManager.getVFSForPath(name).isInstanceOf[FileVFS]) {
+      Some(new JFile(name))
+    }
+    else None
 
-  def check_file(name: String): Option[JFile] =
-    if (is_file(name)) Some(new JFile(name)) else None
-
-
-  /* directories */
-
-  def is_dir(view: View, name: String): Boolean =
+  def is_virtual_dir(view: View, name: String): Boolean =
     try {
       val vfs = VFSManager.getVFSForPath(name)
       val vfs_file = vfs._getFile((), name, view)
@@ -106,7 +103,7 @@ object JEdit_Lib {
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def buffer_file(buffer: Buffer): Option[JFile] = check_file(buffer_name(buffer))
+  def buffer_file(buffer: Buffer): Option[JFile] = get_local_file(buffer_name(buffer))
 
 
   /* main jEdit components */

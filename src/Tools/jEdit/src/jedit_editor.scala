@@ -129,7 +129,7 @@ class JEdit_Editor extends Editor {
 
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) => navigator.goto_buffer(view, buffer, target, focus = focus)
-      case None if JEdit_Lib.is_dir(view, name) => VFSBrowser.browseDirectory(view, name)
+      case None if JEdit_Lib.is_virtual_dir(view, name) => VFSBrowser.browseDirectory(view, name)
       case None =>
         if (!Isabelle_System.open_external_file(name)) navigator.open_file(view, name, target)
     }
