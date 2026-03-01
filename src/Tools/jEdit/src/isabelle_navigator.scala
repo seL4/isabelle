@@ -149,13 +149,12 @@ object Isabelle_Navigator {
 
     def equiv(that: Pos): Boolean = name == that.name && offset == that.offset
 
-    def convert(edit_name: String, edit: Text.Edit): Pos = {
-      if (name == edit_name) {
-        val offset1 = edit.convert(offset)
+    def adjust(a: String, f: Int => Int): Pos =
+      if (name == a) {
+        val offset1 = f(offset)
         if (offset == offset1) this else Pos.make(name, offset1)
       }
       else this
-    }
   }
 
 
@@ -188,13 +187,13 @@ object Isabelle_Navigator {
         new History(hist1.insert_after(None, pos))
       }
 
-    def convert(name: String, edit: Text.Edit): History =
+    def adjust(name: String, f: Int => Int): History =
       new History(
         hist.foldLeft(hist) {
           case (h, pos) =>
             val prev = h.prev(pos)
             val pos0 = prev.getOrElse(Pos.none)
-            val pos1 = pos.convert(name, edit)
+            val pos1 = pos.adjust(name, f)
             if (pos1.equiv(pos0)) h.delete_after(prev)
             else if (pos1.equiv(pos)) h
             else h.delete_after(prev).insert_after(prev, pos1)
@@ -250,9 +249,9 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     "Isabelle_Navigator(" + if_proper(size > 0, size.toString) + ")"
   }
 
-  private def convert(name: String, edit: Text.Edit): Unit = GUI_Thread.require {
-    _backward = _backward.convert(name, edit)
-    _forward = _forward.convert(name, edit)
+  def adjust(name: String, f: Int => Int): Unit = GUI_Thread.require {
+    _backward = _backward.adjust(name, f)
+    _forward = _forward.adjust(name, f)
   }
 
   private def goto_target(name: String, target: Isabelle_Navigator.Target): Unit =
@@ -276,7 +275,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     JEdit_Lib.buffer_listener(
       (buffer, edit) =>
         if (!buffer.isLoading && Isabelle_Navigator.is_active()) {
-          convert(JEdit_Lib.buffer_name(buffer), edit)
+          adjust(JEdit_Lib.buffer_name(buffer), edit.convert)
         },
       loaded = init_caret)
 
