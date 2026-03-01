@@ -81,12 +81,15 @@ will display the menu title on the Braille display properly ---
 otherwise no action was indicated. Minor INCOMPATIBILITY with native
 Windows GUI behavior of F10, which FlatLaf attempted to imitate here.
 
-* The jEdit actions "isabelle.reload-plain" and
-"isabelle.reload-symbols" provide convenient shortcuts to reload a
-buffer with the encodings "UTF-8" and "UTF-8-Isabelle", respectively.
-These actions also appear as menu items "File / Reload Plain Text" and
-"File / Reload Unicode Symbols". This helps to see the true text behind
-the superficial Unicode rendering, which is usually enabled by default.
+* The jEdit actions "isabelle.recode-plain" and
+"isabelle.recode-symbols" change the representation of Isabelle symbols
+within the text buffer. This corresponds to reload a buffer with the
+encodings "UTF-8" and "UTF-8-Isabelle", respectively, but it is more
+careful about caret position, selection ranges, and navigator history
+positions. These actions also appear as menu items "File / Recode Plain
+Text" and "File / Recode Unicode Symbols". This helps to see the true
+text behind the superficial Unicode rendering, which is usually enabled
+by default.
 
 * The built-in navigator has become more robust, thanks to careful
 interaction with GUI vs. IO events in jEdit.
