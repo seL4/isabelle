@@ -207,6 +207,8 @@ object Symbol {
         case other: Index => index.sameElements(other.index)
         case _ => false
       }
+
+    override def toString: String = index.mkString("Symbol.Index(", ", ", ")")
   }
 
 
