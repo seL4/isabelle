@@ -54,7 +54,7 @@ object Isabelle_Navigator {
   /* recode symbols */
 
   def recode_buffer(buffer: Buffer, unicode_symbols: Boolean): Unit = GUI_Thread.require {
-    if (!buffer.isLoading) {
+    if (!buffer.isPerformingIO) {
       buffer.writeLock()
       try {
         val text0 = buffer.getText(0, buffer.getLength)
