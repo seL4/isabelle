@@ -156,7 +156,7 @@ object Symbol {
     cat_lines(split_lines(text).dropWhile(all_blank).reverse.dropWhile(all_blank).reverse)
 
 
-  /* decoding offsets */
+  /* recoding offsets */
 
   object Index {
     private sealed case class Entry(chr: Int, sym: Int)
@@ -200,6 +200,24 @@ object Symbol {
       else index(i).chr + sym - index(i).sym
     }
     def decode(symbol_range: Range): Text.Range = symbol_range.map(decode)
+
+    def encode(offset: Text.Offset): Symbol.Offset = {
+      val chr = offset
+      val end = index.length
+      @tailrec def bisect(a: Int, b: Int): Int = {
+        if (a < b) {
+          val c = (a + b) / 2
+          if (chr < index(c).chr) bisect(a, c)
+          else if (c + 1 == end || chr < index(c + 1).chr) c
+          else bisect(c + 1, b)
+        }
+        else -1
+      }
+      val i = bisect(0, end)
+      if (i < 0) chr + 1
+      else index(i).sym + chr + 1 - index(i).chr
+    }
+    def encode(range: Text.Range): Range = range.map(encode)
 
     override def hashCode: Int = hash
     override def equals(that: Any): Boolean =
