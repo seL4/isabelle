@@ -7,10 +7,11 @@ Navigate history of notable source positions.
 package isabelle.jedit
 
 
+import isabelle._
+
 import org.gjt.sp.jedit.{jEdit, View, Buffer, EditPane}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-
-import isabelle._
+import org.gjt.sp.jedit.textarea.Selection
 
 
 object Isabelle_Navigator {
@@ -47,6 +48,64 @@ object Isabelle_Navigator {
 
   def del_listener(buffers: List[Buffer]): Unit = GUI_Thread.require {
     _navigators.valuesIterator.foreach(_.del_listener(buffers))
+  }
+
+
+  /* recode symbols */
+
+  def recode_buffer(buffer: Buffer, unicode_symbols: Boolean): Unit = GUI_Thread.require {
+    buffer.writeLock()
+    try {
+      if (!buffer.isLoading) {
+        val text0 = buffer.getText(0, buffer.getLength)
+        val text1 = Symbol.output(unicode_symbols, text0)
+
+        val encoding0 = buffer.getStringProperty(JEditBuffer.ENCODING)
+        val encoding1 = if (unicode_symbols) Isabelle_Encoding.NAME else UTF8.charset.name
+
+        if (text0 != text1 || encoding0 != encoding1) {
+          passive {
+            if (text0 != text1) {
+              val text_areas = JEdit_Lib.jedit_text_areas(buffer).toList
+              val carets = text_areas.map(_.getCaretPosition)
+              val selections = text_areas.map(JEdit_Lib.selection_ranges) // approximative for Rect
+
+              for (text_area <- text_areas) {
+                text_area.setCaretPosition(0)
+                text_area.selectNone()
+              }
+
+              val dirty = buffer.isDirty
+              JEdit_Lib.set_text(buffer, List(text1))
+              buffer.setDirty(dirty)
+
+              val index0 = Symbol.Index(text0)
+              val index1 = Symbol.Index(text1)
+              def recode_offset(offset: Int): Int = index1.decode(index0.encode(offset))
+              def recode_range(range: Text.Range): Text.Range = index1.decode(index0.encode(range))
+
+              for ((text_area, caret) <- text_areas zip carets) {
+                text_area.setCaretPosition(recode_offset(caret))
+              }
+              for ((text_area, selection) <- text_areas zip selections) {
+                text_area.setSelection(
+                  selection.iterator.map(recode_range).map(range =>
+                    new Selection.Range(range.start, range.stop)).toArray[Selection])
+              }
+
+              // FIXME convert history
+            }
+
+            if (encoding0 != encoding1) {
+              buffer.setStringProperty(JEditBuffer.ENCODING, encoding1)
+            }
+
+            buffer.propertiesChanged()
+          }
+        }
+      }
+    }
+    finally { buffer.writeUnlock() }
   }
 
 
@@ -215,7 +274,10 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
   private val buffer_listener =
     JEdit_Lib.buffer_listener(
-      (buffer, edit) => if (!buffer.isLoading) convert(JEdit_Lib.buffer_name(buffer), edit),
+      (buffer, edit) =>
+        if (!buffer.isLoading && Isabelle_Navigator.is_active()) {
+          convert(JEdit_Lib.buffer_name(buffer), edit)
+        },
       loaded = init_caret)
 
   override def del_listener(buffers: List[Buffer]): Unit = GUI_Thread.later {

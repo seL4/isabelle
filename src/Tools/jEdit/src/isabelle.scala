@@ -605,13 +605,10 @@ object Isabelle {
   }
 
 
-  /* reload with encoding */
+  /* recode symbols */
 
-  def reload_plain(view: View): Unit =
-    view.getBuffer.reloadWithEncoding(view, UTF8.charset.name)
-
-  def reload_symbols(view: View): Unit =
-    view.getBuffer.reloadWithEncoding(view, Isabelle_Encoding.NAME)
+  def recode_plain(view: View): Unit = Isabelle_Navigator.recode_buffer(view.getBuffer, false)
+  def recode_symbols(view: View): Unit = Isabelle_Navigator.recode_buffer(view.getBuffer, true)
 
 
   /* java monitor */
