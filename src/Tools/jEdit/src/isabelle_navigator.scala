@@ -16,7 +16,16 @@ import isabelle._
 object Isabelle_Navigator {
   /* global state -- owned by GUI thread */
 
+  private var _passive = false
   private var _navigators = Map.empty[View, Isabelle_Navigator_View]
+
+  def is_active(): Boolean = GUI_Thread.require { !_passive }
+
+  def passive[A](body: => A): A = GUI_Thread.require {
+    val b = _passive
+    _passive = true
+    try (body) finally { _passive = b }
+  }
 
   val none: Isabelle_Navigator = new Isabelle_Navigator
 
@@ -170,7 +179,6 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
 
   // owned by GUI thread
-  private var _bypass = false
   private var _backward = Isabelle_Navigator.History.empty
   private var _forward = Isabelle_Navigator.History.empty
   private var _goto_target = Map.empty[String, Isabelle_Navigator.Target]
@@ -220,7 +228,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   }
 
   override def record(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
-    if (!_bypass && pos.defined && !pos.equiv(current)) {
+    if (Isabelle_Navigator.is_active() && pos.defined && !pos.equiv(current)) {
       _backward = _backward.push(pos)
       _forward = Isabelle_Navigator.History.empty
     }
@@ -245,12 +253,9 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
   override def goto_current(): Unit = GUI_Thread.require {
     if (current.defined) {
-      val b = _bypass
-      try {
-        _bypass = true
+      Isabelle_Navigator.passive {
         PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true)
       }
-      finally { _bypass = b }
     }
   }
 
