@@ -14,7 +14,31 @@ import isabelle._
 
 
 object Isabelle_Navigator {
+  /* global state -- owned by GUI thread */
+
+  private var _navigators = Map.empty[View, Isabelle_Navigator_View]
+
   val none: Isabelle_Navigator = new Isabelle_Navigator
+
+  def get(view: View): Isabelle_Navigator = GUI_Thread.require {
+    _navigators.getOrElse(view, none)
+  }
+
+  def init(view: View): Unit = GUI_Thread.require {
+    if (view != null) _navigators = _navigators + (view -> new Isabelle_Navigator_View(view))
+  }
+
+  def exit(view: View): Unit = GUI_Thread.require {
+    if (view != null) _navigators = _navigators - view
+  }
+
+  def add_listener(buffers: List[Buffer]): Unit = GUI_Thread.require {
+    _navigators.valuesIterator.foreach(_.add_listener(buffers))
+  }
+
+  def del_listener(buffers: List[Buffer]): Unit = GUI_Thread.require {
+    _navigators.valuesIterator.foreach(_.del_listener(buffers))
+  }
 
 
   /* source position */

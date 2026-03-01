@@ -122,7 +122,7 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
-    val navigator = PIDE.plugin.navigator(view)
+    val navigator = Isabelle_Navigator.get(view)
     val target = Isabelle_Navigator.Target(line = line, offset = offset)
 
     navigator.record(Isabelle_Navigator.Pos(view))

@@ -230,7 +230,7 @@ class Rich_Text_Area(
               if (!link.external) {
                 try {
                   text_area.moveCaretPosition(range.start)
-                  PIDE.plugin.navigator(view).record(Isabelle_Navigator.Pos(buffer, range.start))
+                  Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(buffer, range.start))
                 }
                 catch {
                   case _: ArrayIndexOutOfBoundsException =>
