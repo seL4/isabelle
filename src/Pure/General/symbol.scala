@@ -161,7 +161,7 @@ object Symbol {
   object Index {
     private sealed case class Entry(chr: Int, sym: Int)
 
-    val empty: Index = new Index(Nil)
+    val empty: Index = new Index(0, Array())
 
     def apply(text: CharSequence): Index = {
       val matcher = new Matcher(text)
@@ -174,14 +174,15 @@ object Symbol {
         sym += 1
         if (n > 1) buf += Entry(chr, sym)
       }
-      if (buf.isEmpty) empty else new Index(buf.toList)
+      if (buf.isEmpty) empty
+      else {
+        val entries = buf.toList
+        new Index(entries.hashCode, entries.toArray)
+      }
     }
   }
 
-  final class Index private(entries: List[Index.Entry]) {
-    private val hash: Int = entries.hashCode
-    private val index: Array[Index.Entry] = entries.toArray
-
+  final class Index private(hash: Int, private val index: Array[Index.Entry]) {
     def decode(symbol_offset: Offset): Text.Offset = {
       val sym = symbol_offset - 1
       val end = index.length
