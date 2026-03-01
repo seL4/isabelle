@@ -23,7 +23,7 @@ import scala.annotation.tailrec
 import org.gjt.sp.jedit.{jEdit, Buffer, View, GUIUtilities, Debug, EditPane}
 import org.gjt.sp.jedit.io.{VFSFile, FileVFS, VFSManager}
 import org.gjt.sp.jedit.gui.{KeyEventWorkaround, KeyEventTranslator}
-import org.gjt.sp.jedit.buffer.{BufferListener, BufferAdapter, JEditBuffer, LineManager}
+import org.gjt.sp.jedit.buffer.{BufferListener, BufferAdapter, JEditBuffer, LineManager, UndoManager}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter, Selection, AntiAlias}
 
 import com.formdev.flatlaf.extras.FlatSVGIcon
@@ -202,6 +202,9 @@ object JEdit_Lib {
       set(old)
     }
   }
+
+  def undo_manager(buffer: JEditBuffer): UndoManager =
+    Untyped.class_field(classOf[JEditBuffer], "undoMgr").get(buffer).asInstanceOf[UndoManager]
 
 
   /* point range */

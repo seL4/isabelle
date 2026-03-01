@@ -75,6 +75,8 @@ object Isabelle_Navigator {
                 text_area.selectNone()
               }
 
+              JEdit_Lib.undo_manager(buffer).clear()
+
               val dirty = buffer.isDirty
               JEdit_Lib.set_text(buffer, List(text1))
               buffer.setDirty(dirty)
