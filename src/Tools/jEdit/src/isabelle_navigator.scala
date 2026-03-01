@@ -93,7 +93,9 @@ object Isabelle_Navigator {
                     new Selection.Range(range.start, range.stop)).toArray[Selection])
               }
 
-              // FIXME convert history
+              for (navigator <- _navigators.valuesIterator) {
+                navigator.adjust(JEdit_Lib.buffer_name(buffer), recode_offset)
+              }
             }
 
             if (encoding0 != encoding1) {
