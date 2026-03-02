@@ -229,7 +229,7 @@ class Isabelle_Navigator {
   def record(pos: Isabelle_Navigator.Pos): Unit = ()
   def goto_buffer(buffer: Buffer, target: Isabelle_Navigator.Target, focus: Boolean = false): Unit = ()
   def open_file(name: String, target: Isabelle_Navigator.Target): Unit = ()
-  def goto_current(): Unit = ()
+  def goto(pos: Isabelle_Navigator.Pos): Unit = ()
   def backward(): Unit = ()
   def forward(): Unit = ()
 }
@@ -314,10 +314,10 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     jEdit.openFile(view, name)
   }
 
-  override def goto_current(): Unit = GUI_Thread.require {
-    if (current.defined) {
+  override def goto(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
+    if (pos.defined) {
       Isabelle_Navigator.passive {
-        PIDE.editor.goto_file(view, current.name, offset = current.offset, focus = true)
+        PIDE.editor.goto_file(view, pos.name, offset = pos.offset, focus = true)
       }
     }
   }
@@ -326,7 +326,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     if (!_backward.is_empty) {
       _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view.getEditPane))
       _backward = _backward.pop
-      goto_current()
+      goto(current)
     }
   }
 
@@ -334,7 +334,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     if (!_forward.is_empty) {
       _backward = _backward.push(recurrent)
       _forward = _forward.pop
-      goto_current()
+      goto(current)
     }
   }
 }
