@@ -278,7 +278,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   private val buffer_listener =
     JEdit_Lib.buffer_listener(
       (buffer, edit) =>
-        if (!buffer.isLoading && Isabelle_Navigator.is_active()) {
+        if (buffer.isLoaded && Isabelle_Navigator.is_active()) {
           adjust(JEdit_Lib.buffer_name(buffer), edit.convert)
         },
       loaded = init_caret)
