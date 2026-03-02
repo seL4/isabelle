@@ -21,7 +21,7 @@ import scala.util.matching.Regex
 import scala.collection.mutable
 
 import org.gjt.sp.util.Log
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{View, EditPane}
 import org.gjt.sp.jedit.syntax.{Chunk => JEditChunk, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, Selection}
 
@@ -36,6 +36,7 @@ class Rich_Text_Area(
   caret_visible: Boolean,
   enable_hovering: Boolean
 ) {
+  private val edit_pane = EditPane.get(text_area)
   private val buffer = text_area.getBuffer
 
 
@@ -230,7 +231,7 @@ class Rich_Text_Area(
               if (!link.external) {
                 try {
                   text_area.moveCaretPosition(range.start)
-                  Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(buffer, range.start))
+                  Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
                 }
                 catch {
                   case _: ArrayIndexOutOfBoundsException =>
