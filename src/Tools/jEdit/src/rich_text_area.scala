@@ -227,19 +227,12 @@ class Rich_Text_Area(
       robust_body(()) {
         if (!e.isConsumed() && e.getClickCount == 1) {
           hyperlink_area.info match {
-            case Some(Text.Info(range, link)) =>
-              if (!link.external) {
-                try {
-                  text_area.moveCaretPosition(range.start)
-                  Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
-                }
-                catch {
-                  case _: ArrayIndexOutOfBoundsException =>
-                  case _: IllegalArgumentException =>
-                }
-                text_area.requestFocus()
-              }
+            case Some(Text.Info(_, link)) if link.external =>
               link.follow(view)
+              e.consume()
+            case Some(info) =>
+              text_area.requestFocus()
+              new Selection_Popup.Hyperlink(edit_pane, info).select()
               e.consume()
             case None =>
           }

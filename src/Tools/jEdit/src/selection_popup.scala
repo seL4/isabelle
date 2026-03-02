@@ -28,7 +28,19 @@ object Selection_Popup {
   class Hyperlink(edit_pane: EditPane, info: Text.Info[PIDE.editor.Hyperlink])
   extends Item {
     def link: PIDE.editor.Hyperlink = info.info
-    override def select(): Unit = link.follow(edit_pane.getView)
+    override def select(): Unit = {
+      val view = edit_pane.getView
+      val text_area = edit_pane.getTextArea
+      try {
+        text_area.moveCaretPosition(info.range.start)
+        Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
+      }
+      catch {
+        case _: ArrayIndexOutOfBoundsException =>
+        case _: IllegalArgumentException =>
+      }
+      link.follow(view)
+    }
     override def toString: String = link.toString
   }
 
