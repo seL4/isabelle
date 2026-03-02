@@ -324,8 +324,14 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
   override def backward(): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
-      _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view.getEditPane))
-      _backward = _backward.pop
+      val here = Isabelle_Navigator.Pos(view.getEditPane)
+      if (here.equiv(current)) {
+        _forward = _forward.push(current)
+        _backward = _backward.pop
+      }
+      else {
+        _forward = _forward.push(here)
+      }
       goto(current)
     }
   }
