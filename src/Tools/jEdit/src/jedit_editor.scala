@@ -125,8 +125,6 @@ class JEdit_Editor extends Editor {
     val navigator = Isabelle_Navigator.get(view)
     val target = Isabelle_Navigator.Target(line = line, offset = offset)
 
-    navigator.record(Isabelle_Navigator.Pos(view))
-
     JEdit_Lib.jedit_buffer(name) match {
       case Some(buffer) => navigator.goto_buffer(buffer, target, focus = focus)
       case None if JEdit_Lib.is_virtual_dir(view, name) => VFSBrowser.browseDirectory(view, name)

@@ -579,11 +579,14 @@ object Isabelle {
   ): Unit = {
     GUI_Thread.require {}
 
+    val edit_pane = view.getEditPane
     val text_area = view.getTextArea
+
     for (rendering <- Document_View.get_rendering(text_area)) {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
+          Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
           PIDE.editor.goto_file(
             view, JEdit_Lib.buffer_name(view.getBuffer), offset = err.range.start)
         case None =>
