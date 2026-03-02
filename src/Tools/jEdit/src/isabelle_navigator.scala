@@ -121,19 +121,15 @@ object Isabelle_Navigator {
     val none: Pos = new Pos(Document_ID.none, "", 0)
     def make(name: String, offset: Int): Pos = new Pos(Document_ID.make(), name, offset)
 
-    def apply(jedit_buffer: JEditBuffer, offset: Int): Pos =
-      jedit_buffer match {
-        case buffer: Buffer if buffer.isLoaded && !buffer.isUntitled =>
-          make(JEdit_Lib.buffer_name(buffer), offset)
-        case _ => none
-      }
-
     def apply(edit_pane: EditPane): Pos =
       if (edit_pane == null) none
-      else apply(edit_pane.getBuffer, edit_pane.getTextArea.getCaretPosition)
-
-    def apply(view: View): Pos =
-      if (view == null) none else apply(view.getEditPane)
+      else {
+        edit_pane.getBuffer match {
+          case buffer: Buffer if buffer.isLoaded && !buffer.isUntitled =>
+            make(JEdit_Lib.buffer_name(buffer), edit_pane.getTextArea.getCaretPosition)
+          case _ => none
+        }
+      }
   }
 
   final class Pos private(
@@ -328,7 +324,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
   override def backward(): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
-      _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view))
+      _forward = _forward.push(current).push(Isabelle_Navigator.Pos(view.getEditPane))
       _backward = _backward.pop
       goto_current()
     }
