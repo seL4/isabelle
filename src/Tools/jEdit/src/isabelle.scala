@@ -510,7 +510,9 @@ object Isabelle {
   }
 
   def show_links(view: View): Unit = {
+    val edit_pane = view.getEditPane
     val text_area = view.getTextArea
+
     for {
       rendering <- Document_View.get_rendering(text_area)
       completion <- Completion_Popup.Text_Area(text_area)
@@ -518,7 +520,7 @@ object Isabelle {
       val caret_range = JEdit_Lib.caret_range(text_area)
       val links = rendering.hyperlinks(caret_range)
       if (links.nonEmpty) {
-        val items = links.map(info => new Selection_Popup.Hyperlink(view, info.info))
+        val items = links.map(info => new Selection_Popup.Hyperlink(edit_pane, info))
         completion.open_popup(caret_range, items,
           focus = true,
           select_enter = true,
