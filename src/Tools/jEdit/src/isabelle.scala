@@ -501,11 +501,15 @@ object Isabelle {
   /* hyperlinks and popups */
 
   def follow_link(view: View): Unit = {
+    val edit_pane = view.getEditPane
     val text_area = view.getTextArea
+
     val painter = text_area.getPainter
     for (rendering <- Document_View.get_rendering(text_area)) {
       val caret_range = JEdit_Lib.caret_range(text_area)
-      for (Text.Info(_, link) <- rendering.hyperlink(caret_range)) link.follow(view)
+      for (info <- rendering.hyperlink(caret_range)) {
+        new Selection_Popup.Hyperlink(edit_pane, info).select()
+      }
     }
   }
 
