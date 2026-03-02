@@ -50,6 +50,8 @@ object Isabelle_Navigator {
     _navigators.valuesIterator.foreach(_.del_listener(buffers))
   }
 
+  def record(edit_pane: EditPane): Unit = get(edit_pane.getView).record(Pos(edit_pane))
+
 
   /* recode symbols */
 

@@ -586,7 +586,7 @@ object Isabelle {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
+          Isabelle_Navigator.record(edit_pane)
           PIDE.editor.goto_file(
             view, JEdit_Lib.buffer_name(view.getBuffer), offset = err.range.start)
         case None =>

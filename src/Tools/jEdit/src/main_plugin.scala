@@ -417,7 +417,7 @@ class Main_Plugin extends EBPlugin {
 
           if (msg.isInstanceOf[PositionChanging]) {
             JEdit_Mouse_Handler.jump(edit_pane)
-            Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
+            Isabelle_Navigator.record(edit_pane)
           }
 
         case _: PropertiesChanged =>

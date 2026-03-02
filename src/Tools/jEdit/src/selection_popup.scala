@@ -33,7 +33,7 @@ object Selection_Popup {
       val text_area = edit_pane.getTextArea
       try {
         text_area.moveCaretPosition(info.range.start)
-        Isabelle_Navigator.get(view).record(Isabelle_Navigator.Pos(edit_pane))
+        Isabelle_Navigator.record(edit_pane)
       }
       catch {
         case _: ArrayIndexOutOfBoundsException =>
