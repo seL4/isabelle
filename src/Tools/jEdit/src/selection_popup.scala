@@ -31,15 +31,16 @@ object Selection_Popup {
     override def select(): Unit = {
       val view = edit_pane.getView
       val text_area = edit_pane.getTextArea
-      try {
-        text_area.moveCaretPosition(info.range.start)
-        Isabelle_Navigator.record(edit_pane)
-      }
+
+      try { text_area.moveCaretPosition(info.range.start) }
       catch {
         case _: ArrayIndexOutOfBoundsException =>
         case _: IllegalArgumentException =>
       }
+
+      Isabelle_Navigator.record(edit_pane)
       link.follow(view)
+      Isabelle_Navigator.record(edit_pane)
     }
     override def toString: String = link.toString
   }
