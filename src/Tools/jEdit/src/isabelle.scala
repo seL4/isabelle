@@ -509,7 +509,6 @@ object Isabelle {
     val editor_context = JEdit_Editor.Context(view)
     val text_area = view.getTextArea
 
-    val painter = text_area.getPainter
     for (rendering <- Document_View.get_rendering(text_area)) {
       val caret_range = editor_context.caret_range
       for (info <- rendering.hyperlink(caret_range)) {
