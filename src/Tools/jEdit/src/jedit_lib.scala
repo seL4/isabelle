@@ -212,7 +212,7 @@ object JEdit_Lib {
   /* point range */
 
   def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
-    if (offset < 0) Text.Range.offside
+    if (buffer == null || offset < 0) Text.Range.offside
     else
       buffer_lock(buffer) {
         def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
