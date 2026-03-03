@@ -119,7 +119,10 @@ object Isabelle_Navigator {
 
   object Pos {
     val none: Pos = new Pos(Document_ID.none, "", 0)
-    def make(name: String, offset: Int): Pos = new Pos(Document_ID.make(), name, offset)
+
+    def make(name: String, offset: Int): Pos =
+      if (name == null || name.isEmpty) none
+      else new Pos(Document_ID.make(), name, offset)
 
     def apply(edit_pane: EditPane): Pos =
       if (edit_pane == null) none
