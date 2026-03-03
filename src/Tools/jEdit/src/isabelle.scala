@@ -542,7 +542,7 @@ object Isabelle {
 
     val editor_context = JEdit_Editor.Context(view)
     val text_area = view.getTextArea
-    val painter = text_area.getPainter
+    val painter = editor_context.text_area_painter
     val caret_range = editor_context.caret_range
     for {
       rendering <- Document_View.get_rendering(text_area)

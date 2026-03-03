@@ -86,8 +86,8 @@ class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = 
 
       val label_geometry = new Geometry
       val label: Label = new Label {
-        background = editor_context.text_area.getPainter.getBackground
-        foreground = editor_context.text_area.getPainter.getForeground
+        background = editor_context.text_area_painter.getBackground
+        foreground = editor_context.text_area_painter.getForeground
         opaque = false
         xAlignment = Alignment.Leading
 

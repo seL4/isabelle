@@ -34,6 +34,9 @@ object JEdit_Editor {
     def text_area: TextArea =
       if (static_text_area == null) view.getTextArea else static_text_area
 
+    def text_area_painter: TextAreaPainter =
+      if (text_area == null) null else text_area.getPainter
+
     def proper_text_area: Option[JEditTextArea] =
       text_area match {
         case jedit_text_area: JEditTextArea => Some(jedit_text_area)
