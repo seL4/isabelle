@@ -55,7 +55,7 @@ object Isabelle_Navigator {
 
   /* recode symbols */
 
-  def recode_buffer(buffer: Buffer, unicode_symbols: Boolean): Unit = GUI_Thread.require {
+  def recode_buffer(buffer: JEditBuffer, unicode_symbols: Boolean): Unit = GUI_Thread.require {
     if (!buffer.isPerformingIO) {
       buffer.writeLock()
       try {
