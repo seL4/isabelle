@@ -101,7 +101,11 @@ object JEdit_Lib {
   def buffer_line_manager(buffer: JEditBuffer): LineManager =
     Untyped.get[LineManager](buffer, "lineMgr")
 
-  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
+  def buffer_name(buffer: JEditBuffer): String =
+    buffer match {
+      case buf: Buffer => buf.getSymlinkPath
+      case _ => ""
+    }
 
 
   /* main jEdit components */
