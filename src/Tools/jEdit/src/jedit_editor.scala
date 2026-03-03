@@ -43,6 +43,9 @@ object JEdit_Editor {
     def caret_offset: Text.Offset =
       if (text_area == null) 0 else text_area.getCaretPosition
 
+    def caret_range: Text.Range =
+      JEdit_Lib.point_range(buffer, caret_offset)
+
 
     /* buffer (NB: Buffer <: JEditBuffer) */
 

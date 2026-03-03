@@ -118,7 +118,7 @@ class Rich_Text_Area(
       painter_gfx_range = JEdit_Lib.gfx_range(text_area)
       caret_focus =
         if (caret_enabled && !painter_rendering.snapshot.is_outdated) {
-          painter_rendering.caret_focus(JEdit_Lib.caret_range(text_area), caret_focus_range)
+          painter_rendering.caret_focus(editor_context.caret_range, caret_focus_range)
         }
         else Rendering.Focus.empty
     }
@@ -569,7 +569,7 @@ class Rich_Text_Area(
               try {
                 val line_start = buffer.getLineStartOffset(line)
                 val caret_range =
-                  if (caret_enabled) JEdit_Lib.caret_range(text_area)
+                  if (caret_enabled) editor_context.caret_range
                   else Text.Range.offside
                 gfx.clipRect(x0, y + line_height * i, Int.MaxValue, line_height)
                 val w =

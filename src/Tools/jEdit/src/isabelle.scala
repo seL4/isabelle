@@ -309,14 +309,15 @@ object Isabelle {
   }
 
   def insert_line_padding(text_area: JEditTextArea, text: String): Unit = {
-    val buffer = text_area.getBuffer
+    val editor_context = JEdit_Editor.Context(text_area)
+    val buffer = editor_context.buffer
     JEdit_Lib.buffer_edit(buffer) {
       val text1 =
         if (text_area.getSelectionCount == 0) {
           def pad(range: Text.Range): String =
             if (JEdit_Lib.get_text(buffer, range).contains("\n")) "" else "\n"
 
-          val caret = JEdit_Lib.caret_range(text_area)
+          val caret = editor_context.caret_range
           val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)
           pad(before_caret) + text + pad(caret)
         }
@@ -369,7 +370,8 @@ object Isabelle {
 
   def select_entity(text_area: JEditTextArea): Unit = {
     for (rendering <- Document_View.get_rendering(text_area)) {
-      val caret_range = JEdit_Lib.caret_range(text_area)
+      val editor_context = JEdit_Editor.Context(text_area)
+      val caret_range = editor_context.caret_range
       val buffer_range = JEdit_Lib.buffer_range(text_area.getBuffer)
       val active_focus = rendering.caret_focus_ranges(caret_range, buffer_range)
       if (active_focus.nonEmpty) {
@@ -382,8 +384,9 @@ object Isabelle {
 
   def select_structure(text_area: JEditTextArea): Unit = {
     for (rendering <- Document_View.get_rendering(text_area)) {
+      val editor_context = JEdit_Editor.Context(text_area)
       val sel_ranges = JEdit_Lib.selection_ranges(text_area)
-      val caret_range = JEdit_Lib.caret_range(text_area)
+      val caret_range = editor_context.caret_range
       val infos =
         rendering.markup_structure(Rendering.structure_elements, List(caret_range),
           filter = markup => !sel_ranges.exists(r => r.contains(markup.range)))
@@ -429,11 +432,12 @@ object Isabelle {
 
   /* antiquoted cartouche */
 
-  def antiquoted_cartouche(text_area: TextArea): Unit = {
-    val buffer = text_area.getBuffer
+  def antiquoted_cartouche(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
+    val buffer = editor_context.buffer
     for {
       rendering <- Document_View.get_rendering(text_area)
-      caret_range = JEdit_Lib.caret_range(text_area)
+      caret_range = editor_context.caret_range
       antiq_range <- rendering.antiquoted(caret_range)
       antiq_text <- JEdit_Lib.get_text(buffer, antiq_range)
       body_text <- Antiquote.read_antiq_body(antiq_text)
@@ -454,10 +458,11 @@ object Isabelle {
   /* spell-checker dictionary */
 
   def update_dictionary(text_area: JEditTextArea, include: Boolean, permanent: Boolean): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
     for {
       spell_checker <- PIDE.plugin.spell_checker.get
       rendering <- Document_View.get_rendering(text_area)
-      range = JEdit_Lib.caret_range(text_area)
+      range = editor_context.caret_range
       Text.Info(_, word) <- Spell_Checker.current_word(rendering, range)
     } {
       spell_checker.update(word, include, permanent)
@@ -506,7 +511,7 @@ object Isabelle {
 
     val painter = text_area.getPainter
     for (rendering <- Document_View.get_rendering(text_area)) {
-      val caret_range = JEdit_Lib.caret_range(text_area)
+      val caret_range = editor_context.caret_range
       for (info <- rendering.hyperlink(caret_range)) {
         new Selection_Popup.Hyperlink(editor_context, info).select()
       }
@@ -521,7 +526,7 @@ object Isabelle {
       rendering <- Document_View.get_rendering(text_area)
       completion <- Completion_Popup.Text_Area(text_area)
     } {
-      val caret_range = JEdit_Lib.caret_range(text_area)
+      val caret_range = editor_context.caret_range
       val links = rendering.hyperlinks(caret_range)
       if (links.nonEmpty) {
         val items = links.map(info => new Selection_Popup.Hyperlink(editor_context, info))
@@ -536,9 +541,10 @@ object Isabelle {
   def show_tooltip(view: View, control: Boolean): Unit = {
     GUI_Thread.require {}
 
+    val editor_context = JEdit_Editor.Context(view)
     val text_area = view.getTextArea
     val painter = text_area.getPainter
-    val caret_range = JEdit_Lib.caret_range(text_area)
+    val caret_range = editor_context.caret_range
     for {
       rendering <- Document_View.get_rendering(text_area)
       tip <- rendering.tooltip(caret_range, control)
@@ -601,13 +607,15 @@ object Isabelle {
     goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.lastOption)
 
   def goto_prev_error(view: View): Unit = {
-    val caret_range = JEdit_Lib.caret_range(view.getTextArea)
+    val editor_context = JEdit_Editor.Context(view)
+    val caret_range = editor_context.caret_range
     val range = Text.Range(0, caret_range.stop)
     goto_error(view, range, avoid_range = caret_range, which = "previous ")(_.lastOption)
   }
 
   def goto_next_error(view: View): Unit = {
-    val caret_range = JEdit_Lib.caret_range(view.getTextArea)
+    val editor_context = JEdit_Editor.Context(view)
+    val caret_range = editor_context.caret_range
     val range = Text.Range(caret_range.start, view.getBuffer.getLength)
     goto_error(view, range, avoid_range = caret_range, which = "next ")(_.headOption)
   }

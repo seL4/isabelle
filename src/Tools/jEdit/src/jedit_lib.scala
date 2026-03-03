@@ -247,9 +247,6 @@ object JEdit_Lib {
     }
   }
 
-  def caret_range(text_area: TextArea): Text.Range =
-    point_range(text_area.getBuffer, text_area.getCaretPosition)
-
   def selection_ranges(text_area: TextArea): List[Text.Range] = {
     val buffer = text_area.getBuffer
     text_area.getSelection.toList.flatMap(
