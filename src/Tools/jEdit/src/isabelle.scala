@@ -501,20 +501,20 @@ object Isabelle {
   /* hyperlinks and popups */
 
   def follow_link(view: View): Unit = {
-    val edit_pane = view.getEditPane
+    val editor_context = JEdit_Editor.Context(view)
     val text_area = view.getTextArea
 
     val painter = text_area.getPainter
     for (rendering <- Document_View.get_rendering(text_area)) {
       val caret_range = JEdit_Lib.caret_range(text_area)
       for (info <- rendering.hyperlink(caret_range)) {
-        new Selection_Popup.Hyperlink(edit_pane, info).select()
+        new Selection_Popup.Hyperlink(editor_context, info).select()
       }
     }
   }
 
   def show_links(view: View): Unit = {
-    val edit_pane = view.getEditPane
+    val editor_context = JEdit_Editor.Context(view)
     val text_area = view.getTextArea
 
     for {
@@ -524,7 +524,7 @@ object Isabelle {
       val caret_range = JEdit_Lib.caret_range(text_area)
       val links = rendering.hyperlinks(caret_range)
       if (links.nonEmpty) {
-        val items = links.map(info => new Selection_Popup.Hyperlink(edit_pane, info))
+        val items = links.map(info => new Selection_Popup.Hyperlink(editor_context, info))
         completion.open_popup(caret_range, items,
           focus = true,
           select_enter = true,
@@ -579,14 +579,13 @@ object Isabelle {
   ): Unit = {
     GUI_Thread.require {}
 
-    val edit_pane = view.getEditPane
     val editor_context = JEdit_Editor.Context(view)
 
     for (rendering <- Document_View.get_rendering(editor_context.text_area)) {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          Isabelle_Navigator.record(edit_pane)
+          Isabelle_Navigator.record(editor_context)
           PIDE.editor.goto_file(
             editor_context, editor_context.buffer_name, offset = err.range.start)
         case None =>

@@ -21,7 +21,7 @@ import scala.util.matching.Regex
 import scala.collection.mutable
 
 import org.gjt.sp.util.Log
-import org.gjt.sp.jedit.{View, EditPane}
+import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.syntax.{Chunk => JEditChunk, SyntaxStyle}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, Selection}
 
@@ -36,7 +36,6 @@ class Rich_Text_Area(
   enable_hovering: Boolean
 ) {
   private val view = editor_context.view
-  private val edit_pane = EditPane.get(text_area)
   private val text_area = editor_context.text_area
   private val buffer = text_area.getBuffer
 
@@ -233,7 +232,7 @@ class Rich_Text_Area(
               e.consume()
             case Some(info) =>
               text_area.requestFocus()
-              new Selection_Popup.Hyperlink(edit_pane, info).select()
+              new Selection_Popup.Hyperlink(editor_context, info).select()
               e.consume()
             case None =>
           }

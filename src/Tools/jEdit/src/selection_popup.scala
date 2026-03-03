@@ -16,7 +16,7 @@ import javax.swing.border.LineBorder
 
 import scala.swing.{ListView, ScrollPane}
 
-import org.gjt.sp.jedit.{View, EditPane}
+import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
@@ -25,23 +25,19 @@ object Selection_Popup {
 
   trait Item { def select(): Unit }
 
-  class Hyperlink(edit_pane: EditPane, info: Text.Info[PIDE.editor.Hyperlink])
+  class Hyperlink(editor_context: JEdit_Editor.Context, info: Text.Info[PIDE.editor.Hyperlink])
   extends Item {
     def link: PIDE.editor.Hyperlink = info.info
     override def select(): Unit = {
-      val view = edit_pane.getView
-      val text_area = edit_pane.getTextArea
-      val editor_context = JEdit_Editor.Context(view, text_area)
-
-      try { text_area.moveCaretPosition(info.range.start) }
+      try { editor_context.text_area.moveCaretPosition(info.range.start) }
       catch {
         case _: ArrayIndexOutOfBoundsException =>
         case _: IllegalArgumentException =>
       }
 
-      Isabelle_Navigator.record(edit_pane)
+      Isabelle_Navigator.record(editor_context)
       link.follow(editor_context)
-      Isabelle_Navigator.record(edit_pane)
+      Isabelle_Navigator.record(editor_context)
     }
     override def toString: String = link.toString
   }

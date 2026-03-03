@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.{jEdit, View, Buffer, EditPane}
+import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.Selection
 
@@ -50,7 +50,8 @@ object Isabelle_Navigator {
     _navigators.valuesIterator.foreach(_.del_listener(buffers))
   }
 
-  def record(edit_pane: EditPane): Unit = get(edit_pane.getView).record(Pos(edit_pane))
+  def record(editor_context: JEdit_Editor.Context): Unit =
+    get(editor_context.view).record(Pos(editor_context))
 
 
   /* recode symbols */
@@ -124,14 +125,11 @@ object Isabelle_Navigator {
       if (name == null || name.isEmpty) none
       else new Pos(Document_ID.make(), name, offset)
 
-    def apply(edit_pane: EditPane): Pos =
-      if (edit_pane == null) none
-      else {
-        edit_pane.getBuffer match {
-          case buffer: Buffer if buffer.isLoaded && !buffer.isUntitled =>
-            make(JEdit_Lib.buffer_name(buffer), edit_pane.getTextArea.getCaretPosition)
-          case _ => none
-        }
+    def apply(editor_context: JEdit_Editor.Context): Pos =
+      editor_context.proper_buffer match {
+        case Some(buffer) if buffer.isLoaded && !buffer.isUntitled =>
+          make(editor_context.buffer_name, editor_context.caret_offset)
+        case _ => none
       }
   }
 
@@ -240,7 +238,7 @@ class Isabelle_Navigator {
 class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   require(view != null)
 
-  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(view)
+  private val editor_context = JEdit_Editor.Context(view)
 
   // owned by GUI thread
   private var _backward = Isabelle_Navigator.History.empty
@@ -328,7 +326,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
 
   override def backward(): Unit = GUI_Thread.require {
     if (!_backward.is_empty) {
-      val here = Isabelle_Navigator.Pos(view.getEditPane)
+      val here = Isabelle_Navigator.Pos(editor_context)
       if (here.equiv(current)) {
         _forward = _forward.push(current)
         _backward = _backward.pop
