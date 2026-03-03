@@ -125,13 +125,14 @@ object JEdit_Lib {
   def jedit_view(view: View = null): View =
     if (view == null) jEdit.getActiveView else view
 
-  def jedit_edit_panes(view: View): Iterator[EditPane] =
-    if (view == null) Iterator.empty
-    else view.getEditPanes().iterator.filter(_ != null)
-
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
     if (view == null) Iterator.empty
-    else view.getEditPanes().iterator.filter(_ != null).map(_.getTextArea).filter(_ != null)
+    else {
+      for {
+        edit_pane <- view.getEditPanes().iterator
+        if edit_pane != null && edit_pane.getTextArea != null
+      } yield edit_pane.getTextArea
+    }
 
   def jedit_text_areas(): Iterator[JEditTextArea] =
     jedit_views().flatMap(jedit_text_areas)

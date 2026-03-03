@@ -424,11 +424,10 @@ class Main_Plugin extends EBPlugin {
         case _: PropertiesChanged =>
           for {
             view <- JEdit_Lib.jedit_views()
-            edit_pane <- JEdit_Lib.jedit_edit_panes(view)
+            text_area <- JEdit_Lib.jedit_text_areas(view)
           } {
-            val buffer = edit_pane.getBuffer
-            val text_area = edit_pane.getTextArea
-            if (buffer != null && text_area != null) init_view(buffer, text_area)
+            val editor_context = JEdit_Editor.Context(text_area)
+            for (buffer <- editor_context.proper_buffer) init_view(buffer, text_area)
           }
 
           spell_checker.update(options.value)
