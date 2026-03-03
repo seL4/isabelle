@@ -103,8 +103,6 @@ object JEdit_Lib {
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def buffer_file(buffer: Buffer): Option[JFile] = get_local_file(buffer_name(buffer))
-
 
   /* main jEdit components */
 
