@@ -40,12 +40,15 @@ object JEdit_Editor {
         case _ => None
       }
 
-    def caret_offset: Text.Offset = text_area.getCaretPosition
+    def caret_offset: Text.Offset =
+      if (text_area == null) 0 else text_area.getCaretPosition
 
 
     /* buffer (NB: Buffer <: JEditBuffer) */
 
-    def buffer: JEditBuffer = text_area.getBuffer
+    def buffer: JEditBuffer =
+      if (text_area == null) null else text_area.getBuffer
+
     def buffer_name: String = JEdit_Lib.buffer_name(buffer)
 
     def proper_buffer: Option[Buffer] =
