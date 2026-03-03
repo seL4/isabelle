@@ -354,7 +354,8 @@ class Main_Plugin extends EBPlugin {
             init_editor(view)
 
             PIDE.editor.hyperlink_position(Document.Snapshot.init,
-              JEdit_Session.logic_root(options.value), focus = true).foreach(_.follow(view))
+              JEdit_Session.logic_root(options.value), focus = true)
+                .foreach(_.follow(JEdit_Editor.Context(view)))
           }
 
         case msg: ViewUpdate =>

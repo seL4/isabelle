@@ -31,7 +31,7 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   private var do_update = true
 
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area = new Output_Area(editor_context)
 
   output.setup(dockable)
   set_content(output.text_pane)
@@ -66,10 +66,10 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
 
   private def handle_update(follow: Boolean): Unit = {
     val (new_snapshot, new_command, new_results, new_id) =
-      PIDE.editor.current_node_snapshot(view) match {
+      PIDE.editor.current_node_snapshot(editor_context) match {
         case Some(snapshot) =>
           if (follow && !snapshot.is_outdated) {
-            PIDE.editor.current_command(view, snapshot) match {
+            PIDE.editor.current_command(editor_context, snapshot) match {
               case Some(cmd) =>
                 (snapshot, cmd, snapshot.command_results(cmd), cmd.id)
               case None =>

@@ -76,7 +76,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val process_indicator = new Process_Indicator
 
     val query_operation =
-      new Query_Operation(PIDE.editor, view, "find_theorems",
+      new Query_Operation(PIDE.editor, editor_context, "find_theorems",
         consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private def apply_query(): Unit = {
@@ -138,7 +138,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val process_indicator = new Process_Indicator
 
     val query_operation =
-      new Query_Operation(PIDE.editor, view, "find_consts",
+      new Query_Operation(PIDE.editor, editor_context, "find_consts",
         consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private val query_label = new Label("Find:") {
@@ -213,7 +213,7 @@ class Query_Dockable(view: View, position: String) extends Dockable(view, positi
     private val process_indicator = new Process_Indicator
 
     val query_operation =
-      new Query_Operation(PIDE.editor, view, "print_operation",
+      new Query_Operation(PIDE.editor, editor_context, "print_operation",
         consume_status(process_indicator, _), pretty_text_area.update_output)
 
     private def apply_query(): Unit =

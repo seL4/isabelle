@@ -64,7 +64,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val current_state = Synchronized(Document_Dockable.State.init())
 
   private val process_indicator = new Process_Indicator
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area = new Output_Area(editor_context)
   private val message_pane = new TabbedPane
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
@@ -313,7 +313,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val input_controls =
     Wrap_Panel(List(all_button, none_button, purge_button))
 
-  private val theories = new Theories_Status(view, document = true)
+  private val theories = new Theories_Status(editor_context, document = true)
   private val theories_pane = new ScrollPane(theories.gui)
 
   private def refresh_theories(): Unit = {

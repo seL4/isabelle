@@ -18,7 +18,7 @@ import javax.swing.{JList, BorderFactory, UIManager}
 import org.gjt.sp.jedit.View
 
 
-class Theories_Status(view: View, document: Boolean = false) {
+class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = false) {
   /* component state -- owned by GUI thread */
 
   private var nodes_status = Document_Status.Nodes_Status.empty
@@ -86,8 +86,8 @@ class Theories_Status(view: View, document: Boolean = false) {
 
       val label_geometry = new Geometry
       val label: Label = new Label {
-        background = view.getTextArea.getPainter.getBackground
-        foreground = view.getTextArea.getPainter.getForeground
+        background = editor_context.text_area.getPainter.getBackground
+        foreground = editor_context.text_area.getPainter.getForeground
         opaque = false
         xAlignment = Alignment.Leading
 
@@ -198,7 +198,9 @@ class Theories_Status(view: View, document: Boolean = false) {
               else Document_Model.node_required(name, toggle = true)
             }
           }
-          else if (mouse.clicks == 2) PIDE.editor.goto_file(view, listData(index).node, focus = true)
+          else if (mouse.clicks == 2) {
+            PIDE.editor.goto_file(editor_context, listData(index).node, focus = true)
+          }
         }
       case mouse: MouseMoved =>
         val index = peer.locationToIndex(mouse.point)

@@ -580,15 +580,15 @@ object Isabelle {
     GUI_Thread.require {}
 
     val edit_pane = view.getEditPane
-    val text_area = view.getTextArea
+    val editor_context = JEdit_Editor.Context(view)
 
-    for (rendering <- Document_View.get_rendering(text_area)) {
+    for (rendering <- Document_View.get_rendering(editor_context.text_area)) {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
           Isabelle_Navigator.record(edit_pane)
           PIDE.editor.goto_file(
-            view, JEdit_Lib.buffer_name(view.getBuffer), offset = err.range.start)
+            editor_context, editor_context.buffer_name, offset = err.range.start)
         case None =>
           view.getStatus.setMessageAndClear("No " + which + "error in current document snapshot")
       }
@@ -629,15 +629,17 @@ object Isabelle {
   /* PIDE HTTP services */
 
   def open_browser_info(view: View): Unit = {
+    val editor_context = JEdit_Editor.Context(view)
     val url = Url.append_path(PIDE.plugin.http_server.url, HTTP.Browser_Info_Service.index_path())
-    PIDE.editor.hyperlink_url(url).follow(view)
+    PIDE.editor.hyperlink_url(url).follow(editor_context)
   }
 
   def open_preview(view: View, plain_text: Boolean): Unit = {
-    Document_Model.get_model(view.getBuffer) match {
+    val editor_context = JEdit_Editor.Context(view)
+    Document_Model.get_model(editor_context.buffer) match {
       case Some(model) =>
         val url = Document_Model.Preview_Service.server_url(plain_text, model.node_name)
-        PIDE.editor.hyperlink_url(url).follow(view)
+        PIDE.editor.hyperlink_url(url).follow(editor_context)
       case _ =>
     }
   }

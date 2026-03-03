@@ -54,7 +54,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   /* output text area */
 
   private val output: Output_Area =
-    new Output_Area(view) {
+    new Output_Area(editor_context) {
       override def handle_shown(): Unit = split_pane_layout()
     }
 

@@ -27,8 +27,7 @@ import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, 
 
 
 class Rich_Text_Area(
-  view: View,
-  text_area: TextArea,
+  editor_context: JEdit_Editor.Context,
   get_rendering: () => JEdit_Rendering,
   close_action: () => Unit,
   get_search_pattern: () => Option[Regex],
@@ -36,7 +35,9 @@ class Rich_Text_Area(
   caret_visible: Boolean,
   enable_hovering: Boolean
 ) {
+  private val view = editor_context.view
   private val edit_pane = EditPane.get(text_area)
+  private val text_area = editor_context.text_area
   private val buffer = text_area.getBuffer
 
 
@@ -228,7 +229,7 @@ class Rich_Text_Area(
         if (!e.isConsumed() && e.getClickCount == 1) {
           hyperlink_area.info match {
             case Some(Text.Info(_, link)) if link.external =>
-              link.follow(view)
+              link.follow(editor_context)
               e.consume()
             case Some(info) =>
               text_area.requestFocus()
@@ -238,7 +239,7 @@ class Rich_Text_Area(
           }
           active_area.text_info match {
             case Some((text, Text.Info(_, markup))) =>
-              Active.action(view, text, markup)
+              Active.action(editor_context, text, markup)
               close_action()
               e.consume()
             case None =>

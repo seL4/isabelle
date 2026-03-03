@@ -23,14 +23,14 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   /* output text area */
 
   private val output: Output_Area =
-    new Output_Area(view) {
+    new Output_Area(editor_context) {
       override def handle_shown(): Unit = split_pane_layout()
     }
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 
   private val print_state =
-    new Query_Operation(PIDE.editor, view, "print_state", _ => (),
+    new Query_Operation(PIDE.editor, editor_context, "print_state", _ => (),
       output.pretty_text_area.update_output)
 
   output.setup(dockable)
@@ -45,9 +45,9 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   def update(): Unit = {
     GUI_Thread.require {}
 
-    PIDE.editor.current_node_snapshot(view) match {
+    PIDE.editor.current_node_snapshot(editor_context) match {
       case Some(snapshot) =>
-        (PIDE.editor.current_command(view, snapshot), print_state.get_location) match {
+        (PIDE.editor.current_command(editor_context, snapshot), print_state.get_location) match {
           case (Some(command1), Some(command2)) if command1.id == command2.id =>
           case _ => update_request()
         }

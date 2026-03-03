@@ -23,7 +23,7 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
     new Tree_View(single_selection_mode = true, accessible_name = "Documentation") {
       override def handle_selection(path: TreePath): Unit =
         for (entry <- get_selection(path, { case x: Doc.Entry => x })) {
-          PIDE.editor.goto_doc(view, entry.path, focus = true)
+          PIDE.editor.goto_doc(editor_context, entry.path, focus = true)
         }
     }
 

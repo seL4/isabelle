@@ -130,8 +130,10 @@ class Pretty_Text_Area(
       (future, Some(future))
     })
 
+  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(view, pretty_text_area)
+
   private val rich_text_area =
-    new Rich_Text_Area(view, pretty_text_area, () => current_rendering, close_action,
+    new Rich_Text_Area(editor_context, () => current_rendering, close_action,
       get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
 
   private var current_search_results =

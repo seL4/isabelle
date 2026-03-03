@@ -26,7 +26,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   /* output text area */
 
-  private val output: Output_Area = new Output_Area(view)
+  private val output: Output_Area = new Output_Area(editor_context)
 
   override def detach_operation: Option[() => Unit] = output.pretty_text_area.detach_operation
 
@@ -50,7 +50,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   }
 
   private val sledgehammer =
-    new Query_Operation(PIDE.editor, view, "sledgehammer", consume_status,
+    new Query_Operation(PIDE.editor, editor_context, "sledgehammer", consume_status,
       output.pretty_text_area.update_output)
 
 

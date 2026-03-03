@@ -41,7 +41,7 @@ object Graphview_Dockable {
 
   class Handler extends Active.Handler {
     override def handle(
-      view: View,
+      editor_context: JEdit_Editor.Context,
       text: String,
       elem: XML.Elem,
       doc_view: Document_View,
@@ -56,7 +56,7 @@ object Graphview_Dockable {
               }
             GUI_Thread.later {
               set_implicit(snapshot, graph)
-              view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")
+              editor_context.view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")
             }
           }
           true

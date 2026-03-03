@@ -31,6 +31,7 @@ object Selection_Popup {
     override def select(): Unit = {
       val view = edit_pane.getView
       val text_area = edit_pane.getTextArea
+      val editor_context = JEdit_Editor.Context(view, text_area)
 
       try { text_area.moveCaretPosition(info.range.start) }
       catch {
@@ -39,7 +40,7 @@ object Selection_Popup {
       }
 
       Isabelle_Navigator.record(edit_pane)
-      link.follow(view)
+      link.follow(editor_context)
       Isabelle_Navigator.record(edit_pane)
     }
     override def toString: String = link.toString

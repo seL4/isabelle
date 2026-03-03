@@ -67,8 +67,10 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
 
   private val session = model.session
 
+  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(text_area)
+
   val rich_text_area: Rich_Text_Area =
-    new Rich_Text_Area(text_area.getView, text_area,
+    new Rich_Text_Area(editor_context,
       () => Document_View.rendering(doc_view), () => (), () => None,
       () => delay_caret_update.invoke(), caret_visible = true, enable_hovering = false)
 
@@ -81,7 +83,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
     val active_command = {
       val view = text_area.getView
       if (view != null && view.getTextArea == text_area) {
-        PIDE.editor.current_command(view, snapshot) match {
+        PIDE.editor.current_command(editor_context, snapshot) match {
           case Some(command) =>
             snapshot.node.command_start(command) match {
               case Some(start) => List(snapshot.convert(command.core_range + start))

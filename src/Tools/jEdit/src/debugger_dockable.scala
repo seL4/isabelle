@@ -68,13 +68,14 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* output area */
 
   private val output: Output_Area =
-    new Output_Area(view, root_name = "Threads") {
+    new Output_Area(editor_context, root_name = "Threads") {
       override def handle_search(search: Pretty_Text_Area.Search_Results): Unit = {}
 
       override def handle_tree_selection(path: TreePath): Unit = ()
 
       override def handle_update(): Unit = {
-        val new_snapshot = PIDE.editor.current_node_snapshot(view).getOrElse(current_snapshot)
+        val new_snapshot =
+          PIDE.editor.current_node_snapshot(editor_context).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
 
         if (new_threads != current_threads) update_tree(new_threads)
@@ -261,7 +262,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       for {
         pos <- c.debug_position
         link <- PIDE.editor.hyperlink_position(current_snapshot, pos)
-      } link.follow(view)
+      } link.follow(editor_context)
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())
   }

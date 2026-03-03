@@ -27,7 +27,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* output area */
 
   val output: Output_Area =
-    new Output_Area(view) {
+    new Output_Area(editor_context) {
       override def handle_update(): Unit = dockable.handle_update()
       override def handle_shown(): Unit = split_pane_layout()
     }
@@ -37,8 +37,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private def handle_update(restriction: Option[Set[Command]] = None): Unit =
     GUI_Thread.require {
-      val caret_offset = view.getTextArea.getCaretPosition
-      for (snapshot <- PIDE.editor.current_node_snapshot(view)) {
+      val caret_offset = editor_context.caret_offset
+      for (snapshot <- PIDE.editor.current_node_snapshot(editor_context)) {
         val output = PIDE.editor.output(snapshot, caret_offset, restriction = restriction)
         if (output.defined && current_output != output.messages) {
           dockable.output.pretty_text_area.update_output(output)

@@ -11,14 +11,54 @@ import isabelle._
 
 
 import org.gjt.sp.jedit.{View, Buffer}
+import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.browser.VFSBrowser
-import org.gjt.sp.jedit.textarea.TextArea
+import org.gjt.sp.jedit.textarea.{TextArea, TextAreaPainter, JEditTextArea}
 import org.gjt.sp.util.AwtRunnableQueue
 
 
+object JEdit_Editor {
+  /** context **/
+
+  object Context {
+    def apply(view: View, static_text_area: TextArea): Context = new Context(view, static_text_area)
+    def apply(view: View): Context = apply(view, null)
+    def apply(static_text_area: JEditTextArea): Context =
+      apply(static_text_area.getView, static_text_area)
+  }
+
+  // view with optional static text_area (default: dynamic text_area)
+  class Context private(val view: View, static_text_area: TextArea) {
+    /* text area (NB: JEditTextArea <: TextArea) */
+
+    def text_area: TextArea =
+      if (static_text_area == null) view.getTextArea else static_text_area
+
+    def proper_text_area: Option[JEditTextArea] =
+      text_area match {
+        case jedit_text_area: JEditTextArea => Some(jedit_text_area)
+        case _ => None
+      }
+
+    def caret_offset: Text.Offset = text_area.getCaretPosition
+
+
+    /* buffer (NB: Buffer <: JEditBuffer) */
+
+    def buffer: JEditBuffer = text_area.getBuffer
+    def buffer_name: String = JEdit_Lib.buffer_name(buffer)
+
+    def proper_buffer: Option[Buffer] =
+      buffer match {
+        case buf: Buffer => Some(buf)
+        case _ => None
+      }
+  }
+}
+
 class JEdit_Editor extends Editor {
-  type Context = View
   type Session = JEdit_Session
+  type Context = JEdit_Editor.Context
 
 
   /* PIDE session and document model */
@@ -73,20 +113,19 @@ class JEdit_Editor extends Editor {
 
   /* current situation */
 
-  override def current_node(view: View): Option[Document.Node.Name] =
-    GUI_Thread.require { Document_Model.get_model(view.getBuffer).map(_.node_name) }
+  override def current_node(editor_context: Context): Option[Document.Node.Name] =
+    GUI_Thread.require { Document_Model.get_model(editor_context.buffer).map(_.node_name) }
 
-  override def current_node_snapshot(view: View): Option[Document.Snapshot] =
-    GUI_Thread.require { Document_Model.get_snapshot(view.getBuffer) }
+  override def current_node_snapshot(editor_context: Context): Option[Document.Snapshot] =
+    GUI_Thread.require { Document_Model.get_snapshot(editor_context.buffer) }
 
   override def node_snapshot(name: Document.Node.Name): Document.Snapshot =
     GUI_Thread.require { Document_Model.get_snapshot(name) getOrElse session.snapshot(name) }
 
-  override def current_command(view: View, snapshot: Document.Snapshot): Option[Command] =
+  override def current_command(editor_context: Context, snapshot: Document.Snapshot): Option[Command] =
     GUI_Thread.require {
-      val text_area = view.getTextArea
-      val caret_offset = text_area.getCaretPosition
-      Document_View.get(text_area) match {
+      val caret_offset = editor_context.caret_offset
+      Document_View.get(editor_context.text_area) match {
         case Some(doc_view) if snapshot.loaded_theory_command(caret_offset).isEmpty =>
           snapshot.current_command(doc_view.model.node_name, caret_offset)
         case _ => None
@@ -114,7 +153,7 @@ class JEdit_Editor extends Editor {
   /* navigation */
 
   def goto_file(
-    view: View,
+    editor_context: Context,
     name: String,
     line: Int = -1,
     offset: Text.Offset = -1,
@@ -122,6 +161,7 @@ class JEdit_Editor extends Editor {
   ): Unit = {
     GUI_Thread.require {}
 
+    val view = editor_context.view
     val navigator = Isabelle_Navigator.get(view)
     val target = Isabelle_Navigator.Target(line = line, offset = offset)
 
@@ -133,9 +173,9 @@ class JEdit_Editor extends Editor {
     }
   }
 
-  def goto_doc(view: View, path: Path, focus: Boolean = false): Unit = {
+  def goto_doc(editor_context: Context, path: Path, focus: Boolean = false): Unit = {
     if (path.is_pdf) Doc.view(path)
-    else goto_file(view, File.platform_path(path), focus = focus)
+    else goto_file(editor_context, File.platform_path(path), focus = focus)
   }
 
 
@@ -145,18 +185,20 @@ class JEdit_Editor extends Editor {
     session.doc_entry(name).map(entry =>
       new Hyperlink {
         override val external: Boolean = !entry.path.is_file
-        def follow(view: View): Unit = goto_doc(view, entry.path, focus = true)
+        def follow(editor_context: Context): Unit =
+          goto_doc(editor_context, entry.path, focus = true)
         override def toString: String = "doc " + quote(name)
       })
 
   def hyperlink_url(name: String): Hyperlink =
     new Hyperlink {
       override val external = true
-      def follow(view: View): Unit =
+      def follow(editor_context: Context): Unit =
         Isabelle_Thread.fork(name = "hyperlink_url") {
           try { Isabelle_System.open(Url.escape_name(name)) }
           catch {
             case exn: Throwable =>
+              val view = editor_context.view
               GUI_Thread.later {
                 GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
               }
@@ -173,8 +215,8 @@ class JEdit_Editor extends Editor {
     focus: Boolean = false
   ): Hyperlink =
     new Hyperlink {
-      def follow(view: View): Unit =
-        goto_file(view, name, line = line, offset = offset, focus = focus)
+      def follow(editor_context: Context): Unit =
+        goto_file(editor_context, name, line = line, offset = offset, focus = focus)
       override def toString: String =
         proper_string(description).getOrElse("file " + quote(name))
     }

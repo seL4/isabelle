@@ -74,7 +74,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       new Theory_Entry(name, timing) { override val gui_style: String = Entry.make_gui_style() }
     def gui_name: GUI.Name = GUI.Name(name.theory, kind = "theory")
     def follow(snapshot: Document.Snapshot): Unit =
-      PIDE.editor.goto_file(view, name.node, focus = true)
+      PIDE.editor.goto_file(editor_context, name.node, focus = true)
   }
 
   private case class Command_Entry(command: Command, timing: Double) extends Entry {
@@ -82,7 +82,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     override val gui_style: String = Entry.make_gui_style(command = true)
     def gui_name: GUI.Name = GUI.Name(command.span.name, kind = "command")
     def follow(snapshot: Document.Snapshot): Unit =
-      PIDE.editor.hyperlink_command(snapshot, command.id, focus = true).foreach(_.follow(view))
+      PIDE.editor.hyperlink_command(snapshot, command.id, focus = true)
+        .foreach(_.follow(editor_context))
   }
 
 
@@ -137,7 +138,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     GUI_Thread.require {}
 
     val name =
-      Document_View.get(view.getTextArea) match {
+      Document_View.get(editor_context.text_area) match {
         case None => Document.Node.Name.empty
         case Some(doc_view) => doc_view.model.node_name
       }

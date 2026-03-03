@@ -48,7 +48,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
 
   /* main */
 
-  private val theories = new Theories_Status(view)
+  private val theories = new Theories_Status(editor_context)
   set_content(new ScrollPane(theories.gui))
 
   private val main =

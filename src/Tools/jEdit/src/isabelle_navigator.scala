@@ -240,6 +240,7 @@ class Isabelle_Navigator {
 class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   require(view != null)
 
+  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(view)
 
   // owned by GUI thread
   private var _backward = Isabelle_Navigator.History.empty
@@ -320,7 +321,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   override def goto(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
     if (pos.defined) {
       Isabelle_Navigator.passive {
-        PIDE.editor.goto_file(view, pos.name, offset = pos.offset, focus = true)
+        PIDE.editor.goto_file(editor_context, pos.name, offset = pos.offset, focus = true)
       }
     }
   }

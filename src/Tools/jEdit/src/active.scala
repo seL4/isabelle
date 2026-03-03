@@ -14,7 +14,7 @@ import org.gjt.sp.jedit.{ServiceManager, View}
 object Active {
   abstract class Handler {
     def handle(
-      view: View, text: String, elem: XML.Elem,
+      editor_context: JEdit_Editor.Context, text: String, elem: XML.Elem,
       doc_view: Document_View, snapshot: Document.Snapshot): Boolean
   }
 
@@ -22,15 +22,15 @@ object Active {
     ServiceManager.getServiceNames(classOf[Handler]).toList
       .map(ServiceManager.getService(classOf[Handler], _))
 
-  def action(view: View, text: String, elem: XML.Elem): Unit = {
+  def action(editor_context: JEdit_Editor.Context, text: String, elem: XML.Elem): Unit = {
     GUI_Thread.require {}
 
-    Document_View.get(view.getTextArea) match {
+    Document_View.get(editor_context.text_area) match {
       case Some(doc_view) =>
         doc_view.rich_text_area.robust_body(()) {
           val snapshot = Document_Model.snapshot(doc_view.model)
           if (!snapshot.is_outdated) {
-            handlers.find(_.handle(view, text, elem, doc_view, snapshot))
+            handlers.find(_.handle(editor_context, text, elem, doc_view, snapshot))
           }
         }
       case None =>
@@ -39,9 +39,10 @@ object Active {
 
   class Misc_Handler extends Active.Handler {
     override def handle(
-      view: View, text: String, elem: XML.Elem,
+      editor_context: JEdit_Editor.Context, text: String, elem: XML.Elem,
       doc_view: Document_View, snapshot: Document.Snapshot
     ): Boolean = {
+      val view = editor_context.view
       val text_area = doc_view.text_area
       val model = doc_view.model
       val buffer = model.buffer
@@ -58,7 +59,8 @@ object Active {
         case XML.Elem(Markup(Markup.THEORY_EXPORTS, props), _) =>
           GUI_Thread.later {
             val name = Markup.Name.unapply(props) getOrElse ""
-            PIDE.editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true).follow(view)
+            PIDE.editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true)
+              .follow(editor_context)
           }
           true
 
@@ -75,7 +77,7 @@ object Active {
               case _ => None
             }
           GUI_Thread.later {
-            link.foreach(_.follow(view))
+            link.foreach(_.follow(editor_context))
             view.getDockableWindowManager.showDockableWindow("isabelle-simplifier-trace")
           }
           true
