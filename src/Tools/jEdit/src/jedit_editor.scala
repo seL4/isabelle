@@ -57,6 +57,9 @@ object JEdit_Editor {
 
     def buffer_name: String = JEdit_Lib.buffer_name(buffer)
 
+    def buffer_range: Text.Range =
+      if (buffer == null) Text.Range.offside else JEdit_Lib.buffer_range(buffer)
+
     def proper_buffer: Option[Buffer] =
       buffer match {
         case buf: Buffer => Some(buf)

@@ -95,7 +95,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
       else Nil
     }
 
-    val buffer_range = JEdit_Lib.buffer_range(model.buffer)
+    val buffer_range = editor_context.buffer_range
     val visible_lines =
       (for {
         i <- (0 until text_area.getVisibleLines).iterator
