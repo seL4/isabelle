@@ -479,6 +479,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
     -G URL       build GMP library from source (overrides option -g)
                  (default """ + quote(default_gmp_url) + """)
     -M DIR       msys/mingw root specification for Windows
+                 (e.g. "/cygdrive/c/msys64")
     -N NAME      component name (default: derived from Poly/ML version)
     -S URL       SHA1 repository archive area
                  (default: """ + quote(default_sha1_url) + """)
@@ -492,6 +493,24 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
   Download and build Poly/ML component from source repositories, with additional
   CONFIGURE_OPTIONS.
+
+  Linux prerequisites:
+    - Ubuntu 20.04 LTS
+    - apt packages:
+      apt-get update && apt-get upgrade -y && apt autoremove -y
+      apt install -y curl autoconf gcc g++ make patchelf
+
+  Windows prerequisites:
+    - MSYS2: https://www.msys2.org with installation target c:\msys64
+    - MSYS2 packages via UCRT64 terminal:
+      pacman -Su
+      pacman -S --needed --noconfirm base-devel gmp-devel mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-lapack mingw-w64-ucrt-x86_64-openblas
+      pacman -Syu
+
+  macOS prerequisites:
+    - macOS 13 Ventura
+    - Xcode command-line tools, notably /usr/bin/cc
+    - *no* local installation of libgmp, to avoid conflicts in the final build phase
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "G:" -> (arg => { gmp_url = arg; gmp_root = None }),
