@@ -36,6 +36,7 @@ class Rich_Text_Area(
   enable_hovering: Boolean
 ) {
   private val view = editor_context.view
+  private val view_editor_context = JEdit_Editor.Context(view)
   private val text_area = editor_context.text_area
   private val buffer = text_area.getBuffer
 
@@ -238,7 +239,7 @@ class Rich_Text_Area(
           }
           active_area.text_info match {
             case Some((text, Text.Info(_, markup))) =>
-              Active.action(editor_context, text, markup)
+              Active.action(view_editor_context, text, markup)
               close_action()
               e.consume()
             case None =>
