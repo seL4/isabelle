@@ -68,16 +68,7 @@ lemma vanishesD: "vanishes X \<Longrightarrow> 0 < r \<Longrightarrow> \<exists>
   unfolding vanishes_def by simp
 
 lemma vanishes_const [simp]: "vanishes (\<lambda>n. c) \<longleftrightarrow> c = 0"
-proof (cases "c = 0")
-  case True
-  then show ?thesis
-    by (simp add: vanishesI)    
-next
-  case False
-  then show ?thesis
-    unfolding vanishes_def
-    using zero_less_abs_iff by blast
-qed
+  by (metis abs_eq_0_iff less_imp_neq order_eq_refl vanishes_def zero_less_abs_iff)
 
 lemma vanishes_minus: "vanishes X \<Longrightarrow> vanishes (\<lambda>n. - X n)"
   unfolding vanishes_def by simp
@@ -123,11 +114,9 @@ proof (rule vanishesI)
   assume r: "0 < r"
   obtain a where a: "0 < a" "\<forall>n. \<bar>X n\<bar> < a"
     using X by blast
-  obtain b where b: "0 < b" "r = a * b"
-  proof
-    show "0 < r / a" using r a by simp
-    show "r = a * (r / a)" using a by simp
-  qed
+  then obtain b where b: "0 < b" "r = a * b"
+  by (metis divide_pos_pos less_numeral_extra(3) nonzero_mult_div_cancel_left r
+    times_divide_eq_right) 
   obtain k where k: "\<forall>n\<ge>k. \<bar>Y n\<bar> < b"
     using vanishesD [OF Y b(1)] ..
   have "\<forall>n\<ge>k. \<bar>X n * Y n\<bar> < r"
@@ -301,9 +290,7 @@ proof (rule cauchyI)
   obtain s where s: "0 < s" and r: "r = inverse b * s * inverse b"
   proof
     show "0 < b * r * b" by (simp add: \<open>0 < r\<close> b)
-    show "r = inverse b * (b * r * b) * inverse b"
-      using b by simp
-  qed
+  qed (use b in simp)
   obtain j where j: "\<forall>m\<ge>j. \<forall>n\<ge>j. \<bar>X m - X n\<bar> < s"
     using cauchyD [OF X s] ..
   have "\<forall>m\<ge>max i j. \<forall>n\<ge>max i j. \<bar>inverse (X m) - inverse (X n)\<bar> < r"
@@ -335,9 +322,7 @@ proof (rule vanishesI)
   proof
     show "0 < a * r * b"
       using a r b by simp
-    show "inverse a * (a * r * b) * inverse b = r"
-      using a r b by simp
-  qed
+  qed (use a r b in simp)
   obtain k where k: "\<forall>n\<ge>k. \<bar>X n - Y n\<bar> < s"
     using vanishesD [OF XY s] ..
   have "\<forall>n\<ge>max (max i j) k. \<bar>inverse (X n) - inverse (Y n)\<bar> < r"
@@ -533,13 +518,7 @@ proof -
     obtain j where j: "\<forall>n\<ge>j. \<bar>X n - Y n\<bar> < s"
       using vanishesD [OF XY s] ..
     have "\<forall>n\<ge>max i j. t < Y n"
-    proof clarsimp
-      fix n
-      assume n: "i \<le> n" "j \<le> n"
-      have "\<bar>X n - Y n\<bar> < s" and "r < X n"
-        using i j n by simp_all
-      then show "t < Y n" by (simp add: r)
-    qed
+      using i j r by fastforce
     then show ?thesis using t by blast
   qed
   fix X Y assume "realrel X Y"
@@ -776,13 +755,8 @@ proof -
   obtain b where b: "P b"
   proof
     show "P (of_int \<lceil>z\<rceil>)"
-    unfolding P_def of_rat_of_int_eq
-    proof
-      fix y assume "y \<in> S"
-      then have "y \<le> z" using z by simp
-      also have "z \<le> of_int \<lceil>z\<rceil>" by (rule le_of_int_ceiling)
-      finally show "y \<le> of_int \<lceil>z\<rceil>" .
-    qed
+      unfolding P_def of_rat_of_int_eq
+      using ceiling_le_iff ceiling_mono z by blast
   qed
 
   define avg where "avg x y = x/2 + y/2" for x y :: rat
@@ -858,8 +832,7 @@ proof -
     fix x
     assume "x \<in> S"
     then show "x \<le> Real B"
-      using PB [unfolded P_def] \<open>cauchy B\<close>
-      by (simp add: le_RealI)
+      using PB P_def \<open>cauchy B\<close> le_RealI by force
   qed
   moreover have "\<forall>z. (\<forall>x\<in>S. x \<le> z) \<longrightarrow> Real A \<le> z"
     by (meson PA Real_leI P_def \<open>cauchy A\<close> le_cases order.trans)
@@ -986,12 +959,7 @@ declare of_int_1_less_iff [algebra, presburger]
 declare of_int_1_le_iff [algebra, presburger]
 
 lemma int_less_real_le: "n < m \<longleftrightarrow> real_of_int n + 1 \<le> real_of_int m"
-proof -
-  have "(0::real) \<le> 1"
-    by (metis less_eq_real_def zero_less_one)
-  then show ?thesis
-    by (metis floor_of_int less_floor_iff)
-qed
+  by (metis floor_of_int less_floor_iff)
 
 lemma int_le_real_less: "n \<le> m \<longleftrightarrow> real_of_int n < real_of_int m + 1"
   by (meson int_less_real_le not_le)
@@ -1020,8 +988,7 @@ proof (cases "x = 0")
 qed simp
 
 lemma real_of_int_div3: "real_of_int n / real_of_int x - real_of_int (n div x) \<le> 1"
-  apply (simp add: algebra_simps)
-  by (metis add.commute floor_correct floor_divide_of_int_eq less_eq_real_def of_int_1 of_int_add)
+  by (metis add.commute diff_le_eq floor_divide_of_int_eq less_floor_iff linorder_not_le nle_le)
 
 lemma real_of_int_div4: "real_of_int (n div x) \<le> real_of_int n / real_of_int x"
   using real_of_int_div2 [of n x] by simp
@@ -1107,13 +1074,8 @@ lemma Inter_eq_Inter_inverse_Suc:
   shows "\<Inter> (A ` {0<..}) = (\<Inter>n. A(inverse(Suc n)))"
 proof 
   have "x \<in> A \<epsilon>"
-    if x: "\<forall>n. x \<in> A (inverse (Suc n))" and "\<epsilon>>0" for x and \<epsilon> :: real
-  proof -
-    obtain n where "inverse (Suc n) < \<epsilon>"
-      using \<open>\<epsilon>>0\<close> reals_Archimedean by blast
-    with assms x show ?thesis
-      by blast
-  qed
+    if "\<forall>n. x \<in> A (inverse (Suc n))" and "\<epsilon>>0" for x and \<epsilon> :: real
+    by (meson assms in_mono reals_Archimedean that)
   then show "(\<Inter>n. A(inverse(Suc n))) \<subseteq> (\<Inter>\<epsilon>\<in>{0<..}. A \<epsilon>)"
     by auto    
 qed (use inverse_Suc in fastforce)
@@ -1207,12 +1169,7 @@ proof -
   qed
   moreover
   have "?gcd' = 1"
-  proof -
-    have "?gcd * ?gcd' = gcd (?gcd * ?k) (?gcd * ?l)"
-      by (rule gcd_mult_distrib_nat)
-    with gcd_k gcd_l have "?gcd * ?gcd' = ?gcd" by simp
-    with gcd show ?thesis by auto
-  qed
+    using \<open>n \<noteq> 0\<close> coprime_iff_gcd_eq_1 div_gcd_coprime by blast
   then have "coprime ?k ?l"
     by (simp only: coprime_iff_gcd_eq_1)
   ultimately show ?thesis ..
@@ -1354,7 +1311,7 @@ next
   then have "of_nat n \<ge> (1::'a)"
     by simp
   with False have "of_nat n * x \<le> -1"
-    by (metis linear minus_zero mult.commute mult.left_neutral mult_left_mono_neg neg_le_iff_le order_trans zero_le_one)
+    by (meson le_minus_one_simps(1) mult_le_cancel_right2 nle_le order.order_iff_strict order.trans) 
   then have "1 + of_nat n * x \<le> 0"
     by auto
   also have "... \<le> (1 + x) ^ n"
