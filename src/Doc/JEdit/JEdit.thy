@@ -1090,14 +1090,14 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}[t]{l}
-  @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close>) \\
-  @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close>) \\
+  @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close> or \<^verbatim>\<open>AS+b\<close>) \\
+  @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close> or \<^verbatim>\<open>AS+m\<close>) \\
   \end{tabular}\quad
   \begin{tabular}[t]{l}
-  @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close>) \\
-  @{action_ref "isabelle.last-error"} (\<^verbatim>\<open>CS+z\<close>) \\
-  @{action_ref "isabelle.next-error"} (\<^verbatim>\<open>CS+n\<close>) \\
-  @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close>) \\
+  @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close> or \<^verbatim>\<open>AS+a\<close>) \\
+  @{action_ref "isabelle.last-error"} (\<^verbatim>\<open>CS+z\<close> or \<^verbatim>\<open>AS+z\<close>) \\
+  @{action_ref "isabelle.next-error"} (\<^verbatim>\<open>CS+n\<close> or \<^verbatim>\<open>AS+n\<close>) \\
+  @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close> or \<^verbatim>\<open>AS+p\<close>) \\
   \end{tabular}
   \<^medskip>
 \<close>
@@ -1289,10 +1289,10 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}[t]{ll}
-  @{action_def "isabelle.follow-link"} (\<^verbatim>\<open>AS+DOWN\<close>) \\
-  @{action_def "isabelle.show-links"} (\<^verbatim>\<open>AS+UP\<close>) \\
-  @{action_def "navigate-backwards"} (\<^verbatim>\<open>AS+LEFT\<close>) \\
-  @{action_def "navigate-forwards"} (\<^verbatim>\<open>AS+RIGHT\<close>) \\
+  @{action_def "isabelle.follow-link"} (\<^verbatim>\<open>CS+DOWN\<close> or \<^verbatim>\<open>AS+DOWN\<close>) \\
+  @{action_def "isabelle.show-links"} (\<^verbatim>\<open>CS+UP\<close> or \<^verbatim>\<open>AS+UP\<close>) \\
+  @{action_def "navigate-backwards"} (\<^verbatim>\<open>CS+LEFT\<close> or \<^verbatim>\<open>AS+LEFT\<close>) \\
+  @{action_def "navigate-forwards"} (\<^verbatim>\<open>CS+RIGHT\<close> or \<^verbatim>\<open>AS+RIGHT\<close>) \\
   \end{tabular}
   \<^medskip>
 
