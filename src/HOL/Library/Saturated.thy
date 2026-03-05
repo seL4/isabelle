@@ -173,8 +173,8 @@ end
 instance sat :: (len) finite
 proof
   show "finite (UNIV::'a sat set)"
-    unfolding type_definition.univ [OF type_definition_sat]
-    using finite by simp
+    using type_definition.Abs_image [OF type_definition_sat]
+    by (metis finite_atMost finite_imageI)
 qed
 
 instantiation sat :: (len) equal

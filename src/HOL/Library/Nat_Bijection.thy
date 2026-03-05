@@ -25,6 +25,7 @@ lemma triangle_0 [simp]: "triangle 0 = 0"
 lemma triangle_Suc [simp]: "triangle (Suc n) = triangle n + Suc n"
   by (simp add: triangle_def)
 
+text \<open>Cantor pairing of natural numbers\<close>
 definition prod_encode :: "nat \<times> nat \<Rightarrow> nat"
   where "prod_encode = (\<lambda>(m, n). triangle (m + n) + m)"
 
@@ -57,9 +58,8 @@ proof (induct k arbitrary: m)
 next
   case (Suc k)
   then show ?case
-    by (metis ab_semigroup_add_class.add_ac(1) add_diff_cancel_left' le_add1 not_less_eq_eq prod_decode_aux.simps triangle_Suc)
+    by (metis add.assoc add_diff_cancel_left' le_add1 not_less_eq_eq prod_decode_aux.simps triangle_Suc)
 qed
-
 
 lemma prod_encode_inverse [simp]: "prod_decode (prod_encode x) = x"
   unfolding prod_encode_def
@@ -102,7 +102,23 @@ lemma le_prod_encode_1: "a \<le> prod_encode (a, b)"
 lemma le_prod_encode_2: "b \<le> prod_encode (a, b)"
   by (induct b) (simp_all add: prod_encode_def)
 
+lemma prod_encode_mono1:
+  assumes "a' \<le> a"
+  shows "prod_encode (a', b) \<le> prod_encode (a, b)"
+  using assms
+  by (induction a; fastforce simp: le_Suc_eq prod_encode_def)
 
+lemma prod_encode_mono2:
+  assumes "b' \<le> b"
+  shows "prod_encode (a, b') \<le> prod_encode (a, b)"
+  using assms
+  by (induction b; fastforce simp: le_Suc_eq prod_encode_def)
+
+lemma prod_encode_mono:
+  assumes "a' \<le> a" "b' \<le> b"
+  shows "prod_encode (a', b') \<le> prod_encode (a, b)"
+  by (meson assms le_trans prod_encode_mono1 prod_encode_mono2) 
+ 
 subsection \<open>Type \<^typ>\<open>nat + nat\<close>\<close>
 
 definition sum_encode :: "nat + nat \<Rightarrow> nat"
@@ -399,8 +415,8 @@ proof -
       "m = set_encode A" "finite A"
       "n = set_encode B" "finite B"
       by (metis finite_set_decode set_decode_inverse)
-  with assms show ?thesis
-    by auto (simp add: set_encode_def add.commute sum.subset_diff)
+    with assms show ?thesis
+      by (metis add.commute set_encode_def set_encode_inverse sum.subset_diff)
   qed
   then show ?thesis
     by (metis le_add1)

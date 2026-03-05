@@ -50,8 +50,8 @@ subsection \<open>@{typ num1}\<close>
 instance num1 :: finite
 proof
   show "finite (UNIV::num1 set)"
-    unfolding type_definition.univ [OF type_definition_num1]
-    using finite by (rule finite_imageI)
+    using type_definition.Abs_image [OF type_definition_num1]
+    by (metis finite_class.finite_UNIV finite_imageI)
 qed
 
 instantiation num1 :: CARD_1
@@ -103,8 +103,7 @@ instance num1 :: wellorder
 instance bit0 :: (finite) card2
 proof
   show "finite (UNIV::'a bit0 set)"
-    unfolding type_definition.univ [OF type_definition_bit0]
-    by simp
+    by (simp flip: type_definition.Abs_image [OF type_definition_bit0])
   show "2 \<le> CARD('a bit0)"
     by simp
 qed
@@ -112,8 +111,7 @@ qed
 instance bit1 :: (finite) card2
 proof
   show "finite (UNIV::'a bit1 set)"
-    unfolding type_definition.univ [OF type_definition_bit1]
-    by simp
+    by (simp flip: type_definition.Abs_image [OF type_definition_bit1])
   show "2 \<le> CARD('a bit1)"
     by simp
 qed
@@ -211,18 +209,10 @@ lemma induct:
   by (cases x rule: cases) simp
 
 lemma UNIV_eq: "(UNIV :: 'a set) = Abs ` {0..<n}"
-  using type type_definition.univ by blast
+  using type type_definition.Abs_image by blast
 
 lemma CARD_eq: "CARD('a) = nat n"
-proof -
-  have "CARD('a) = card (Abs ` {0..<n})"
-    by (simp add: UNIV_eq)
-  also have "inj_on Abs {0..<n}"
-    by (metis Abs_inverse inj_onI)
-  hence "card (Abs ` {0..<n}) = nat n"
-    using size1 by (subst card_image) auto
-  finally show ?thesis .
-qed
+  by (metis card_atLeastZeroLessThan_int type type_definition.card)
 
 lemma CHAR_eq [simp]: "CHAR('a) = CARD('a)"
 proof (rule CHAR_eqI)
