@@ -31,7 +31,7 @@ The official platforms, with **base-line operating systems**, and reference
 machines are as follows:
 
   * `x86_64-linux` and `arm64-linux`
-      - **Ubuntu 18.04 LTS** (e.g. via `docker run -it ubuntu:20.04 bash`)
+      - **Ubuntu 20.04 LTS** (e.g. via `docker run -it ubuntu:20.04 bash`)
 
   * `x86_64-darwin`
       - macOS 12 Monterey (`mini1` Macmini8,1, 6 cores)
