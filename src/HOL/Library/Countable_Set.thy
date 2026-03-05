@@ -65,11 +65,8 @@ proof -
   moreover
   from \<open>inj_on f S\<close> \<open>infinite S\<close> have inf_fS: "infinite (f`S)"
     by (auto dest: finite_imageD)
-  then have "bij_betw (the_inv_into UNIV (enumerate (f`S))) (f`S) UNIV"
-    by (intro bij_betw_the_inv_into bij_enumerate)
-  ultimately have "bij_betw (the_inv_into UNIV (enumerate (f`S)) \<circ> f) S UNIV"
-    by (rule bij_betw_trans)
-  then show thesis ..
+  ultimately show thesis 
+    by (meson bij_betw_inv bij_betw_trans bij_enumerate that)
 qed
 
 lemma countable_infiniteE':
@@ -101,12 +98,7 @@ lemma to_nat_on_infinite: "countable S \<Longrightarrow> infinite S \<Longrighta
 lemma bij_betw_from_nat_into_finite: "finite S \<Longrightarrow> bij_betw (from_nat_into S) {..< card S} S"
   unfolding from_nat_into_def[abs_def]
   using to_nat_on_finite[of S]
-  apply (subst bij_betw_cong)
-  apply (split if_split)
-  apply (simp add: bij_betw_def)
-  apply (auto cong: bij_betw_cong
-              intro: bij_betw_inv_into to_nat_on_finite)
-  done
+  by (smt (verit, ccfv_SIG) bij_betw_cong bij_betw_imp_surj_on bij_betw_inv_into)
 
 lemma bij_betw_from_nat_into: "countable S \<Longrightarrow> infinite S \<Longrightarrow> bij_betw (from_nat_into S) UNIV S"
   unfolding from_nat_into_def[abs_def]
@@ -205,14 +197,8 @@ lemma countable_SIGMA[intro, simp]:
 lemma countable_image[intro, simp]:
   assumes "countable A"
   shows "countable (f`A)"
-proof -
-  obtain g :: "'a \<Rightarrow> nat" where "inj_on g A"
-    using assms by (rule countableE)
-  moreover have "inj_on (inv_into A f) (f`A)" "inv_into A f ` f ` A \<subseteq> A"
-    by (auto intro: inj_on_inv_into inv_into_into)
-  ultimately show ?thesis
-    by (blast dest: comp_inj_on inj_on_subset intro: countableI)
-qed
+  by (metis assms countable_iff_bij countable_subset inj_on_imp_bij_betw subsetI
+      subset_image_inj)
 
 lemma countable_image_inj_on: "countable (f ` A) \<Longrightarrow> inj_on f A \<Longrightarrow> countable A"
   by (metis countable_image the_inv_into_onto)
@@ -232,7 +218,7 @@ lemma countable_image_inj_eq:
 
 lemma countable_image_inj:
    "\<lbrakk>countable A; inj f\<rbrakk> \<Longrightarrow> countable {x. f x \<in> A}"
-  by (metis (mono_tags, lifting) countable_image_inj_eq countable_subset image_Collect_subsetI inj_on_inverseI the_inv_f_f)
+  using countable_image_inj_gen by fastforce
 
 lemma countable_UN[intro, simp]:
   fixes I :: "'i set" and A :: "'i => 'a set"
@@ -289,11 +275,7 @@ lemma countable_Image:
   assumes "\<And>y. y \<in> Y \<Longrightarrow> countable (X `` {y})"
   assumes "countable Y"
   shows "countable (X `` Y)"
-proof -
-  have "countable (X `` (\<Union>y\<in>Y. {y}))"
-    unfolding Image_UN by (intro countable_UN assms)
-  then show ?thesis by simp
-qed
+  by (metis Image_eq_UN assms countable_UN)
 
 lemma countable_relpow:
   fixes X :: "'a rel"
@@ -315,12 +297,7 @@ lemma countable_rtrancl:
 
 lemma countable_lists[intro, simp]:
   assumes A: "countable A" shows "countable (lists A)"
-proof -
-  have "countable (lists (range (from_nat_into A)))"
-    by (auto simp: lists_image)
-  with A show ?thesis
-    by (auto dest: subset_range_from_nat_into countable_subset lists_mono)
-qed
+  by (meson assms countableI' countable_def inj_on_map_lists) 
 
 lemma Collect_finite_eq_lists: "Collect finite = set ` lists UNIV"
   using finite_list by auto

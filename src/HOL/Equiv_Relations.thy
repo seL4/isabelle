@@ -226,6 +226,9 @@ lemma finite_refines_card_le:
   by (subst refines_equiv_image_eq [of R S A, symmetric])
     (auto simp: card_image_le [where f = "\<lambda>X. S``X"])
 
+lemma (in type_definition) card: "card (UNIV :: 'b set) = card A"
+  by (simp add: card_image inj_on_def Abs_inject flip: Abs_image)
+
 
 subsection \<open>Defining unary operations upon equivalence classes\<close>
 

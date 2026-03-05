@@ -34,7 +34,7 @@ definition from_nat :: "nat \<Rightarrow> 'a::countable" where
   "from_nat = inv (to_nat :: 'a \<Rightarrow> nat)"
 
 lemma inj_to_nat [simp]: "inj to_nat"
-  by (rule exE_some [OF ex_inj]) (simp add: to_nat_def)
+  by (metis ex_inj someI_ex to_nat_def) 
 
 lemma inj_on_to_nat[simp, intro]: "inj_on to_nat S"
   using inj_to_nat by (auto simp: inj_on_def)
@@ -54,13 +54,11 @@ subsection \<open>Finite types are countable\<close>
 
 subclass (in finite) countable
 proof
-  have "finite (UNIV::'a set)" by (rule finite_UNIV)
-  with finite_conv_nat_seg_image [of "UNIV::'a set"]
   obtain n and f :: "nat \<Rightarrow> 'a"
-    where "UNIV = f ` {i. i < n}" by auto
-  then have "surj f" unfolding surj_def by auto
-  then have "inj (inv f)" by (rule surj_imp_inj_inv)
-  then show "\<exists>to_nat :: 'a \<Rightarrow> nat. inj to_nat" by (rule exI[of inj])
+    where "UNIV = f ` {i. i < n}" 
+    by (metis finite_conv_nat_seg_image local.finite)
+  then show "\<exists>to_nat :: 'a \<Rightarrow> nat. inj to_nat" 
+    by (meson finite_imp_inj_to_nat_seg local.finite)
 qed
 
 
@@ -94,10 +92,10 @@ where
 by pat_completeness auto
 
 lemma le_sum_encode_Inl: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inl y)"
-unfolding sum_encode_def by simp
+  unfolding sum_encode_def by simp
 
 lemma le_sum_encode_Inr: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inr y)"
-unfolding sum_encode_def by simp
+  unfolding sum_encode_def by simp
 
 qualified termination
 by (relation "measure id")
@@ -147,19 +145,13 @@ proof
     fix y :: 'b
     have "rep_set (Rep y)"
       using type_definition.Rep [OF type] by simp
-    hence "finite_item (Rep y)"
-      by (rule finite_item)
-    hence "\<exists>n. nth_item n = Rep y"
-      by (rule nth_item_covers)
-    hence "nth_item (f y) = Rep y"
-      unfolding f_def by (rule LeastI_ex)
     hence "Abs (nth_item (f y)) = y"
-      using type_definition.Rep_inverse [OF type] by simp
+      unfolding f_def
+      by (metis (mono_tags, lifting) LeastI finite_item nth_item_covers type
+          type_definition.Rep_inverse)
   }
-  hence "inj f"
-    by (rule inj_on_inverseI)
   thus "\<exists>f::'b \<Rightarrow> nat. inj f"
-    by - (rule exI)
+    by (metis injI)
 qed
 
 ML \<open>
@@ -267,7 +259,7 @@ proof
   show "\<exists>to_nat::('a \<Rightarrow> 'b) \<Rightarrow> nat. inj to_nat"
   proof
     show "inj (\<lambda>f. to_nat (map f xs))"
-      by (rule injI, simp add: xs fun_eq_iff)
+      by (metis (no_types, lifting) ext UNIV_I injI map_eq_conv to_nat_split xs)
   qed
 qed
 
@@ -315,12 +307,7 @@ end
 instance rat :: countable
 proof
   show "\<exists>to_nat::rat \<Rightarrow> nat. inj to_nat"
-  proof
-    have "surj nat_to_rat_surj"
-      by (rule surj_nat_to_rat_surj)
-    then show "inj (inv nat_to_rat_surj)"
-      by (rule surj_imp_inj_inv)
-  qed
+    using surj_imp_inj_inv surj_nat_to_rat_surj by blast
 qed
 
 theorem rat_denum: "\<exists>f :: nat \<Rightarrow> rat. surj f"
