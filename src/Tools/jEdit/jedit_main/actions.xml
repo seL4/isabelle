@@ -89,12 +89,12 @@
 	</ACTION>
 	<ACTION NAME="isabelle.show-links">
 	  <CODE>
-	    isabelle.jedit.Isabelle.show_links(view);
+	    isabelle.jedit.Isabelle.show_links(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.follow-link">
 	  <CODE>
-	    isabelle.jedit.Isabelle.follow_link(view);
+	    isabelle.jedit.Isabelle.follow_link(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.select-entity">
@@ -114,32 +114,32 @@
 	</ACTION>
 	<ACTION NAME="isabelle.tooltip">
 	  <CODE>
-	    isabelle.jedit.Isabelle.show_tooltip(view, true);
+	    isabelle.jedit.Isabelle.show_tooltip(textArea, true);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.message">
 	  <CODE>
-	    isabelle.jedit.Isabelle.show_tooltip(view, false);
+	    isabelle.jedit.Isabelle.show_tooltip(textArea, false);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.first-error">
 	  <CODE>
-	    isabelle.jedit.Isabelle.goto_first_error(view);
+	    isabelle.jedit.Isabelle.goto_first_error(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.last-error">
 	  <CODE>
-	    isabelle.jedit.Isabelle.goto_last_error(view);
+	    isabelle.jedit.Isabelle.goto_last_error(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.prev-error">
 	  <CODE>
-	    isabelle.jedit.Isabelle.goto_prev_error(view);
+	    isabelle.jedit.Isabelle.goto_prev_error(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.next-error">
 	  <CODE>
-	    isabelle.jedit.Isabelle.goto_next_error(view);
+	    isabelle.jedit.Isabelle.goto_next_error(textArea);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.complete-word">
@@ -254,12 +254,12 @@
 	</ACTION>
 	<ACTION NAME="isabelle.recode-plain">
 	  <CODE>
-	    isabelle.jedit.Isabelle.recode_plain(view);
+	    isabelle.jedit.Isabelle.recode_plain(buffer);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.recode-symbols">
 	  <CODE>
-	    isabelle.jedit.Isabelle.recode_symbols(view);
+	    isabelle.jedit.Isabelle.recode_symbols(buffer);
 	  </CODE>
 	</ACTION>
 </ACTIONS>

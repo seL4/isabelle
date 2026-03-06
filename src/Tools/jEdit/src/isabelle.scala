@@ -505,10 +505,8 @@ object Isabelle {
 
   /* hyperlinks and popups */
 
-  def follow_link(view: View): Unit = {
-    val editor_context = JEdit_Editor.Context(view)
-    val text_area = view.getTextArea
-
+  def follow_link(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
     for (rendering <- Document_View.get_rendering(text_area)) {
       val caret_range = editor_context.caret_range
       for (info <- rendering.hyperlink(caret_range)) {
@@ -517,10 +515,8 @@ object Isabelle {
     }
   }
 
-  def show_links(view: View): Unit = {
-    val editor_context = JEdit_Editor.Context(view)
-    val text_area = view.getTextArea
-
+  def show_links(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
     for {
       rendering <- Document_View.get_rendering(text_area)
       completion <- Completion_Popup.Text_Area(text_area)
@@ -537,11 +533,10 @@ object Isabelle {
     }
   }
 
-  def show_tooltip(view: View, control: Boolean): Unit = {
+  def show_tooltip(text_area: JEditTextArea, control: Boolean): Unit = {
     GUI_Thread.require {}
 
-    val editor_context = JEdit_Editor.Context(view)
-    val text_area = view.getTextArea
+    val editor_context = JEdit_Editor.Context(text_area)
     val painter = editor_context.text_area_painter
     val caret_range = editor_context.caret_range
     for {
@@ -551,7 +546,7 @@ object Isabelle {
     } {
       val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
       val results = rendering.snapshot.command_results(tip.range)
-      Pretty_Tooltip(view, painter, loc, rendering, results, tip.info)
+      Pretty_Tooltip(editor_context.view, painter, loc, rendering, results, tip.info)
     }
   }
 
@@ -576,15 +571,13 @@ object Isabelle {
   /* error navigation */
 
   private def goto_error(
-    view: View,
+    editor_context: JEdit_Editor.Static_Context,
     range: Text.Range,
     avoid_range: Text.Range = Text.Range.offside,
     which: String = "")(
     get: List[Text.Markup] => Option[Text.Markup]
   ): Unit = {
     GUI_Thread.require {}
-
-    val editor_context = JEdit_Editor.Context(view)
 
     for (rendering <- Document_View.get_rendering(editor_context.text_area)) {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
@@ -594,36 +587,41 @@ object Isabelle {
           PIDE.editor.goto_file(
             editor_context, editor_context.buffer_name, offset = err.range.start)
         case None =>
-          view.getStatus.setMessageAndClear("No " + which + "error in current document snapshot")
+          editor_context.view.getStatus
+            .setMessageAndClear("No " + which + "error in current document snapshot")
       }
     }
   }
 
-  def goto_first_error(view: View): Unit =
-    goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.headOption)
-
-  def goto_last_error(view: View): Unit =
-    goto_error(view, JEdit_Lib.buffer_range(view.getBuffer))(_.lastOption)
-
-  def goto_prev_error(view: View): Unit = {
-    val editor_context = JEdit_Editor.Context(view)
-    val caret_range = editor_context.caret_range
-    val range = Text.Range(0, caret_range.stop)
-    goto_error(view, range, avoid_range = caret_range, which = "previous ")(_.lastOption)
+  def goto_first_error(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
+    goto_error(editor_context, editor_context.buffer_range)(_.headOption)
   }
 
-  def goto_next_error(view: View): Unit = {
-    val editor_context = JEdit_Editor.Context(view)
+  def goto_last_error(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
+    goto_error(editor_context, editor_context.buffer_range)(_.lastOption)
+  }
+
+  def goto_prev_error(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
     val caret_range = editor_context.caret_range
-    val range = Text.Range(caret_range.start, view.getBuffer.getLength)
-    goto_error(view, range, avoid_range = caret_range, which = "next ")(_.headOption)
+    val range = Text.Range(0, caret_range.stop)
+    goto_error(editor_context, range, avoid_range = caret_range, which = "previous ")(_.lastOption)
+  }
+
+  def goto_next_error(text_area: JEditTextArea): Unit = {
+    val editor_context = JEdit_Editor.Context(text_area)
+    val caret_range = editor_context.caret_range
+    val range = Text.Range(caret_range.start, editor_context.buffer.getLength)
+    goto_error(editor_context, range, avoid_range = caret_range, which = "next ")(_.headOption)
   }
 
 
   /* recode symbols */
 
-  def recode_plain(view: View): Unit = Isabelle_Navigator.recode_buffer(view.getBuffer, false)
-  def recode_symbols(view: View): Unit = Isabelle_Navigator.recode_buffer(view.getBuffer, true)
+  def recode_plain(buffer: Buffer): Unit = Isabelle_Navigator.recode_buffer(buffer, false)
+  def recode_symbols(buffer: Buffer): Unit = Isabelle_Navigator.recode_buffer(buffer, true)
 
 
   /* java monitor */
