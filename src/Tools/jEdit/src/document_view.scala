@@ -67,7 +67,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
 
   private val session = model.session
 
-  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(text_area)
+  val editor_context: JEdit_Editor.Static_Context = JEdit_Editor.Context(text_area)
 
   val rich_text_area: Rich_Text_Area =
     new Rich_Text_Area(editor_context,

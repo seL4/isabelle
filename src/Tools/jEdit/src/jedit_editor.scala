@@ -21,18 +21,20 @@ object JEdit_Editor {
   /** context **/
 
   object Context {
-    def apply(view: View, static_text_area: TextArea): Context = new Context(view, static_text_area)
-    def apply(view: View): Context = apply(view, null)
-    def apply(static_text_area: JEditTextArea): Context =
-      apply(static_text_area.getView, static_text_area)
+    def apply(view: View): Dynamic_Context = new Dynamic_Context(view)
+    def apply(view: View, text_area: TextArea): Static_Context = new Static_Context(view, text_area)
+    def apply(text_area: JEditTextArea): Static_Context = apply(text_area.getView, text_area)
   }
 
-  // view with optional static text_area (default: dynamic text_area)
-  class Context private(val view: View, static_text_area: TextArea) {
+  trait Context {
+    /* view */
+
+    def view: View
+
+
     /* text area (NB: JEditTextArea <: TextArea) */
 
-    def text_area: TextArea =
-      if (static_text_area == null) view.getTextArea else static_text_area
+    def text_area: TextArea
 
     def text_area_painter: TextAreaPainter =
       if (text_area == null) null else text_area.getPainter
@@ -66,6 +68,15 @@ object JEdit_Editor {
         case _ => None
       }
   }
+
+  // view with dynamic text_area/buffer
+  class Dynamic_Context private[JEdit_Editor](override val view: View) extends Context {
+    override def text_area: TextArea = view.getTextArea
+  }
+
+  // view with static text area/buffer
+  class Static_Context private[JEdit_Editor](
+    override val view: View, override val text_area: TextArea) extends Context
 }
 
 class JEdit_Editor extends Editor {

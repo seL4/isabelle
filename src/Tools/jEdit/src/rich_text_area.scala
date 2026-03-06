@@ -27,7 +27,7 @@ import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, 
 
 
 class Rich_Text_Area(
-  editor_context: JEdit_Editor.Context,
+  editor_context: JEdit_Editor.Static_Context,
   get_rendering: () => JEdit_Rendering,
   close_action: () => Unit,
   get_search_pattern: () => Option[Regex],
@@ -36,7 +36,7 @@ class Rich_Text_Area(
   enable_hovering: Boolean
 ) {
   private val view = editor_context.view
-  private val view_editor_context = JEdit_Editor.Context(view)
+  private val view_editor_context: JEdit_Editor.Dynamic_Context = JEdit_Editor.Context(view)
   private val text_area = editor_context.text_area
   private val buffer = text_area.getBuffer
 

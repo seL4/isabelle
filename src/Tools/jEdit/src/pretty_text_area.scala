@@ -130,7 +130,8 @@ class Pretty_Text_Area(
       (future, Some(future))
     })
 
-  val editor_context: JEdit_Editor.Context = JEdit_Editor.Context(view, pretty_text_area)
+  val editor_context: JEdit_Editor.Static_Context =
+    JEdit_Editor.Context(view, pretty_text_area)
 
   private val rich_text_area =
     new Rich_Text_Area(editor_context, () => current_rendering, close_action,
