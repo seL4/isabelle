@@ -82,7 +82,8 @@ fun handle_trivial_tfrees ctxt t' subst =
     val trivial_tfree_names =
       Vartab.fold add_tfree_names subst []
       |> filter_out (Variable.is_declared ctxt)
-      |> distinct (op =)
+      |> (fn names => subtract (op =) (duplicates (op =) names) names)
+      |> sort fast_string_ord
     val tfree_name_trivial = Ord_List.member fast_string_ord trivial_tfree_names
 
     val trivial_tvar_names =
