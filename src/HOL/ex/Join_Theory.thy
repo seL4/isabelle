@@ -24,7 +24,7 @@ ML \<open>
         |> Local_Theory.define ((b, NoSyn), ((Binding.empty, []), \<^term>\<open>True\<close>));
       val th =
         Goal.prove lthy' [] [] (HOLogic.mk_Trueprop t)
-          (fn {context = goal_ctxt, ...} => asm_full_simp_tac (goal_ctxt addsimps [def]) 1);
+          (fn {context = goal_ctxt, ...} => asm_full_simp_tac (goal_ctxt |> Simplifier.add_simp def) 1);
       val (_, lthy'') = lthy' |> Local_Theory.note ((b, []), [th]);
     in lthy'' end;
 \<close>

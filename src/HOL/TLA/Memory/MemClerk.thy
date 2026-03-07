@@ -85,8 +85,8 @@ lemma MClkbusy: "\<turnstile> $Calling rcv p \<longrightarrow> \<not>MClkNext se
 lemma MClkFwd_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p) \<Longrightarrow>  
       \<turnstile> Calling send p \<and> \<not>Calling rcv p \<and> cst!p = #clkA   
          \<longrightarrow> Enabled (MClkFwd send rcv cst p)"
-  by (tactic \<open>action_simp_tac (\<^context> addsimps [@{thm MClkFwd_def},
-    @{thm ACall_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+  by (tactic \<open>action_simp_tac (\<^context> |> Simplifier.add_simps @{thms MClkFwd_def
+    ACall_def caller_def rtrner_def}) [exI]
     [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
 
 lemma MClkFwd_ch_enabled: "\<turnstile> Enabled (MClkFwd send rcv cst p)  \<longrightarrow>   
@@ -102,8 +102,8 @@ lemma MClkReply_enabled: "\<And>p. basevars (rtrner send!p, caller rcv!p, cst!p)
          \<longrightarrow> Enabled (<MClkReply send rcv cst p>_(cst!p, rtrner send!p, caller rcv!p))"
   apply (tactic \<open>action_simp_tac \<^context>
     [@{thm MClkReply_change} RSN (2, @{thm enabled_mono})] [] 1\<close>)
-  apply (tactic \<open>action_simp_tac (\<^context> addsimps
-    [@{thm MClkReply_def}, @{thm AReturn_def}, @{thm caller_def}, @{thm rtrner_def}])
+  apply (tactic \<open>action_simp_tac (\<^context> |> Simplifier.add_simps
+    @{thms MClkReply_def AReturn_def caller_def rtrner_def})
     [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1\<close>)
   done
 

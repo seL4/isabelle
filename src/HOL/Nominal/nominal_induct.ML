@@ -22,9 +22,9 @@ fun tuple_fun Ts (xi, T) =
     (Var (xi, (HOLogic.unitT :: Ts) ---> Term.range_type T));
 
 fun split_all_tuples ctxt =
-  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps
-    [@{thm split_conv}, @{thm split_paired_all}, @{thm unit_all_eq1}, @{thm fresh_unit_elim}, @{thm fresh_prod_elim}] @
-    @{thms fresh_star_unit_elim} @ @{thms fresh_star_prod_elim});
+  Simplifier.full_simplify (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
+    @{thms split_conv split_paired_all unit_all_eq1 fresh_unit_elim fresh_prod_elim
+    fresh_star_unit_elim fresh_star_prod_elim});
 
 
 (* prepare rule *)

@@ -332,7 +332,7 @@ ML \<open>
 fun record_auto_tac ctxt =
   let val ctxt' =
     ctxt addSWrapper Record.split_wrapper
-    addsimps
+    |> Simplifier.add_simps
        [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
         @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
         @{thm o_apply}, @{thm Let_def}]
@@ -548,7 +548,7 @@ ML \<open>
 val [Client_Increasing_ask, Client_Increasing_rel,
      Client_Bounded, Client_Progress, Client_AllowedActs,
      Client_preserves_giv, Client_preserves_dummy] =
-        @{thm Client} |> simplify (\<^context> addsimps @{thms client_spec_simps})
+        @{thm Client} |> simplify (\<^context> |> Simplifier.add_simps @{thms client_spec_simps})
                |> list_of_Int;
 
 ML_Thms.bind_thm ("Client_Increasing_ask", Client_Increasing_ask);
@@ -578,7 +578,7 @@ ML \<open>
 val [Network_Ask, Network_Giv, Network_Rel, Network_AllowedActs,
      Network_preserves_allocGiv, Network_preserves_rel,
      Network_preserves_ask]  =
-        @{thm Network} |> simplify (\<^context> addsimps @{thms network_spec_simps})
+        @{thm Network} |> simplify (\<^context> |> Simplifier.add_simps @{thms network_spec_simps})
                 |> list_of_Int;
 
 ML_Thms.bind_thm ("Network_Ask", Network_Ask);
@@ -609,7 +609,7 @@ ML \<open>
 val [Alloc_Increasing_0, Alloc_Safety, Alloc_Progress, Alloc_AllowedActs,
      Alloc_preserves_allocRel, Alloc_preserves_allocAsk,
      Alloc_preserves_dummy] =
-        @{thm Alloc} |> simplify (\<^context> addsimps @{thms alloc_spec_simps})
+        @{thm Alloc} |> simplify (\<^context> |> Simplifier.add_simps @{thms alloc_spec_simps})
               |> list_of_Int;
 
 ML_Thms.bind_thm ("Alloc_Increasing_0", Alloc_Increasing_0);
@@ -713,19 +713,19 @@ ML
 \<open>
 fun rename_client_map_tac ctxt =
   EVERY [
-    simp_tac (ctxt addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
+    simp_tac (ctxt |> Simplifier.add_simp @{thm rename_guarantees_eq_rename_inv}) 1,
     resolve_tac ctxt @{thms guarantees_PLam_I} 1,
     assume_tac ctxt 2,
          (*preserves: routine reasoning*)
-    asm_simp_tac (ctxt addsimps [@{thm lift_preserves_sub}]) 2,
+    asm_simp_tac (ctxt |> Simplifier.add_simp @{thm lift_preserves_sub}) 2,
          (*the guarantee for  "lift i (rename client_map Client)" *)
     asm_simp_tac
-        (ctxt addsimps [@{thm lift_guarantees_eq_lift_inv},
+        (ctxt |> Simplifier.add_simps [@{thm lift_guarantees_eq_lift_inv},
                       @{thm rename_guarantees_eq_rename_inv},
                       @{thm bij_imp_bij_inv}, @{thm surj_rename},
                       @{thm inv_inv_eq}]) 1,
     asm_simp_tac
-        (ctxt addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
+        (ctxt |> Simplifier.add_simps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
 \<close>
 
 method_setup rename_client_map = \<open>

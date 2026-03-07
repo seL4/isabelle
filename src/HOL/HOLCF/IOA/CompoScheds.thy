@@ -285,7 +285,7 @@ fun mkex_induct_tac ctxt sch exA exB =
     asm_full_simp_tac ctxt,
     Seq_case_simp_tac ctxt exB,
     asm_full_simp_tac ctxt,
-    asm_full_simp_tac (ctxt addsimps @{thms asig_of_par actions_asig_comp})]
+    asm_full_simp_tac (ctxt |> Simplifier.add_simps @{thms asig_of_par actions_asig_comp})]
 \<close>
 
 method_setup mkex_induct = \<open>

@@ -137,7 +137,7 @@ lemma split_If2: "P (If2 Q x y) \<longleftrightarrow> ((Q = \<bottom> \<longrigh
 (* FIXME unused!? *)
 ML \<open>
 fun split_If_tac ctxt =
-  simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm If2_def} RS sym])
+  simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp (@{thm If2_def} RS sym))
     THEN' (split_tac ctxt [@{thm split_If2}])
 \<close>
 

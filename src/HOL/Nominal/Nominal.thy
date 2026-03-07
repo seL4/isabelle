@@ -3410,7 +3410,7 @@ lemma allE_Nil: assumes "\<forall>x. P x" obtains "P []"
   using assms ..
 
 ML_file \<open>nominal_datatype.ML\<close>
-
+                  
 (******************************************************)
 (* primitive recursive functions on nominal datatypes *)
 ML_file \<open>nominal_primrec.ML\<close>

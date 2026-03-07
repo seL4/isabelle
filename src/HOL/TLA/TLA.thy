@@ -592,7 +592,7 @@ fun auto_inv_tac ctxt =
   SELECT_GOAL
     (inv_tac ctxt 1 THEN
       (TRYALL (action_simp_tac
-        (ctxt addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
+        (ctxt |> Simplifier.add_simps @{thms Init_stp Init_act}) [] [@{thm squareE}])));
 \<close>
 
 method_setup invariant = \<open>

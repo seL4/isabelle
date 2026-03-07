@@ -179,7 +179,7 @@ datatype intyness = Nat of thm | Neg_Nat of thm | No_Nat
 fun get_intyness ctxt ct =
   if Thm.typ_of_cterm ct = \<^typ>\<open>Real.real\<close> then
     let
-      val ctxt' = put_simpset HOL_basic_ss ctxt addsimps @{thms intyness_simps}
+      val ctxt' = ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps @{thms intyness_simps}
       val conv = 
         Simplifier.rewrite ctxt then_conv Simplifier.rewrite ctxt'
       fun flip (Nat thm) = Neg_Nat (thm RS @{thm intyness_uminus})
@@ -283,7 +283,7 @@ fun simplify_term' facts ctxt =
 fun simplify_term ectxt = simplify_term' (get_facts ectxt) (get_ctxt ectxt)
 
 fun simplify_eval ctxt =
-  simplify_term' [] (put_simpset HOL_basic_ss ctxt addsimps @{thms eval_simps})
+  simplify_term' [] (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps @{thms eval_simps})
 
 datatype zeroness = IsZero | IsNonZero | IsPos | IsNeg
 

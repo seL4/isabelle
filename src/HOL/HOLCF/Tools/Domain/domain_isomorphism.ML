@@ -308,8 +308,8 @@ fun define_map_functions
           [rewrite_goals_tac ctxt map_apply_thms,
            resolve_tac ctxt [map_cont_thm RS @{thm cont_fix_ind}] 1,
            REPEAT (resolve_tac ctxt adm_rules 1),
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps bottom_rules) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps tuple_rules) 1,
            REPEAT (eresolve_tac ctxt @{thms conjE} 1),
            REPEAT (resolve_tac ctxt (deflation_rules @ prems) 1 ORELSE assume_tac ctxt 1)])
       end
@@ -621,9 +621,9 @@ fun gen_domain_isomorphism
           [rewrite_goals_tac ctxt (defl_apply_thms @ map_apply_thms),
            resolve_tac ctxt [@{thm cont_parallel_fix_ind} OF [defl_cont_thm, map_cont_thm]] 1,
            REPEAT (resolve_tac ctxt adm_rules 1),
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps map_ID_simps) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps bottom_rules) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps tuple_rules) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps map_ID_simps) 1,
            REPEAT (eresolve_tac ctxt @{thms conjE} 1),
            REPEAT (resolve_tac ctxt (isodefl_rules @ prems) 1 ORELSE assume_tac ctxt 1)])
       end
@@ -693,12 +693,12 @@ fun gen_domain_isomorphism
             @ take_Suc_thms
         fun tac ctxt =
             EVERY
-            [simp_tac (put_simpset HOL_basic_ss ctxt addsimps start_rules) 1,
-             simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms fix_def2}) 1,
+            [simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps start_rules) 1,
+             simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp @{thm fix_def2}) 1,
              resolve_tac ctxt @{thms lub_eq} 1,
              resolve_tac ctxt @{thms nat.induct} 1,
-             simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules0) 1,
-             asm_full_simp_tac (put_simpset beta_ss ctxt addsimps rules1) 1]
+             simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps rules0) 1,
+             asm_full_simp_tac (ctxt |> put_simpset beta_ss |> Simplifier.add_simps rules1) 1]
       in
         Goal.prove_global thy [] [] goal (tac o #context)
       end

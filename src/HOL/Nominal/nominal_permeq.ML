@@ -141,7 +141,7 @@ fun perm_simp_gen stac dyn_thms eqvt_thms ctxt i =
     ("general simplification of permutations", fn st => SUBGOAL (fn _ =>
     let
        val ctxt' = ctxt
-         addsimps (maps (Proof_Context.get_thms ctxt) dyn_thms @ eqvt_thms)
+         |> Simplifier.add_simps (maps (Proof_Context.get_thms ctxt) dyn_thms @ eqvt_thms)
          |> Simplifier.add_proc perm_fun_simproc
          |> Simplifier.add_proc perm_app_simproc
          |> fold Simplifier.del_cong weak_congs
@@ -221,7 +221,7 @@ fun perm_compose_tac ctxt i =
    fn st => EVERY
      [resolve_tac ctxt [trans] i,
       asm_full_simp_tac (Simplifier.empty_simpset ctxt |> Simplifier.add_proc perm_compose_simproc) i,
-      asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [perm_aux_fold]) i] st);
+      asm_full_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp perm_aux_fold) i] st);
 
 fun apply_cong_tac ctxt i = ("application of congruence", cong_tac ctxt i);
 
@@ -268,7 +268,7 @@ fun supports_tac_i tactical ctxt i =
   let
      val simps        = [supports_def, Thm.symmetric fresh_def, fresh_prod]
   in
-      EVERY [tactical ctxt ("unfolding of supports   ", simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps) i),
+      EVERY [tactical ctxt ("unfolding of supports   ", simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps simps) i),
              tactical ctxt ("stripping of foralls    ", REPEAT_DETERM (resolve_tac ctxt [allI] i)),
              tactical ctxt ("geting rid of the imps  ", resolve_tac ctxt [impI] i),
              tactical ctxt ("eliminating conjuncts   ", REPEAT_DETERM (eresolve_tac ctxt [conjE] i)),
@@ -310,7 +310,8 @@ fun finite_guess_tac_i tactical ctxt i st =
               infer_instantiate ctxt
                 [(#1 (dest_Var (head_of S)), Thm.cterm_of ctxt s')] supports_rule';
             val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
-            val ctxt' = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
+            val ctxt' = ctxt |> Simplifier.add_simps
+              (supp_prod :: supp_unit :: finite_Un :: finite_emptyI :: conj_absorb :: fin_supp)
           in
             (tactical ctxt ("guessing of the right supports-set",
                       EVERY [compose_tac ctxt (false, supports_rule'', 2) i,
@@ -332,8 +333,10 @@ fun fresh_guess_tac_i tactical ctxt i st =
         val goal = nth (Thm.cprems_of st) (i - 1)
         val fin_supp = Proof_Context.get_thms ctxt "fin_supp"
         val fresh_atm = Proof_Context.get_thms ctxt "fresh_atm"
-        val ctxt1 = ctxt addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
-        val ctxt2 = ctxt addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
+        val ctxt1 = ctxt |> Simplifier.add_simps
+          (Thm.symmetric fresh_def :: fresh_prod :: fresh_unit :: conj_absorb :: not_false :: fresh_atm)
+        val ctxt2 = ctxt |> Simplifier.add_simps
+          (supp_prod :: supp_unit :: finite_Un :: finite_emptyI :: conj_absorb :: fin_supp)
     in
       case Logic.strip_assums_concl (Thm.term_of goal) of
           _ $ (Const (\<^const_name>\<open>Nominal.fresh\<close>, Type ("fun", [T, _])) $ _ $ t) =>
@@ -363,7 +366,7 @@ fun fresh_guess_tac_i tactical ctxt i st =
           (* when a term-constructor contains more than one binder, it is useful    *)
           (* in nominal_primrecs to try whether the goal can be solved by an hammer *)
         | _ => (tactical ctxt ("if it is not of the form _\<sharp>_, then try the simplifier",
-                          (asm_full_simp_tac (put_simpset HOL_ss ctxt addsimps [fresh_prod]@fresh_atm) i))) st
+                          (asm_full_simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps (fresh_prod :: fresh_atm)) i))) st
     end
     handle General.Subscript => Seq.empty;
 (* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)

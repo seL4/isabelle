@@ -346,7 +346,7 @@ method_setup my_simp =
   \<open>Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
-        (put_simpset HOL_basic_ss ctxt addsimps thms) i)))\<close>
+        (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps thms) i)))\<close>
   "rewrite subgoal by given rules"
 
 text \<open>
@@ -386,7 +386,7 @@ method_setup my_simp_all =
     SIMPLE_METHOD
       (CHANGED
         (ALLGOALS (asm_full_simp_tac
-          (put_simpset HOL_basic_ss ctxt addsimps thms)))))\<close>
+          (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps thms)))))\<close>
   "rewrite all subgoals by given rules"
 
 notepad
@@ -419,8 +419,8 @@ method_setup my_simp' =
     in
       SIMPLE_METHOD' (fn i =>
         CHANGED (asm_full_simp_tac
-          (put_simpset HOL_basic_ss ctxt
-            addsimps (thms @ my_simps)) i))
+          (ctxt |> put_simpset HOL_basic_ss
+            |> Simplifier.add_simps (thms @ my_simps)) i))
     end)\<close>
   "rewrite subgoal by given rules and my_simp rules from the context"
 

@@ -23,15 +23,15 @@ fun rulify_term thy = Simplifier.rewrite_term thy inductive_rulify [];
 
 fun atomize_conv ctxt =
   Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
-    (put_simpset HOL_basic_ss ctxt addsimps inductive_atomize);
+    (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps inductive_atomize);
 fun atomize_intr ctxt = Conv.fconv_rule (Conv.prems_conv ~1 (atomize_conv ctxt));
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (Conv.prems_conv ~1 o atomize_conv) ctxt));
 
 fun fresh_postprocess ctxt =
-  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps
-    [@{thm fresh_star_set_eq}, @{thm fresh_star_Un_elim},
-     @{thm fresh_star_insert_elim}, @{thm fresh_star_empty_elim}]);
+  Simplifier.full_simplify (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
+    @{thms fresh_star_set_eq fresh_star_Un_elim
+     fresh_star_insert_elim fresh_star_empty_elim});
 
 fun preds_of ps t = inter (op = o apsnd dest_Free) ps (Term.add_frees t []);
 
@@ -117,7 +117,7 @@ fun inst_conj_all names ps pis (Const (\<^const_name>\<open>HOL.conj\<close>, _)
 fun inst_conj_all_tac ctxt k = EVERY
   [TRY (EVERY [eresolve_tac ctxt [conjE] 1, resolve_tac ctxt [conjI] 1, assume_tac ctxt 1]),
    REPEAT_DETERM_N k (eresolve_tac ctxt [allE] 1),
-   simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]) 1];
+   simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp @{thm id_apply}) 1];
 
 fun map_term f t u = (case f t u of
       NONE => map_term' f t u | x => x)
@@ -298,8 +298,8 @@ fun prove_strong_ind s alt_name avoids lthy =
     val pt2_atoms = map (fn a => Global_Theory.get_thm thy
       ("pt_" ^ Long_Name.base_name a ^ "2")) atoms;
     fun eqvt_ss ctxt =
-      put_simpset HOL_basic_ss ctxt
-        addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
+      ctxt |> put_simpset HOL_basic_ss
+        |> Simplifier.add_simps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
         |> Simplifier.add_proc (mk_perm_bool_simproc [\<^const_name>\<open>Fun.id\<close>])
         |> Simplifier.add_proc NominalPermeq.perm_app_simproc
         |> Simplifier.add_proc NominalPermeq.perm_fun_simproc;
@@ -333,8 +333,8 @@ fun prove_strong_ind s alt_name avoids lthy =
         val (([(_, cx)], th1 :: th2 :: ths), ctxt') = Obtain.result
           (fn ctxt' => EVERY
             [resolve_tac ctxt' [avoid_th] 1,
-             full_simp_tac (put_simpset HOL_ss ctxt' addsimps [@{thm fresh_star_prod_set}]) 1,
-             full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]) 1,
+             full_simp_tac (ctxt' |> put_simpset HOL_ss |> Simplifier.add_simp @{thm fresh_star_prod_set}) 1,
+             full_simp_tac (ctxt' |> put_simpset HOL_basic_ss |> Simplifier.add_simp @{thm id_apply}) 1,
              rotate_tac 1 1,
              REPEAT (eresolve_tac ctxt' [conjE] 1)])
           [] ctxt;
@@ -350,7 +350,7 @@ fun prove_strong_ind s alt_name avoids lthy =
                   (pis1 @ pi :: pis2) l $ r)))
             (fn {context = goal_ctxt, ...} =>
               cut_facts_tac [th2] 1 THEN
-              full_simp_tac (put_simpset HOL_basic_ss goal_ctxt addsimps perm_set_forget) 1) |>
+              full_simp_tac (goal_ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps perm_set_forget) 1) |>
           Simplifier.simplify (eqvt_ss ctxt')
       in
         (freshs @ [Thm.term_of cx],
@@ -390,7 +390,7 @@ fun prove_strong_ind s alt_name avoids lthy =
                        (HOLogic.mk_Trueprop (list_comb (h,
                           map (fold_rev (NominalDatatype.mk_perm []) pis) ts)))
                        (fn {context = goal_ctxt3, ...} =>
-                         simp_tac (put_simpset HOL_basic_ss goal_ctxt3 addsimps
+                         simp_tac (goal_ctxt3 |> put_simpset HOL_basic_ss |> Simplifier.add_simps
                           (fresh_star_bij @ finite_ineq)) 1 THEN resolve_tac goal_ctxt3 [th'] 1)
                    end) vc_compat_ths vc_compat_vs;
                  val (vc_compat_ths1, vc_compat_ths2) =
@@ -413,7 +413,7 @@ fun prove_strong_ind s alt_name avoids lthy =
                       (pis' @ pis) #> Thm.global_cterm_of thy) params' @ [Thm.global_cterm_of thy z]);
                  fun mk_pi th =
                    Simplifier.simplify
-                     (put_simpset HOL_basic_ss ctxt'' addsimps [@{thm id_apply}]
+                     (ctxt'' |> put_simpset HOL_basic_ss |> Simplifier.add_simp @{thm id_apply}
                        |> Simplifier.add_proc NominalDatatype.perm_simproc)
                      (Simplifier.simplify (eqvt_ss ctxt'')
                        (fold_rev (mk_perm_bool ctxt'' o Thm.cterm_of ctxt'')
@@ -435,15 +435,15 @@ fun prove_strong_ind s alt_name avoids lthy =
                      resolve_tac goal_ctxt4 [ihyp'] 1] @
                      map (fn th => resolve_tac goal_ctxt4 [th] 1) fresh_ths3 @
                      [REPEAT_DETERM_N (length gprems)
-                       (simp_tac (put_simpset HOL_basic_ss goal_ctxt4
-                          addsimps [inductive_forall_def']
+                       (simp_tac (goal_ctxt4 |> put_simpset HOL_basic_ss
+                          |> Simplifier.add_simp inductive_forall_def'
                           |> Simplifier.add_proc NominalDatatype.perm_simproc) 1 THEN
                         resolve_tac goal_ctxt4 gprems2 1)]));
                  val final = Goal.prove ctxt'' [] [] (Thm.term_of concl)
                    (fn {context = goal_ctxt5, ...} =>
-                     cut_facts_tac [th] 1 THEN full_simp_tac (put_simpset HOL_ss goal_ctxt5
-                     addsimps vc_compat_ths1' @ fresh_ths1 @
-                       perm_freshs_freshs') 1);
+                     cut_facts_tac [th] 1 THEN full_simp_tac (goal_ctxt5 |> put_simpset HOL_ss
+                     |> Simplifier.add_simps (vc_compat_ths1' @ fresh_ths1 @
+                       perm_freshs_freshs')) 1);
                  val final' = Proof_Context.export ctxt'' goal_ctxt2 [final];
                in resolve_tac goal_ctxt2 final' 1 end) goal_ctxt1 1])
                  (prems ~~ thss ~~ vc_compat' ~~ ihyps ~~ prems'')))

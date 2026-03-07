@@ -406,7 +406,7 @@ method_setup hoare =
   \<open>Scan.succeed (fn ctxt =>
     (SIMPLE_METHOD'
       (Hoare_Tac.hoare_tac ctxt
-        (simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm "Record.K_record_comp"}] )))))\<close>
+        (simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp @{thm Record.K_record_comp})))))\<close>
   "verification condition generator for Hoare logic"
 
 end

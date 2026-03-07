@@ -1209,7 +1209,7 @@ apply(tactic \<open>TRYALL(EVERY'[REPEAT o resolve_tac \<^context> [disjI2],
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI2],
     resolve_tac \<^context> [disjI1],
     eresolve_tac \<^context> @{thms le_trans},
-    force_tac (\<^context> addsimps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
+    force_tac (\<^context> |> Simplifier.add_simps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
 \<comment> \<open>35 subgoals left\<close>
 apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI2],
     resolve_tac \<^context> [disjI1],
@@ -1233,7 +1233,7 @@ apply(tactic \<open>TRYALL(EVERY'[resolve_tac \<^context> [disjI2],
     resolve_tac \<^context> [disjI2],
     resolve_tac \<^context> [disjI1],
     eresolve_tac \<^context> @{thms le_trans},
-    force_tac (\<^context> addsimps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
+    force_tac (\<^context> |> Simplifier.add_simps @{thms Queue_def less_Suc_eq_le le_length_filter_update})])\<close>)
 \<comment> \<open>10 subgoals left\<close>
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+
 done

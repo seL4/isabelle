@@ -207,12 +207,12 @@ fun add_enum_type tyname tyname' thy =
 
     val finite_UNIV = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop \<^Const>\<open>finite T for \<open>HOLogic.mk_UNIV T\<close>\<close>)
-      (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [UNIV_eq]) 1);
+      (fn {context = ctxt, ...} => simp_tac (ctxt |> Simplifier.add_simp UNIV_eq) 1);
 
     val card_UNIV = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
          (card, HOLogic.mk_number HOLogic.natT k)))
-      (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [UNIV_eq]) 1);
+      (fn {context = ctxt, ...} => simp_tac (ctxt |> Simplifier.add_simp UNIV_eq) 1);
 
     val range_pos = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -220,8 +220,8 @@ fun add_enum_type tyname tyname' thy =
           \<^Const>\<open>atLeastLessThan \<^Type>\<open>int\<close>
             for \<open>HOLogic.mk_number HOLogic.intT 0\<close> \<open>\<^term>\<open>int\<close> $ card\<close>\<close>)))
       (fn {context = ctxt, ...} =>
-         simp_tac (ctxt addsimps [card_UNIV]) 1 THEN
-         simp_tac (ctxt addsimps [UNIV_eq, def1]) 1 THEN
+         simp_tac (ctxt |> Simplifier.add_simp card_UNIV) 1 THEN
+         simp_tac (ctxt |> Simplifier.add_simps [UNIV_eq, def1]) 1 THEN
          resolve_tac ctxt @{thms subset_antisym} 1 THEN
          simp_tac ctxt 1 THEN
          resolve_tac ctxt @{thms subsetI} 1 THEN
@@ -233,30 +233,30 @@ fun add_enum_type tyname tyname' thy =
         Class.intro_classes_tac ctxt [] THEN
         resolve_tac ctxt [finite_UNIV] 1 THEN
         resolve_tac ctxt [range_pos] 1 THEN
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps [def3]) 1 THEN
-        simp_tac (put_simpset HOL_basic_ss ctxt addsimps [def2]) 1) lthy;
+        simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp def3) 1 THEN
+        simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp def2) 1) lthy;
 
     val (pos_eqs, val_eqs) = split_list (map_index (fn (i, c) =>
       let
         val n = HOLogic.mk_number HOLogic.intT i;
         val th = Goal.prove lthy' [] []
           (HOLogic.mk_Trueprop (HOLogic.mk_eq (p $ c, n)))
-          (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [def1]) 1);
+          (fn {context = ctxt, ...} => simp_tac (ctxt |> Simplifier.add_simp def1) 1);
         val th' = Goal.prove lthy' [] []
           (HOLogic.mk_Trueprop (HOLogic.mk_eq (v $ n, c)))
           (fn {context = ctxt, ...} =>
              resolve_tac ctxt [@{thm inj_pos} RS @{thm injD}] 1 THEN
-             simp_tac (ctxt addsimps [@{thm pos_val}, range_pos, card_UNIV, th]) 1)
+             simp_tac (ctxt |> Simplifier.add_simps [@{thm pos_val}, range_pos, card_UNIV, th]) 1)
       in (th, th') end) cs);
 
     val first_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (\<^Const>\<open>first_el T\<close>, hd cs)))
-      (fn {context = ctxt, ...} => simp_tac (ctxt addsimps [@{thm first_el_def}, hd val_eqs]) 1);
+      (fn {context = ctxt, ...} => simp_tac (ctxt |> Simplifier.add_simps [@{thm first_el_def}, hd val_eqs]) 1);
 
     val last_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (\<^Const>\<open>last_el T\<close>, List.last cs)))
       (fn {context = ctxt, ...} =>
-        simp_tac (ctxt addsimps [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
+        simp_tac (ctxt |> Simplifier.add_simps [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
   in
     lthy' |>
     Local_Theory.note

@@ -115,7 +115,7 @@ fun create_nom_typedecls ak_names thy =
 
               val simp1 = @{thm inj_on_def} :: injects;
               
-              fun proof1 ctxt = EVERY [simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp1) 1,
+              fun proof1 ctxt = EVERY [simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps simp1) 1,
                 resolve_tac ctxt @{thms ballI} 1,
                 resolve_tac ctxt @{thms ballI} 1,
                 resolve_tac ctxt @{thms impI} 1,
@@ -131,7 +131,7 @@ fun create_nom_typedecls ak_names thy =
 
               val proof2 = fn {prems, context = ctxt} =>
                 Induct_Tacs.case_tac ctxt "y" [] NONE 1 THEN
-                asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp1) 1 THEN
+                asm_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps simp1) 1 THEN
                 resolve_tac ctxt @{thms exI} 1 THEN
                 resolve_tac ctxt @{thms refl} 1
 
@@ -149,8 +149,8 @@ fun create_nom_typedecls ak_names thy =
 
               fun proof3 ctxt = EVERY [cut_facts_tac inj_thm 1,
                 dresolve_tac ctxt @{thms range_inj_infinite} 1,
-                asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp2) 1,
-                simp_tac (put_simpset HOL_basic_ss ctxt addsimps simp3) 1]
+                asm_full_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps simp2) 1,
+                simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps simp3) 1]
            
               val (inf_thm,thy4) =  
                     add_thms_string [((ak^"_infinite",Goal.prove_global thy3 [] [] stmnt3 (proof3 o #context)), [])] thy3
@@ -266,14 +266,14 @@ fun create_nom_typedecls ak_names thy =
         val cat = Const (\<^const_name>\<open>Nominal.at\<close>, Term.itselfT i_type --> HOLogic.boolT);
         val at_type = Logic.mk_type i_type;
         fun proof ctxt =
-          simp_tac (put_simpset HOL_ss ctxt
-            addsimps maps (Global_Theory.get_thms thy5)
+          simp_tac (ctxt |> put_simpset HOL_ss
+            |> Simplifier.add_simps (maps (Global_Theory.get_thms thy5)
                                   ["at_def",
                                    ak_name ^ "_prm_" ^ ak_name ^ "_def",
                                    ak_name ^ "_prm_" ^ ak_name ^ ".simps",
                                    "swap_" ^ ak_name ^ "_def",
                                    "swap_" ^ ak_name ^ ".simps",
-                                   ak_name ^ "_infinite"]) 1;            
+                                   ak_name ^ "_infinite"])) 1;            
         val name = "at_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cat $ at_type);
       in 
@@ -329,11 +329,11 @@ fun create_nom_typedecls ak_names thy =
         val pt_type = Logic.mk_type i_type1;
         val at_type = Logic.mk_type i_type2;
         fun proof ctxt =
-          simp_tac (put_simpset HOL_ss ctxt addsimps maps (Global_Theory.get_thms thy7)
+          simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps (maps (Global_Theory.get_thms thy7)
                                   ["pt_def",
                                    "pt_" ^ ak_name ^ "1",
                                    "pt_" ^ ak_name ^ "2",
-                                   "pt_" ^ ak_name ^ "3"]) 1;
+                                   "pt_" ^ ak_name ^ "3"])) 1;
 
         val name = "pt_"^ak_name^ "_inst";
         val statement = HOLogic.mk_Trueprop (cpt $ pt_type $ at_type);
@@ -376,9 +376,9 @@ fun create_nom_typedecls ak_names thy =
          val fs_type = Logic.mk_type i_type1;
          val at_type = Logic.mk_type i_type2;
          fun proof ctxt =
-          simp_tac (put_simpset HOL_ss ctxt addsimps maps (Global_Theory.get_thms thy11)
+          simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps (maps (Global_Theory.get_thms thy11)
                                    ["fs_def",
-                                    "fs_" ^ ak_name ^ "1"]) 1;
+                                    "fs_" ^ ak_name ^ "1"])) 1;
     
          val name = "fs_"^ak_name^ "_inst";
          val statement = HOLogic.mk_Trueprop (cfs $ fs_type $ at_type);
@@ -433,8 +433,8 @@ fun create_nom_typedecls ak_names thy =
              val statement = HOLogic.mk_Trueprop (ccp $ cp_type $ at_type $ at_type');
 
              fun proof ctxt =
-              simp_tac (put_simpset HOL_basic_ss ctxt
-                  addsimps maps (Global_Theory.get_thms thy') ["cp_def"]) 1
+              simp_tac (ctxt |> put_simpset HOL_basic_ss
+                  |> Simplifier.add_simps (Global_Theory.get_thms thy' "cp_def")) 1
                 THEN EVERY [resolve_tac ctxt [allI] 1,
                   resolve_tac ctxt [allI] 1,
                   resolve_tac ctxt [allI] 1,
@@ -463,11 +463,11 @@ fun create_nom_typedecls ak_names thy =
                  val at_type  = Logic.mk_type i_type1;
                  val at_type' = Logic.mk_type i_type2;
                  fun proof ctxt =
-                  simp_tac (put_simpset HOL_ss ctxt
-                    addsimps maps (Global_Theory.get_thms thy')
+                  simp_tac (ctxt |> put_simpset HOL_ss
+                    |> Simplifier.add_simps (maps (Global_Theory.get_thms thy')
                                            ["disjoint_def",
                                             ak_name ^ "_prm_" ^ ak_name' ^ "_def",
-                                            ak_name' ^ "_prm_" ^ ak_name ^ "_def"]) 1;
+                                            ak_name' ^ "_prm_" ^ ak_name ^ "_def"])) 1;
 
                  val name = "dj_"^ak_name^"_"^ak_name';
                  val statement = HOLogic.mk_Trueprop (cdj $ at_type $ at_type');
@@ -512,8 +512,8 @@ fun create_nom_typedecls ak_names thy =
            fun proof2 ctxt =
              Class.intro_classes_tac ctxt [] THEN
              REPEAT (asm_simp_tac
-              (put_simpset HOL_basic_ss ctxt addsimps
-                maps (Global_Theory.get_thms thy') [ak_name ^ "_prm_" ^ ak_name' ^ "_def"]) 1);
+              (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
+                (maps (Global_Theory.get_thms thy') [ak_name ^ "_prm_" ^ ak_name' ^ "_def"])) 1);
          in
            thy'
            |> Axclass.prove_arity (qu_name,[],[cls_name])
@@ -592,7 +592,7 @@ fun create_nom_typedecls ak_names thy =
                 else
                   let val dj_inst = Global_Theory.get_thm thy' ("dj_"^ak_name'^"_"^ak_name);
                       val simp_s =
-                        put_simpset HOL_basic_ss ctxt addsimps [dj_inst RS dj_supp, finite_emptyI];
+                        ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps [dj_inst RS dj_supp, finite_emptyI];
                   in EVERY [Class.intro_classes_tac ctxt [], asm_simp_tac simp_s 1] end)
         in
          Axclass.prove_arity (qu_name,[],[qu_class]) proof thy'
@@ -663,8 +663,8 @@ fun create_nom_typedecls ak_names thy =
                 else
                   (let
                      val dj_inst  = Global_Theory.get_thm thy'' ("dj_"^ak_name''^"_"^ak_name');
-                     val simp_s = put_simpset HOL_basic_ss ctxt addsimps
-                                        ((dj_inst RS dj_pp_forget)::
+                     val simp_s = ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
+                                        ((dj_inst RS dj_pp_forget) ::
                                          (maps (Global_Theory.get_thms thy'')
                                            [ak_name' ^"_prm_"^ak_name^"_def",
                                             ak_name''^"_prm_"^ak_name^"_def"]));
@@ -725,7 +725,7 @@ fun create_nom_typedecls ak_names thy =
                val qu_class = Sign.full_bname thy ("pt_"^ak_name);
                fun proof ctxt =
                 Class.intro_classes_tac ctxt [] THEN
-                REPEAT (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Simpdata.mk_eq defn]) 1);
+                REPEAT (asm_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simp (Simpdata.mk_eq defn)) 1);
              in 
                Axclass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names;
@@ -737,8 +737,8 @@ fun create_nom_typedecls ak_names thy =
                val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
                fun proof ctxt =
                 Class.intro_classes_tac ctxt [] THEN
-                asm_simp_tac (put_simpset HOL_ss ctxt
-                  addsimps [supp_def, Collect_const, finite_emptyI, Simpdata.mk_eq defn]) 1;
+                asm_simp_tac (ctxt |> put_simpset HOL_ss
+                  |> Simplifier.add_simps [supp_def, Collect_const, finite_emptyI, Simpdata.mk_eq defn]) 1;
              in 
                Axclass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names;
@@ -750,7 +750,7 @@ fun create_nom_typedecls ak_names thy =
                val supp_def = Simpdata.mk_eq @{thm "Nominal.supp_def"};
                fun proof ctxt =
                 Class.intro_classes_tac ctxt [] THEN
-                asm_simp_tac (put_simpset HOL_ss ctxt addsimps [Simpdata.mk_eq defn]) 1;
+                asm_simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps [Simpdata.mk_eq defn]) 1;
              in
                Axclass.prove_arity (discrete_ty, [], [qu_class]) proof thy
              end) ak_names)) ak_names;

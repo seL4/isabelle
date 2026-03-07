@@ -260,7 +260,7 @@ fun define_take_functions
       let
         val goal = mk_trp (mk_chain take_const)
         val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd}
-        fun tac ctxt = simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules) 1
+        fun tac ctxt = simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps rules) 1
         val thm = Goal.prove_global thy [] [] goal (tac o #context)
       in
         add_qualified_simp_thm "chain_take" (dbind, thm) thy
@@ -274,7 +274,7 @@ fun define_take_functions
         val lhs = take_const $ \<^term>\<open>0::nat\<close>
         val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT))
         val rules = take_defs @ @{thms iterate_0 fst_strict snd_strict}
-        fun tac ctxt = simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules) 1
+        fun tac ctxt = simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps rules) 1
         val take_0_thm = Goal.prove_global thy [] [] goal (tac o #context)
       in
         add_qualified_simp_thm "take_0" (dbind, take_0_thm) thy
@@ -294,7 +294,7 @@ fun define_take_functions
         val goal = mk_eqs (lhs, rhs)
         val simps = @{thms iterate_Suc fst_conv snd_conv}
         val rules = take_defs @ simps
-        fun tac ctxt = simp_tac (put_simpset beta_ss ctxt addsimps rules) 1
+        fun tac ctxt = simp_tac (ctxt |> put_simpset beta_ss |> Simplifier.add_simps rules) 1
         val take_Suc_thm = Goal.prove_global thy [] [] goal (tac o #context)
       in
         add_qualified_thm "take_Suc" (dbind, take_Suc_thm) thy
@@ -320,8 +320,8 @@ fun define_take_functions
         Goal.prove_global thy [] [] goal (fn {context = ctxt, ...} =>
          EVERY
           [resolve_tac ctxt @{thms nat.induct} 1,
-           simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
-           asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps take_Suc_thms) 1,
+           simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps bottom_rules) 1,
+           asm_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps take_Suc_thms) 1,
            REPEAT (eresolve_tac ctxt @{thms conjE} 1
                    ORELSE resolve_tac ctxt deflation_rules 1
                    ORELSE assume_tac ctxt 1)])
@@ -445,8 +445,8 @@ fun prove_finite_take_induct
             @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map}
         fun tac ctxt = EVERY [
             resolve_tac ctxt @{thms nat.induct} 1,
-            simp_tac (put_simpset HOL_ss ctxt addsimps rules0) 1,
-            asm_simp_tac (put_simpset HOL_ss ctxt addsimps rules1) 1]
+            simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps rules0) 1,
+            asm_simp_tac (ctxt |> put_simpset HOL_ss |> Simplifier.add_simps rules1) 1]
       in Goal.prove_global thy [] [] goal (tac o #context) end
     fun conjuncts 1 thm = [thm]
       | conjuncts n thm = let

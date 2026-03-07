@@ -89,7 +89,7 @@ fun preproc_exp_log_natintfun_conv ctxt =
            Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_nat_reify\<close>
         val thms2 =
            Named_Theorems.get ctxt \<^named_theorems>\<open>real_asymp_int_reify\<close>
-        val ctxt' = put_simpset HOL_basic_ss ctxt addsimps (thms1 @ thms2)
+        val ctxt' = ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps (thms1 @ thms2)
       in
         Conv.repeat_changed_conv
          (Simplifier.rewrite ctxt'

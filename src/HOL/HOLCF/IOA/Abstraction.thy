@@ -488,7 +488,7 @@ ML \<open>
 fun abstraction_tac ctxt =
   SELECT_GOAL (auto_tac
     (ctxt addSIs @{thms weak_strength_lemmas}
-      addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
+      |> Simplifier.add_simps @{thms state_strengthening_def state_weakening_def}))
 \<close>
 
 method_setup abstraction = \<open>Scan.succeed (SIMPLE_METHOD' o abstraction_tac)\<close>

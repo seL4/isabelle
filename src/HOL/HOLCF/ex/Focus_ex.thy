@@ -178,8 +178,8 @@ apply simp
 done
 
 lemma lemma3: "def_g g \<longrightarrow> is_g g"
-apply (tactic \<open>simp_tac (put_simpset HOL_ss \<^context>
-  addsimps [@{thm def_g_def}, @{thm lemma1}, @{thm lemma2}]) 1\<close>)
+apply (tactic \<open>simp_tac (\<^context> |> put_simpset HOL_ss
+  |> Simplifier.add_simps @{thms def_g_def lemma1 lemma2}) 1\<close>)
 apply (rule impI)
 apply (erule exE)
 apply (rule_tac x = "f" in exI)

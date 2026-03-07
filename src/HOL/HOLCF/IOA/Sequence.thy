@@ -977,7 +977,7 @@ fun Seq_case_simp_tac ctxt s i =
 fun Seq_induct_tac ctxt s rws i =
   Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), s)] [] @{thm Seq_induct} i
   THEN (REPEAT_DETERM (CHANGED (asm_simp_tac ctxt (i + 1))))
-  THEN simp_tac (ctxt addsimps rws) i;
+  THEN simp_tac (ctxt |> Simplifier.add_simps rws) i;
 
 fun Seq_Finite_induct_tac ctxt i =
   eresolve_tac ctxt @{thms Seq_Finite_ind} i
@@ -992,7 +992,7 @@ fun pair_induct_tac ctxt s rws i =
   Rule_Insts.res_inst_tac ctxt [((("x", 0), Position.none), s)] [] @{thm Seq_induct} i
   THEN pair_tac ctxt "a" (i + 3)
   THEN (REPEAT_DETERM (CHANGED (simp_tac ctxt (i + 1))))
-  THEN simp_tac (ctxt addsimps rws) i;
+  THEN simp_tac (ctxt |> Simplifier.add_simps rws) i;
 \<close>
 
 method_setup Seq_case =

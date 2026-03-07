@@ -63,7 +63,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
                dresolve_tac ctxt [infer_instantiate ctxt [(#1 (dest_Var pi), mypifree)] orig_thm]),
             tactic ctxt ("getting rid of the pi on the right", resolve_tac ctxt @{thms perm_boolI}),
             tactic ctxt ("getting rid of all remaining perms",
-                       full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps perm_pi_simp))]
+                       full_simp_tac (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps perm_pi_simp))]
   end;
 
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =

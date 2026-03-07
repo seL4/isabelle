@@ -492,7 +492,7 @@ apply(  rotate_tac -1, frule ssubst, erule_tac [2] asm_rl)
 prefer 2
 apply(  rotate_tac -1, frule ssubst, erule_tac [2] asm_rl)
 apply(  tactic "asm_full_simp_tac
-  (put_simpset HOL_ss \<^context> addsimps [@{thm not_None_eq} RS sym]) 1")
+  (\<^context> |> put_simpset HOL_ss |> Simplifier.add_simp (@{thm not_None_eq} RS sym)) 1")
 apply(  simp_all (no_asm_simp) del: split_paired_Ex)
 apply( frule (1) class_wf)
 apply( simp (no_asm_simp) only: split_tupled_all)

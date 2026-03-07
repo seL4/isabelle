@@ -203,7 +203,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt \<open>10 cases. First 4 are simple, since state doesn't change\<close>
 
-  ML_prf \<open>val tac2 = asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv2_def}])\<close>
+  ML_prf \<open>val tac2 = asm_full_simp_tac (\<^context> |> put_simpset ss |> Simplifier.add_simp @{thm inv2_def})\<close>
 
   txt \<open>10 - 7\<close>
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
@@ -260,7 +260,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
-  ML_prf \<open>val tac3 = asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv3_def}])\<close>
+  ML_prf \<open>val tac3 = asm_full_simp_tac (\<^context> |> put_simpset ss |> Simplifier.add_simp @{thm inv3_def})\<close>
 
   txt \<open>10 - 8\<close>
 
@@ -325,7 +325,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (simp (no_asm_simp) add: impl_ioas split del: if_split)
   apply (induct_tac "a")
 
-  ML_prf \<open>val tac4 =  asm_full_simp_tac (put_simpset ss \<^context> addsimps [@{thm inv4_def}])\<close>
+  ML_prf \<open>val tac4 =  asm_full_simp_tac (\<^context> |> put_simpset ss |> Simplifier.add_simp @{thm inv4_def})\<close>
 
   txt \<open>10 - 2\<close>
 
