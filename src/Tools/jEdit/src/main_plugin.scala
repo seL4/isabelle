@@ -65,8 +65,6 @@ object PIDE {
 
   def session: JEdit_Session = plugin.session
   def resources: JEdit_Resources = session.resources
-
-  object editor extends JEdit_Editor
 }
 
 class Main_Plugin extends EBPlugin {
@@ -132,7 +130,7 @@ class Main_Plugin extends EBPlugin {
       val models = Document_Model.get_models_map()
 
       val thy_files =
-        session.resources.resolve_dependencies(models.values, PIDE.editor.document_required())
+        session.resources.resolve_dependencies(models.values, JEdit_Editor.document_required())
 
       val aux_files =
         if (session.auto_resolve) {
@@ -169,7 +167,7 @@ class Main_Plugin extends EBPlugin {
   }
 
   private def file_watcher_action(changed: Set[JFile]): Unit =
-    if (Document_Model.sync_files(changed)) PIDE.editor.invoke_generated()
+    if (Document_Model.sync_files(changed)) JEdit_Editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
     File_Watcher(file_watcher_action, session.load_delay)
@@ -206,7 +204,7 @@ class Main_Plugin extends EBPlugin {
       GUI_Thread.later {
         delay_load.revoke()
         delay_init.revoke()
-        PIDE.editor.shutdown()
+        JEdit_Editor.shutdown()
         exit_models(JEdit_Lib.jedit_buffers().toList)
       }
 
@@ -228,7 +226,7 @@ class Main_Plugin extends EBPlugin {
 
   def init_models(): Unit = {
     GUI_Thread.now {
-      PIDE.editor.flush()
+      JEdit_Editor.flush()
 
       for {
         buffer <- JEdit_Lib.jedit_buffers()
@@ -247,7 +245,7 @@ class Main_Plugin extends EBPlugin {
         else delay_init.invoke()
       }
 
-      PIDE.editor.invoke_generated()
+      JEdit_Editor.invoke_generated()
     }
   }
 
@@ -353,7 +351,7 @@ class Main_Plugin extends EBPlugin {
           if (view != null) {
             init_editor(view)
 
-            PIDE.editor.hyperlink_position(Document.Snapshot.init,
+            JEdit_Editor.hyperlink_position(Document.Snapshot.init,
               JEdit_Session.logic_root(options.value), focus = true)
                 .foreach(_.follow(JEdit_Editor.Context(view)))
           }
@@ -379,7 +377,7 @@ class Main_Plugin extends EBPlugin {
           what match {
             case BufferUpdate.LOAD_STARTED | BufferUpdate.CLOSING if buffer != null =>
               exit_models(List(buffer))
-              PIDE.editor.invoke_generated()
+              JEdit_Editor.invoke_generated()
             case BufferUpdate.PROPERTIES_CHANGED | BufferUpdate.LOADED if session.is_ready =>
               delay_init.invoke()
               delay_load.invoke()
@@ -535,7 +533,7 @@ class Main_Plugin extends EBPlugin {
     shutting_down.change(_ => true)
     session.stop()
     file_watcher.shutdown()
-    PIDE.editor.shutdown()
+    JEdit_Editor.shutdown()
 
     Document_Model.reset()
 

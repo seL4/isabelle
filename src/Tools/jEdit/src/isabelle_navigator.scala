@@ -319,7 +319,7 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
   override def goto(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
     if (pos.defined) {
       Isabelle_Navigator.passive {
-        PIDE.editor.goto_file(editor_context, pos.name, offset = pos.offset, focus = true)
+        JEdit_Editor.goto_file(editor_context, pos.name, offset = pos.offset, focus = true)
       }
     }
   }

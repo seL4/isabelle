@@ -584,7 +584,7 @@ object Isabelle {
       get(errs) match {
         case Some(err) =>
           Isabelle_Navigator.record(editor_context)
-          PIDE.editor.goto_file(
+          JEdit_Editor.goto_file(
             editor_context, editor_context.buffer_name, offset = err.range.start)
         case None =>
           editor_context.view.getStatus
@@ -635,7 +635,7 @@ object Isabelle {
   def open_browser_info(view: View): Unit = {
     val editor_context = JEdit_Editor.Context(view)
     val url = Url.append_path(PIDE.plugin.http_server.url, HTTP.Browser_Info_Service.index_path())
-    PIDE.editor.hyperlink_url(url).follow(editor_context)
+    JEdit_Editor.hyperlink_url(url).follow(editor_context)
   }
 
   def open_preview(view: View, plain_text: Boolean): Unit = {
@@ -643,7 +643,7 @@ object Isabelle {
     Document_Model.get_model(editor_context.buffer) match {
       case Some(model) =>
         val url = Document_Model.Preview_Service.server_url(plain_text, model.node_name)
-        PIDE.editor.hyperlink_url(url).follow(editor_context)
+        JEdit_Editor.hyperlink_url(url).follow(editor_context)
       case _ =>
     }
   }

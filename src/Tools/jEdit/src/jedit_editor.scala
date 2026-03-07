@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.textarea.{TextArea, TextAreaPainter, JEditTextArea}
 import org.gjt.sp.util.AwtRunnableQueue
 
 
-object JEdit_Editor {
+object JEdit_Editor extends Editor {
   /** context **/
 
   object Context {
@@ -77,14 +77,12 @@ object JEdit_Editor {
   // view with static text area/buffer
   class Static_Context private[JEdit_Editor](
     override val view: View, override val text_area: TextArea) extends Context
-}
 
-class JEdit_Editor extends Editor {
+
+
+  /** PIDE session and document model **/
+
   type Session = JEdit_Session
-  type Context = JEdit_Editor.Context
-
-
-  /* PIDE session and document model */
 
   override def session: Session = PIDE.session
 
@@ -173,7 +171,8 @@ class JEdit_Editor extends Editor {
     Document_Model.remove_overlay(command, fn, args)
 
 
-  /* navigation */
+
+  /** navigation **/
 
   def goto_file(
     editor_context: Context,
@@ -328,7 +327,8 @@ class JEdit_Editor extends Editor {
   }
 
 
-  /* dispatcher thread */
+
+  /** GUI dispatcher thread **/
 
   override def assert_dispatcher[A](body: => A): A = GUI_Thread.assert(body)
   override def require_dispatcher[A](body: => A): A = GUI_Thread.require(body)

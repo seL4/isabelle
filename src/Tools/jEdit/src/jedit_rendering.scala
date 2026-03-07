@@ -244,24 +244,24 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   /* hyperlinks */
 
-  def hyperlink(range: Text.Range): Option[Text.Info[PIDE.editor.Hyperlink]] =
+  def hyperlink(range: Text.Range): Option[Text.Info[JEdit_Editor.Hyperlink]] =
     hyperlinks(range).headOption
 
-  def hyperlinks(range: Text.Range): List[Text.Info[PIDE.editor.Hyperlink]] =
+  def hyperlinks(range: Text.Range): List[Text.Info[JEdit_Editor.Hyperlink]] =
     make_hyperlinks(range, elements = JEdit_Rendering.hyperlink_elements) {
       case Markup.Entity(entry) =>
-        PIDE.editor.hyperlink_def_position(
+        JEdit_Editor.hyperlink_def_position(
           snapshot, entry.properties, description = entry.print(gui_style), focus = true)
       case Markup(Markup.POSITION, props) =>
-        PIDE.editor.hyperlink_position(snapshot, props, focus = true)
+        JEdit_Editor.hyperlink_position(snapshot, props, focus = true)
       case Markup.Path(name) =>
         val file = perhaps_append_file(snapshot.node_name, name)
-        Some(PIDE.editor.hyperlink_file(file, focus = true))
+        Some(JEdit_Editor.hyperlink_file(file, focus = true))
       case Markup.Export_Path(name) =>
         val file = Isabelle_Export.vfs_prefix + name
-        Some(PIDE.editor.hyperlink_file(file, focus = true))
-      case Markup.Doc(name) => PIDE.editor.hyperlink_doc(name)
-      case Markup.Url(name) => Some(PIDE.editor.hyperlink_url(name))
+        Some(JEdit_Editor.hyperlink_file(file, focus = true))
+      case Markup.Doc(name) => JEdit_Editor.hyperlink_doc(name)
+      case Markup.Url(name) => Some(JEdit_Editor.hyperlink_url(name))
       case _ => None
     }
 

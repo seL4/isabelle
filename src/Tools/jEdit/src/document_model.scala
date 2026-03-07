@@ -212,7 +212,7 @@ object Document_Model {
               case _ => (false, st)
             }
         })
-    if (changed) PIDE.editor.state_changed()
+    if (changed) JEdit_Editor.state_changed()
   }
 
   def view_node_required(
@@ -346,17 +346,17 @@ sealed abstract class Document_Model extends Document.Model {
     if (JEdit_Options.continuous_checking() && is_theory) {
       val snapshot = Document_Model.snapshot(model)
 
-      val required = node_required || PIDE.editor.document_node_required(node_name)
+      val required = node_required || JEdit_Editor.document_node_required(node_name)
 
       val reparse = snapshot.node.load_commands_changed(doc_blobs)
       val perspective =
         if (hidden) Text.Perspective.empty
         else {
           val view_ranges = document_view_ranges(snapshot)
-          val load_ranges = snapshot.commands_loading_ranges(PIDE.editor.visible_node)
+          val load_ranges = snapshot.commands_loading_ranges(JEdit_Editor.visible_node)
           Text.Perspective(view_ranges ::: load_ranges)
         }
-      val overlays = PIDE.editor.node_overlays(node_name)
+      val overlays = JEdit_Editor.node_overlays(node_name)
 
       (reparse, Document.Node.Perspective(required, perspective, overlays))
     }
@@ -572,7 +572,7 @@ class Buffer_Model private(
       }
 
       pending_edits ++= edits
-      PIDE.editor.invoke()
+      JEdit_Editor.invoke()
     }
 
     val listener: BufferListener = JEdit_Lib.buffer_listener((_, e) => edit(List(e)))

@@ -171,7 +171,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         val session_background =
           Document_Build.session_background(
             options, session, dirs = JEdit_Session.session_dirs)
-        PIDE.editor.document_setup(Some(session_background))
+        JEdit_Editor.document_setup(Some(session_background))
 
         finish_process(Nil)
         GUI_Thread.later {
@@ -188,7 +188,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private def document_build_attempt(): Boolean = {
-    val document_session = PIDE.editor.document_session()
+    val document_session = JEdit_Editor.document_session()
     if (document_session.is_vacuous) true
     else if (document_session.is_pending) false
     else {
@@ -296,18 +296,18 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val all_button =
     new GUI.Button("All") {
       tooltip = "Select all document theories"
-      override def clicked(): Unit = PIDE.editor.document_select_all(set = true)
+      override def clicked(): Unit = JEdit_Editor.document_select_all(set = true)
     }
 
   private val none_button =
     new GUI.Button("None") {
       tooltip = "Deselect all document theories"
-      override def clicked(): Unit = PIDE.editor.document_select_all(set = false)
+      override def clicked(): Unit = JEdit_Editor.document_select_all(set = false)
     }
 
   private val purge_button = new GUI.Button("Purge") {
     tooltip = "Remove theories that are no longer required"
-    override def clicked(): Unit = PIDE.editor.purge()
+    override def clicked(): Unit = JEdit_Editor.purge()
   }
 
   private val input_controls =
@@ -317,7 +317,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   private val theories_pane = new ScrollPane(theories.gui)
 
   private def refresh_theories(): Unit = {
-    val domain = PIDE.editor.document_theories().toSet
+    val domain = JEdit_Editor.document_theories().toSet
     theories.update(domain = Some(domain), trim = true, force = true)
     theories.refresh()
   }
@@ -362,13 +362,13 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
         }
       case changed: Session.Commands_Changed =>
         GUI_Thread.later {
-          val domain = PIDE.editor.document_theories().filter(changed.nodes).toSet
+          val domain = JEdit_Editor.document_theories().filter(changed.nodes).toSet
           if (domain.nonEmpty) {
             theories.update(domain = Some(domain))
 
             val pending = document_pending()
             val auto = document_auto()
-            if ((pending || auto) && PIDE.editor.document_session().is_ready) {
+            if ((pending || auto) && JEdit_Editor.document_session().is_ready) {
               if (pending) {
                 delay_auto_build.revoke()
                 delay_build.invoke()
@@ -382,7 +382,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     }
 
   override def init(): Unit = {
-    PIDE.editor.document_init(dockable)
+    JEdit_Editor.document_init(dockable)
     init_state()
     PIDE.session.global_options += main
     PIDE.session.commands_changed += main
@@ -394,6 +394,6 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     PIDE.session.global_options -= main
     PIDE.session.commands_changed -= main
     output.exit()
-    PIDE.editor.document_exit(dockable)
+    JEdit_Editor.document_exit(dockable)
   }
 }

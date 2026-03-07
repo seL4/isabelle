@@ -25,9 +25,9 @@ object Selection_Popup {
 
   trait Item { def select(): Unit }
 
-  class Hyperlink(editor_context: JEdit_Editor.Context, info: Text.Info[PIDE.editor.Hyperlink])
+  class Hyperlink(editor_context: JEdit_Editor.Context, info: Text.Info[JEdit_Editor.Hyperlink])
   extends Item {
-    def link: PIDE.editor.Hyperlink = info.info
+    def link: JEdit_Editor.Hyperlink = info.info
     override def select(): Unit = {
       try { editor_context.text_area.moveCaretPosition(info.range.start) }
       catch {

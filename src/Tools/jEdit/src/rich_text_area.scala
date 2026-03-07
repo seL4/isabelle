@@ -204,7 +204,7 @@ class Rich_Text_Area(
       ignore_control = JEdit_Options.auto_hovering())
 
   private val hyperlink_area =
-    new Active_Area[PIDE.editor.Hyperlink](
+    new Active_Area[JEdit_Editor.Hyperlink](
       _.hyperlink, require_control = true, cursor = Cursor.HAND_CURSOR)
 
   private val active_area =
@@ -422,7 +422,7 @@ class Rich_Text_Area(
           c <- PIDE.session.debugger.focus().iterator
           pos <- c.debug_position.iterator
         } yield pos).toList
-      if (debug_positions.exists(PIDE.editor.is_hyperlink_position(rendering.snapshot, offset, _)))
+      if (debug_positions.exists(JEdit_Editor.is_hyperlink_position(rendering.snapshot, offset, _)))
         rendering.caret_debugger_color
       else rendering.caret_invisible_color
     }

@@ -75,7 +75,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
 
       override def handle_update(): Unit = {
         val new_snapshot =
-          PIDE.editor.current_node_snapshot(editor_context).getOrElse(current_snapshot)
+          JEdit_Editor.current_node_snapshot(editor_context).getOrElse(current_snapshot)
         val (new_threads, new_output) = debugger.status(tree_selection())
 
         if (new_threads != current_threads) update_tree(new_threads)
@@ -261,7 +261,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
       debugger.set_focus(c)
       for {
         pos <- c.debug_position
-        link <- PIDE.editor.hyperlink_position(current_snapshot, pos)
+        link <- JEdit_Editor.hyperlink_position(current_snapshot, pos)
       } link.follow(editor_context)
     }
     JEdit_Lib.jedit_text_areas(view.getBuffer).foreach(_.repaint())

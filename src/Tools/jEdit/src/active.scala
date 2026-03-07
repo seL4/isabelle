@@ -59,7 +59,7 @@ object Active {
         case XML.Elem(Markup(Markup.THEORY_EXPORTS, props), _) =>
           GUI_Thread.later {
             val name = Markup.Name.unapply(props) getOrElse ""
-            PIDE.editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true)
+            JEdit_Editor.hyperlink_file(Isabelle_Export.vfs_prefix + name, focus = true)
               .follow(editor_context)
           }
           true
@@ -73,7 +73,7 @@ object Active {
         case XML.Elem(Markup(Markup.SIMP_TRACE_PANEL, props), _) =>
           val link =
             props match {
-              case Position.Id(id) => PIDE.editor.hyperlink_command(snapshot, id, focus = true)
+              case Position.Id(id) => JEdit_Editor.hyperlink_command(snapshot, id, focus = true)
               case _ => None
             }
           GUI_Thread.later {

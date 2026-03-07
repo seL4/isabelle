@@ -34,11 +34,11 @@ class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = 
 
   private def init_state(): Unit = GUI_Thread.require {
     if (document) {
-      nodes_required = PIDE.editor.document_required().toSet
+      nodes_required = JEdit_Editor.document_required().toSet
     }
     else {
       nodes_required = Document_Model.nodes_required()
-      document_required = PIDE.editor.document_required().toSet
+      document_required = JEdit_Editor.document_required().toSet
     }
   }
 
@@ -194,12 +194,12 @@ class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = 
           if (node_renderer.in_required(index_location, mouse.point)) {
             if (mouse.clicks == 1) {
               val name = listData(index)
-              if (document) PIDE.editor.document_select(Set(name.theory), toggle = true)
+              if (document) JEdit_Editor.document_select(Set(name.theory), toggle = true)
               else Document_Model.node_required(name, toggle = true)
             }
           }
           else if (mouse.clicks == 2) {
-            PIDE.editor.goto_file(editor_context, listData(index).node, focus = true)
+            JEdit_Editor.goto_file(editor_context, listData(index).node, focus = true)
           }
         }
       case mouse: MouseMoved =>
@@ -245,7 +245,7 @@ class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = 
 
     if (force || nodes_status1 != nodes_status) {
       gui.listData =
-        if (document) PIDE.editor.document_theories()
+        if (document) JEdit_Editor.document_theories()
         else {
           (for {
             name <- snapshot.version.nodes.topological_order.iterator
