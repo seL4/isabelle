@@ -2448,8 +2448,9 @@ proof -
 qed
 
 lemma geometric_sum_less:
+  fixes x :: "'a::linordered_field"
   assumes "0 < x" "x < 1" "finite S"
-  shows "(\<Sum>i\<in>S. x ^ i) < 1 / (1 - x::'a::linordered_field)"
+  shows "(\<Sum>i\<in>S. x ^ i) < 1 / (1 - x)"
 proof -
   define n where "n \<equiv> Suc (Max S)" 
   have "(\<Sum>i\<in>S. x ^ i) \<le> (\<Sum>i<n. x ^ i)"
