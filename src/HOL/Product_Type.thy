@@ -1058,6 +1058,9 @@ lemma Sigma_empty1 [simp]: "Sigma {} B = {}"
 lemma Sigma_empty2 [simp]: "A \<times> {} = {}"
   by blast
 
+lemma Sigma_insert: "Sigma (insert x A) B = (Pair x) ` B x \<union> Sigma A B"
+  by auto
+
 lemma UNIV_Times_UNIV [simp]: "UNIV \<times> UNIV = UNIV"
   by auto
 

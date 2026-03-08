@@ -1261,6 +1261,28 @@ lemma realpow_square_minus_le [simp]: "- u\<^sup>2 \<le> x\<^sup>2"
   for u x :: real
   by (auto simp add: power2_eq_square)
 
+text \<open>The geometric sum formula for natural numbers\<close>
+lemma
+  fixes a k :: nat
+  assumes "a > 1" 
+  shows geometric_sum_nat_aux: "(a - 1) * (\<Sum>i<k. a ^ i) = a ^ k - 1"
+    and geometric_sum_nat_dvd: "a - 1 dvd a ^ k - 1"
+    and geometric_sum_nat:     "(\<Sum>i<k. a ^ i) = (a ^ k - 1) div (a - 1)"
+proof -
+  have "(real a - 1) * (\<Sum>i<k. real a ^ i) = real a ^ k - 1"
+    by (simp add: power_diff_1_eq)
+  also have "(real a - 1) * (\<Sum>i<k. real a ^ i) = real ((a - 1) * (\<Sum>i<k. a ^ i))" 
+    using assms by simp
+  also have "real a ^ k - 1 = real (a ^ k - 1)" 
+    using assms by auto
+  finally show *: "(a - 1) * (\<Sum>i<k. a ^ i) = a ^ k - 1" 
+    by (subst (asm) of_nat_eq_iff)
+  show "a - 1 dvd a ^ k - 1"
+    by (metis "*" dvd_triv_left)
+  from assms show "(\<Sum>i<k. a ^ i) = (a ^ k - 1) div (a - 1)"
+    by (metis "*" div_mult_self1_is_m zero_less_diff) 
+qed
+
 
 subsection \<open>Density of the Reals\<close>
 
