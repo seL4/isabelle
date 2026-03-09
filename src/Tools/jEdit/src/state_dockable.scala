@@ -83,7 +83,8 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
 
   private val locate_button = new GUI.Button("Locate") {
     tooltip = "Locate printed command within source text"
-    override def clicked(): Unit = print_state.locate_query()
+    override def clicked(): Unit =
+      Isabelle_Navigator.recording(editor_context) { print_state.locate_query() }
   }
 
   private val controls =
