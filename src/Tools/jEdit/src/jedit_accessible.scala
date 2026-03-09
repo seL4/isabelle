@@ -256,7 +256,7 @@ object JEdit_Accessible {
         val rs =
           List.from(
             for {
-              index <- ((start min stop) until (start max stop)).iterator
+              index <- (start until stop).iterator
               r = getCharacterBounds(index) if r != null
             } yield r)
         if (rs.isEmpty) null
@@ -292,7 +292,7 @@ object JEdit_Accessible {
         get_part_text0(part, index, inc = -1)
 
       override def getTextRange(start: Int, stop: Int): String =
-        JEdit_Lib.get_text(buffer, Text.Range(start min stop, start max stop)).orNull
+        JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
 
       override def getCharacterAttribute(i: Int): AttributeSet =
         PIDE.maybe_rendering(view) match {
@@ -322,7 +322,7 @@ object JEdit_Accessible {
       override def selectText(start: Int, stop: Int): Unit =
         if (!buffer.isReadOnly) {
           text_area.selectNone()
-          text_area.addToSelection(new Selection.Range(start min stop, start max stop))
+          text_area.addToSelection(new Selection.Range(start, stop))
         }
 
       override def cut(start: Int, stop: Int): Unit =
@@ -340,7 +340,7 @@ object JEdit_Accessible {
       override def delete(start: Int, stop: Int): Unit =
         if (!buffer.isReadOnly) {
           selectText(start, stop)
-          buffer.remove(start min stop, (stop - start).abs)
+          buffer.remove(start, stop - start)
         }
 
       override def setTextContents(s: String): Unit =
@@ -364,8 +364,8 @@ object JEdit_Accessible {
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
             selectText(start, stop)
-            buffer.remove(start min stop, (start - stop).abs)
-            buffer.insert(start min stop, s)
+            buffer.remove(start, stop - start)
+            buffer.insert(start, s)
           }
         }
     }
