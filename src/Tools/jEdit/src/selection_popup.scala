@@ -34,10 +34,7 @@ object Selection_Popup {
         case _: ArrayIndexOutOfBoundsException =>
         case _: IllegalArgumentException =>
       }
-
-      Isabelle_Navigator.record(editor_context)
-      link.follow(editor_context)
-      Isabelle_Navigator.record(editor_context)
+      Isabelle_Navigator.recording(editor_context) { link.follow(editor_context) }
     }
     override def toString: String = link.toString
   }

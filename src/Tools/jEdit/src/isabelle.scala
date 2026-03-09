@@ -583,9 +583,10 @@ object Isabelle {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          Isabelle_Navigator.record(editor_context)
-          JEdit_Editor.goto_file(
-            editor_context, editor_context.buffer_name, offset = err.range.start)
+          Isabelle_Navigator.recording(editor_context) {
+            JEdit_Editor.goto_file(
+              editor_context, editor_context.buffer_name, offset = err.range.start)
+          }
         case None =>
           editor_context.view.getStatus
             .setMessageAndClear("No " + which + "error in current document snapshot")
