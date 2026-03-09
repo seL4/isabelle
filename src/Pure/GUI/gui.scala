@@ -482,7 +482,7 @@ object GUI {
 
   /* key event handling */
 
-  private val key_modifier_mask: Int =
+  private val key_modifier_mask: Int = // NB: excludes ALT_GRAPH_DOWN_MASK
     InputEvent.CTRL_DOWN_MASK |
     InputEvent.ALT_DOWN_MASK |
     InputEvent.META_DOWN_MASK |
