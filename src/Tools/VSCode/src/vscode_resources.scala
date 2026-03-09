@@ -316,7 +316,7 @@ extends Resources(session_background, log = log) {
             channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
           if (pide_extensions) {
             for (decos <- changed_decos)
-              channel.write(rendering.decoration_output(decos).json(file))
+              channel.write(rendering.decoration_output(decos).notification(file))
           }
           (file, model1)
         }
@@ -369,7 +369,7 @@ extends Resources(session_background, log = log) {
     val rendering1 = rendering(model)
     val (_, decos, model1) = model.publish_full(rendering1)
     if (pide_extensions) {
-      channel.write(rendering1.decoration_output(decos).json(file))
+      channel.write(rendering1.decoration_output(decos).notification(file))
     }
   }
 

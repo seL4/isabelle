@@ -552,9 +552,10 @@ object LSP {
   }
 
   sealed case class Decoration(entries: List[Decoration_Entry]) {
-    def json(file: JFile): JSON.T =
+    def json_entries: JSON.T = entries.map(_.json)
+    def notification(file: JFile): JSON.T =
       Notification("PIDE/decoration",
-        JSON.Object("uri" -> Url.print_file(file), "entries" -> entries.map(_.json)))
+        JSON.Object("uri" -> Url.print_file(file), "entries" -> json_entries))
   }
 
   object Decoration_Request {
@@ -599,7 +600,7 @@ object LSP {
     def apply(content: String, decorations: Option[Decoration] = None): JSON.T =
       Notification("PIDE/dynamic_output",
         JSON.Object("content" -> content) ++
-        JSON.optional("decorations" -> decorations.map(_.json)))
+        JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
   object Output_Set_Margin {
@@ -623,7 +624,7 @@ object LSP {
     ): JSON.T =
       Notification("PIDE/state_output",
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
-        JSON.optional("decorations" -> decorations.map(_.json)))
+        JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
   class State_Id_Notification(name: String) {
