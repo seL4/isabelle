@@ -252,11 +252,11 @@ object JEdit_Accessible {
           SwingUtilities.convertRectangle(painter, r, text_area)
         }).orNull
 
-      override def getTextBounds(start: Int, stop: Int): Rectangle = {
+      override def getTextBounds(start: Int, end: Int): Rectangle = {
         val rs =
           List.from(
             for {
-              index <- (start until stop).iterator
+              index <- (start to end).iterator
               r = getCharacterBounds(index) if r != null
             } yield r)
         if (rs.isEmpty) null
@@ -291,8 +291,8 @@ object JEdit_Accessible {
       override def getBeforeIndex(part: Int, index: Int): String =
         get_part_text0(part, index, inc = -1)
 
-      override def getTextRange(start: Int, stop: Int): String =
-        JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
+      override def getTextRange(start: Int, end: Int): String =
+        JEdit_Lib.get_text(buffer, Text.Range(start, end + 1)).orNull
 
       override def getCharacterAttribute(i: Int): AttributeSet =
         PIDE.maybe_rendering(view) match {
@@ -301,33 +301,33 @@ object JEdit_Accessible {
           case _ => attributes()
         }
 
-      override def setAttributes(start: Int, stop: Int, atts: AttributeSet): Unit = {}
+      override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
       override def getSelectionStart: Int =
         if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
         else -1
 
       override def getSelectionEnd: Int =
-        if (text_area.getSelectionCount == 1) text_area.getSelection(0).getEnd
+        if (text_area.getSelectionCount == 1) text_area.getSelection(0).getEnd - 1
         else -1
 
       override def getSelectedText: String =
         if (text_area.getSelectionCount == 1) {
           val start = getSelectionStart
-          val stop = getSelectionEnd
-          buffer.getText(start, stop - start)
+          val end = getSelectionEnd
+          buffer.getText(start, end + 1 - start)
         }
         else ""
 
-      override def selectText(start: Int, stop: Int): Unit =
+      override def selectText(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
           text_area.selectNone()
-          text_area.addToSelection(new Selection.Range(start, stop))
+          text_area.addToSelection(new Selection.Range(start, end + 1))
         }
 
-      override def cut(start: Int, stop: Int): Unit =
+      override def cut(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
-          selectText(start, stop)
+          selectText(start, end)
           Registers.cut(text_area, '$')
         }
 
@@ -337,10 +337,10 @@ object JEdit_Accessible {
           Registers.paste(text_area, '$')
         }
 
-      override def delete(start: Int, stop: Int): Unit =
+      override def delete(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
-          selectText(start, stop)
-          buffer.remove(start, stop - start)
+          selectText(start, end)
+          buffer.remove(start, end + 1 - start)
         }
 
       override def setTextContents(s: String): Unit =
@@ -360,11 +360,11 @@ object JEdit_Accessible {
           }
         }
 
-      override def replaceText(start: Int, stop: Int, s: String): Unit =
+      override def replaceText(start: Int, end: Int, s: String): Unit =
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
-            selectText(start, stop)
-            buffer.remove(start, stop - start)
+            selectText(start, end)
+            buffer.remove(start, end + 1 - start)
             buffer.insert(start, s)
           }
         }
