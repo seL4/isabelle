@@ -57,7 +57,7 @@ class Pretty_Text_Panel private(
             }
           val elements = Browser_Info.extra_elements.copy(entity = Markup.Elements.full)
           val html = node_context.make_html(elements, formatted)
-          output_json(HTML.source(html).toString, None)
+          output_json(XML.string_of_tree(HTML.source(html)), None)
         }
         else {
           val converted = resources.output_text_xml(formatted)
