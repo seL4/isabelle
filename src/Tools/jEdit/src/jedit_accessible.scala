@@ -239,7 +239,7 @@ object JEdit_Accessible {
 
       override def getIndexAtPoint(p: Point): Int = {
         val q = SwingUtilities.convertPoint(text_area, p, painter)
-        text_area.xyToOffset(q.x, q.y)
+        if (q == null) 0 else text_area.xyToOffset(q.x, q.y)
       }
 
       override def getCharacterBounds(index: Int): Rectangle =
