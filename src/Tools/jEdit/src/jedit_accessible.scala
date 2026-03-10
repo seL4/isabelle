@@ -303,21 +303,10 @@ object JEdit_Accessible {
 
       override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
-      override def getSelectionStart: Int =
-        if (text_area.getSelectionCount == 1) text_area.getSelection(0).getStart
-        else -1
-
-      override def getSelectionEnd: Int =
-        if (text_area.getSelectionCount == 1) text_area.getSelection(0).getEnd - 1
-        else -1
-
-      override def getSelectedText: String =
-        if (text_area.getSelectionCount == 1) {
-          val start = getSelectionStart
-          val end = getSelectionEnd
-          buffer.getText(start, end + 1 - start)
-        }
-        else ""
+      // workaround for NVDA 2025.3.2: smash selection to approximate system focus cursor
+      override def getSelectionStart: Int = getCaretPosition
+      override def getSelectionEnd: Int = getCaretPosition
+      override def getSelectedText: String = ""
 
       override def selectText(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
