@@ -74,7 +74,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       new Theory_Entry(name, timing) { override val gui_style: String = Entry.make_gui_style() }
     def gui_name: GUI.Name = GUI.Name(name.theory, kind = "theory")
     def follow(snapshot: Document.Snapshot): Unit =
-      Isabelle_Navigator.recording(editor_context) {
+      JEdit_Editor.navigator_recording(editor_context) {
         JEdit_Editor.goto_file(editor_context, name.node, focus = true)
       }
   }
@@ -85,7 +85,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     def gui_name: GUI.Name = GUI.Name(command.span.name, kind = "command")
     def follow(snapshot: Document.Snapshot): Unit =
       for (link <- JEdit_Editor.hyperlink_command(snapshot, command.id, focus = true)) {
-        Isabelle_Navigator.recording(editor_context) {
+        JEdit_Editor.navigator_recording(editor_context) {
           link.follow(editor_context)
         }
       }

@@ -583,7 +583,7 @@ object Isabelle {
       val errs = rendering.errors(range).filterNot(_.range.overlaps(avoid_range))
       get(errs) match {
         case Some(err) =>
-          Isabelle_Navigator.recording(editor_context) {
+          JEdit_Editor.navigator_recording(editor_context) {
             JEdit_Editor.goto_file(
               editor_context, editor_context.buffer_name, offset = err.range.start)
           }

@@ -107,8 +107,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
 
   private val locate_query = new GUI.Button("Locate") {
     tooltip = "Locate context of current query within source text"
-    override def clicked(): Unit =
-      Isabelle_Navigator.recording(editor_context) { sledgehammer.locate_query() }
+    override def clicked(): Unit = sledgehammer.locate_query()
   }
 
   private val controls =

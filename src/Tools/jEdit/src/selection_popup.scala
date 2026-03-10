@@ -34,7 +34,7 @@ object Selection_Popup {
         case _: ArrayIndexOutOfBoundsException =>
         case _: IllegalArgumentException =>
       }
-      Isabelle_Navigator.recording(editor_context) { link.follow(editor_context) }
+      JEdit_Editor.navigator_recording(editor_context) { link.follow(editor_context) }
     }
     override def toString: String = link.toString
   }

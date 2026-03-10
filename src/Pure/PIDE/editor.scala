@@ -176,6 +176,12 @@ abstract class Editor {
     focus: Boolean = false): Option[Hyperlink]
 
 
+  /* navigator */
+
+  def navigator_record(editor_context: Context): Unit = {}
+  def navigator_recording[A](editor_context: Context)(body: => A): A = body
+
+
   /* dispatcher thread */
 
   def assert_dispatcher[A](body: => A): A

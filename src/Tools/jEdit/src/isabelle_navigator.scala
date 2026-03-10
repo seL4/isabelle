@@ -50,16 +50,6 @@ object Isabelle_Navigator {
     _navigators.valuesIterator.foreach(_.del_listener(buffers))
   }
 
-  def record(editor_context: JEdit_Editor.Context): Unit =
-    get(editor_context.view).record(Pos(editor_context))
-
-  def recording[A](editor_context: JEdit_Editor.Context)(body: => A): A = {
-    record(editor_context)
-    val res = body
-    record(editor_context)
-    res
-  }
-
 
   /* recode symbols */
 

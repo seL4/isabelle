@@ -199,7 +199,7 @@ class Theories_Status(editor_context: JEdit_Editor.Context, document: Boolean = 
             }
           }
           else if (mouse.clicks == 2) {
-            Isabelle_Navigator.recording(editor_context) {
+            JEdit_Editor.navigator_recording(editor_context) {
               JEdit_Editor.goto_file(editor_context, listData(index).node, focus = true)
             }
           }

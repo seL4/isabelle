@@ -204,7 +204,7 @@ class Query_Operation(
     for {
       (snapshot, command) <- query_command()
       link <- editor.hyperlink_command(snapshot, command.id, focus = true)
-    } link.follow(editor_context)
+    } editor.navigator_recording(editor_context) { link.follow(editor_context) }
 
 
   /* main */

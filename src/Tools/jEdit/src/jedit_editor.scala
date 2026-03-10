@@ -327,6 +327,19 @@ object JEdit_Editor extends Editor {
   }
 
 
+  /* navigator */
+
+  override def navigator_record(editor_context: Context): Unit =
+    Isabelle_Navigator.get(editor_context.view).record(Isabelle_Navigator.Pos(editor_context))
+
+  override def navigator_recording[A](editor_context: Context)(body: => A): A = {
+    navigator_record(editor_context)
+    val res = body
+    navigator_record(editor_context)
+    res
+  }
+
+
 
   /** GUI dispatcher thread **/
 
