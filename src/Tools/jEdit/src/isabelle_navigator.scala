@@ -224,7 +224,7 @@ class Isabelle_Navigator {
   def recurrent: Isabelle_Navigator.Pos = Isabelle_Navigator.Pos.none
   def del_listener(buffers: List[Buffer]): Unit = ()
   def add_listener(buffers: List[Buffer]): Unit = ()
-  def record(pos: Isabelle_Navigator.Pos): Unit = ()
+  def record(pos: Isabelle_Navigator.Pos): Boolean = false
   def goto_buffer(buffer: Buffer, target: Isabelle_Navigator.Target, focus: Boolean = false): Unit = ()
   def open_file(name: String, target: Isabelle_Navigator.Target): Unit = ()
   def goto(pos: Isabelle_Navigator.Pos): Unit = ()
@@ -289,11 +289,13 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     buffers.iterator.foreach(_.addBufferListener(buffer_listener))
   }
 
-  override def record(pos: Isabelle_Navigator.Pos): Unit = GUI_Thread.require {
+  override def record(pos: Isabelle_Navigator.Pos): Boolean = GUI_Thread.require {
     if (Isabelle_Navigator.is_active() && pos.defined && !pos.equiv(current)) {
       _backward = _backward.push(pos)
       _forward = Isabelle_Navigator.History.empty
+      true
     }
+    else false
   }
 
   override def goto_buffer(

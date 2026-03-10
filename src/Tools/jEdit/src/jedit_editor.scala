@@ -329,7 +329,7 @@ object JEdit_Editor extends Editor {
 
   /* navigator */
 
-  override def navigator_record(editor_context: Context): Unit =
+  override def navigator_record(editor_context: Context): Boolean =
     Isabelle_Navigator.get(editor_context.view).record(Isabelle_Navigator.Pos(editor_context))
 
   override def navigator_recording[A](editor_context: Context)(body: => A): A = {

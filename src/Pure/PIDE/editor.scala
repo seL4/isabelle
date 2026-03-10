@@ -178,7 +178,7 @@ abstract class Editor {
 
   /* navigator */
 
-  def navigator_record(editor_context: Context): Unit = {}
+  def navigator_record(editor_context: Context): Boolean = false
   def navigator_recording[A](editor_context: Context)(body: => A): A = body
 
 
