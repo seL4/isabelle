@@ -304,15 +304,23 @@ object JEdit_Accessible {
       override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
       // approximate Java Swing selection: dot == mark means no selection, just cursor
-      override def getSelectionStart: Int = getCaretPosition min getMarkPosition
-      override def getSelectionEnd: Int = getCaretPosition max getMarkPosition
+      override def getSelectionStart: Int =
+        getSelectionAtOffset(getCaretPosition) match {
+          case null => getCaretPosition
+          case sel => sel.getStart
+        }
+      override def getSelectionEnd: Int =
+        getSelectionAtOffset(getCaretPosition) match {
+          case null => getCaretPosition
+          case sel => sel.getEnd
+        }
       override def getSelectedText: String = {
         JEdit_Lib.buffer_lock(buffer) {
           val buffer_range = JEdit_Lib.buffer_range(buffer)
           val rs =
             List.from(
               for {
-                i <- Set(getCaretPosition, getMarkPosition).iterator
+                i <- Set(getSelectionStart, getSelectionEnd).iterator
                 r <- JEdit_Lib.point_range(buffer, i).try_restrict(buffer_range)
               } yield r)
           if (rs.isEmpty) null
