@@ -176,7 +176,7 @@ class Selection_Popup(
             case KeyEvent.VK_PAGE_DOWN if multi && GUI.no_modifier(e) =>
               move_pages(1)
               e.consume()
-            case KeyEvent.VK_ALT | KeyEvent.VK_META | KeyEvent.VK_CONTROL =>
+            case KeyEvent.VK_ALT | KeyEvent.VK_META | KeyEvent.VK_CONTROL | KeyEvent.VK_SHIFT =>
             case _ =>
               if (e.isActionKey || e.isAltDown || e.isMetaDown || e.isControlDown)
                 hide_popup()
