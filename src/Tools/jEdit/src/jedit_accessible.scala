@@ -303,10 +303,26 @@ object JEdit_Accessible {
 
       override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
-      // workaround for NVDA 2025.3.2: smash selection to approximate system focus cursor
-      override def getSelectionStart: Int = getCaretPosition
-      override def getSelectionEnd: Int = getCaretPosition
-      override def getSelectedText: String = ""
+      // approximate Java Swing selection: dot == mark means no selection, just cursor
+      override def getSelectionStart: Int = getCaretPosition  // dot
+      override def getSelectionEnd: Int = getMarkPosition  // mark
+      override def getSelectedText: String = {
+        JEdit_Lib.buffer_lock(buffer) {
+          val buffer_range = JEdit_Lib.buffer_range(buffer)
+          val rs =
+            List.from(
+              for {
+                i <- Set(getSelectionStart, getSelectionEnd).iterator
+                r <- JEdit_Lib.point_range(buffer, i).try_restrict(buffer_range)
+              } yield r)
+          if (rs.isEmpty) null
+          else {
+            val start = rs.iterator.map(_.start).min
+            val stop = rs.iterator.map(_.stop).max
+            JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
+          }
+        }
+      }
 
       override def selectText(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
