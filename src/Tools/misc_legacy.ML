@@ -3,10 +3,6 @@
 Misc legacy stuff -- to be phased out eventually.
 *)
 
-infix 4 addsimps;
-
-fun ctxt addsimps thms = ctxt |> Simplifier.add_simps thms;
-
 signature MISC_LEGACY =
 sig
   val add_term_names: term * string list -> string list

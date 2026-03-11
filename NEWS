@@ -45,11 +45,14 @@ INCOMPATIBILITY.
 * Discontinued alias "Raw_Simplifier.rewrite"; use "Simplifier.rewrite_wrt"
 instead. Rare INCOMPATIBILITY.
 
+* Discontinued infix "addsimps" and "delsimps"; use explicit
+"Simplifier.add_simp(s)" and "Simplifier.del_simp(s)" instead.
+Minor INCOMPATIBILITY. For existing applications that involve a lot of such
+declarations, consider including the infix declarations from Isabelle2025-2 in
+src/Tools/misc_legacy.ML to ease transition.
+
 * Discontinued infixes "addsimprocs" and "delsimprocs"; use explicit
 "Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor INCOMPATIBILITY.
-
-* Discontinued infix "delsimps"; use explicit "Simplifier.del_simps" instead.
-Minor INCOMPATIBILITY.
 
 
 *** Isabelle/jEdit Prover IDE ***
