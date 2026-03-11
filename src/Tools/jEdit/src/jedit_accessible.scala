@@ -319,7 +319,8 @@ object JEdit_Accessible {
           else {
             val start = rs.iterator.map(_.start).min
             val stop = rs.iterator.map(_.stop).max
-            JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
+            if (start == stop) null
+            else JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
           }
         }
       }
