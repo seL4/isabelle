@@ -1626,12 +1626,50 @@ proof (cases "a = 0")
   with assms show ?thesis by simp
 qed simp_all
 
+lemma (in factorial_semiring) primepow_divisors_induct [case_names zero unit factor]:
+  assumes "P 0" "\<And>x. is_unit x \<Longrightarrow> P x"
+          "\<And>p k x. prime p \<Longrightarrow> k > 0 \<Longrightarrow> \<not>p dvd x \<Longrightarrow> P x \<Longrightarrow> P (p ^ k * x)"
+  shows   "P x"
+proof -
+  have "finite (prime_factors x)" by simp
+  thus ?thesis
+  proof (induction "prime_factors x" arbitrary: x rule: finite_induct)
+    case empty
+    hence "prime_factors x = {}" by metis
+    hence "prime_factorization x = {#}" by simp
+    thus ?case using assms(1,2) by (auto simp: prime_factorization_empty_iff)
+  next
+    case (insert p A x)
+    define k where "k = multiplicity p x"
+    have "k > 0" using insert.hyps
+      by (auto simp: prime_factors_multiplicity k_def)
+    have p: "p \<in> prime_factors x" using insert.hyps by auto
+    from p have "x \<noteq> 0" "\<not>is_unit p" by (auto simp: in_prime_factors_iff)
+
+    from multiplicity_decompose'[OF this] obtain y where y: "x = p ^ k * y" "\<not>p dvd y"
+      by (auto simp: k_def)
+    have "prime_factorization x = replicate_mset k p + prime_factorization y"
+      using p \<open>k > 0\<close> y unfolding y
+      by (subst prime_factorization_mult)
+         (auto simp: prime_factorization_prime_power in_prime_factors_iff)
+    moreover from y p have "p \<notin> prime_factors y"
+      by (auto simp: in_prime_factors_iff)
+    ultimately have "prime_factors y = prime_factors x - {p}"
+      by auto
+    also have "\<dots> = A"
+      using insert.hyps by auto
+    finally have "P y" using insert by auto
+    thus "P x"
+      unfolding y using y \<open>k > 0\<close> p by (intro assms(3)) (auto simp: in_prime_factors_iff)
+  qed
+qed
+
 lemma zero_not_in_prime_factors [simp]: "0 \<notin> prime_factors x"
   by (auto dest: in_prime_factors_imp_prime)
 
 lemma prime_prime_factors:
   "prime p \<Longrightarrow> prime_factors p = {p}"
-  by (drule prime_factorization_prime) simp
+  by (simp add: local.prime_factorization_prime)
 
 lemma prime_factors_product:
   "x \<noteq> 0 \<Longrightarrow> y \<noteq> 0 \<Longrightarrow> prime_factors (x * y) = prime_factors x \<union> prime_factors y"
