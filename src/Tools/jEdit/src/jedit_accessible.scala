@@ -140,10 +140,8 @@ object JEdit_Accessible {
           firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, old_caret, caret)
           old_caret = caret
         }
-        for {
-          range <- JEdit_Lib.selection_ranges(text_area).headOption
-          text <- JEdit_Lib.get_text(text_area.getBuffer, range)
-        } {
+
+        for (text <- Option(getSelectedText)) {
           // see javax.swing.text.JTextComponent.AccessibleJTextComponent
           firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, null, text)
         }
@@ -303,10 +301,35 @@ object JEdit_Accessible {
 
       override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
-      // workaround for NVDA 2025.3.2: smash selection to approximate system focus cursor
-      override def getSelectionStart: Int = getCaretPosition
-      override def getSelectionEnd: Int = getCaretPosition
-      override def getSelectedText: String = ""
+      // approximate Java Swing selection: dot == mark means no selection, just cursor
+      override def getSelectionStart: Int =
+        getSelectionAtOffset(getCaretPosition) match {
+          case null => getCaretPosition
+          case sel => sel.getStart
+        }
+      override def getSelectionEnd: Int =
+        getSelectionAtOffset(getCaretPosition) match {
+          case null => getCaretPosition
+          case sel => sel.getEnd
+        }
+      override def getSelectedText: String = {
+        JEdit_Lib.buffer_lock(buffer) {
+          val buffer_range = JEdit_Lib.buffer_range(buffer)
+          val rs =
+            List.from(
+              for {
+                i <- Set(getSelectionStart, getSelectionEnd).iterator
+                r <- JEdit_Lib.point_range(buffer, i).try_restrict(buffer_range)
+              } yield r)
+          if (rs.isEmpty) null
+          else {
+            val start = rs.iterator.map(_.start).min
+            val stop = rs.iterator.map(_.stop).max
+            if (start == stop) null
+            else JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
+          }
+        }
+      }
 
       override def selectText(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
