@@ -407,13 +407,16 @@ proof
 qed
 
 
+lemma filter_leI:
+  "(\<And>P. eventually P F' \<Longrightarrow> eventually P F) \<Longrightarrow> F \<le> F'"
+  unfolding le_filter_def by simp
+
 lemma filter_leD:
   "F \<le> F' \<Longrightarrow> eventually P F' \<Longrightarrow> eventually P F"
   unfolding le_filter_def by simp
 
-lemma filter_leI:
-  "(\<And>P. eventually P F' \<Longrightarrow> eventually P F) \<Longrightarrow> F \<le> F'"
-  unfolding le_filter_def by simp
+lemma frequently_mono_filter: "frequently P F \<Longrightarrow> F \<le> F' \<Longrightarrow> frequently P F'"
+  using filter_leD[of F F' "\<lambda>x. \<not>P x"] by (auto simp: frequently_def)
 
 lemma eventually_False:
   "eventually (\<lambda>x. False) F \<longleftrightarrow> F = bot"

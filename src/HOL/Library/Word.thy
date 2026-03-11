@@ -3393,6 +3393,21 @@ lemma word_arith_nat_div: "a div b = of_nat (unat a div unat b)"
 lemma word_arith_nat_mod: "a mod b = of_nat (unat a mod unat b)"
   by (metis of_int_of_nat_eq of_nat_mod of_nat_unat word_mod_def)
 
+text \<open>the standard theorems for addition, subtraction and multiplication just work for words\<close>
+lemma word_of_nat_div: 
+  assumes m: \<open>m < 2^ LENGTH('a::len)\<close> and n: \<open>n < 2^ LENGTH('a)\<close>
+  shows \<open>(of_nat (m div n)::'a word) = of_nat m div of_nat n\<close>
+proof (cases \<open>n=0\<close>)
+  case False
+  show ?thesis
+    using m
+  proof (induction m rule: less_induct)
+    case (less m)
+    then show ?case
+      by (simp add: n of_nat_inverse word_arith_nat_div)
+  qed
+qed auto
+
 lemmas word_arith_nat_defs =
   word_arith_nat_add word_arith_nat_mult
   word_arith_nat_Suc Abs_fnat_hom_0
@@ -4615,7 +4630,6 @@ subsection \<open>Executable intervals\<close>
 instance word :: (len) \<open>{interval_top, interval_bot}\<close>
   by standard
     (simp_all add: less_eq_dec_self_iff_eq inc_less_eq_self_iff_eq less_inc_imp_less_eq dec_less_imp_less_eq)
-
 
 subsection \<open>Tool support\<close>
 

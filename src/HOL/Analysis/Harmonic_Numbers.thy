@@ -188,6 +188,10 @@ lemma\<^marker>\<open>tag important\<close> euler_mascheroni_LIMSEQ:
   unfolding euler_mascheroni_def
   by (simp add: convergent_LIMSEQ_iff [symmetric] euler_mascheroni_convergent)
 
+lemma harm_le: "n \<ge> 1 \<Longrightarrow> harm n \<le> ln n + 1"
+  using euler_mascheroni_sequence_decreasing[of 1 n]
+  by (simp add: harm_expand)
+
 lemma euler_mascheroni_LIMSEQ_of_real:
   "(\<lambda>n. of_real (harm n - ln (of_nat n))) \<longlonglongrightarrow>
       (euler_mascheroni :: 'a :: {real_normed_algebra_1, topological_space})"
