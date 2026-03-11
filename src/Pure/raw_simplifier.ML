@@ -679,7 +679,7 @@ end;
 fun init_simpset thms ctxt = ctxt
   |> Context_Position.set_visible false
   |> empty_simpset
-  |> fold add_simp thms
+  |> add_simps thms
   |> Context_Position.restore_visible ctxt;
 
 
