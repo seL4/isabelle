@@ -141,7 +141,7 @@ object JEdit_Accessible {
           old_caret = caret
         }
 
-        for (text <- Option(getSelectedText)) {
+        for (text <- proper_string(getSelectedText)) {
           // see javax.swing.text.JTextComponent.AccessibleJTextComponent
           firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, null, text)
         }
