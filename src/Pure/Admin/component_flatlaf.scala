@@ -33,7 +33,7 @@ object Component_FlatLaf {
 
   val default_source_url = "https://github.com/JFormDesigner/FlatLaf/archive/refs/tags/{V}.tar.gz"
   val default_download_url = "https://repo1.maven.org/maven2/com/formdev"
-  val default_version = "3.7"
+  val default_version = "3.7.1"
 
   val build_script = "./gradlew -PskipFonts -Prelease -Dorg.gradle.parallel=false jarNoNatives"
   val build_patch =
