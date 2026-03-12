@@ -57,7 +57,6 @@ sig
 
   val parse_args: 'a parser -> Token.T list -> 'a
   val default_code_width: int Config.T
-  val next_export: theory -> string * theory
 
   type ('a, 'b, 'c, 'd, 'e, 'f) symbol_attr_decl
   val set_identifiers: (string, string, string, string, string, string) symbol_attr_decl
@@ -206,18 +205,6 @@ fun assert_target thy target_name =
   then target_name
   else error ("Unknown code target language: " ^ quote target_name);
 
-fun reset_index thy =
-  if #2 (Targets.get thy) = 0 then NONE
-  else SOME ((Targets.map o apsnd) (K 0) thy);
-
-val _ = Theory.setup (Theory.at_begin reset_index);
-
-fun next_export thy =
-  let
-    val thy' = (Targets.map o apsnd) (fn i => i + 1) thy;
-    val i = #2 (Targets.get thy');
-  in ("export" ^ string_of_int i, thy') end;
-
 fun fold1 f xs = fold f (tl xs) (hd xs);
 
 fun join_ancestry thy target_name =
@@ -230,7 +217,7 @@ fun join_ancestry thy target_name =
     val modify = fold (curry (op o)) modifies I;
     val datas = rev (map (snd o the_target_data o fst) ancestry) @ [this_data];
     val data = fold1 (fn data' => fn data => Code_Printer.merge_data (data, data')) datas;
-  in (modify, (target, data)) end;
+  in { modify = modify, target = target, data = data } end;
 
 fun allocate_target target_name target thy =
   let
@@ -276,6 +263,18 @@ fun map_data target_name f thy =
 fun map_reserved target_name = map_data target_name o @{apply 3(1)};
 fun map_identifiers target_name = map_data target_name o @{apply 3(2)};
 fun map_printings target_name = map_data target_name o @{apply 3(3)};
+
+fun reset_index thy =
+  if #2 (Targets.get thy) = 0 then NONE
+  else SOME ((Targets.map o apsnd) (K 0) thy);
+
+val _ = Theory.setup (Theory.at_begin reset_index);
+
+fun next_export thy =
+  let
+    val thy' = (Targets.map o apsnd) (fn i => i + 1) thy;
+    val i = #2 (Targets.get thy');
+  in ("export" ^ string_of_int i, thy') end;
 
 
 (** serializers **)
@@ -380,7 +379,7 @@ local
 fun activate_target ctxt target_name =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (modify, (target, data)) = join_ancestry thy target_name;
+    val { modify, target, data } = join_ancestry thy target_name;
     val serializer = (#serializer o #language) target;
   in { serializer = serializer, data = data, modify = modify } end;
 
@@ -606,7 +605,7 @@ fun check_code_cmd all_public raw_cs seris lthy =
 
 fun add_reserved target_name sym thy =
   let
-    val (_, (_, data)) = join_ancestry thy target_name;
+    val { data, ... } = join_ancestry thy target_name;
     val _ = if member (op =) (Code_Printer.the_reserved data) sym
       then error ("Reserved symbol " ^ quote sym ^ " already declared")
       else ();
