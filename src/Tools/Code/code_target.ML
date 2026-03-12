@@ -53,6 +53,7 @@ sig
   val assert_target: theory -> string -> string
   val add_language: string * language -> theory -> theory
   val add_derived_target: string * ancestry -> theory -> theory
+  val language_of_target: theory -> string -> string
   val the_literals: Proof.context -> string -> Code_Printer.literals
 
   val parse_args: 'a parser -> Token.T list -> 'a
@@ -251,6 +252,9 @@ fun add_derived_target (target_name, initial_ancestry) thy =
     allocate_target target_name {serial = #serial supremum, language = #language supremum,
       ancestry = ancestry} thy
   end;
+
+fun language_of_target thy target_name =
+  hd ((map fst o #ancestry o fst o the o lookup_target_data thy o assert_target thy) target_name @ [target_name])
 
 fun map_data target_name f thy =
   let
