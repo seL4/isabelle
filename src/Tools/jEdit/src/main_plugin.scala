@@ -285,40 +285,6 @@ class Main_Plugin extends EBPlugin {
     }
   }
 
-  private def init_menus(): Unit =
-    if (jEdit.getActiveView != null) {
-      JEdit_Property.menu_bar.load()
-        .insert_after("plugins", "isabelle-menu")
-        .save()
-      JEdit_Property.file_menu.load()
-        .insert_after("reload-all", "isabelle.recode-plain", "isabelle.recode-symbols")
-        .save()
-      JEdit_Property.options_menu.load()
-        .insert_after("plugin-options", "isabelle.options")
-        .save()
-      JEdit_Property.help_menu.load()
-        .remove("tip-of-the-day")
-        .insert_after(JEdit_Property.END, "isabelle-documentation")
-        .save()
-
-      GUI_Thread.later { jEdit.propertiesChanged }
-    }
-
-  private def exit_menus(): Unit = {
-    JEdit_Property.menu_bar.load()
-      .remove("isabelle-menu")
-      .save()
-    JEdit_Property.file_menu.load()
-      .remove("isabelle.recode-plain", "isabelle.recode-symbols")
-      .save()
-    JEdit_Property.help_menu.load()
-      .remove("isabelle-documentation")
-      .insert_after(JEdit_Property.END, "tip-of-the-day")
-      .save()
-
-    GUI_Thread.later { jEdit.propertiesChanged }
-  }
-
   override def handleMessage(message: EBMessage): Unit = {
     GUI_Thread.assert {}
 
@@ -346,7 +312,7 @@ class Main_Plugin extends EBPlugin {
                 GUI.scrollable_text(msg))
           }
 
-          init_menus()
+          JEdit_Menu.init()
 
           if (view != null) {
             init_editor(view)
@@ -482,7 +448,7 @@ class Main_Plugin extends EBPlugin {
       completion_history.load()
       spell_checker.update(options.value)
 
-      init_menus()
+      JEdit_Menu.init()
 
       for (view <- JEdit_Lib.jedit_views()) {
         init_title(view)
@@ -537,6 +503,6 @@ class Main_Plugin extends EBPlugin {
 
     Document_Model.reset()
 
-    exit_menus()
+    JEdit_Menu.exit()
   }
 }

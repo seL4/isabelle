@@ -36,14 +36,14 @@ final class JEdit_Property private(val name: String, val value: String) {
   def load(): JEdit_Property = JEdit_Property.load(name)
   def save(): JEdit_Property = { jEdit.setProperty(name, value); this }
 
-  def remove(args: String*): JEdit_Property = {
+  def remove(args: List[String]): JEdit_Property = {
     val words1 = Word.explode(value)
     val words2 = args.foldLeft(words1) { case (ws, a) => Library.remove(a)(ws) }
     if (words1 == words2) this else new JEdit_Property(name, Word.implode(words2))
   }
 
-  def insert_after(hook: String, args: String*): JEdit_Property = {
-    val that = remove(args:_*)
+  def insert_after(hook: String, args: List[String]): JEdit_Property = {
+    val that = remove(args)
 
     val words1 = Word.explode(that.value)
 

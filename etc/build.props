@@ -319,6 +319,7 @@ sources = \
   src/Tools/jEdit/src/jedit_jar.scala \
   src/Tools/jEdit/src/jedit_lib.scala \
   src/Tools/jEdit/src/jedit_main.scala \
+  src/Tools/jEdit/src/jedit_menu.scala \
   src/Tools/jEdit/src/jedit_mouse_handler.scala \
   src/Tools/jEdit/src/jedit_options.scala \
   src/Tools/jEdit/src/jedit_plugins.scala \
@@ -380,6 +381,7 @@ services = \
   isabelle.Sessions$ROOTS_File_Format \
   isabelle.Simplifier_Trace$Handler \
   isabelle.Tools \
+  isabelle.jedit.Isabelle_Menu_Provider \
   isabelle.jedit.JEdit_Plugin0 \
   isabelle.jedit.JEdit_Plugin1 \
   isabelle.jedit.JEdit_JAR$Scala_Functions \
