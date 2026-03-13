@@ -26,7 +26,7 @@ fun print_term ctxt t =
   t
   |> singleton (Syntax.uncheck_terms ctxt)
   |> Sledgehammer_Isar_Annotate.annotate_types_in_term ctxt
-  |> Syntax.unparse_term ctxt
+  |> Syntax.unparse_term (Config.put Printer.show_markup false ctxt)
   |> Pretty.pure_string_of
   |> Sledgehammer_Util.simplify_spaces
   |> ATP_Util.maybe_quote ctxt;

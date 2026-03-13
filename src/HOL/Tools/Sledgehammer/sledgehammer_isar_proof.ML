@@ -405,7 +405,7 @@ fun string_of_isar_proof ctxt0 i n proof =
       (s ^ (term
             |> singleton (Syntax.uncheck_terms ctxt)
             |> annotate_types_in_term ctxt
-            |> Syntax.unparse_term ctxt
+            |> Syntax.unparse_term (Config.put Printer.show_markup false ctxt)
             |> Pretty.pure_string_of
             |> simplify_spaces
             |> maybe_quote ctxt),
