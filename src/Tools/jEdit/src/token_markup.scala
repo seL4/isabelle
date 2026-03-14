@@ -287,7 +287,13 @@ object Token_Markup {
                   case None => style
                   case Some(ext) => ext(style)
                 }
-              handler.handleToken(line, style1, offset + i, Character.charCount(c), context1)
+              try {
+                handler.handleToken(line, style1, offset + i, Character.charCount(c), context1)
+              }
+              catch {
+                case _: ArrayIndexOutOfBoundsException =>
+                  handler.handleToken(line, style, offset + i, Character.charCount(c), context1)
+              }
             }
           }
           else handler.handleToken(line, style, offset, length, context1)
