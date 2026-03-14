@@ -1,6 +1,6 @@
 diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props
 --- jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props	2024-08-03 19:53:22.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-02-11 15:52:51.341338935 +0100
++++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-03-14 15:56:04.234357345 +0100
 @@ -70,7 +70,7 @@
  #}}}
  
@@ -108,3 +108,12 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  options.gutter.selectionAreaBgColor=Selection area background color:
  options.gutter.selectionAreaWidth=Selection area width (in pixels):
  options.gutter.font=Gutter font:
+@@ -2112,7 +2115,7 @@
+ #}}}
+ 
+ #{{{ Plugins menu
+-vfs.browser.plugins.label=$Plugins
++vfs.browser.plugins.label=Plu$gins
+ vfs.browser.plugins.plugin-manager.label=Plugin Manager...
+ vfs.browser.plugins.plugin-options.label=Plugin Options...
+ vfs.browser.plugins.no-plugins.label=No Plugins

@@ -1634,7 +1634,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/BrowserView.java jedit5.7.0-
  		tableScroller.getViewport().setBackground(table.getBackground());
 diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java
 --- jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2024-08-03 19:53:15.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2026-01-31 20:38:04.129253906 +0100
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java	2026-03-14 15:56:25.906070771 +0100
 @@ -30,6 +30,7 @@
  import javax.swing.border.EmptyBorder;
  import javax.swing.event.*;
@@ -1682,7 +1682,16 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  		filterEditor.setInstantPopups(true);
  		filterEditor.setSelectAllOnFocus(true);
  		filterEditor.addActionListener(actionHandler);
-@@ -1195,6 +1197,7 @@
+@@ -1127,8 +1129,6 @@
+ 	{
+ 		if(showManagerOptions && getMode() == BROWSER)
+ 		{
+-			pluginMenu.add(GUIUtilities.loadMenuItem("plugin-manager",false));
+-			pluginMenu.add(GUIUtilities.loadMenuItem("plugin-options",false));
+ 			if (pluginMenu instanceof JMenu)
+ 				((JMenu)pluginMenu).addSeparator();
+ 			else if (pluginMenu instanceof JPopupMenu)
+@@ -1195,6 +1195,7 @@
  		VFSFile[] selectedFiles = browserView.getSelectedFiles();
  
  		Buffer buffer = null;
@@ -1690,7 +1699,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  
  check_selected:
  		for (VFSFile file : selectedFiles)
-@@ -1244,7 +1247,10 @@
+@@ -1244,7 +1245,10 @@
  				}
  
  				if (_buffer != null)
@@ -1701,7 +1710,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  			}
  			// otherwise if a file is selected in OPEN_DIALOG or
  			// SAVE_DIALOG mode, just let the listener(s)
-@@ -1253,21 +1259,30 @@
+@@ -1253,21 +1257,30 @@
  
  		if(buffer != null)
  		{
@@ -1734,7 +1743,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  		}
  
  		Object[] listeners = listenerList.getListenerList();
-@@ -1457,7 +1472,6 @@
+@@ -1457,7 +1470,6 @@
  	}
  
  	//{{{ Instance variables
@@ -1742,7 +1751,7 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/browser/VFSBrowser.java jedit5.7.0-p
  	private final View view;
  	private boolean horizontalLayout;
  	private String path;
-@@ -1751,7 +1765,7 @@
+@@ -1751,7 +1763,7 @@
  		//{{{ MenuButton constructor
  		MenuButton()
  		{
