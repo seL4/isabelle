@@ -1902,3 +1902,24 @@ diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/textarea/InputMethodSupport.java jed
  					return getCaretRectangle(selection_start.x, selection_start.y);
  				}
  				else
+diff -Nru jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java
+--- jedit5.7.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2024-08-03 19:53:18.000000000 +0200
++++ jedit5.7.0-patched/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java	2026-03-14 15:09:21.000825802 +0100
+@@ -284,17 +284,6 @@
+ 		case KeyEvent.KEY_RELEASED:
+ 			switch(keyCode)
+ 			{
+-			case KeyEvent.VK_ALT:
+-				// we consume this to work around the bug
+-				// where A+TAB window switching activates
+-				// the menu bar on Windows.
+-				// http://bugs.sun.com/view_bug.do?bug_id=6458497
+-				//
+-				// This should be removed if the fix for the
+-				// above problem became widely available, to
+-				// allow the menu bar activation.
+-				evt.consume();
+-				break;
+ 			case KeyEvent.VK_ALT_GRAPH:
+ 			case KeyEvent.VK_CONTROL:
+ 			case KeyEvent.VK_SHIFT:
