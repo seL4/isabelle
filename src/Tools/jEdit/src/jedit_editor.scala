@@ -334,7 +334,7 @@ object JEdit_Editor extends Editor {
 
   override def navigator_recording[A](editor_context: Context)(body: => A): A = {
     navigator_record(editor_context)
-    val res = body
+    val res = Isabelle_Navigator.passive { body }
     navigator_record(editor_context)
     res
   }
