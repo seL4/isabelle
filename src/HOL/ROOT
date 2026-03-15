@@ -901,7 +901,7 @@ session "HOL-Nominal" in Nominal = HOL +
 
 session "HOL-Nominal-Examples" (timing) in "Nominal/Examples" = "HOL-Nominal" +
   theories
-    Class3
+    Class
     CK_Machine
     Compile
     Contexts
