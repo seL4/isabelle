@@ -60,6 +60,7 @@ sig
   val iff_exI: thm (* !!x. P x <-> Q x ==> (? x. P x) = (? x. Q x) *)
   val all_comm: thm (* (!x y. P x y) = (!y x. P x y) *)
   val ex_comm: thm (* (? x y. P x y) = (? y x. P x y) *)
+  val atomizable: Proof.context -> term -> bool
   val atomize: Proof.context -> conv
 end;
 
@@ -187,9 +188,9 @@ in
       tac ctxt];
   fun prove_one_point_all_tac ctxt =
     EVERY1 [qcomm_tac ctxt All_comm @{thm equal_allI},
-      resolve_tac ctxt [@{thm equal_allI}],
+      resolve_tac ctxt @{thms equal_allI},
       CONVERSION (Data.atomize ctxt),
-      resolve_tac ctxt [@{thm equal_intr_rule}],
+      resolve_tac ctxt @{thms equal_intr_rule},
       tac ctxt,
       tac ctxt];
 end
@@ -223,8 +224,12 @@ fun rearrange_all ctxt ct =
       (case extract_quant ctxt extract_implies q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
-          let val R = quantify all x T xs (Logic.implies $ eq $ Q)
-            in SOME (prove_conv ctxt (F, R) prove_one_point_all_tac) end)
+          if Data.atomizable ctxt Q
+          then
+            let
+              val R = quantify all x T xs (Logic.implies $ eq $ Q)
+            in SOME (prove_conv ctxt (F, R) prove_one_point_all_tac) end
+          else NONE)
   | _ => NONE);
 
 fun rearrange_All ctxt ct =

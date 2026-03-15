@@ -80,6 +80,15 @@ structure Quantifier1 = Quantifier1
   val iff_exI = @{thm iff_exI}
   val all_comm = @{thm all_comm}
   val ex_comm = @{thm ex_comm}
+  fun atomizable ctxt t =
+    let
+      fun is_Trueprop \<^Const_>\<open>Trueprop for _\<close> = true
+        | is_Trueprop _ = false;
+      val body = Term.strip_all_body t
+    in
+      is_Trueprop (Logic.strip_imp_concl body)
+      andalso forall (atomizable ctxt) (Logic.strip_imp_prems body)
+    end
   val atomize =
     let val rules = @{thms atomize_all atomize_imp atomize_eq atomize_iff atomize_conj}
     in fn ctxt => Simplifier.rewrite_wrt ctxt true rules end
