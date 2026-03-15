@@ -672,7 +672,7 @@ apply (meson exists_fresh(1) fs_name1)
 apply(fresh_guess)+
 done
 
-nominal_primrec (freshness_context: "(d::name,z::coname,P::trm)")
+nominal_primrec (freshness_context: "(d::coname,z::name,P::trm)")
   substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" (\<open>_{_:=('(_'))._}\<close> [100,0,0,100] 100)
 where
   "(Ax x a){d:=(z).P} = (if d=a then Cut <a>.(Ax x a) (z).P else Ax x a)" 
