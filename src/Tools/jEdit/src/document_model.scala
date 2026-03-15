@@ -575,7 +575,7 @@ class Buffer_Model private(
       JEdit_Editor.invoke()
     }
 
-    val listener: BufferListener = JEdit_Lib.buffer_listener((_, e) => edit(List(e)))
+    val buffer_listener: BufferListener = JEdit_Lib.buffer_listener((_, e) => edit(List(e)))
 
 
     // blob
@@ -664,7 +664,7 @@ class Buffer_Model private(
             Text.Edit.replace(0, file_model.content.text, JEdit_Lib.buffer_text(buffer)))
     }
 
-    buffer.addBufferListener(buffer_state.listener)
+    buffer.addBufferListener(buffer_state.buffer_listener)
     init_token_marker()
 
     this
@@ -674,7 +674,7 @@ class Buffer_Model private(
   /* exit */
 
   def exit(): File_Model = GUI_Thread.require {
-    buffer.removeBufferListener(buffer_state.listener)
+    buffer.removeBufferListener(buffer_state.buffer_listener)
     init_token_marker()
 
     File_Model.init(session,
