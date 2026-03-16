@@ -56,7 +56,7 @@ diff -Nru -- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props jedit5.7.0-patc
  #}}}
 diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
 --- jedit5.7.0/jEdit/keymaps/jEdit_keys.props	2024-08-03 19:53:29.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-03-16 19:03:46.547935248 +0100
++++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-03-16 19:20:43.687363786 +0100
 @@ -1,5 +1,5 @@
  #{{{ Function keys
 -help.shortcut=F1
@@ -72,7 +72,26 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  # C+h is not usable on MacOS X
  indent-lines.shortcut=C+i
  join-lines.shortcut=C+j
-@@ -104,6 +103,7 @@
+@@ -44,8 +43,6 @@
+ delete-end-line.shortcut=CS+DELETE
+ prev-paragraph.shortcut=C+UP
+ next-paragraph.shortcut=C+DOWN
+-select-prev-paragraph.shortcut=CS+UP
+-select-next-paragraph.shortcut=CS+DOWN
+ backspace-word.shortcut=C+BACK_SPACE
+ delete-word.shortcut=C+DELETE
+ document-home.shortcut=C+HOME
+@@ -53,9 +50,7 @@
+ select-document-home.shortcut=CS+HOME
+ select-document-end.shortcut=CS+END
+ prev-word.shortcut=C+LEFT
+-select-prev-word.shortcut=CS+LEFT
+ next-word.shortcut=C+RIGHT
+-select-next-word.shortcut=CS+RIGHT
+ action-bar.shortcut=C+ENTER
+ prev-buffer.shortcut=C+PAGE_UP
+ next-buffer.shortcut=C+PAGE_DOWN
+@@ -104,6 +99,7 @@
  top-docking-area.shortcut=C+e C+UP
  right-docking-area.shortcut=C+e C+RIGHT
  bottom-docking-area.shortcut=C+e C+DOWN
@@ -80,7 +99,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  toggle-full-screen.shortcut=F11
  toggle-dock-areas.shortcut=F12
  combined-options.shortcut=C+F12
-@@ -120,7 +120,7 @@
+@@ -120,7 +116,7 @@
  collapse-all-folds.shortcut=C+e c
  delete-paragraph.shortcut=C+e d
  format-paragraph.shortcut=C+e f
@@ -89,7 +108,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  invert-selection.shortcut=C+e i
  select-line.shortcut=C+e l
  narrow-to-fold.shortcut=C+e n n
-@@ -162,7 +162,7 @@
+@@ -162,7 +158,7 @@
  shift-left.shortcut=A+LEFT
  shift-right.shortcut=A+RIGHT
  collapse-fold.shortcut=A+BACK_SPACE
@@ -98,7 +117,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  expand-one-level.shortcut=A+ENTER
  quick-search-word.shortcut=A+COMMA
  hypersearch-word.shortcut=A+PERIOD
-@@ -176,6 +176,8 @@
+@@ -176,6 +172,8 @@
  #}}}
  
  #{{{ Other keys
@@ -107,7 +126,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  shift-left.shortcut2=S+TAB
  select-none.shortcut=ESCAPE
  backspace.shortcut=BACK_SPACE
-@@ -203,14 +205,6 @@
+@@ -203,14 +201,6 @@
  #}}}
  
  #{{{ Alternative shortcuts for frequently-used commands
@@ -122,7 +141,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  copy.shortcut2=C+INSERT
  paste.shortcut2=S+INSERT
  cut.shortcut2=S+DELETE
-@@ -225,7 +219,7 @@
+@@ -225,7 +215,7 @@
  vfs.browser.rename.shortcut=F2
  vfs.browser.roots.shortcut=/
  vfs.browser.synchronize.shortcut=-
