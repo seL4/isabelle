@@ -84,6 +84,8 @@ will display the menu title on the Braille display properly ---
 otherwise no action was indicated. Minor INCOMPATIBILITY with native
 Windows GUI behavior of F10, which FlatLaf attempted to imitate here.
 
+* The jEdit action "sidekick-tree" is more accessible via shortcut F8.
+
 * The jEdit actions "isabelle.recode-plain" (shortcut F9) and
 "isabelle.recode-symbols" (shortcut S+F9) change the representation of
 Isabelle symbols within the text buffer. This corresponds to reload a
