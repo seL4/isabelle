@@ -96,8 +96,10 @@ isabelle.options.label=$Isabelle Options...
 isabelle.options.icon.small=32x32/categories/preferences-system.svg?scale=0.5
 isabelle.recode-plain.icon.small=16x16/actions/view-refresh.svg
 isabelle.recode-plain.label=Recode as Plain $Text
+isabelle.recode-plain.shortcut=F9
 isabelle.recode-symbols.icon.small=16x16/actions/view-refresh.svg
 isabelle.recode-symbols.label=Recode as Unicode S$ymbols
+isabelle.recode-symbols.shortcut=S+F9
 
 #other actions
 isabelle.antiquoted_cartouche.label=Make antiquoted cartouche

@@ -84,15 +84,16 @@ will display the menu title on the Braille display properly ---
 otherwise no action was indicated. Minor INCOMPATIBILITY with native
 Windows GUI behavior of F10, which FlatLaf attempted to imitate here.
 
-* The jEdit actions "isabelle.recode-plain" and
-"isabelle.recode-symbols" change the representation of Isabelle symbols
-within the text buffer. This corresponds to reload a buffer with the
-encodings "UTF-8" and "UTF-8-Isabelle", respectively, but it is more
-careful about caret position, selection ranges, and navigator history
-positions. These actions also appear as menu items "File / Recode Plain
-Text" and "File / Recode Unicode Symbols". This helps to see the true
-text behind the superficial Unicode rendering, which is usually enabled
-by default. WARNING: this resets the undo history.
+* The jEdit actions "isabelle.recode-plain" (shortcut F9) and
+"isabelle.recode-symbols" (shortcut S+F9) change the representation of
+Isabelle symbols within the text buffer. This corresponds to reload a
+buffer with the encodings "UTF-8" and "UTF-8-Isabelle", respectively,
+but it is more careful about caret position, selection ranges, and
+navigator history positions. These actions also appear as menu items
+"File / Recode Plain Text" and "File / Recode Unicode Symbols". This
+helps to see the true text behind the superficial Unicode rendering,
+which is usually enabled by default. WARNING: this resets the undo
+history.
 
 * The built-in navigator has become more robust, thanks to careful
 interaction with GUI vs. IO events in jEdit.
