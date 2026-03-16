@@ -1,6 +1,6 @@
 diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props
 --- jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props	2024-08-03 19:53:22.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-03-14 15:56:04.234357345 +0100
++++ jedit5.7.0-patched/jEdit/org/jedit/localization/jedit_en.props	2026-03-16 18:36:09.068757725 +0100
 @@ -70,7 +70,7 @@
  #}}}
  
@@ -45,7 +45,7 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  print.label=$Print...
  print-preview.label=Print Pre$view...
  page-setup.label=Pa$ge Setup...
-@@ -335,15 +335,14 @@
+@@ -335,20 +335,19 @@
  #{{{ Utilities menu
  
  utils.label=$Utilities
@@ -65,6 +65,12 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  no-recent-dirs.label=No Recent Directories
  #}}}
  
+ #{{{ Favorites menu
+-favorites.label=Fa$vorites
++favorites.label=F$avorites
+ add-buffer-to-favorites.label=Add Buffer to Favorites
+ add-dir-to-favorites.label=Add Directory to Favorites
+ edit-favorites.label=Edit Favorites
 @@ -406,15 +405,20 @@
  
  #{{{ Plugins menu
@@ -108,7 +114,7 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  options.gutter.selectionAreaBgColor=Selection area background color:
  options.gutter.selectionAreaWidth=Selection area width (in pixels):
  options.gutter.font=Gutter font:
-@@ -2112,7 +2115,7 @@
+@@ -2112,14 +2115,14 @@
  #}}}
  
  #{{{ Plugins menu
@@ -117,3 +123,11 @@ diff -Nru jedit5.7.0/jEdit/org/jedit/localization/jedit_en.props jedit5.7.0-patc
  vfs.browser.plugins.plugin-manager.label=Plugin Manager...
  vfs.browser.plugins.plugin-options.label=Plugin Options...
  vfs.browser.plugins.no-plugins.label=No Plugins
+ #}}}
+ 
+ #{{{ Favorites menu
+-vfs.browser.favorites.label=Fa$vorites
++vfs.browser.favorites.label=F$avorites
+ vfs.browser.favorites.add-to-favorites.label=Add to Favorites
+ vfs.browser.favorites.edit-favorites.label=Edit Favorites
+ vfs.browser.favorites.no-favorites.label=No Favorites
