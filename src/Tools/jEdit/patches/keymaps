@@ -56,7 +56,7 @@ diff -Nru -- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props jedit5.7.0-patc
  #}}}
 diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
 --- jedit5.7.0/jEdit/keymaps/jEdit_keys.props	2024-08-03 19:53:29.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-02-28 19:53:10.048243997 +0100
++++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-03-16 19:03:46.547935248 +0100
 @@ -1,5 +1,5 @@
  #{{{ Function keys
 -help.shortcut=F1
@@ -89,6 +89,15 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  invert-selection.shortcut=C+e i
  select-line.shortcut=C+e l
  narrow-to-fold.shortcut=C+e n n
+@@ -162,7 +162,7 @@
+ shift-left.shortcut=A+LEFT
+ shift-right.shortcut=A+RIGHT
+ collapse-fold.shortcut=A+BACK_SPACE
+-expand-fold.shortcut=AS+ENTER
++expand-fold.shortcut=AS+END
+ expand-one-level.shortcut=A+ENTER
+ quick-search-word.shortcut=A+COMMA
+ hypersearch-word.shortcut=A+PERIOD
 @@ -176,6 +176,8 @@
  #}}}
  
@@ -98,7 +107,22 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  shift-left.shortcut2=S+TAB
  select-none.shortcut=ESCAPE
  backspace.shortcut=BACK_SPACE
-@@ -225,7 +227,7 @@
+@@ -203,14 +205,6 @@
+ #}}}
+ 
+ #{{{ Alternative shortcuts for frequently-used commands
+-select-next-page.shortcut2=AS+a
+-select-prev-line.shortcut2=AS+i
+-select-prev-char.shortcut2=AS+j
+-select-next-line.shortcut2=AS+k
+-select-next-char.shortcut2=AS+l
+-select-prev-page.shortcut2=AS+q
+-select-end.shortcut2=AS+x
+-select-home.shortcut2=AS+z
+ copy.shortcut2=C+INSERT
+ paste.shortcut2=S+INSERT
+ cut.shortcut2=S+DELETE
+@@ -225,7 +219,7 @@
  vfs.browser.rename.shortcut=F2
  vfs.browser.roots.shortcut=/
  vfs.browser.synchronize.shortcut=-
