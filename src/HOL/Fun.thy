@@ -291,6 +291,7 @@ proof (rule inj_onI)
     using lin [of x y] ne by (force simp: dual_order.order_iff_strict)
 qed
 
+text \<open>type class version of the above\<close>
 lemma linorder_inj_onI':
   fixes A :: "'a :: linorder set"
   assumes "\<And>i j. i \<in> A \<Longrightarrow> j \<in> A \<Longrightarrow> i < j \<Longrightarrow> f i \<noteq> f j"
@@ -300,8 +301,16 @@ lemma linorder_inj_onI':
 lemma linorder_injI:
   assumes "\<And>x y::'a::linorder. x < y \<Longrightarrow> f x \<noteq> f y"
   shows "inj f"
-    \<comment> \<open>Courtesy of Stephan Merz\<close>
 using assms by (simp add: linorder_inj_onI')
+
+lemma linorder_inj_on_iff:
+  fixes A :: "'a :: linorder set"
+  shows "inj_on f A \<longleftrightarrow> (\<forall>i j. i \<in> A \<longrightarrow> j \<in> A \<longrightarrow> i < j \<longrightarrow> f i \<noteq> f j)"  (is "?L = ?R")
+proof
+  assume rhs: ?R
+  then show ?L
+    by (blast intro: linorder_inj_onI')
+qed (auto simp: inj_on_def)
 
 lemma inj_on_image_Pow: "inj_on f A \<Longrightarrow>inj_on (image f) (Pow A)"
   unfolding Pow_def inj_on_def by blast
