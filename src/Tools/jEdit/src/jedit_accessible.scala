@@ -111,6 +111,7 @@ object JEdit_Accessible {
         case accessible_context: Accessible_Context => accessible_context
         case _ =>
           val accessible_context = new Accessible_Context
+          accessibleContext = accessible_context
           text_area.addCaretListener(accessible_context)
           accessible_context
       }
