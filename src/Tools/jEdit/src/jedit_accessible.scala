@@ -106,6 +106,13 @@ object JEdit_Accessible {
   class TextArea(view: jedit.View) extends JEditTextArea(view: jedit.View) {
     text_area =>
 
+    def accessible_text_changed(offset: Text.Offset = 0): Unit = GUI_Thread.require {
+      accessibleContext match {
+        case accessible_context: Accessible_Context => accessible_context.text_changed(offset)
+        case _ =>
+      }
+    }
+
     override def getAccessibleContext: Accessible_Context =
       accessibleContext match {
         case accessible_context: Accessible_Context => accessible_context
@@ -132,6 +139,9 @@ object JEdit_Accessible {
         states.add(AccessibleState.MULTI_LINE)
         states
       }
+
+      def text_changed(offset: Text.Offset): Unit =
+        firePropertyChange(AccessibleContext.ACCESSIBLE_TEXT_PROPERTY, null, Integer.valueOf(offset))
 
       private var old_caret = 0
       override def caretUpdate(e: CaretEvent): Unit = {

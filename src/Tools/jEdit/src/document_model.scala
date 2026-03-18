@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.buffer.{BufferListener, BufferAdapter, JEditBuffer}
 
 
 object Document_Model {
@@ -577,6 +577,21 @@ class Buffer_Model private(
 
     val buffer_listener: BufferListener = JEdit_Lib.buffer_listener((_, e) => edit(List(e)))
 
+    def accessible_text_changed(offset: Text.Offset): Unit =
+      for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
+        if (text_area.isInstanceOf[JEdit_Accessible.TextArea]) {
+          text_area.asInstanceOf[JEdit_Accessible.TextArea].accessible_text_changed(offset = offset)
+        }
+      }
+
+    val accessible_buffer_listener: BufferListener =
+      new BufferAdapter {
+        override def contentInserted(buf: JEditBuffer, l: Int, offset: Int, m: Int, n: Int): Unit =
+          accessible_text_changed(offset)
+        override def contentRemoved(buf: JEditBuffer, l: Int, offset: Int, m: Int, n: Int): Unit =
+          accessible_text_changed(offset)
+      }
+
 
     // blob
 
@@ -665,6 +680,7 @@ class Buffer_Model private(
     }
 
     buffer.addBufferListener(buffer_state.buffer_listener)
+    buffer.addBufferListener(buffer_state.accessible_buffer_listener)
     init_token_marker()
 
     this
@@ -675,6 +691,7 @@ class Buffer_Model private(
 
   def exit(): File_Model = GUI_Thread.require {
     buffer.removeBufferListener(buffer_state.buffer_listener)
+    buffer.removeBufferListener(buffer_state.accessible_buffer_listener)
     init_token_marker()
 
     File_Model.init(session,
