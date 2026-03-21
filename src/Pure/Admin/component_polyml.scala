@@ -379,7 +379,7 @@ follows:
   val isabelle_tool1 =
     Isabelle_Tool("make_polyml_gmp", "make GMP library from existing sources", Scala_Project.here,
       { args =>
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var verbose = false
 
         val getopts = Getopts("""
@@ -387,11 +387,12 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
     -M DIR       msys/mingw root specification for Windows
+                 (default: """ + MinGW.default_root + """)
 
   Make GMP library in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -404,7 +405,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = mingw_root), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
         val target_dir = make_polyml_gmp(platform_context, root, options = options)
 
         progress.echo("GMP installation directory: " + target_dir)
@@ -414,7 +415,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
     Isabelle_Tool("make_polyml", "make Poly/ML from existing sources", Scala_Project.here,
       { args =>
         var gmp_root: Option[Path] = None
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var arch_64 = false
         var sha1_root: Option[Path] = None
         var verbose = false
@@ -424,6 +425,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
   Options are:
     -M DIR       msys/mingw root specification for Windows
+                 (default: """ + MinGW.default_root + """)
     -g DIR       GMP library root
     -m ARCH      processor architecture (32 or 64, default: """ +
         (if (arch_64) "64" else "32") + """)
@@ -432,7 +434,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "g:" -> (arg => gmp_root = Some(Path.explode(arg))),
           "m:" ->
             {
@@ -453,7 +455,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = mingw_root), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
         make_polyml(platform_context, root,
           gmp_root = gmp_root, sha1_root = sha1_root, arch_64 = arch_64, options = options)
       })
@@ -464,7 +466,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
       { args =>
         var target_dir = Path.current
         var gmp_url = default_gmp_url
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var component_name = ""
         var sha1_url = default_sha1_url
         var sha1_version = default_sha1_version
@@ -482,7 +484,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
     -G URL       build GMP library from source (overrides option -g)
                  (default """ + quote(default_gmp_url) + """)
     -M DIR       msys/mingw root specification for Windows
-                 (e.g. "/cygdrive/c/msys64")
+                 (default: """ + MinGW.default_root + """)
     -N NAME      component name (default: derived from Poly/ML version)
     -S URL       SHA1 repository archive area
                  (default: """ + quote(default_sha1_url) + """)
@@ -517,7 +519,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "G:" -> (arg => { gmp_url = arg; gmp_root = None }),
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "N:" -> (arg => component_name = arg),
           "S:" -> (arg => sha1_url = arg),
           "T:" -> (arg => sha1_version = arg),
@@ -531,7 +533,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = mingw_root), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
 
         build_polyml(platform_context, options = options, component_name = component_name,
           gmp_url = gmp_url, gmp_root = gmp_root, polyml_url = polyml_url,

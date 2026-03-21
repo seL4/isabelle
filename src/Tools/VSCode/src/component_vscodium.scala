@@ -500,7 +500,7 @@ formal record. Typical build commands for special platforms are as follows.
       { args =>
         var target_dir = Path.current
         var intel = false
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var node_version = default_node_version
         var vscodium_version = default_vscodium_version
         var node_root: Option[Path] = None
@@ -514,6 +514,7 @@ Usage: component_vscodium [OPTIONS]
     -D DIR       target directory (default ".")
     -I           force Intel platform on Apple Silicon
     -M DIR       msys/mingw root specification for Windows
+                 (default: """ + MinGW.default_root + """)
     -N VERSION   download Node.js version (overrides option -n)
                  (default: """" + default_node_version + """")
     -P FILE      Python executable (default: educated guess by node-gyp)
@@ -553,7 +554,7 @@ Usage: component_vscodium [OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "I" -> (arg => intel = true),
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "N:" -> { arg => node_version = arg; node_root = None },
           "P:" -> (arg => python_exe = Some(Path.explode(arg))),
           "V:" -> (arg => vscodium_version = arg),
@@ -566,7 +567,7 @@ Usage: component_vscodium [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
           Isabelle_Platform.Bash_Context(
-            mingw = MinGW(root = mingw_root), apple = !intel, progress = progress)
+            mingw = MinGW(root = Some(mingw_root)), apple = !intel, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_root = node_root,
           node_version = node_version, python_exe = python_exe, vscodium_version = vscodium_version,
@@ -578,7 +579,7 @@ Usage: component_vscodium [OPTIONS]
       Scala_Project.here,
       { args =>
         var base_dir = Path.current
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var verbose = false
 
         val getopts = Getopts("""
@@ -587,12 +588,13 @@ Usage: vscode_patch [OPTIONS]
   Options are:
     -D DIR       base directory (default ".")
     -M DIR       msys/mingw root specification for Windows
+                 (default: """ + MinGW.default_root + """)
     -v           verbose
 
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
           "D:" -> (arg => base_dir = Path.explode(arg)),
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -600,7 +602,7 @@ Usage: vscode_patch [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = mingw_root), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
 
         Build_Context.make(platform_context).patch_sources(base_dir)
       })

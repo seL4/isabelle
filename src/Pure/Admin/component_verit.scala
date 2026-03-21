@@ -116,7 +116,7 @@ It has been built from sources like this:
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var mingw_root: Option[Path] = None
+        var mingw_root = MinGW.default_root
         var download_url = default_download_url
         var verbose = false
 
@@ -126,6 +126,7 @@ Usage: isabelle component_verit [OPTIONS]
   Options are:
     -D DIR       target directory (default ".")
     -M DIR       msys/mingw root specification for Windows
+                 (default: """ + MinGW.default_root + """)
     -U URL       download URL
                  (default: """" + default_download_url + """")
     -v           verbose
@@ -133,17 +134,16 @@ Usage: isabelle component_verit [OPTIONS]
   Build prover component from official download.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
+          "M:" -> (arg => mingw_root = Path.explode(arg)),
           "U:" -> (arg => download_url = arg),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val mingw = MinGW(root = mingw_root)
         val progress = new Console_Progress(verbose = verbose)
 
         build_verit(download_url = download_url, progress = progress,
-          target_dir = target_dir, mingw = mingw)
+          target_dir = target_dir, mingw = MinGW(root = Some(mingw_root)))
       })
 }

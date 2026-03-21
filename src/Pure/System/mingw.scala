@@ -58,10 +58,10 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
 
   def bash_script(script: String, env_prefix: String = MinGW.default_env_prefix): String =
     root match {
-      case None => script
-      case Some(msys_root) =>
+      case Some(msys_root) if is_windows =>
         ssh.bash_path(msys_root + Path.explode("usr/bin/bash")) +
           " -c " + Bash.string(env_prefix + script)
+      case _ => script
     }
 
   def get_root: Path =
