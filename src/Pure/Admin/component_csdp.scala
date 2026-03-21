@@ -164,7 +164,7 @@ Only the bare "solver/csdp" program is used for Isabelle.
     Isabelle_Tool("component_csdp", "build prover component from official download", Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var mingw = MinGW.none
+        var mingw_root: Option[Path] = None
         var download_url = default_download_url
         var verbose = false
 
@@ -181,7 +181,7 @@ Usage: isabelle component_csdp [OPTIONS]
   Build prover component from official download.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
+          "M:" -> (arg => mingw_root = Some(Path.explode(arg))),
           "U:" -> (arg => download_url = arg),
           "v" -> (_ => verbose = true))
 
@@ -191,6 +191,6 @@ Usage: isabelle component_csdp [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         build_csdp(download_url = download_url, progress = progress,
-          target_dir = target_dir, mingw = mingw)
+          target_dir = target_dir, mingw = MinGW(root = mingw_root))
       })
 }
