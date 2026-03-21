@@ -75,6 +75,8 @@ object Isabelle_Platform {
     def progress: Progress
 
     def ISABELLE_PLATFORM: String = isabelle_platform.ISABELLE_PLATFORM(windows = true, apple = apple)
+    override def toString: String = ISABELLE_PLATFORM
+
     def is_linux_arm: Boolean = isabelle_platform.is_linux && isabelle_platform.is_arm
     def is_macos_arm: Boolean = isabelle_platform.is_macos && isabelle_platform.is_arm && apple
     def is_arm: Boolean = is_linux_arm || is_macos_arm
