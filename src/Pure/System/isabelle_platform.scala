@@ -35,24 +35,30 @@ object Isabelle_Platform {
   }
 
 
-  /* system context for progress/process */
+  /* support for platform-specific bash (without bash_process wrapper) */
 
   object Bash_Context {
     def apply(
-      isabelle_platform: Isabelle_Platform = local,
+      ssh: SSH.System = SSH.Local,
       mingw_root: Option[Path] = None,
       apple: Boolean = true,
       progress: Progress = new Progress
     ): Bash_Context = {
-      val context_platform = isabelle_platform
+      val context_ssh = ssh
+      val context_platform =
+        ssh.ssh_session match {
+          case None => local
+          case Some(session) => remote(session)
+        }
       val context_mingw =
         mingw_root match {
           case None => MinGW.none
-          case Some(root) => MinGW.init(root = root)
+          case Some(root) => MinGW.init(root = root, ssh = ssh)
         }
       val context_apple = apple
       val context_progress = progress
       new Bash_Context {
+        override def ssh: SSH.System = context_ssh
         override def isabelle_platform: Isabelle_Platform = context_platform
         override def mingw: MinGW = context_mingw
         override def apple: Boolean = context_apple
@@ -62,6 +68,7 @@ object Isabelle_Platform {
   }
 
   trait Bash_Context {
+    def ssh: SSH.System
     def isabelle_platform: Isabelle_Platform
     def mingw: MinGW
     def apple: Boolean
@@ -82,7 +89,7 @@ object Isabelle_Platform {
       progress.bash(
         if (is_macos_arm) "arch -arch arm64 bash -c " + Bash.string(script)
         else mingw.bash_script(script),
-        cwd = cwd, env = env, echo = progress.verbose)
+        ssh = ssh, cwd = cwd, env = env, echo = progress.verbose)
     }
   }
 }
