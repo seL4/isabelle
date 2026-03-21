@@ -14,7 +14,9 @@ object MinGW {
       "CONFIG_SITE=/etc/config.site",
       "MSYSTEM=UCRT64") + "source /etc/msystem\n"
 
-  def apply(root: Option[Path]) = new MinGW(root)
+  val default_root: Path = Path.explode("/cygdrive/c/msys64")
+
+  def apply(root: Option[Path] = Some(default_root)) = new MinGW(root)
   val none: MinGW = apply(root = None)
 }
 
@@ -22,7 +24,7 @@ class MinGW private(val root: Option[Path]) {
   override def toString: String =
     root match {
       case None => "MinGW.none"
-      case Some(msys_root) => "MinGW(" + msys_root.toString + ")"
+      case Some(msys_root) => "MinGW(root = Some(" + msys_root.toString + "))"
     }
 
   private def convert_path(str: String, opt: String): Option[String] =
