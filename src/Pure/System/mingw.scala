@@ -8,7 +8,7 @@ package isabelle
 
 
 object MinGW {
-  def env_prefix: String =
+  def default_env_prefix: String =
     Bash.exports(
       "PATH=/ucrt64/bin:/usr/local/bin:/usr/bin:/bin",
       "CONFIG_SITE=/etc/config.site",
@@ -56,7 +56,7 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
   def platform_path(standard_path: String): String =
     convert_path(standard_path, "-w") getOrElse ssh.platform_path(standard_path)
 
-  def bash_script(script: String, env_prefix: String = MinGW.env_prefix): String =
+  def bash_script(script: String, env_prefix: String = MinGW.default_env_prefix): String =
     root match {
       case None => script
       case Some(msys_root) =>

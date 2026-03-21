@@ -36,7 +36,7 @@ object Component_PolyML {
           gmp_options = List("CFLAGS=-std=gnu17"),
           options =
             List("--host=x86_64-w64-mingw32", "CPPFLAGS=-I/mingw64/include", "--disable-windows-gui"),
-          setup = MinGW.env_prefix,
+          setup = MinGW.default_env_prefix,
           libs = Set("libgcc_s_seh", "libgmp", "libstdc++", "libwinpthread"))
       }
       else error("Bad platform: " + quote(platform.toString))
