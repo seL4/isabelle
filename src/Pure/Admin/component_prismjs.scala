@@ -32,7 +32,7 @@ object Component_Prismjs {
 
     Isabelle_System.with_tmp_dir("tmp") { tmp_dir =>
       val node_dir =
-        Nodejs.setup(tmp_dir, platform_context = Isabelle_Platform.Context(progress = progress))
+        Nodejs.setup(tmp_dir, platform_context = Isabelle_Platform.Bash_Context(progress = progress))
       Isabelle_System.bash(
         Library.make_lines(
           "set -e",

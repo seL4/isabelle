@@ -37,18 +37,18 @@ object Isabelle_Platform {
 
   /* system context for progress/process */
 
-  object Context {
+  object Bash_Context {
     def apply(
       isabelle_platform: Isabelle_Platform = local,
       mingw: MinGW = MinGW.none,
       apple: Boolean = true,
       progress: Progress = new Progress
-    ): Context = {
+    ): Bash_Context = {
       val context_platform = isabelle_platform
       val context_mingw = mingw
       val context_apple = apple
       val context_progress = progress
-      new Context {
+      new Bash_Context {
         override def isabelle_platform: Isabelle_Platform = context_platform
         override def mingw: MinGW = context_mingw
         override def apple: Boolean = context_apple
@@ -57,7 +57,7 @@ object Isabelle_Platform {
     }
   }
 
-  trait Context {
+  trait Bash_Context {
     def isabelle_platform: Isabelle_Platform
     def mingw: MinGW
     def apple: Boolean

@@ -16,7 +16,7 @@ object Nodejs {
 
   def setup(
     base_dir: Path,
-    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
+    platform_context: Isabelle_Platform.Bash_Context = Isabelle_Platform.Bash_Context(),
     version: String = default_version,
     packages: List[String] = Nil
   ): Directory = {
@@ -46,14 +46,14 @@ object Nodejs {
     }
   }
 
-  def directory(platform_context: Isabelle_Platform.Context, path: Path): Directory = {
+  def directory(platform_context: Isabelle_Platform.Bash_Context, path: Path): Directory = {
     val node_dir = new Directory(platform_context, path)
     val node_exe = node_dir.bin_dir + Path.basic("node").exe_if(node_dir.platform.is_windows)
     if (node_exe.is_file) node_dir else error("Bad Node.js directory " + path)
   }
 
   class Directory private[Nodejs](
-    val platform_context: Isabelle_Platform.Context,
+    val platform_context: Isabelle_Platform.Bash_Context,
     val path: Path
   ) {
     def platform: Isabelle_Platform = platform_context.isabelle_platform

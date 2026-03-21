@@ -37,20 +37,20 @@ object Component_VSCodium {
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
 
-  def vscode_arch(platform_context: Isabelle_Platform.Context): String =
+  def vscode_arch(platform_context: Isabelle_Platform.Bash_Context): String =
     if (platform_context.is_arm) "arm64" else "x64"
 
-  def vscode_os_name(platform_context: Isabelle_Platform.Context): String =
+  def vscode_os_name(platform_context: Isabelle_Platform.Bash_Context): String =
     if (platform_context.isabelle_platform.is_windows) "windows"
     else if (platform_context.isabelle_platform.is_macos) "osx"
     else "linux"
 
-  def vscode_platform_name(platform_context: Isabelle_Platform.Context): String =
+  def vscode_platform_name(platform_context: Isabelle_Platform.Bash_Context): String =
     if (platform_context.isabelle_platform.is_windows) "win32"
     else if (platform_context.isabelle_platform.is_macos) "darwin"
     else "linux"
 
-  def vscode_platform(platform_context: Isabelle_Platform.Context): String =
+  def vscode_platform(platform_context: Isabelle_Platform.Bash_Context): String =
     vscode_platform_name(platform_context) + "-" + vscode_arch(platform_context)
 
   private val resources = Path.explode("resources")
@@ -117,7 +117,7 @@ object Component_VSCodium {
 
   object Build_Context {
     def make(
-      platform_context: Isabelle_Platform.Context,
+      platform_context: Isabelle_Platform.Bash_Context,
       node_root: Option[Path] = None,
       node_version: String = "",
       vscodium_version: String = default_vscodium_version,
@@ -154,7 +154,7 @@ object Component_VSCodium {
   }
 
   class Build_Context private(
-    val platform_context: Isabelle_Platform.Context,
+    val platform_context: Isabelle_Platform.Bash_Context,
     node_root: Option[Path],
     node_version: String,
     vscodium_version: String,
@@ -356,7 +356,7 @@ object Component_VSCodium {
     node_version: String = default_node_version,
     vscodium_version: String = default_vscodium_version,
     python_exe: Option[Path] = None,
-    platform_context: Isabelle_Platform.Context = Isabelle_Platform.Context(),
+    platform_context: Isabelle_Platform.Bash_Context = Isabelle_Platform.Bash_Context(),
   ): Unit = {
     val platform = platform_context.isabelle_platform
     val progress = platform_context.progress
@@ -564,7 +564,8 @@ Usage: component_vscodium [OPTIONS]
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
-        val platform_context = Isabelle_Platform.Context(mingw = mingw, apple = !intel, progress = progress)
+        val platform_context =
+          Isabelle_Platform.Bash_Context(mingw = mingw, apple = !intel, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_root = node_root,
           node_version = node_version, python_exe = python_exe, vscodium_version = vscodium_version,
@@ -597,7 +598,7 @@ Usage: vscode_patch [OPTIONS]
         if (more_args.nonEmpty) getopts.usage()
 
         val progress = new Console_Progress(verbose = verbose)
-        val platform_context = Isabelle_Platform.Context(mingw = mingw, progress = progress)
+        val platform_context = Isabelle_Platform.Bash_Context(mingw = mingw, progress = progress)
 
         Build_Context.make(platform_context).patch_sources(base_dir)
       })
