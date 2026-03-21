@@ -16,10 +16,19 @@ object MinGW {
 
   val default_root: Path = Path.explode("/cygdrive/c/msys64")
 
-  def apply(root: Option[Path] = Some(default_root), ssh: SSH.System = SSH.Local) =
-    new MinGW(root, ssh)
+  def init(root: Path = default_root, ssh: SSH.System = SSH.Local): MinGW = {
+    val mingw = new MinGW(Some(root), ssh)
+    if (mingw.is_windows) {
+      try {
+        val out = ssh.execute(mingw.bash_script("uname -s")).check.out
+        require(out.startsWith("MSYS") || out.startsWith("MINGW"))
+      }
+      catch { case ERROR(msg) => cat_error("Bad msys/mingw installation " + root, msg) }
+    }
+    mingw
+  }
 
-  val none: MinGW = apply(root = None)
+  val none: MinGW = new MinGW(None, SSH.Local)
 }
 
 class MinGW private(val root: Option[Path], ssh: SSH.System) {
@@ -30,7 +39,7 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
     else "MinGW(" + a + if_proper(a.nonEmpty && b.nonEmpty, ", ") + b + ")"
   }
 
-  private def is_windows: Boolean = ssh.isabelle_platform.is_windows
+  def is_windows: Boolean = ssh.isabelle_platform.is_windows
 
   private def convert_path(str: String, opt: String): Option[String] =
     root match {
@@ -63,20 +72,4 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
           " -c " + Bash.string(env_prefix + script)
       case _ => script
     }
-
-  def get_root: Path =
-    if (!is_windows) error("Windows platform required")
-    else if (root.isEmpty) error("Windows platform requires msys/mingw root specification")
-    else root.get
-
-  def check(): Unit = {
-    if (root.isDefined && is_windows) {
-      get_root
-      try {
-        val out = ssh.execute(bash_script("uname -s")).check.out
-        require(out.startsWith("MSYS") || out.startsWith("MINGW"))
-      }
-      catch { case ERROR(msg) => cat_error("Bad msys/mingw installation " + get_root, msg) }
-    }
-  }
 }

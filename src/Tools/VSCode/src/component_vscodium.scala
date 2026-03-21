@@ -368,8 +368,6 @@ object Component_VSCodium {
         vscodium_version = vscodium_version,
         python_exe = python_exe)
 
-    platform_context.mingw.check()
-
     Isabelle_System.require_command("patch")
     if (!platform.is_windows) {
       Isabelle_System.require_command("git")
@@ -567,7 +565,7 @@ Usage: component_vscodium [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
           Isabelle_Platform.Bash_Context(
-            mingw = MinGW(root = Some(mingw_root)), apple = !intel, progress = progress)
+            mingw_root = Some(mingw_root), apple = !intel, progress = progress)
 
         component_vscodium(target_dir = target_dir, node_root = node_root,
           node_version = node_version, python_exe = python_exe, vscodium_version = vscodium_version,
@@ -602,7 +600,7 @@ Usage: vscode_patch [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
 
         Build_Context.make(platform_context).patch_sources(base_dir)
       })

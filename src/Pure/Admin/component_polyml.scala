@@ -405,7 +405,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
         val target_dir = make_polyml_gmp(platform_context, root, options = options)
 
         progress.echo("GMP installation directory: " + target_dir)
@@ -455,7 +455,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
         make_polyml(platform_context, root,
           gmp_root = gmp_root, sha1_root = sha1_root, arch_64 = arch_64, options = options)
       })
@@ -533,7 +533,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
         val platform_context =
-          Isabelle_Platform.Bash_Context(mingw = MinGW(root = Some(mingw_root)), progress = progress)
+          Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
 
         build_polyml(platform_context, options = options, component_name = component_name,
           gmp_url = gmp_url, gmp_root = gmp_root, polyml_url = polyml_url,

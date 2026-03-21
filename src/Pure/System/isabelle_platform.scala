@@ -40,12 +40,16 @@ object Isabelle_Platform {
   object Bash_Context {
     def apply(
       isabelle_platform: Isabelle_Platform = local,
-      mingw: MinGW = MinGW.none,
+      mingw_root: Option[Path] = None,
       apple: Boolean = true,
       progress: Progress = new Progress
     ): Bash_Context = {
       val context_platform = isabelle_platform
-      val context_mingw = mingw
+      val context_mingw =
+        mingw_root match {
+          case None => MinGW.none
+          case Some(root) => MinGW.init(root = root)
+        }
       val context_apple = apple
       val context_progress = progress
       new Bash_Context {

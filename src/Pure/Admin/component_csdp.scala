@@ -54,9 +54,9 @@ object Component_CSDP {
     download_url: String = default_download_url,
     progress: Progress = new Progress,
     target_dir: Path = Path.current,
-    mingw: MinGW = MinGW.none
+    mingw_root: Path = MinGW.default_root
   ): Unit = {
-    mingw.check()
+    val mingw = MinGW.init(root = mingw_root)
 
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
@@ -192,6 +192,6 @@ Usage: isabelle component_csdp [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         build_csdp(download_url = download_url, progress = progress,
-          target_dir = target_dir, mingw = MinGW(root = Some(mingw_root)))
+          target_dir = target_dir, mingw_root = mingw_root)
       })
 }
