@@ -70,9 +70,12 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
     else root.get
 
   def check(): Unit = {
-    if (is_windows) {
+    if (root.isDefined && is_windows) {
       get_root
-      try { require(ssh.execute(bash_script("uname -s")).check.out.startsWith("MSYS")) }
+      try {
+        val out = ssh.execute(bash_script("uname -s")).check.out
+        require(out.startsWith("MSYS") || out.startsWith("MINGW"))
+      }
       catch { case ERROR(msg) => cat_error("Bad msys/mingw installation " + get_root, msg) }
     }
   }
