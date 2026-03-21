@@ -265,6 +265,17 @@ object SSH {
     override def bash_path(path: Path): String = Bash.string(remote_path(path))
     def sftp_path(path: Path): String = sftp_string(remote_path(path))
 
+    private def convert_path(str: String, opt: String): String =
+      if (isabelle_platform.is_windows) {
+        val res = execute("/usr/bin/cygpath " + Bash.strings(List(opt, str)))
+        if (res.ok) Library.trim_line(res.out)
+        else error("Error: " + quote(Library.trim_line(res.err)))
+      }
+      else str
+
+    override def standard_path(platform_path: String): String = convert_path(platform_path, "-u")
+    override def platform_path(standard_path: String): String = convert_path(standard_path, "-w")
+
     override def is_dir(path: Path): Boolean = run_ssh(args = "test -d " + bash_path(path)).ok
     override def is_file(path: Path): Boolean = run_ssh(args = "test -f " + bash_path(path)).ok
 
@@ -512,6 +523,10 @@ object SSH {
 
     def expand_path(path: Path): Path = path.expand
     def absolute_path(path: Path): Path = path.absolute
+    def standard_path(path: Path): String = expand_path(path).implode
+    def standard_path(platform_path: String): String = File.standard_path(platform_path)
+    def platform_path(standard_path: String): String = File.platform_path(standard_path)
+    def platform_path(path: Path): String = platform_path(standard_path(path))
     def bash_path(path: Path): String = File.bash_path(path)
     def is_dir(path: Path): Boolean = path.is_dir
     def is_file(path: Path): Boolean = path.is_file
