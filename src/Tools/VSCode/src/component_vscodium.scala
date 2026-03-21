@@ -553,7 +553,7 @@ Usage: component_vscodium [OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "I" -> (arg => intel = true),
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
           "N:" -> { arg => node_version = arg; node_root = None },
           "P:" -> (arg => python_exe = Some(Path.explode(arg))),
           "V:" -> (arg => vscodium_version = arg),
@@ -591,7 +591,7 @@ Usage: vscode_patch [OPTIONS]
   Patch original VSCode source tree for use with Isabelle/VSCode.
 """,
           "D:" -> (arg => base_dir = Path.explode(arg)),
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)

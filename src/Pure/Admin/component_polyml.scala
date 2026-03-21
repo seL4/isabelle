@@ -391,7 +391,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Make GMP library in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -431,7 +431,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
   Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
 """,
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
           "g:" -> (arg => gmp_root = Some(Path.explode(arg))),
           "m:" ->
             {
@@ -514,7 +514,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "G:" -> (arg => { gmp_url = arg; gmp_root = None }),
-          "M:" -> (arg => mingw = MinGW(Path.explode(arg))),
+          "M:" -> (arg => mingw = MinGW(root = Some(Path.explode(arg)))),
           "N:" -> (arg => component_name = arg),
           "S:" -> (arg => sha1_url = arg),
           "T:" -> (arg => sha1_version = arg),

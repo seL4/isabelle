@@ -14,8 +14,8 @@ object MinGW {
       "CONFIG_SITE=/etc/config.site",
       "MSYSTEM=UCRT64") + "source /etc/msystem\n"
 
-  val none: MinGW = new MinGW(None)
-  def apply(path: Path) = new MinGW(Some(path))
+  def apply(root: Option[Path]) = new MinGW(root)
+  val none: MinGW = apply(root = None)
 }
 
 class MinGW private(val root: Option[Path]) {
