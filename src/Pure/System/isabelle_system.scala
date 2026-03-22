@@ -440,9 +440,8 @@ object Isabelle_System {
 
   /* command-line tools */
 
-  def require_command(cmd: String, test: String = "--version"): Unit = {
-    if (!bash(Bash.string(cmd) + " " + test).ok) error("Missing system command: " + quote(cmd))
-  }
+  def require_command(cmd: String, test: String = "--version"): Unit =
+    SSH.Local.require_command(cmd, test = test)
 
   private lazy val gnutar_check: Boolean =
     try { bash("tar --version").check.out.containsSlice("GNU tar") || error("") }

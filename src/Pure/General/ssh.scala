@@ -597,6 +597,12 @@ object SSH {
         redirect = redirect, settings = settings, strict = strict)
     }
 
+    def require_command(cmd: String, test: String = "--version"): Unit =
+      if (!bash(Bash.string(cmd) + " " + test).ok) {
+        error("Missing system command: " + quote(cmd) +
+          if_proper(!is_local, " (ssh " + toString + ")"))
+      }
+
     def new_directory(path: Path): Path =
       if (is_dir(path)) error("Directory already exists: " + absolute_path(path))
       else make_directory(path)
