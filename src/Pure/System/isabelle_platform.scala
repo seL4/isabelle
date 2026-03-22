@@ -44,36 +44,27 @@ object Isabelle_Platform {
       apple: Boolean = true,
       progress: Progress = new Progress
     ): Bash_Context = {
-      val context_ssh = ssh
-      val context_platform =
+      val isabelle_platform =
         ssh.ssh_session match {
           case None => local
           case Some(session) => remote(session)
         }
-      val context_mingw =
+      val mingw =
         mingw_root match {
           case None => MinGW.none
           case Some(root) => MinGW.init(root = root, ssh = ssh)
         }
-      val context_apple = apple
-      val context_progress = progress
-      new Bash_Context {
-        override def ssh: SSH.System = context_ssh
-        override def isabelle_platform: Isabelle_Platform = context_platform
-        override def mingw: MinGW = context_mingw
-        override def apple: Boolean = context_apple
-        override def progress: Progress = context_progress
-      }
+      new Bash_Context(ssh, isabelle_platform, mingw, apple = apple, progress)
     }
   }
 
-  trait Bash_Context {
-    def ssh: SSH.System
-    def isabelle_platform: Isabelle_Platform
-    def mingw: MinGW
-    def apple: Boolean
-    def progress: Progress
-
+  final class Bash_Context private(
+    val ssh: SSH.System,
+    val isabelle_platform: Isabelle_Platform,
+    val mingw: MinGW,
+    val apple: Boolean,
+    val progress: Progress
+  ) {
     def ISABELLE_PLATFORM: String = isabelle_platform.ISABELLE_PLATFORM(windows = true, apple = apple)
     override def toString: String = ISABELLE_PLATFORM
 
