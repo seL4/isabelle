@@ -41,9 +41,11 @@ object Isabelle_Platform {
     def apply(
       ssh: SSH.System = SSH.Local,
       mingw_root: Option[Path] = None,
+      windows: Boolean = true,
       apple: Boolean = true,
       progress: Progress = new Progress
     ): Bash_Context = {
+      require(mingw_root.isEmpty || windows, "incoherent Windows platform")
       val isabelle_platform =
         ssh.ssh_session match {
           case None => local
@@ -54,7 +56,7 @@ object Isabelle_Platform {
           case None => MinGW.none
           case Some(root) => MinGW.init(root = root, ssh = ssh)
         }
-      new Bash_Context(ssh, isabelle_platform, mingw, apple = apple, progress)
+      new Bash_Context(ssh, isabelle_platform, mingw, windows = windows, apple = apple, progress)
     }
   }
 
@@ -62,10 +64,12 @@ object Isabelle_Platform {
     val ssh: SSH.System,
     val isabelle_platform: Isabelle_Platform,
     val mingw: MinGW,
+    val windows: Boolean,
     val apple: Boolean,
     val progress: Progress
   ) {
-    def ISABELLE_PLATFORM: String = isabelle_platform.ISABELLE_PLATFORM(windows = true, apple = apple)
+    def ISABELLE_PLATFORM: String =
+      isabelle_platform.ISABELLE_PLATFORM(windows = windows, apple = apple)
     override def toString: String = ISABELLE_PLATFORM
 
     def is_linux_arm: Boolean = isabelle_platform.is_linux && isabelle_platform.is_arm
