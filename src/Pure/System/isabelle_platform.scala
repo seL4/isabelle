@@ -35,7 +35,7 @@ object Isabelle_Platform {
   }
 
 
-  /* support for platform-specific bash (without bash_process wrapper) */
+  /* support for platform-specific execution */
 
   object Bash_Context {
     def apply(
@@ -84,6 +84,7 @@ object Isabelle_Platform {
     def standard_path(path: Path): String =
       mingw.standard_path(File.platform_path(path))
 
+    // bash without bash_process wrapper
     def bash(script: String,
       cwd: Path = Path.current,
       env: JMap[String, String] = Isabelle_System.Settings.env(),
@@ -92,6 +93,71 @@ object Isabelle_Platform {
         if (is_macos_arm) "arch -arch arm64 bash -c " + Bash.string(script)
         else mingw.bash_script(script),
         ssh = ssh, cwd = cwd, env = env, echo = progress.verbose)
+    }
+
+    def library_path: (String, String) = {
+      val x =
+        if (isabelle_platform.is_linux) "LD_LIBRARY_PATH"
+        else if (isabelle_platform.is_macos) "DYLD_LIBRARY_PATH"
+        else if (isabelle_platform.is_windows) "PATH"
+        else error("Bad platform " + ISABELLE_PLATFORM)
+      val y =
+        if (isabelle_platform.is_linux || isabelle_platform.is_macos) "lib"
+        else if (isabelle_platform.is_windows) "bin"
+        else error("Bad platform " + ISABELLE_PLATFORM)
+      (x, y)
+    }
+
+    def library_closure(path: Path,
+      env_prefix: String = "",
+      filter: String => Boolean = _ => true
+    ): List[String] = {
+      val exe_path = path.expand
+      val exe_dir = exe_path.dir
+      val exe = exe_path.base
+
+      val lines = {
+        val ldd = if (isabelle_platform.is_macos) "otool -L" else "ldd"
+        val script = mingw.bash_script(env_prefix + ldd + " " + ssh.bash_path(exe))
+        split_lines(bash(script, cwd = exe_dir).check.out)
+      }
+
+      def lib_name(lib: String): String =
+        Library.take_prefix[Char](c => c != '.' && c != '-',
+          Library.take_suffix[Char](_ != '/', lib.toList)._2)._1.mkString
+
+      val libs =
+        if (isabelle_platform.is_macos) {
+          val Pattern = """^\s*(/.+)\s+\(.*\)$""".r
+          for {
+            case Pattern(lib) <- lines
+            if !lib.startsWith("@executable_path/") && filter(lib_name(lib))
+          } yield lib
+        }
+        else {
+          val Pattern = """^.*=>\s*(/.+)\s+\(.*\)$""".r
+          for { case Pattern(lib) <- lines if filter(lib_name(lib)) }
+            yield ssh.standard_path(mingw.platform_path(lib))
+        }
+
+      if (libs.nonEmpty) {
+        libs.foreach(lib => ssh.copy_file(Path.explode(lib), exe_dir))
+
+        if (isabelle_platform.is_linux) {
+          ssh.require_command("patchelf")
+          bash("patchelf --force-rpath --set-rpath '$ORIGIN' " + ssh.bash_path(exe_path)).check
+        }
+        else if (isabelle_platform.is_macos) {
+          val script =
+            ("install_name_tool" ::
+              libs.map(file => "-change " + Bash.string(file) + " " +
+                Bash.string("@executable_path/" + Path.explode(file).file_name) + " " +
+                ssh.bash_path(exe))).mkString(" ")
+          bash(script, cwd = exe_dir).check
+        }
+      }
+
+      libs
     }
   }
 }

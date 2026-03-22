@@ -119,7 +119,7 @@ object Component_CSDP {
       Isabelle_System.copy_file(source_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
-        Executable.library_closure(platform_dir + Path.explode("csdp.exe"), mingw = platform_context.mingw,
+        platform_context.library_closure(platform_dir + Path.explode("csdp.exe"),
           filter =
             Set("libblas", "liblapack", "libgfortran", "libgcc_s_seh",
               "libquadmath", "libwinpthread"))

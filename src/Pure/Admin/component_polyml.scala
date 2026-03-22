@@ -146,7 +146,7 @@ object Component_PolyML {
     val gmp_setup =
       gmp_root match {
         case Some(dir) =>
-          val (x, y) = Executable.library_path(platform)
+          val (x, y) = platform_context.library_path
           val z = platform_context.standard_path(dir.absolute) + "/" + y
           "export " + x + "=" + quote(z + ":" + "$" + x)
         case None => ""
@@ -191,10 +191,9 @@ object Component_PolyML {
 
     for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
-    Executable.library_closure(
+    platform_context.library_closure(
       platform_dir + Path.basic("poly").platform_exe,
       env_prefix = gmp_setup + "\n",
-      mingw = platform_context.mingw,
       filter = platform_info.libs)
 
     File.write(platform_dir + Path.basic("poly.uuid"), UUID.random_string())
