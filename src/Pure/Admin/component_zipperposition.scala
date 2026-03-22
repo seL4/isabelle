@@ -31,7 +31,8 @@ object Component_Zipperposition {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM()
+      val platform_context = Isabelle_Platform.Bash_Context(apple = false)
+      val platform_name = platform_context.isabelle_platform.ISABELLE_PLATFORM()
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 

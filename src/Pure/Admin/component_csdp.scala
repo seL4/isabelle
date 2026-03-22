@@ -56,8 +56,6 @@ object Component_CSDP {
     target_dir: Path = Path.current,
     mingw_root: Path = MinGW.default_root
   ): Unit = {
-    val mingw = MinGW.init(root = mingw_root)
-
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       /* component */
 
@@ -83,7 +81,9 @@ object Component_CSDP {
 
       /* platform */
 
-      val platform_name = Isabelle_Platform.local.ISABELLE_PLATFORM(windows = true, apple = true)
+      val platform_context =
+        Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
+      val platform_name = platform_context.ISABELLE_PLATFORM
       val platform_dir =
         Isabelle_System.make_directory(component_dir.path + Path.basic(platform_name))
 
@@ -110,9 +110,7 @@ object Component_CSDP {
             foreach(file => flags.change(File.path(file)))
       }
 
-      progress.bash(mingw.bash_script("make"),
-        cwd = source_dir,
-        echo = progress.verbose).check
+      platform_context.bash("make", cwd = source_dir).check
 
 
       /* install */
@@ -121,7 +119,7 @@ object Component_CSDP {
       Isabelle_System.copy_file(source_dir + Path.explode("solver/csdp").platform_exe, platform_dir)
 
       if (Platform.is_windows) {
-        Executable.library_closure(platform_dir + Path.explode("csdp.exe"), mingw = mingw,
+        Executable.library_closure(platform_dir + Path.explode("csdp.exe"), mingw = platform_context.mingw,
           filter =
             Set("libblas", "liblapack", "libgfortran", "libgcc_s_seh",
               "libquadmath", "libwinpthread"))
