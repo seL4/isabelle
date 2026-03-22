@@ -114,7 +114,7 @@ object Isabelle_Platform {
 
       val lines = {
         val ldd = if (isabelle_platform.is_macos) "otool -L" else "ldd"
-        val script = mingw.bash_script(env_prefix + ldd + " " + ssh.bash_path(exe))
+        val script = env_prefix + ldd + " " + ssh.bash_path(exe)
         split_lines(bash(script, cwd = exe_dir).check.out)
       }
 
