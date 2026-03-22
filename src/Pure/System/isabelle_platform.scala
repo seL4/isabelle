@@ -82,7 +82,7 @@ object Isabelle_Platform {
     def is_arm: Boolean = is_linux_arm || is_macos_arm
 
     def standard_path(path: Path): String =
-      mingw.standard_path(File.platform_path(path))
+      mingw.standard_path(ssh.platform_path(path))
 
     // bash without bash_process wrapper
     def bash(script: String,
