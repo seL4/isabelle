@@ -107,7 +107,7 @@ object Platform {
     def is_macos: Boolean = family == Family.macos
     def is_windows: Boolean = family == Family.windows
 
-    def is(spec: String): Boolean =
+    def test(spec: String): Boolean =
       Info.ALL == spec || platform == spec || family_name == spec
   }
 

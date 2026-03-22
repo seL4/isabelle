@@ -84,7 +84,7 @@ fi
     /* download and setup */
 
     Isabelle_System.with_tmp_dir("download") { download_dir =>
-      for (platform <- all_platforms if platforms.exists(platform.is)) {
+      for (platform <- all_platforms if platforms.exists(platform.test)) {
         val platform_dir = component_dir.path + platform.path
         if (platform_dir.is_dir && !force) {
           progress.echo_warning("Platform " + platform + " already installed")
