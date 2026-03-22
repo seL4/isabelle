@@ -95,7 +95,7 @@ object Isabelle_Platform {
         ssh = ssh, cwd = cwd, env = env, echo = progress.verbose)
     }
 
-    def library_path: (String, String) = {
+    def export_library_path(dir: Path): String = {
       val x =
         if (isabelle_platform.is_linux) "LD_LIBRARY_PATH"
         else if (isabelle_platform.is_macos) "DYLD_LIBRARY_PATH"
@@ -105,7 +105,8 @@ object Isabelle_Platform {
         if (isabelle_platform.is_linux || isabelle_platform.is_macos) "lib"
         else if (isabelle_platform.is_windows) "bin"
         else error("Bad platform " + ISABELLE_PLATFORM)
-      (x, y)
+      val z = standard_path(dir.absolute) + "/" + y
+      "export " + x + "=" + quote(z + ":" + "$" + x)
     }
 
     def library_closure(path: Path,

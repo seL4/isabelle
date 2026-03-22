@@ -145,10 +145,7 @@ object Component_PolyML {
 
     val gmp_setup =
       gmp_root match {
-        case Some(dir) =>
-          val (x, y) = platform_context.library_path
-          val z = platform_context.standard_path(dir.absolute) + "/" + y
-          "export " + x + "=" + quote(z + ":" + "$" + x)
+        case Some(dir) => platform_context.export_library_path(dir)
         case None => ""
       }
 
