@@ -612,6 +612,43 @@ object SSH {
       if (is_dir(path)) error("Directory already exists: " + absolute_path(path))
       else make_directory(path)
 
+    def sync_directory(
+      source: Path,
+      target: Path,
+      remote_source: Boolean = false,
+      remote_target: Boolean = false,
+      direct: Boolean = false,
+      progress: Progress = new Progress,
+      chmod: String = "",
+      chown: String = "",
+      archive: Boolean = true,
+      stats: Boolean = true,
+      thorough: Boolean = false,
+      dry_run: Boolean = false,
+      filter: List[String] = Nil
+    ): Unit = {
+      def make_sys(remote: Boolean): SSH.System = if (remote) this else SSH.Local
+      def make_arg(dir: Path, remote: Boolean): String = {
+        val sys = make_sys(remote)
+        sys.rsync_prefix + Url.dir_path(sys.standard_path(sys.absolute_path(dir)), direct = direct)
+      }
+
+      val a = make_arg(source, remote_source)
+      val b = make_arg(target, remote_target)
+
+      val target_sys = make_sys(remote_target)
+      target_sys.make_directory(
+        if (direct) target_sys.absolute_path(target) else target_sys.absolute_path(target).dir)
+
+      val context =
+        Rsync.Context(progress = progress, ssh = this, chmod = chmod, chown = chown,
+          archive = archive, stats = stats)
+      val res =
+        Rsync.exec(context,
+          thorough = thorough, dry_run = dry_run, filter = filter, args = List("--", a, b))
+      if (!res.ok) cat_error("Failed to sync " + quote(a) + " to " + quote(b), res.err)
+    }
+
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(url_name, file, progress = progress)
 
