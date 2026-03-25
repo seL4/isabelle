@@ -500,6 +500,8 @@ object SSH {
   }
 
   trait System extends AutoCloseable {
+    ssh =>
+
     def ssh_session: Option[Session]
     def is_local: Boolean = ssh_session.isEmpty
 
@@ -628,7 +630,7 @@ object SSH {
     ): Unit = {
       val remote_remote = remote_source && remote_target
 
-      def make_sys(remote: Boolean): SSH.System = if (remote) this else SSH.Local
+      def make_sys(remote: Boolean): SSH.System = if (remote) ssh else SSH.Local
       def make_arg(dir: Path, remote: Boolean): String = {
         val sys = make_sys(remote)
         (if (remote_remote) "" else sys.rsync_prefix) +
@@ -643,7 +645,7 @@ object SSH {
       val target_dir = target_sys.absolute_path(target)
       target_sys.make_directory(if (direct) target_dir else target_dir.dir)
 
-      val rsync_context = Rsync.Context(progress = progress, ssh = this)
+      val rsync_context = Rsync.Context(progress = progress, ssh = ssh)
       val res =
         if (remote_remote) {
           val script =
@@ -657,7 +659,7 @@ object SSH {
               dry_run = dry_run,
               filter = filter,
               args = args)
-          progress.bash(script, ssh = this, echo = true)
+          progress.bash(script, ssh = ssh, echo = true)
         }
         else {
           rsync_context.exec(
