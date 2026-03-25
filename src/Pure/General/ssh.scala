@@ -669,6 +669,27 @@ object SSH {
       if (!res.ok) cat_error("Failed to sync " + quote(a) + " to " + quote(b), res.err)
     }
 
+    def copy_directory(path1: Path, path2: Path, direct: Boolean = false,
+      progress: Progress = new Progress
+    ): Unit = {
+      sync_directory(path1, path2, remote_source = true, remote_target = true, direct = direct,
+        progress = progress)
+    }
+
+    def read_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
+      progress: Progress = new Progress
+    ): Unit = {
+      sync_directory(remote_path, local_path, remote_source = true, direct = direct,
+        progress = progress)
+    }
+
+    def write_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
+      progress: Progress = new Progress
+    ): Unit = {
+      sync_directory(local_path, remote_path, remote_target = true, direct = direct,
+        progress = progress)
+    }
+
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(url_name, file, progress = progress)
 
