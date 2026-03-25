@@ -276,11 +276,16 @@ object SSH {
     override def standard_path(platform_path: String): String = convert_path(platform_path, "-u")
     override def platform_path(standard_path: String): String = convert_path(standard_path, "-w")
 
-    override def is_dir(path: Path): Boolean = run_ssh(args = "test -d " + bash_path(path)).ok
-    override def is_file(path: Path): Boolean = run_ssh(args = "test -f " + bash_path(path)).ok
+    override def is_dir(path: Path): Boolean =
+      run_ssh(args = "test -d " + Bash.string(bash_path(path))).ok
+
+    override def is_file(path: Path): Boolean =
+      run_ssh(args = "test -f " + Bash.string(bash_path(path))).ok
 
     override def eq_file(path1: Path, path2: Path): Boolean =
-      path1 == path2 || execute("test " + bash_path(path1) + " -ef " + bash_path(path2)).ok
+      path1 == path2 ||
+       run_ssh(args =
+       "test " + Bash.string(bash_path(path1)) + " -ef " + Bash.string(bash_path(path2))).ok
 
     override def delete(paths: Path*): Unit =
       if (paths.nonEmpty) {
