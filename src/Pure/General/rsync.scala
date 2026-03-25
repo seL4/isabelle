@@ -16,7 +16,6 @@ object Rsync {
     chmod: String = "",
     chown: String = "",
     archive: Boolean = true,
-    stats: Boolean = true,
     thorough: Boolean = false,
     prune_empty_dirs: Boolean = false,
     dry_run: Boolean = false,
@@ -30,8 +29,7 @@ object Rsync {
       if_proper(chmod, " --chmod=" + Bash.string(chmod)) +
       if_proper(chown, " --chown=" + Bash.string(chown)) +
       if_proper(archive, " --archive") +
-      if_proper(stats, " --stats") +
-      if_proper(verbose, " --verbose") +
+      if_proper(verbose, " --verbose --stats") +
       (if (thorough) " --ignore-times" else " --omit-dir-times") +
       if_proper(prune_empty_dirs, " --prune-empty-dirs") +
       if_proper(dry_run, " --dry-run") +
@@ -59,7 +57,6 @@ object Rsync {
       chmod: String = "",
       chown: String = "",
       archive: Boolean = true,
-      stats: Boolean = true,
       thorough: Boolean = false,
       prune_empty_dirs: Boolean = false,
       dry_run: Boolean = false,
@@ -75,7 +72,6 @@ object Rsync {
           chmod = chmod,
           chown = chown,
           archive = archive,
-          stats = stats,
           thorough = thorough,
           prune_empty_dirs = prune_empty_dirs,
           dry_run = dry_run,

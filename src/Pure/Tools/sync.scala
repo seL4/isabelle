@@ -105,7 +105,7 @@ object Sync {
     if (images.nonEmpty) {
       progress.echo("\n* Session images:", verbose = true)
       val heaps = rsync_context.target(target + Path.explode("heaps")) + "/"
-      rsync_context.exec(stats = progress.verbose, thorough = thorough, dry_run = dry_run,
+      rsync_context.exec(thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
   }

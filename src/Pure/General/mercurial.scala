@@ -345,7 +345,6 @@ object Mercurial {
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
         rsync_context.exec(
-          stats = rsync_context.progress.verbose,
           thorough = thorough,
           dry_run = dry_run,
           clean = true,

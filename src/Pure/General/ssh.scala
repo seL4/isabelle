@@ -622,7 +622,6 @@ object SSH {
       chmod: String = "",
       chown: String = "",
       archive: Boolean = true,
-      stats: Boolean = true,
       thorough: Boolean = false,
       dry_run: Boolean = false,
       filter: List[String] = Nil
@@ -643,8 +642,8 @@ object SSH {
       val rsync_context = Rsync.Context(progress = progress, ssh = this)
       val res =
         rsync_context.exec(
-          chmod = chmod, chown = chown, archive = archive, stats = stats,
-          thorough = thorough, dry_run = dry_run, filter = filter, args = List("--", a, b))
+          chmod = chmod, chown = chown, archive = archive, thorough = thorough, dry_run = dry_run,
+          filter = filter, args = List("--", a, b))
       if (!res.ok) cat_error("Failed to sync " + quote(a) + " to " + quote(b), res.err)
     }
 
