@@ -177,15 +177,8 @@ object Isabelle_System {
     if (path.is_dir) error("Directory already exists: " + path.absolute)
     else make_directory(path)
 
-  def copy_dir(dir1: Path, dir2: Path, direct: Boolean = false): Unit = {
-    def make_path(dir: Path): String =
-      Url.dir_path(File.standard_path(dir.absolute), direct = direct)
-    val p1 = make_path(dir1)
-    val p2 = make_path(dir2)
-    make_directory(if (direct) dir2.absolute else dir2.absolute.dir)
-    val res = bash("cp -a " + Bash.string(p1) + " " + Bash.string(p2))
-    if (!res.ok) cat_error("Failed to copy " + quote(p1) + " to " + quote(p2), res.err)
-  }
+  def copy_dir(path1: Path, path2: Path, direct: Boolean = false): Unit =
+    SSH.Local.copy_directory(path1, path2, direct = direct, thorough = true)
 
   def with_copy_dir[A](dir1: Path, dir2: Path)(body: => A): A = {
     new_directory(dir2)
