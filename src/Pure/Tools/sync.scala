@@ -52,7 +52,7 @@ object Sync {
   def afp_dirs(root: Option[Path] = None, rev: String = ""): List[Dir] =
     root.toList.map(base_dir => afp_dir(base_dir = base_dir, rev = rev))
 
-  def sync(options: Options, context: Rsync.Context, target: Path,
+  def sync(options: Options, rsync_context: Rsync.Context, target: Path,
     thorough: Boolean = false,
     purge_heaps: Boolean = false,
     session_images: List[String] = Nil,
@@ -61,7 +61,7 @@ object Sync {
     rev: String = "",
     dirs: List[Dir] = Nil
   ): Unit = {
-    val progress = context.progress
+    val progress = rsync_context.progress
 
     val self = Mercurial.self_repository()
     dirs.foreach(_.check())
@@ -82,7 +82,7 @@ object Sync {
     def synchronize(src: Mercurial.Repository, dest: Path, r: String,
       contents: List[File.Content] = Nil, filter: List[String] = Nil
     ): Unit = {
-      src.sync(context, dest, rev = r, thorough = thorough, dry_run = dry_run,
+      src.sync(rsync_context, dest, rev = r, thorough = thorough, dry_run = dry_run,
         contents = contents, filter = filter ::: more_filter)
     }
 
@@ -93,8 +93,8 @@ object Sync {
       contents = List(File.content(Path.explode("etc/ISABELLE_ID"), self.id(rev = rev))),
       filter = filter_heaps ::: filter_dirs)
 
-    context.ssh.make_directory(target + DIRS)
-    context.ssh.write(target + DIRS_ROOTS, Library.terminate_lines(dirs.map(_.roots_entry)))
+    rsync_context.ssh.make_directory(target + DIRS)
+    rsync_context.ssh.write(target + DIRS_ROOTS, Library.terminate_lines(dirs.map(_.roots_entry)))
 
     for (dir <- sync_dirs) {
       progress.echo("\n* " + dir.name + ":", verbose = true)
@@ -104,8 +104,8 @@ object Sync {
     val images = find_images(options, session_images, dirs = dirs.map(_.source))
     if (images.nonEmpty) {
       progress.echo("\n* Session images:", verbose = true)
-      val heaps = context.target(target + Path.explode("heaps")) + "/"
-      Rsync.exec(context, thorough = thorough, dry_run = dry_run,
+      val heaps = rsync_context.target(target + Path.explode("heaps")) + "/"
+      Rsync.exec(rsync_context, thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
   }
@@ -170,8 +170,8 @@ Usage: isabelle sync [OPTIONS] TARGET
         val progress = new Console_Progress(verbose = verbose)
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
-          sync(options, context, target, thorough = thorough, purge_heaps = purge_heaps,
+          val rsync_context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
+          sync(options, rsync_context, target, thorough = thorough, purge_heaps = purge_heaps,
             session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
             rev = rev, dirs = afp_dirs(afp_root, afp_rev))
         }
