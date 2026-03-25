@@ -39,7 +39,7 @@ object Rsync {
       val ssh_command = ssh.client_command
       File.bash_path(Component_Rsync.local_program) + " --secluded-args" +
         if_proper(ssh_command, " --rsh=" + Bash.string(ssh_command)) +
-        " --rsync-path=" + Bash.string(quote(File.standard_path(program))) +
+        " --rsync-path=" + Bash.string(ssh.bash_path(program)) +
         if_proper(chmod, " --chmod=" + Bash.string(chmod)) +
         if_proper(chown, " --chown=" + Bash.string(chown)) +
         if_proper(archive, " --archive") +
