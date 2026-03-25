@@ -188,7 +188,7 @@ object Build_Cluster {
       val target = build_cluster_isabelle_home
       if (Mercurial.Hg_Sync.ok(Path.ISABELLE_HOME)) {
         val source = File.standard_path(Path.ISABELLE_HOME)
-        Rsync.exec(rsync_context, clean = true,
+        rsync_context.exec(clean = true,
           args = List("--", Url.direct_path(source), rsync_context.target(target))).check
       }
       else {

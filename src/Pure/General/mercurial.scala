@@ -344,7 +344,8 @@ object Mercurial {
         val protect =
           (Hg_Sync.PATH :: contents.map(_.path))
             .map(path => "protect /" + File.standard_path(path))
-        Rsync.exec(rsync_context,
+        rsync_context.exec(
+          stats = rsync_context.progress.verbose,
           thorough = thorough,
           dry_run = dry_run,
           clean = true,
@@ -618,7 +619,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
           }
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val rsync_context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
+          val rsync_context = Rsync.Context(progress = progress, ssh = ssh)
           hg.sync(rsync_context, target, thorough = thorough, dry_run = dry_run,
             filter = filter, rev = rev)
         }

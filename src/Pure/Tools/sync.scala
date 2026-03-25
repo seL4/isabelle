@@ -105,7 +105,7 @@ object Sync {
     if (images.nonEmpty) {
       progress.echo("\n* Session images:", verbose = true)
       val heaps = rsync_context.target(target + Path.explode("heaps")) + "/"
-      Rsync.exec(rsync_context, thorough = thorough, dry_run = dry_run,
+      rsync_context.exec(stats = progress.verbose, thorough = thorough, dry_run = dry_run,
         args = List("--relative", "--") ::: images ::: List(heaps)).check
     }
   }
@@ -170,7 +170,7 @@ Usage: isabelle sync [OPTIONS] TARGET
         val progress = new Console_Progress(verbose = verbose)
 
         using(SSH.open_system(options, host = ssh_host, port = ssh_port, user = ssh_user)) { ssh =>
-          val rsync_context = Rsync.Context(progress = progress, ssh = ssh, stats = verbose)
+          val rsync_context = Rsync.Context(progress = progress, ssh = ssh)
           sync(options, rsync_context, target, thorough = thorough, purge_heaps = purge_heaps,
             session_images = session_images, preserve_jars = preserve_jars, dry_run = dry_run,
             rev = rev, dirs = afp_dirs(afp_root, afp_rev))

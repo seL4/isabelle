@@ -640,11 +640,10 @@ object SSH {
       target_sys.make_directory(
         if (direct) target_sys.absolute_path(target) else target_sys.absolute_path(target).dir)
 
-      val rsync_context =
-        Rsync.Context(progress = progress, ssh = this, chmod = chmod, chown = chown,
-          archive = archive, stats = stats)
+      val rsync_context = Rsync.Context(progress = progress, ssh = this)
       val res =
-        Rsync.exec(rsync_context,
+        rsync_context.exec(
+          chmod = chmod, chown = chown, archive = archive, stats = stats,
           thorough = thorough, dry_run = dry_run, filter = filter, args = List("--", a, b))
       if (!res.ok) cat_error("Failed to sync " + quote(a) + " to " + quote(b), res.err)
     }

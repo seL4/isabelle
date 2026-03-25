@@ -1564,7 +1564,7 @@ html { background-color: white; }"""))
       try {
         val rsync_context = Rsync.Context(ssh = ssh)
         val source = File.standard_path(context.task_dir)
-        Rsync.exec(rsync_context, clean = true, args = List("--", Url.direct_path(source),
+        rsync_context.exec(clean = true, args = List("--", Url.direct_path(source),
           rsync_context.target(_dir))).check
 
         Isabelle_System.rm_tree(context.task_dir)
