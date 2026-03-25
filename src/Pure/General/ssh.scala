@@ -626,24 +626,44 @@ object SSH {
       dry_run: Boolean = false,
       filter: List[String] = Nil
     ): Unit = {
+      val remote_remote = remote_source && remote_target
+
       def make_sys(remote: Boolean): SSH.System = if (remote) this else SSH.Local
       def make_arg(dir: Path, remote: Boolean): String = {
         val sys = make_sys(remote)
-        sys.rsync_prefix + Url.dir_path(sys.standard_path(sys.absolute_path(dir)), direct = direct)
+        (if (remote_remote) "" else sys.rsync_prefix) +
+          Url.dir_path(sys.standard_path(sys.absolute_path(dir)), direct = direct)
       }
 
       val a = make_arg(source, remote_source)
       val b = make_arg(target, remote_target)
+      val args = List("--", a, b)
 
       val target_sys = make_sys(remote_target)
-      target_sys.make_directory(
-        if (direct) target_sys.absolute_path(target) else target_sys.absolute_path(target).dir)
+      val target_dir = target_sys.absolute_path(target)
+      target_sys.make_directory(if (direct) target_dir else target_dir.dir)
 
       val rsync_context = Rsync.Context(progress = progress, ssh = this)
       val res =
-        rsync_context.exec(
-          chmod = chmod, chown = chown, archive = archive, thorough = thorough, dry_run = dry_run,
-          filter = filter, args = List("--", a, b))
+        if (remote_remote) {
+          val script =
+            Rsync.command_line(
+              local_rsync = rsync_context.remote_rsync,
+              verbose = progress.verbose,
+              chmod = chmod,
+              chown = chown,
+              archive = archive,
+              thorough = thorough,
+              dry_run = dry_run,
+              filter = filter,
+              args = args)
+          progress.bash(script, ssh = this, echo = true)
+        }
+        else {
+          rsync_context.exec(
+            chmod = chmod, chown = chown, archive = archive, thorough = thorough, dry_run = dry_run,
+            filter = filter, args = args)
+        }
       if (!res.ok) cat_error("Failed to sync " + quote(a) + " to " + quote(b), res.err)
     }
 

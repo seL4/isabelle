@@ -53,6 +53,9 @@ object Rsync {
     def target(path: Path, direct: Boolean = false): String =
       Url.dir_path(ssh.rsync_path(path), direct = direct)
 
+    def remote_rsync: String =
+      ssh.standard_path(Component_Rsync.remote_program(directory))
+
     def exec(
       chmod: String = "",
       chown: String = "",
@@ -67,7 +70,7 @@ object Rsync {
       val script =
         Rsync.command_line(
           ssh_command = ssh.client_command,
-          remote_rsync = ssh.standard_path(Component_Rsync.remote_program(directory)),
+          remote_rsync = remote_rsync,
           verbose = progress.verbose,
           chmod = chmod,
           chown = chown,
