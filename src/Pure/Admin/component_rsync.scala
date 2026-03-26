@@ -12,12 +12,8 @@ object Component_Rsync {
 
   def home: Path = Path.explode("$ISABELLE_RSYNC_HOME")
 
-  def local_program: Path = Path.explode("$ISABELLE_RSYNC")
-
-  def remote_program(directory: Components.Directory): Path = {
-    val platform = directory.ssh.isabelle_platform.ISABELLE_PLATFORM(apple = true)
-    directory.path + Path.basic(platform) + Path.basic("rsync")
-  }
+  def program(base: Path = home, platform: Isabelle_Platform = Isabelle_Platform.local): Path =
+    base + Path.basic(platform.ISABELLE_PLATFORM(apple = true)) + Path.basic("rsync")
 
 
   /* build rsync */

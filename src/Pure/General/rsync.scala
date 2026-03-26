@@ -9,7 +9,7 @@ package isabelle
 
 object Rsync {
   def command_line(
-    local_rsync: String = File.standard_path(Component_Rsync.local_program),
+    local_rsync: String = File.standard_path(Component_Rsync.program()),
     ssh_command: String = "",
     remote_rsync: String = "",
     verbose: Boolean = false,
@@ -41,20 +41,18 @@ object Rsync {
   object Context {
     def apply(progress: Progress = new Progress, ssh: SSH.System = SSH.Local): Context = {
       val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
-      new Context(directory, progress)
+      new Context(directory.path, ssh, progress)
     }
   }
 
-  final class Context private(directory: Components.Directory, val progress: Progress) {
-    override def toString: String = directory.toString
-
-    def ssh: SSH.System = directory.ssh
+  final class Context private(base: Path, val ssh: SSH.System, val progress: Progress) {
+    override def toString: String = base.toString + ssh.print
 
     def target(path: Path, direct: Boolean = false): String =
       Url.dir_path(ssh.rsync_path(path), direct = direct)
 
     def remote_rsync: String =
-      ssh.standard_path(Component_Rsync.remote_program(directory))
+      ssh.standard_path(Component_Rsync.program(base = base, platform = ssh.isabelle_platform))
 
     def exec(
       chmod: String = "",
