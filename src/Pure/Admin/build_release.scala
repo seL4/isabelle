@@ -251,17 +251,16 @@ directory individually.
           def system_apple(b: Boolean): String =
             """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
 
-          val build_script =
-            List(
-              "cd " + File.bash_path(remote_dir),
+          ssh.bash(cwd = remote_dir, settings = false, script =
+            Library.make_lines(
+              "set -e",
               "tar -xf tmp.tar",
               """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
               system_apple(false),
               build_command,
               system_apple(true),
               build_command,
-              "tar -cf tmp.tar heaps")
-          ssh.execute(build_script.mkString(" && "), settings = false).check
+              "tar -cf tmp.tar heaps")).check
           ssh.read_file(remote_tmp_tar, local_tmp_tar)
         }
         execute_tar(local_dir, "-xvf " + File.bash_path(local_tmp_tar))
