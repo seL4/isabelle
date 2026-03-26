@@ -15,7 +15,9 @@ import scala.annotation.tailrec
 object Isabelle_Cronjob {
   /* global resources: owned by main cronjob */
 
-  val backup = "isabelle.in.tum.de:cronjob"
+  val backup_host = "isabelle.in.tum.de"
+  val backup_dir: Path = Path.explode("cronjob")
+  val log_path: Path = Path.explode("log")
   val main_dir: Path = Path.explode("~/cronjob")
   val main_state_file: Path = main_dir + Path.explode("run/main.state")
   val build_release_log: Path = main_dir + Path.explode("run/build_release.log")
@@ -64,10 +66,10 @@ object Isabelle_Cronjob {
         File.write(logger.log_dir + Build_Log.log_filename("isabelle_identify", logger.start_date),
           Build_Log.Identify.content(logger.start_date, Some(get_rev()), Some(get_afp_rev())))
 
-        Isabelle_System.bash(
-          File.bash_path(Component_Rsync.program()) +
-            """ -a --include="*/" --include="plain_identify*" --exclude="*" """ +
-            Bash.string(backup + "/log/.") + " " + File.bash_path(main_dir) + "/log/.").check
+        using(SSH.open_session(logger.options, host = backup_host)) { ssh =>
+          ssh.read_directory(backup_dir + log_path, main_dir + log_path, direct = true,
+            filter = List("+ */", "+ plain_identify*", "- *"))
+        }
 
         val cronjob_log = isabelle_devel + Path.basic("cronjob-main.log")
         if (!cronjob_log.is_file) {
@@ -78,10 +80,9 @@ object Isabelle_Cronjob {
   val exit: Logger_Task =
     Logger_Task("exit",
       { logger =>
-        Isabelle_System.bash(
-          File.bash_path(Component_Rsync.program()) +
-            " -a " + File.bash_path(main_dir) + "/log/." + " " + Bash.string(backup) + "/log/.")
-            .check
+        using(SSH.open_session(logger.options, host = backup_host)) { ssh =>
+          ssh.write_directory(backup_dir + log_path, main_dir + log_path, direct = true)
+        }
       })
 
 
