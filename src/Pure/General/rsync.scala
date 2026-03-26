@@ -8,8 +8,13 @@ package isabelle
 
 
 object Rsync {
+  def home: Path = Path.explode("$ISABELLE_RSYNC_HOME")
+
+  def program(base: Path = home, platform: Isabelle_Platform = Isabelle_Platform.local): Path =
+    base + Path.basic(platform.ISABELLE_PLATFORM(apple = true)) + Path.basic("rsync")
+
   def command_line(
-    local_rsync: String = File.standard_path(Component_Rsync.program()),
+    local_rsync: String = File.standard_path(program()),
     ssh_command: String = "",
     remote_rsync: String = "",
     verbose: Boolean = false,
@@ -40,7 +45,7 @@ object Rsync {
 
   object Context {
     def apply(progress: Progress = new Progress, ssh: SSH.System = SSH.Local): Context = {
-      val directory = Components.provide(Component_Rsync.home, ssh = ssh, progress = progress)
+      val directory = Components.provide(home, ssh = ssh, progress = progress)
       new Context(directory.path, ssh, progress)
     }
   }
@@ -51,8 +56,7 @@ object Rsync {
     def target(path: Path, direct: Boolean = false): String =
       Url.dir_path(ssh.rsync_path(path), direct = direct)
 
-    def remote_rsync: String =
-      ssh.standard_path(Component_Rsync.program(base = base, platform = ssh.isabelle_platform))
+    def remote_program: Path = program(base = base, platform = ssh.isabelle_platform)
 
     def exec(
       chmod: String = "",
@@ -68,7 +72,7 @@ object Rsync {
       val script =
         Rsync.command_line(
           ssh_command = ssh.client_command,
-          remote_rsync = remote_rsync,
+          remote_rsync = ssh.standard_path(remote_program),
           verbose = progress.verbose,
           chmod = chmod,
           chown = chown,

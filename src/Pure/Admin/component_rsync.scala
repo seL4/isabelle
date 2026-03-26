@@ -8,14 +8,6 @@ package isabelle
 
 
 object Component_Rsync {
-  /* resources */
-
-  def home: Path = Path.explode("$ISABELLE_RSYNC_HOME")
-
-  def program(base: Path = home, platform: Isabelle_Platform = Isabelle_Platform.local): Path =
-    base + Path.basic(platform.ISABELLE_PLATFORM(apple = true)) + Path.basic("rsync")
-
-
   /* build rsync */
 
   val default_version = "3.2.7"

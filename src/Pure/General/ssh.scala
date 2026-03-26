@@ -650,7 +650,7 @@ object SSH {
         if (remote_remote) {
           val script =
             Rsync.command_line(
-              local_rsync = rsync_context.remote_rsync,
+              local_rsync = ssh.standard_path(rsync_context.remote_program),
               verbose = progress.verbose,
               chmod = chmod,
               chown = chown,
