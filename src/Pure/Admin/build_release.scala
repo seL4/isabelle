@@ -266,7 +266,7 @@ directory individually.
             file <- File.find_files(local_heaps.file).iterator
             path = File.path(file)
             rel_path <- File.relative_path(local_heaps, path)
-          } yield rel_path.toString + " " + File.space(path)
+          } yield rel_path.implode + " " + File.space(path).print
         ).sorted.foreach(progress.echo(_))
       }
     }
