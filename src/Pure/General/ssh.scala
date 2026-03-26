@@ -620,13 +620,13 @@ object SSH {
       remote_source: Boolean = false,
       remote_target: Boolean = false,
       direct: Boolean = false,
-      progress: Progress = new Progress,
       chmod: String = "",
       chown: String = "",
       archive: Boolean = true,
       thorough: Boolean = false,
       dry_run: Boolean = false,
-      filter: List[String] = Nil
+      filter: List[String] = Nil,
+      progress: Progress = new Progress
     ): Unit = {
       val remote_remote = remote_source && remote_target
 
