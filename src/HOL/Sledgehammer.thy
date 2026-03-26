@@ -21,6 +21,10 @@ keywords
   "sledgehammer_params" :: thy_decl
 begin
 
+syntax (output)
+  "_constrain_keep" :: "logic => type => logic"  ("_ :: _" [4, 0] 3)
+  "_constrain_keep" :: "prop' => type => prop'"  ("_ :: _" [4, 0] 3)
+
 ML_file \<open>Tools/ATP/system_on_tptp.ML\<close>
 ML_file \<open>Tools/Sledgehammer/async_manager_legacy.ML\<close>
 ML_file \<open>Tools/Sledgehammer/sledgehammer_util.ML\<close>

@@ -17,6 +17,7 @@ awkward syntax.
 signature SLEDGEHAMMER_ISAR_ANNOTATE =
 sig
   val annotate_types_in_term : Proof.context -> term -> term
+  val pretty_annotated_term : Proof.context -> term -> Pretty.T
 end;
 
 structure Sledgehammer_Isar_Annotate : SLEDGEHAMMER_ISAR_ANNOTATE =
@@ -28,7 +29,7 @@ fun post_traverse_term_type' f _ (t as Const (_, T)) s = f t T s
   | post_traverse_term_type' f env (t as Bound i) s = f t (nth env i) s
   | post_traverse_term_type' f env (Abs (x, T1, b)) s =
     let val ((b', s'), T2) = post_traverse_term_type' f (T1 :: env) b s in
-      f (Abs (x, T1, b')) (T1 --> T2) s'
+      f (Abs (x, T1, b')) (T1 --> dummyT) s'
     end
   | post_traverse_term_type' f env (u $ v) s =
     let
@@ -117,19 +118,25 @@ fun key_of_atype (TVar (z, _)) = Ord_List.insert indexname_ord z
   | key_of_atype _ = I
 fun key_of_type T = fold_atyps key_of_atype T []
 
-fun update_tab t T (tab, pos) =
-  ((case key_of_type T of
-     [] => tab
-   | key =>
-     let val cost = (size_of_typ T, (size_of_term t, pos)) in
-       (case Var_Set_Tab.lookup tab key of
-         NONE => Var_Set_Tab.update_new (key, cost) tab
-       | SOME old_cost =>
-         (case cost_ord (cost, old_cost) of
-           LESS => Var_Set_Tab.update (key, cost) tab
-         | _ => tab))
-     end),
-   pos + 1)
+fun update_tab (Bound _) _ (tab, pos) = (tab, pos + 1)
+  | update_tab t T (tab, pos) =
+  let
+    val (Tsize, tsize) = (case t of Abs (_, U, _) => (size_of_typ U, 1)
+      | _ => (size_of_typ T, size_of_term t))
+  in
+    ((case key_of_type T of
+       [] => tab
+     | key =>
+       let val cost = (Tsize, (tsize, pos)) in
+         (case Var_Set_Tab.lookup tab key of
+           NONE => Var_Set_Tab.update_new (key, cost) tab
+         | SOME old_cost =>
+           (case cost_ord (cost, old_cost) of
+             LESS => Var_Set_Tab.update (key, cost) tab
+           | _ => tab))
+       end),
+     pos + 1)
+  end
 
 val typing_spot_table = post_fold_term_type update_tab (Var_Set_Tab.empty, 0) #> fst
 
@@ -188,5 +195,38 @@ fun annotate_types_in_term ctxt t =
   in
     introduce_annotations subst' typing_spots t t''
   end
+
+val annotate_print_tr =
+  let
+    fun annotate c ctxt t T =
+      if T = dummyT then t
+      else Syntax.const c $ t $ Syntax_Phases.term_of_typ ctxt T
+    fun tr_term ctxt U (Abs (x, xT, body)) =
+          (case U of
+            Type (\<^type_name>\<open>fun\<close>, [A, B]) =>
+              if A = xT then
+                let
+                  val (x', body') = Syntax_Trans.atomic_abs_tr' ctxt (x, xT, body)
+                in
+                  Syntax.const \<^syntax_const>\<open>_abs\<close> $
+                    annotate \<^syntax_const>\<open>_idtyp\<close> ctxt x' A $
+                    tr_term ctxt B body'
+                end
+              else
+                annotate \<^syntax_const>\<open>_constrain_keep\<close> ctxt (Abs (x, xT, body)) U
+          | _ => annotate \<^syntax_const>\<open>_constrain_keep\<close> ctxt (Abs (x, xT, body)) U)
+      | tr_term ctxt U t =
+          annotate \<^syntax_const>\<open>_constrain_keep\<close> ctxt t U
+    fun type_constraint_tr' ctxt T (t :: ts) =
+          Term.list_comb (tr_term ctxt (Type.constraint_type ctxt T) t, ts)
+      | type_constraint_tr' _ _ _ = raise Match
+  in
+    [(\<^syntax_const>\<open>_type_constraint_\<close>, type_constraint_tr')]
+  end
+
+val pretty_annotated_term =
+  Config.put Printer.show_markup false
+  #> Proof_Context.background_theory (Sign.typed_print_translation annotate_print_tr)
+  #> Syntax.unparse_term
 
 end;
