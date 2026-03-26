@@ -671,26 +671,29 @@ object SSH {
 
     def copy_directory(path1: Path, path2: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(path1, path2, remote_source = true, remote_target = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def read_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(remote_path, local_path, remote_source = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def write_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(local_path, remote_path, remote_target = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
