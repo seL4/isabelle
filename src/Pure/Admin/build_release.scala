@@ -240,31 +240,34 @@ directory individually.
       else error("Undefined option " + server_option + ": cannot build heaps")
 
     try {
-      Isabelle_System.with_tmp_file("tmp", ext = "tar") { local_tmp_tar =>
-        execute_tar(local_dir, "-cf " + File.bash_path(local_tmp_tar) + " .")
-        ssh.with_tmp_dir { remote_dir =>
-          val remote_tmp_tar = remote_dir + Path.basic("tmp.tar")
-          ssh.write_file(remote_tmp_tar, local_tmp_tar)
+      ssh.with_tmp_dir { remote_dir =>
+        ssh.write_directory(remote_dir, local_dir, direct = true)
 
-          val build_command =
-            "bin/isabelle build -o parallel_proofs=0 -o system_heaps -b -- " + Bash.strings(build_sessions)
-          def system_apple(b: Boolean): String =
-            """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
+        val build_command =
+          "bin/isabelle build -o parallel_proofs=0 -o system_heaps -b -- " + Bash.strings(build_sessions)
+        def system_apple(b: Boolean): String =
+          """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
 
-          ssh.bash(cwd = remote_dir, settings = false, script =
-            Library.make_lines(
-              "set -e",
-              "tar -xf tmp.tar",
-              """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
-              system_apple(false),
-              build_command,
-              system_apple(true),
-              build_command,
-              "tar -cf tmp.tar heaps")).check
-          ssh.read_file(remote_tmp_tar, local_tmp_tar)
-        }
-        execute_tar(local_dir, "-xvf " + File.bash_path(local_tmp_tar))
-          .out_lines.sorted.foreach(progress.echo(_))
+        ssh.bash(cwd = remote_dir, settings = false, script =
+          Library.make_lines(
+            "set -e",
+            """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
+            system_apple(false),
+            build_command,
+            system_apple(true),
+            build_command)).check
+
+        val local_heaps = local_dir + Path.basic("heaps")
+        val remote_heaps = remote_dir + Path.basic("heaps")
+        ssh.read_directory(remote_heaps, local_heaps, direct = true)
+
+        List.from(
+          for {
+            file <- File.find_files(local_heaps.file).iterator
+            path = File.path(file)
+            rel_path <- File.relative_path(local_heaps, path)
+          } yield rel_path.toString + " " + File.space(path)
+        ).sorted.foreach(progress.echo(_))
       }
     }
     finally { ssh.close() }
