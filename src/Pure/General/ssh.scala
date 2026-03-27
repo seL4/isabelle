@@ -620,13 +620,13 @@ object SSH {
       remote_source: Boolean = false,
       remote_target: Boolean = false,
       direct: Boolean = false,
-      progress: Progress = new Progress,
       chmod: String = "",
       chown: String = "",
       archive: Boolean = true,
       thorough: Boolean = false,
       dry_run: Boolean = false,
-      filter: List[String] = Nil
+      filter: List[String] = Nil,
+      progress: Progress = new Progress
     ): Unit = {
       val remote_remote = remote_source && remote_target
 
@@ -650,7 +650,7 @@ object SSH {
         if (remote_remote) {
           val script =
             Rsync.command_line(
-              local_rsync = rsync_context.remote_rsync,
+              local_rsync = ssh.standard_path(rsync_context.remote_program),
               verbose = progress.verbose,
               chmod = chmod,
               chown = chown,
@@ -671,26 +671,29 @@ object SSH {
 
     def copy_directory(path1: Path, path2: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(path1, path2, remote_source = true, remote_target = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def read_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(remote_path, local_path, remote_source = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def write_directory(remote_path: Path, local_path: Path, direct: Boolean = false,
       thorough: Boolean = false,
+      filter: List[String] = Nil,
       progress: Progress = new Progress
     ): Unit = {
       sync_directory(local_path, remote_path, remote_target = true, direct = direct,
-        thorough = thorough, progress = progress)
+        thorough = thorough, filter = filter, progress = progress)
     }
 
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
