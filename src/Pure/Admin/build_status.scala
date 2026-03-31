@@ -10,9 +10,9 @@ package isabelle
 object Build_Status {
   /* defaults */
 
-  val default_target_dir = Path.explode("build_status")
-  val default_image_size = (800, 600)
-  val default_history = 30
+  def default_target_dir: Path = Path.explode("build_status")
+  def default_image_size: (Int, Int) = (800, 600)
+  def default_history: Int = 30
 
   def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
 
