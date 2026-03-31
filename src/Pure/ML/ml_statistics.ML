@@ -6,6 +6,8 @@ ML runtime statistics.
 
 signature ML_STATISTICS =
 sig
+  val print_time_ms: Time.time -> string
+  val print_time_us: Time.time -> string
   val set: {tasks_ready: int, tasks_pending: int, tasks_running: int, tasks_passive: int,
     tasks_urgent: int, workers_total: int, workers_active: int, workers_waiting: int} -> unit
   val get: unit -> (string * string) list
@@ -20,15 +22,15 @@ struct
 
 fun print_int x = if x < 0 then "-" ^ Int.toString (~ x) else Int.toString x;
 
-fun print_real0 x =
-  let val s = Real.fmt (StringCvt.GEN NONE) x in
+fun print_time n t =
+  let val s = Real.fmt (StringCvt.FIX (SOME n)) (Time.toReal t) in
     (case String.fields (fn c => c = #".") s of
       [a, b] => if List.all (fn c => c = #"0") (String.explode b) then a else s
     | _ => s)
   end;
 
-fun print_real x =
-  if x < 0.0 then "-" ^ print_real0 (~ x) else print_real0 x;
+val print_time_ms = print_time 3;
+val print_time_us = print_time 6;
 
 val print_properties =
   String.concatWith "," o map (fn (a, b) => a ^ "=" ^ b);
@@ -95,7 +97,7 @@ fun make_properties
       | PolyML.Statistics.GCSharing p => p + 1
       | PolyML.Statistics.OtherState p => p + 1);
   in
-    [("now", print_real (Time.toReal (Time.now ()))),
+    [("now", print_time_us (Time.now ())),
      ("tasks_ready", print_int tasks_ready),
      ("tasks_pending", print_int tasks_pending),
      ("tasks_running", print_int tasks_running),
@@ -121,10 +123,10 @@ fun make_properties
      ("threads_wait_IO", print_int threadsWaitIO),
      ("threads_wait_mutex", print_int threadsWaitMutex),
      ("threads_wait_signal", print_int threadsWaitSignal),
-     ("time_elapsed", print_real (Time.toReal timeNonGCReal)),
-     ("time_elapsed_GC", print_real (Time.toReal timeGCReal)),
-     ("time_CPU", print_real (Time.toReal timeNonGCSystem + Time.toReal timeNonGCUser)),
-     ("time_GC", print_real (Time.toReal timeGCSystem + Time.toReal timeGCUser)),
+     ("time_elapsed", print_time_ms timeNonGCReal),
+     ("time_elapsed_GC", print_time_ms timeGCReal),
+     ("time_CPU", print_time_ms (timeNonGCSystem + timeNonGCUser)),
+     ("time_GC", print_time_ms (timeGCSystem + timeGCUser)),
      ("GC_percent", print_int gc_percent)]
   end;
 

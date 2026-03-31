@@ -173,7 +173,7 @@ fun task_statistics (Task {name, id, timing, pos, ...}) =
       (case timing of NONE => timing_start | SOME var => Synchronized.value var);
     fun micros time = string_of_int (Time.toNanoseconds time div 1000);
   in
-    [("now", Value.print_real (Time.toReal (Time.now ()))),
+    [("now", ML_Statistics.print_time_us (Time.now ())),
      ("task_name", name), ("task_id", Value.print_int id),
      ("run", micros run), ("wait", micros wait), ("wait_deps", commas wait_deps)] @
     Position.properties_of pos
