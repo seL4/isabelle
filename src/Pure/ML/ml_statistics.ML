@@ -24,7 +24,7 @@ struct
 fun print_int x = if x < 0 then "-" ^ Int.toString (~ x) else Int.toString x;
 
 fun print_time n t =
-  let val s = Real.fmt (StringCvt.FIX (SOME n)) (Time.toReal t) in
+  let val s = Time.fmt n t in
     (case String.fields (fn c => c = #".") s of
       [a, b] => if List.all (fn c => c = #"0") (String.explode b) then a else s
     | _ => s)
