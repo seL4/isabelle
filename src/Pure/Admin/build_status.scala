@@ -222,6 +222,12 @@ object Build_Status {
 
   sealed case class Image(name: String, width: Int, height: Int) {
     def path: Path = Path.basic(name)
+
+    def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
+      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.names)
+      Graphics_File.write_chart_png((dir + path).file, chart, width, height)
+      this
+    }
   }
 
   def print_version(
@@ -431,6 +437,7 @@ object Build_Status {
             Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
 
               def plot_name(kind: String): String = session.name + "_" + kind + ".png"
+              def plot_image(kind: String): Image = Image(plot_name(kind), image_width, image_height)
 
               File.write(data_file,
                 cat_lines(
@@ -508,15 +515,8 @@ plot [] """ + range + " " +
                   """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
                   """ using 1:12 smooth csplines title "heap stored" """)
 
-              def jfreechart(plot_name: String, fields: ML_Statistics.Fields): Image = {
-                val image = Image(plot_name, image_width, image_height)
-                val chart =
-                  session.ml_statistics.chart(
-                    fields.title + ": " + session.ml_statistics.heading, fields.names)
-                Graphics_File.write_chart_png(
-                  (dir + image.path).file, chart, image.width, image.height)
-                image
-              }
+              def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
+                plot_image(kind).write_chart_png(dir, session.ml_statistics, fields)
 
               val images =
                 (if (session.check_timing)
@@ -528,12 +528,13 @@ plot [] """ + range + " " +
                   List(gnuplot(plot_name("heap"), heap_plots, "[0:]"))
                  else Nil) :::
                 (if (session.ml_statistics.content.nonEmpty)
-                  List(jfreechart(plot_name("heap_chart"), ML_Statistics.heap_fields),
-                    jfreechart(plot_name("program_chart"), ML_Statistics.program_fields)) :::
+                  List(
+                    chart_image("heap_chart", ML_Statistics.heap_fields),
+                    chart_image("program_chart", ML_Statistics.program_fields)) :::
                   (if (session.threads > 1)
                     List(
-                      jfreechart(plot_name("tasks_chart"), ML_Statistics.tasks_fields),
-                      jfreechart(plot_name("workers_chart"), ML_Statistics.workers_fields))
+                      chart_image("tasks_chart", ML_Statistics.tasks_fields),
+                      chart_image("workers_chart", ML_Statistics.workers_fields))
                    else Nil)
                  else Nil)
 
