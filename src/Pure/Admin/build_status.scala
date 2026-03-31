@@ -239,7 +239,8 @@ set timefmt "%s"
 set format x "%d-%b"
 set xlabel """ + quote(title) + """ noenhanced
 set key left bottom
-plot [] """ + range + " " + plots.map(s => quote(data.implode) + " " + s).mkString(", ") + "\n")
+plot [] """ + range + " " +
+          plots.map(s => quote(File.standard_path(data)) + " " + s).mkString(", ") + "\n")
 
         val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(tmp_file))
         if (!result.ok) result.error("Gnuplot failed for " + quote(title)).check
