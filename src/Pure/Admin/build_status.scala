@@ -513,14 +513,14 @@ plot [] """ + range + " " +
                 """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
                 """ using 1:12 smooth csplines title "heap stored" """)
 
-            def plot_image(kind: String): Image =
+            def image(kind: String): Image =
               Image(session.name + "_" + kind + ".png", image_width, image_height)
 
             def gnuplot_image(kind: String, plots: List[String], range: String): Image =
-              plot_image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
+              image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
 
             def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
-              plot_image(kind).write_chart_png(dir, session.ml_statistics, fields)
+              image(kind).write_chart_png(dir, session.ml_statistics, fields)
 
             val images =
               (if (session.check_timing)
