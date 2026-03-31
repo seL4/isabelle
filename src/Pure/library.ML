@@ -819,7 +819,7 @@ fun match_string pat str =
 
 fun eq_real (a, b) = Real.isNan a andalso Real.isNan b orelse Real.== (a, b);
 
-val string_of_real = Real.fmt (StringCvt.GEN NONE);
+val string_of_real = Real.fmt (StringCvt.GEN (SOME 13));
 
 fun signed_string_of_real x =
   if x < 0.0 then "-" ^ string_of_real (~ x) else string_of_real x;
