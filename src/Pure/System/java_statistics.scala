@@ -44,6 +44,8 @@ object Java_Statistics {
         val before_gc = gc_info.getMemoryUsageBeforeGc
         val after_gc = gc_info.getMemoryUsageAfterGc
         GC_Status(
+          // e.g. "ZGC Major Cycles", "ZGC Major Pauses"
+          // or "ZGC Minor Cycles", "ZGC Minor Pauses", "ZGC Major Cycles", "ZGC Major Pauses"
           name = gc_bean.getName,
           count = gc_bean.getCollectionCount,
           duration = Time.ms(gc_info.getDuration),
