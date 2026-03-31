@@ -223,6 +223,30 @@ object Build_Status {
   sealed case class Image(name: String, width: Int, height: Int) {
     def path: Path = Path.basic(name)
 
+    def write_gnuplot_png(
+      dir: Path,
+      data: Path,
+      title: String,
+      plots: List[String],
+      range: String
+    ): Image = {
+      Isabelle_System.with_tmp_file("gnuplot") { tmp_file =>
+        File.write(tmp_file, """
+set terminal png size """ + width + "," + height + """
+set output """ + quote(File.standard_path(dir + path)) + """
+set xdata time
+set timefmt "%s"
+set format x "%d-%b"
+set xlabel """ + quote(title) + """ noenhanced
+set key left bottom
+plot [] """ + range + " " + plots.map(s => quote(data.implode) + " " + s).mkString(", ") + "\n")
+
+        val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(tmp_file))
+        if (!result.ok) result.error("Gnuplot failed for " + quote(title)).check
+      }
+      this
+    }
+
     def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
       val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.names)
       Graphics_File.write_chart_png((dir + path).file, chart, width, height)
@@ -434,112 +458,90 @@ object Build_Status {
       val session_plots =
         Par_List.map((session: Session) =>
           Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
-            Isabelle_System.with_tmp_file(session.name, "gnuplot") { gnuplot_file =>
+            def plot_name(kind: String): String = session.name + "_" + kind + ".png"
+            def plot_image(kind: String): Image = Image(plot_name(kind), image_width, image_height)
 
-              def plot_name(kind: String): String = session.name + "_" + kind + ".png"
-              def plot_image(kind: String): Image = Image(plot_name(kind), image_width, image_height)
+            File.write(data_file,
+              cat_lines(
+                session.finished_entries.map(entry =>
+                  List(entry.date.toString,
+                    entry.timing.elapsed.minutes.toString,
+                    entry.timing.resources.minutes.toString,
+                    entry.ml_timing.elapsed.minutes.toString,
+                    entry.ml_timing.resources.minutes.toString,
+                    entry.maximum_code.MiB.toString,
+                    entry.average_code.MiB.toString,
+                    entry.maximum_stack.MiB.toString,
+                    entry.average_stack.MiB.toString,
+                    entry.maximum_heap.MiB.toString,
+                    entry.average_heap.MiB.toString,
+                    entry.stored_heap.MiB.toString).mkString(" "))))
 
-              File.write(data_file,
-                cat_lines(
-                  session.finished_entries.map(entry =>
-                    List(entry.date.toString,
-                      entry.timing.elapsed.minutes.toString,
-                      entry.timing.resources.minutes.toString,
-                      entry.ml_timing.elapsed.minutes.toString,
-                      entry.ml_timing.resources.minutes.toString,
-                      entry.maximum_code.MiB.toString,
-                      entry.average_code.MiB.toString,
-                      entry.maximum_stack.MiB.toString,
-                      entry.average_stack.MiB.toString,
-                      entry.maximum_heap.MiB.toString,
-                      entry.average_heap.MiB.toString,
-                      entry.stored_heap.MiB.toString).mkString(" "))))
+            val max_time =
+              (session.finished_entries.foldLeft(0.0) {
+                case (m, entry) =>
+                  m.max(entry.timing.elapsed.minutes).
+                    max(entry.timing.resources.minutes).
+                    max(entry.ml_timing.elapsed.minutes).
+                    max(entry.ml_timing.resources.minutes)
+              } max 0.1) * 1.1
+            val timing_range = "[0:" + max_time + "]"
 
-              val max_time =
-                (session.finished_entries.foldLeft(0.0) {
-                  case (m, entry) =>
-                    m.max(entry.timing.elapsed.minutes).
-                      max(entry.timing.resources.minutes).
-                      max(entry.ml_timing.elapsed.minutes).
-                      max(entry.ml_timing.resources.minutes)
-                } max 0.1) * 1.1
-              val timing_range = "[0:" + max_time + "]"
-
-              def gnuplot(plot_name: String, plots: List[String], range: String): Image = {
-                val image = Image(plot_name, image_width_stretch, image_height)
-
-                File.write(gnuplot_file, """
-set terminal png size """ + image.width + "," + image.height + """
-set output """ + quote(File.standard_path(dir + image.path)) + """
-set xdata time
-set timefmt "%s"
-set format x "%d-%b"
-set xlabel """ + quote(session.name) + """ noenhanced
-set key left bottom
-plot [] """ + range + " " +
-                plots.map(s => quote(data_file.implode) + " " + s).mkString(", ") + "\n")
-
-                val result =
-                  Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(gnuplot_file))
-                if (!result.ok)
-                  result.error("Gnuplot failed for " + data_name + "/" + plot_name).check
-
-                image
-              }
-
-              val timing_plots = {
-                val plots1 =
-                  List(
-                    """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
-                    """ using 1:2 smooth csplines title "elapsed time" """)
-                val plots2 =
-                  List(
-                    """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
-                    """ using 1:3 smooth csplines title "cpu time" """)
-                if (session.threads == 1) plots1 else plots1 ::: plots2
-              }
-
-              val ml_timing_plots =
+            val timing_plots = {
+              val plots1 =
                 List(
-                  """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
-                  """ using 1:4 smooth csplines title "ML elapsed time" """,
-                  """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
-                  """ using 1:5 smooth csplines title "ML cpu time" """)
-
-              val heap_plots =
+                  """ using 1:2 smooth sbezier title "elapsed time (smooth)" """,
+                  """ using 1:2 smooth csplines title "elapsed time" """)
+              val plots2 =
                 List(
-                  """ using 1:10 smooth sbezier title "heap maximum (smooth)" """,
-                  """ using 1:10 smooth csplines title "heap maximum" """,
-                  """ using 1:11 smooth sbezier title "heap average (smooth)" """,
-                  """ using 1:11 smooth csplines title "heap average" """,
-                  """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
-                  """ using 1:12 smooth csplines title "heap stored" """)
-
-              def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
-                plot_image(kind).write_chart_png(dir, session.ml_statistics, fields)
-
-              val images =
-                (if (session.check_timing)
-                  List(
-                    gnuplot(plot_name("timing"), timing_plots, timing_range),
-                    gnuplot(plot_name("ml_timing"), ml_timing_plots, timing_range))
-                 else Nil) :::
-                (if (session.check_heap)
-                  List(gnuplot(plot_name("heap"), heap_plots, "[0:]"))
-                 else Nil) :::
-                (if (session.ml_statistics.content.nonEmpty)
-                  List(
-                    chart_image("heap_chart", ML_Statistics.heap_fields),
-                    chart_image("program_chart", ML_Statistics.program_fields)) :::
-                  (if (session.threads > 1)
-                    List(
-                      chart_image("tasks_chart", ML_Statistics.tasks_fields),
-                      chart_image("workers_chart", ML_Statistics.workers_fields))
-                   else Nil)
-                 else Nil)
-
-              session.name -> images
+                  """ using 1:3 smooth sbezier title "cpu time (smooth)" """,
+                  """ using 1:3 smooth csplines title "cpu time" """)
+              if (session.threads == 1) plots1 else plots1 ::: plots2
             }
+
+            val ml_timing_plots =
+              List(
+                """ using 1:4 smooth sbezier title "ML elapsed time (smooth)" """,
+                """ using 1:4 smooth csplines title "ML elapsed time" """,
+                """ using 1:5 smooth sbezier title "ML cpu time (smooth)" """,
+                """ using 1:5 smooth csplines title "ML cpu time" """)
+
+            val heap_plots =
+              List(
+                """ using 1:10 smooth sbezier title "heap maximum (smooth)" """,
+                """ using 1:10 smooth csplines title "heap maximum" """,
+                """ using 1:11 smooth sbezier title "heap average (smooth)" """,
+                """ using 1:11 smooth csplines title "heap average" """,
+                """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
+                """ using 1:12 smooth csplines title "heap stored" """)
+
+            def gnuplot_image(kind: String, plots: List[String], range: String): Image =
+              plot_image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
+
+            def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
+              plot_image(kind).write_chart_png(dir, session.ml_statistics, fields)
+
+            val images =
+              (if (session.check_timing)
+                List(
+                  gnuplot_image("timing", timing_plots, timing_range),
+                  gnuplot_image("ml_timing", ml_timing_plots, timing_range))
+               else Nil) :::
+              (if (session.check_heap)
+                List(gnuplot_image("heap", heap_plots, "[0:]"))
+               else Nil) :::
+              (if (session.ml_statistics.content.nonEmpty)
+                List(
+                  chart_image("heap_chart", ML_Statistics.heap_fields),
+                  chart_image("program_chart", ML_Statistics.program_fields)) :::
+                (if (session.threads > 1)
+                  List(
+                    chart_image("tasks_chart", ML_Statistics.tasks_fields),
+                    chart_image("workers_chart", ML_Statistics.workers_fields))
+                 else Nil)
+               else Nil)
+
+            session.name -> images
           }, data_entry.sessions).toMap
 
       HTML.write_document(dir, "index.html",
