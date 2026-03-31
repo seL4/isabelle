@@ -23,6 +23,9 @@ object ML_Statistics {
   val Now = new Properties.Double("now")
   def now(props: Properties.T): Double = Now.unapply(props).get
 
+  def parse_properties(s: String): Properties.T =
+    space_explode(',', s).flatMap(Properties.Eq.unapply)
+
 
   /* memory status */
 
@@ -53,7 +56,7 @@ object ML_Statistics {
     consume: Properties.T => Unit = Console.println
   ): Unit = {
     def progress_stdout(line: String): Unit = {
-      val props = space_explode(',', line).flatMap(Properties.Eq.unapply)
+      val props = parse_properties(line)
       if (props.nonEmpty) consume(props)
     }
 

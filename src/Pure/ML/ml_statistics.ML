@@ -8,6 +8,7 @@ signature ML_STATISTICS =
 sig
   val print_time_ms: Time.time -> string
   val print_time_us: Time.time -> string
+  val print_properties: (string * string) list -> string
   val set: {tasks_ready: int, tasks_pending: int, tasks_running: int, tasks_passive: int,
     tasks_urgent: int, workers_total: int, workers_active: int, workers_waiting: int} -> unit
   val get: unit -> (string * string) list
