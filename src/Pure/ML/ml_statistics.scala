@@ -151,7 +151,9 @@ object ML_Statistics {
   private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
 
   val java_heap_fields: Fields =
-    Fields("Java heap", List("java_heap_size", "java_heap_used"))
+    Fields("Java heap", List("java_heap_size", "java_heap_used",
+      "java_heap_size_before_gc", "java_heap_used_before_gc",
+      "java_heap_size_after_gc", "java_heap_used_after_gc"), scale_MiB = true)
 
   val java_thread_fields: Fields =
     Fields("Java threads", List("java_threads_total", "java_workers_total", "java_workers_active"))
