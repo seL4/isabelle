@@ -458,9 +458,6 @@ plot [] """ + range + " " + plots.map(s => quote(data.implode) + " " + s).mkStri
       val session_plots =
         Par_List.map((session: Session) =>
           Isabelle_System.with_tmp_file(session.name, "data") { data_file =>
-            def plot_name(kind: String): String = session.name + "_" + kind + ".png"
-            def plot_image(kind: String): Image = Image(plot_name(kind), image_width, image_height)
-
             File.write(data_file,
               cat_lines(
                 session.finished_entries.map(entry =>
@@ -514,6 +511,9 @@ plot [] """ + range + " " + plots.map(s => quote(data.implode) + " " + s).mkStri
                 """ using 1:11 smooth csplines title "heap average" """,
                 """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
                 """ using 1:12 smooth csplines title "heap stored" """)
+
+            def plot_image(kind: String): Image =
+              Image(session.name + "_" + kind + ".png", image_width, image_height)
 
             def gnuplot_image(kind: String, plots: List[String], range: String): Image =
               plot_image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
