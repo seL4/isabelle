@@ -77,7 +77,7 @@ object Profiling {
     ): Statistics = {
       val session_name = session_base.session_name
 
-      val session =
+      val session_stats =
         Isabelle_System.with_tmp_dir("profiling") { dir =>
           File.write(dir + Path.explode("args.yxml"),
             YXML.string_of_body(encode_args(session_base.used_theories.map(p => p._1.theory))))
@@ -88,18 +88,18 @@ object Profiling {
         }
 
       new Statistics(parent = parent, session = session_name,
-        theories = session.theories,
-        garbage_theories = session.garbage_theories,
-        locales = session.locales,
-        locale_thms = session.locale_thms,
-        global_thms = session.global_thms,
+        theories = session_stats.theories,
+        garbage_theories = session_stats.garbage_theories,
+        locales = session_stats.locales,
+        locale_thms = session_stats.locale_thms,
+        global_thms = session_stats.global_thms,
         heap_size = store.get_session(session_name).heap_size,
-        thys_id_size = session.sizeof_thys_id,
-        thms_id_size = session.sizeof_thms_id,
-        terms_size = session.sizeof_terms,
-        types_size = session.sizeof_types,
-        names_size = session.sizeof_names,
-        spaces_size = session.sizeof_spaces)
+        thys_id_size = session_stats.sizeof_thys_id,
+        thms_id_size = session_stats.sizeof_thms_id,
+        terms_size = session_stats.sizeof_terms,
+        types_size = session_stats.sizeof_types,
+        names_size = session_stats.sizeof_names,
+        spaces_size = session_stats.sizeof_spaces)
     }
 
     val empty: Statistics = new Statistics()
