@@ -189,8 +189,8 @@ object ML_Statistics {
     val duration = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last) - time_start
 
     val fields =
-      SortedSet.empty[String] ++
-        (for {
+      SortedSet.from[String](
+        for {
           props <- ml_statistics.iterator
           (x, _) <- props.iterator
           if x != Now.name && domain(x) } yield x)
@@ -222,8 +222,8 @@ object ML_Statistics {
           }).toList
 
         val data =
-          SortedMap.empty[String, Double] ++
-            (for {
+          SortedMap.from[String, Double](
+            for {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = java.lang.Double.parseDouble(y) if z != 0.0
