@@ -47,6 +47,12 @@ object Store {
     def heap_digest(): Option[SHA1.Digest] =
       heap.flatMap(ML_Heap.read_file_digest)
 
+    def heap_size: Space =
+      heap match {
+        case None => Space.zero
+        case Some(path) => File.space(path)
+      }
+
     override def toString: String = name
   }
 
