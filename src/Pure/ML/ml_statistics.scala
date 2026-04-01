@@ -282,6 +282,11 @@ final class ML_Statistics private(
   def maximum_heap: Space = Space.B(maximum("size_heap"))
   def average_heap: Space = Space.B(average("size_heap"))
 
+  def maximum_java_heap1: Space = Space.B(maximum("java_heap_size_before_gc"))
+  def average_java_heap1: Space = Space.B(average("java_heap_size_before_gc"))
+  def maximum_java_heap2: Space = Space.B(maximum("java_heap_size_after_gc"))
+  def average_java_heap2: Space = Space.B(average("java_heap_size_after_gc"))
+
 
   /* charts */
 
