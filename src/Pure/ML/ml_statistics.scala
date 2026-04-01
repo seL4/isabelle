@@ -266,9 +266,9 @@ final class ML_Statistics private(
           sum(t, es, (t - t0) * e.get(field) + acc)
       }
     content match {
-      case Nil => 0.0
+      case e :: es if duration > 0 => sum(e.time, es, 0.0) / duration
       case List(e) => e.get(field)
-      case e :: es => sum(e.time, es, 0.0) / duration
+      case _ => 0.0
     }
   }
 
