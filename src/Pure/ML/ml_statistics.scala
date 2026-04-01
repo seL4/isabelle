@@ -110,13 +110,6 @@ object ML_Statistics {
   }
 
 
-  /* memory fields */
-
-  val CODE_SIZE = "size_code"
-  val STACK_SIZE = "size_stacks"
-  val HEAP_SIZE = "size_heap"
-
-
   /* standard fields */
 
   sealed case class Fields(title: String, names: List[String], scale_MiB: Boolean = false) {
@@ -135,7 +128,7 @@ object ML_Statistics {
     Fields("GCs", List("partial_GCs", "full_GCs", "share_passes"))
 
   val heap_fields: Fields =
-    Fields("Heap", List(HEAP_SIZE, "size_allocation", "size_allocation_free",
+    Fields("Heap", List("size_heap", "size_allocation", "size_allocation_free",
       "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale_MiB = true)
 
   val program_fields: Fields =
@@ -276,6 +269,16 @@ final class ML_Statistics private(
       case e :: es => sum(e.time, es, 0.0) / duration
     }
   }
+
+
+  /* memory content */
+
+  def maximum_code: Space = Space.B(maximum("size_code"))
+  def average_code: Space = Space.B(average("size_code"))
+  def maximum_stack: Space = Space.B(maximum("size_stacks"))
+  def average_stack: Space = Space.B(average("size_stacks"))
+  def maximum_heap: Space = Space.B(maximum("size_heap"))
+  def average_heap: Space = Space.B(average("size_heap"))
 
 
   /* charts */
