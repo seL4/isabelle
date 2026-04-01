@@ -93,7 +93,7 @@ object Profiling {
         locales = session.locales,
         locale_thms = session.locale_thms,
         global_thms = session.global_thms,
-        heap_size = File.space(store.get_session(session_name).the_heap),
+        heap_size = store.get_session(session_name).heap_size,
         thys_id_size = session.sizeof_thys_id,
         thms_id_size = session.sizeof_thms_id,
         terms_size = session.sizeof_terms,
