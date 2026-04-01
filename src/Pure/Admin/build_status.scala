@@ -223,6 +223,9 @@ object Build_Status {
     }
   }
 
+  def image_name(name: String, kind: String, ext: String = "png"): String =
+    name + "_" + kind + "." + ext
+
   sealed case class Image(name: String, width: Int, height: Int) {
     def path: Path = Path.basic(name)
 
@@ -517,7 +520,7 @@ plot [] """ + range + " " +
                 """ using 1:12 smooth csplines title "heap stored" """)
 
             def image(kind: String): Image =
-              Image(session.name + "_" + kind + ".png", image_width, image_height)
+              Image(image_name(session.name, kind), image_width, image_height)
 
             def gnuplot_image(kind: String, plots: List[String], range: String): Image =
               image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
