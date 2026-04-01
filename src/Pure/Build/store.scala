@@ -450,14 +450,16 @@ class Store private(
     else SHA1.flat_shasum(ancestors)
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): SHA1.Shasum = {
-    def get_database: Option[SHA1.Digest] = {
+    def from_database: Option[SHA1.Digest] = {
       for {
         db <- database_server
         digest <- ML_Heap.read_digests(db, List(name)).valuesIterator.nextOption()
       } yield digest
     }
+    def from_session: Option[SHA1.Digest] =
+      get_session(name).heap_digest()
 
-    get_database orElse get_session(name).heap_digest() match {
+    from_database orElse from_session match {
       case Some(digest) => SHA1.shasum(digest, name)
       case None => SHA1.no_shasum
     }
