@@ -11,7 +11,8 @@ object Build_Status {
   /* defaults */
 
   def default_target_dir: Path = Path.explode("build_status")
-  def default_image_size: (Int, Int) = (800, 600)
+  def default_image_width: Int = 800
+  def default_image_height: Int = 600
   def default_history: Int = 30
 
   def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
@@ -83,7 +84,8 @@ object Build_Status {
     only_sessions: Set[String] = Set.empty,
     target_dir: Path = default_target_dir,
     ml_statistics: Boolean = false,
-    image_size: (Int, Int) = default_image_size
+    image_width: Int = default_image_width,
+    image_height: Int = default_image_height
   ): Unit = {
     val ml_statistics_domain =
       Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
@@ -93,7 +95,8 @@ object Build_Status {
       read_data(options, progress = progress, profiles = profiles, only_sessions = only_sessions,
         ml_statistics = ml_statistics, ml_statistics_domain = ml_statistics_domain)
 
-    present_data(data, progress = progress, target_dir = target_dir, image_size = image_size)
+    present_data(data, progress = progress, target_dir = target_dir,
+      image_width = image_width, image_height = image_height)
   }
 
 
@@ -414,7 +417,8 @@ plot [] """ + range + " " +
   def present_data(data: Data,
     progress: Progress = new Progress,
     target_dir: Path = default_target_dir,
-    image_size: (Int, Int) = default_image_size
+    image_width: Int = default_image_width,
+    image_height: Int = default_image_height
   ): Unit = {
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
@@ -442,7 +446,6 @@ plot [] """ + range + " " +
     for (data_entry <- data.entries) {
       val data_name = data_entry.name
 
-      val (image_width, image_height) = image_size
       val image_width_stretch = (image_width * data_entry.stretch).toInt
 
       progress.echo("output " + quote(data_name))
@@ -602,7 +605,8 @@ plot [] """ + range + " " +
         var ml_statistics = false
         var only_sessions = Set.empty[String]
         var options = Options.init()
-        var image_size = default_image_size
+        var image_width = default_image_width
+        var image_height = default_image_height
         var verbose = false
 
         val getopts = Getopts("""
@@ -614,7 +618,7 @@ Usage: isabelle build_status [OPTIONS]
     -S SESSIONS  only given SESSIONS (comma separated)
     -l DAYS      length of relevant history (default """ + options.int("build_log_history") + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s WxH       size of PNG image (default """ + image_size._1 + "x" + image_size._2 + """)
+    -s WxH       size of PNG image (default """ + default_image_width + "x" + default_image_height + """)
     -v           verbose
 
   Present performance statistics from build log database, which is specified
@@ -628,7 +632,9 @@ Usage: isabelle build_status [OPTIONS]
           "o:" -> (arg => options = options + arg),
           "s:" -> (arg =>
             space_explode('x', arg).map(Value.Int.parse) match {
-              case List(w, h) if w > 0 && h > 0 => image_size = (w, h)
+              case List(w, h) if w > 0 && h > 0 =>
+                image_width = w
+                image_height = h
               case _ => error("Error bad PNG image size: " + quote(arg))
             }),
           "v" -> (_ => verbose = true))
@@ -639,6 +645,7 @@ Usage: isabelle build_status [OPTIONS]
         val progress = new Console_Progress(verbose = verbose)
 
         build_status(options, progress = progress, only_sessions = only_sessions,
-          target_dir = target_dir, ml_statistics = ml_statistics, image_size = image_size)
+          target_dir = target_dir, ml_statistics = ml_statistics,
+          image_width = image_width, image_height = image_height)
       })
 }
