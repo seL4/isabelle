@@ -186,7 +186,7 @@ object ML_Statistics {
 
     val ml_statistics = ml_statistics0.sortBy(now)
     val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)
-    val duration = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last) - time_start
+    val time_stop = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last)
 
     val fields =
       SortedSet.from[String](
@@ -234,7 +234,7 @@ object ML_Statistics {
       result.toList
     }
 
-    new ML_Statistics(heading, fields, content, time_start, duration)
+    new ML_Statistics(heading, fields, content, time_start, time_stop)
   }
 }
 
@@ -243,11 +243,13 @@ final class ML_Statistics private(
   val fields: Set[String],
   val content: List[ML_Statistics.Entry],
   val time_start: Double,
-  val duration: Double
+  val time_stop: Double
 ) {
   override def toString: String =
     if (content.isEmpty) "ML_Statistics.empty"
     else "ML_Statistics(length = " + content.length + ", fields = " + fields.size + ")"
+
+  def duration: Double = time_stop - time_start
 
 
   /* content */
