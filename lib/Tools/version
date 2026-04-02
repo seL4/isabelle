@@ -15,6 +15,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -i           short identification (derived from Mercurial id)"
+  echo "    -n           short identification, without newline"
   echo "    -t           symbolic tags (derived from Mercurial id)"
   echo
   echo "  Display Isabelle version information."
@@ -34,13 +35,19 @@ function fail()
 # options
 
 SHORT_ID=""
+SHORT_ID_NEWLINE=""
 TAGS=""
 
-while getopts "it" OPT
+while getopts "int" OPT
 do
   case "$OPT" in
     i)
       SHORT_ID=true
+      SHORT_ID_NEWLINE=""
+      ;;
+    n)
+      SHORT_ID=true
+      SHORT_ID_NEWLINE="-n"
       ;;
     t)
       TAGS=true
@@ -87,7 +94,7 @@ if [ -n "$SHORT_ID" ]; then
   if [ "$RC" -ne 0 ]; then
     exit "$RC"
   elif [ -n "$RESULT" ]; then
-    echo "$RESULT"
+    echo $SHORT_ID_NEWLINE "$RESULT"
   fi
 fi
 

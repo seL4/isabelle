@@ -464,6 +464,7 @@ text \<open>
 
   Options are:
     -i           short identification (derived from Mercurial id)
+    -n           short identification, without newline
     -t           symbolic tags (derived from Mercurial id)
 
   Display Isabelle version information.\<close>}
@@ -474,8 +475,12 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-i\<close> produces a short identification derived from the Mercurial id
-  of the @{setting ISABELLE_HOME} directory; option \<^verbatim>\<open>-t\<close> prints version tags
-  (if available).
+  of the @{setting ISABELLE_HOME} directory.
+
+  Option \<^verbatim>\<open>-n\<close> is like \<^verbatim>\<open>-i\<close>, but does not output a newline. This is useful to
+  write the result into a file, e.g. \<^verbatim>\<open>etc/ISABELLE_VERSION\<close>.
+
+  Option \<^verbatim>\<open>-t\<close> prints version tags (if available).
 
   These options require either a repository clone or a repository archive
   (e.g. download of
