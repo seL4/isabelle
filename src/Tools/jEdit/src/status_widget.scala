@@ -161,8 +161,9 @@ object Status_Widget {
       status.gc_progress match {
         case Some(p) => ("ML cleanup", 1.0 - p)
         case None =>
-          val text = "ML: " + status.heap_used.MiB.round + "/" + status.heap_size.MiB.round + "MiB"
-          (text, status.heap_used_fraction)
+          val text =
+            "ML: " + status.heap_used_minor.MiB.round + "/" + status.heap_size.MiB.round + "MiB"
+          (text, status.heap_used_minor_fraction)
       }
 
     private def update_status(new_status: ML_Statistics.Memory_Status): Unit = {
