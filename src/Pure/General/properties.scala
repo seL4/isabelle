@@ -92,6 +92,13 @@ object Properties {
   trait View {
     // key
     def name: java.lang.String
+    override def toString: java.lang.String = name
+    override def equals(that: Any): scala.Boolean =
+      that match {
+        case other: View => name == other.name
+        case _ => false
+      }
+    override def hashCode: scala.Int = name.hashCode
 
     // value
     type V
