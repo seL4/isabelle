@@ -385,6 +385,24 @@ lemma gfp_while_lattice:
   shows "gfp f = while (\<lambda>A. f A \<noteq> A) f top"
 unfolding while_def using assms by (rule gfp_the_while_option_lattice)
 
+subsection \<open>\<open>T_while_option\<close>\<close>
+
+text \<open>Step counting for while-loops: add a counter.\<close>
+
+definition T_while_option2
+  :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<times> nat \<Rightarrow> ('a \<times> nat) option" where
+"T_while_option2 b f T_f = while_option (\<lambda>(x,n). b x) (\<lambda>(x,n). (f x, n + T_f x))"
+
+definition T_while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<Rightarrow> nat" where
+"T_while_option b f T_f x = snd (the (T_while_option2 b f T_f (x,0)))"
+
+lemma T_while_option_if_T_while_option2:
+  assumes "T_while_option2 b f tf (s,n0) = Some (t,n)"
+  shows "while_option b f s = Some t"
+using assms[unfolded T_while_option2_def]
+  while_option_commute[of "\<lambda>(s,_). b s" b fst "(\<lambda>(s, n). (f s, n + tf s))" f "(s,n0)"]
+  by (simp add: split_def)
+
 
 subsection \<open>\<open>while_Some\<close> and \<open>while_saturate\<close>\<close>
 
