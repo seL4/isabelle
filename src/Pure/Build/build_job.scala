@@ -67,7 +67,8 @@ object Build_Job {
         }
         try {
           val command_timings = store.read_command_timings(db, name)
-          val elapsed = Time.seconds(Markup.Elapsed.get(store.read_session_timing(db, name)))
+          val elapsed =
+            Time.seconds(Markup.Timing_Properties.Elapsed.get(store.read_session_timing(db, name)))
           new Session_Context(
             name, deps, ancestors, session_prefs, sources_shasum, timeout,
             elapsed, command_timings, build_uuid)
@@ -205,7 +206,7 @@ object Build_Job {
     }
 
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
-      val elapsed = Time.seconds(Markup.Elapsed.get(props))
+      val elapsed = Time.seconds(Markup.Timing_Properties.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
         write_process_output(
           Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_export)))

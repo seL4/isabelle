@@ -207,7 +207,10 @@ object Document_Status {
                 val line = Position.Line.get(props)
                 timings1.add_running(offset -> Command_Running(name, line, now))
               }
-              else timings1.add_finished(offset -> Time.seconds(Markup.Elapsed.get(props)))
+              else {
+                timings1.add_finished(
+                  offset -> Time.seconds(Markup.Timing_Properties.Elapsed.get(props)))
+              }
           case _ =>
         }
       }
