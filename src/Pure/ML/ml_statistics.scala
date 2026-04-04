@@ -11,10 +11,11 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.swing.{Frame, Component}
-
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
 import org.jfree.chart.{JFreeChart, ChartPanel, ChartFactory}
-import org.jfree.chart.plot.PlotOrientation
+import org.jfree.chart.plot.{PlotOrientation, XYPlot}
+import org.jfree.data.xy.XYDataset
 
 
 object ML_Statistics {
@@ -355,7 +356,8 @@ final class ML_Statistics private(
   def update_data(data: XYSeriesCollection, selected_fields: List[ML_Statistics.Field]): Unit = {
     data.removeAllSeries()
     for (field <- selected_fields) {
-      val series = new XYSeries(field.title)
+      val series = new XYSeries(field.name)
+      series.setDescription(field.title)
       content.foreach(e => series.add(e.time, ML_Statistics.field_scale(field, e.get(field))))
       data.addSeries(series)
     }
@@ -365,8 +367,18 @@ final class ML_Statistics private(
     val data = new XYSeriesCollection
     update_data(data, selected_fields)
 
-    ChartFactory.createXYLineChart(title, "time", "value", data,
-      PlotOrientation.VERTICAL, true, true, true)
+    val chart =
+      ChartFactory.createXYLineChart(title, "time", "value", data,
+        PlotOrientation.VERTICAL, true, true, true)
+
+    chart.getPlot.asInstanceOf[XYPlot].getRenderer.asInstanceOf[XYLineAndShapeRenderer]
+      .setLegendItemLabelGenerator((dataset: XYDataset, series: Int) =>
+        dataset match {
+          case datas: XYSeriesCollection => datas.getSeries(series).getDescription
+          case _ => "undefined"
+        })
+
+    chart
   }
 
   def chart(fields: ML_Statistics.Fields): JFreeChart =
