@@ -84,9 +84,27 @@ object ML_Statistics {
   val Speed_GC = new Field("speed_GC")
 
   val Java_Heap_Size = new Field_MiB("java_heap_size", description = "Java heap size")
-  val Java_Heap_Free = new Field_MiB("java_heap_free", description = "Java heap free")
+  val Java_Heap_Used = new Field_MiB("java_heap_used", description = "Java heap used")
+  val Java_Heap_Free: Field_MiB =
+    new Field_MiB("java_heap_free", description = "Java heap free") {
+      override def domain: Set[String] = Set(name, Java_Heap_Used.name)
+      override def unapply(props: Properties.T): Option[Double] =
+        for {
+          size <- Java_Heap_Size.unapply(props)
+          used <- Java_Heap_Used.unapply(props)
+        } yield size - used
+    }
   val Java_Heap_Size_Major = new Field_MiB("java_heap_size_major", description = "Java heap size (major GC)")
-  val Java_Heap_Free_Major = new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)")
+  val Java_Heap_Used_Major = new Field_MiB("java_heap_used_major", description = "Java heap used (major GC)")
+  val Java_Heap_Free_Major: Field_MiB =
+    new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)") {
+      override def domain: Set[String] = Set(name, Java_Heap_Used_Major.name)
+      override def unapply(props: Properties.T): Option[Double] =
+        for {
+          size <- Java_Heap_Size_Major.unapply(props)
+          used <- Java_Heap_Used_Major.unapply(props)
+        } yield size - used
+    }
   val Java_Threads_Total = new Field("java_threads_total", description = "Java threads total")
   val Java_Workers_Total = new Field("java_workers_total", description = "Java workers total")
   val Java_Workers_Active = new Field("java_workers_active", description = "Java workers active")
