@@ -37,18 +37,24 @@ object ML_Statistics {
     def scale(y: Double): Double = y
   }
 
-  class Field_MiB(name: String, description: String = "") extends Field(name, description = description) {
+  class Field_MiB(name: String, description: String = "")
+  extends Field(name, description = description) {
     override def scale(y: Double): Double = Space.B(y).MiB
   }
 
   val Now = new Field("now")
   def now(props: Properties.T): Double = Now.unapply(props).get
 
-  val Heap_Size = new Field_MiB("size_heap", description =  "heap size")
-  val Heap_Free_Minor = new Field_MiB("size_heap_free_last_GC", description = "heap free (minor GC)")
-  val Heap_Free_Major = new Field_MiB("size_heap_free_last_full_GC", description = "heap free (major GC)")
-  val Heap_Size_Allocation = new Field_MiB("size_allocation", description = "heap size (allocation)")
-  val Heap_Free_Allocation = new Field_MiB("size_allocation_free", description = "heap free (allocation)")
+  val Heap_Size =
+    new Field_MiB("size_heap", description =  "heap size")
+  val Heap_Free_Minor =
+    new Field_MiB("size_heap_free_last_GC", description = "heap free (minor GC)")
+  val Heap_Free_Major =
+    new Field_MiB("size_heap_free_last_full_GC", description = "heap free (major GC)")
+  val Heap_Size_Allocation =
+    new Field_MiB("size_allocation", description = "heap size (allocation)")
+  val Heap_Free_Allocation =
+    new Field_MiB("size_allocation_free", description = "heap free (allocation)")
 
   val Tasks_Ready = new Field("tasks_ready")
   val Tasks_Pending = new Field("tasks_pending")
@@ -94,8 +100,10 @@ object ML_Statistics {
           used <- Java_Heap_Used.unapply(props)
         } yield size - used
     }
-  val Java_Heap_Size_Major = new Field_MiB("java_heap_size_major", description = "Java heap size (major GC)")
-  val Java_Heap_Used_Major = new Field_MiB("java_heap_used_major", description = "Java heap used (major GC)")
+  val Java_Heap_Size_Major =
+    new Field_MiB("java_heap_size_major", description = "Java heap size (major GC)")
+  val Java_Heap_Used_Major =
+    new Field_MiB("java_heap_used_major", description = "Java heap used (major GC)")
   val Java_Heap_Free_Major: Field_MiB =
     new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)") {
       override def domain: Set[String] = Set(name, Java_Heap_Used_Major.name)
