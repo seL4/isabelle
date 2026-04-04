@@ -46,7 +46,7 @@ object Component_JFreeChart {
       (component_dir.path + Path.basic(".gitignore")).file.delete
 
       progress.echo("Building JFreeChart from source ...")
-      Isabelle_System.bash(build_script, cwd = build_dir).check
+      progress.bash(build_script, cwd = build_dir, echo = progress.verbose).check
       Isabelle_System.copy_file(
         build_dir + Path.basic("target") + Path.basic(jar_name), component_dir.lib)
     }
@@ -105,6 +105,7 @@ https://github.com/jfree/jfreechart/releases/download/v""" + version +
         var target_dir = Path.current
         var source_url = default_source_url
         var version = default_version
+        var verbose = false
 
         val getopts = Getopts("""
 Usage: isabelle component_jfreechart [OPTIONS]
@@ -113,16 +114,18 @@ Usage: isabelle component_jfreechart [OPTIONS]
     -D DIR       target directory (default ".")
     -U URL       source URL (default: """ + quote(default_source_url) + """)
     -V VERSION   version (default: """ + quote(default_version) + """)
+    -v           verbose
 
   Build jfreechart component from official downloads.""",
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => source_url = arg),
-          "V:" -> (arg => version = arg))
+          "V:" -> (arg => version = arg),
+          "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
         if (more_args.nonEmpty) getopts.usage()
 
-        val progress = new Console_Progress()
+        val progress = new Console_Progress(verbose = verbose)
 
         build_jfreechart(target_dir = target_dir, source_url = source_url,
           version = version, progress = progress)
