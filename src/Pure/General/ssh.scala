@@ -631,20 +631,19 @@ object SSH {
       val remote_remote = remote_source && remote_target
 
       def make_sys(remote: Boolean): SSH.System = if (remote) ssh else SSH.Local
-      val target_sys = make_sys(remote_target)
-
-      def make_arg(dir: Path, remote: Boolean): String = {
-        val sys = make_sys(remote)
+      def make_arg(dir: Path, sys: SSH.System): String =
         (if (remote_remote) "" else sys.rsync_prefix) +
           Url.dir_path(sys.standard_path(sys.absolute_path(dir)), direct = true)
-      }
+
+      val source_sys = make_sys(remote_source)
+      val target_sys = make_sys(remote_target)
 
       val target1 =
         if (direct || !target_sys.is_dir(target)) target
-        else target + make_sys(remote_source).expand_path(source).base
+        else target + source_sys.expand_path(source).base
 
-      val a = make_arg(source, remote_source)
-      val b = make_arg(target1, remote_target)
+      val a = make_arg(source, source_sys)
+      val b = make_arg(target1, target_sys)
       val args = List("--", a, b)
 
       val target_dir = target_sys.absolute_path(target1)
