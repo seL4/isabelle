@@ -33,16 +33,21 @@ object ML_Statistics {
     def title: String = proper_string(description).getOrElse(Word.informal(name))
     def get_space(props: Properties.T): Space = Space.B(get(props))
     def get_time(props: Properties.T): Time = Time.seconds(get(props))
+    def scale(y: Double): Double = y
+  }
+
+  class Field_MiB(name: String, description: String = "") extends Field(name, description = description) {
+    override def scale(y: Double): Double = Space.B(y).MiB
   }
 
   val Now = new Field("now")
   def now(props: Properties.T): Double = Now.unapply(props).get
 
-  val Heap_Size = new Field("size_heap", description =  "heap size")
-  val Heap_Free_Minor = new Field("size_heap_free_last_GC", description = "heap free (minor GC)")
-  val Heap_Free_Major = new Field("size_heap_free_last_full_GC", description = "heap free (major GC)")
-  val Heap_Size_Allocation = new Field("size_allocation", description = "heap size (allocation)")
-  val Heap_Free_Allocation = new Field("size_allocation_free", description = "heap free (allocation)")
+  val Heap_Size = new Field_MiB("size_heap", description =  "heap size")
+  val Heap_Free_Minor = new Field_MiB("size_heap_free_last_GC", description = "heap free (minor GC)")
+  val Heap_Free_Major = new Field_MiB("size_heap_free_last_full_GC", description = "heap free (major GC)")
+  val Heap_Size_Allocation = new Field_MiB("size_allocation", description = "heap size (allocation)")
+  val Heap_Free_Allocation = new Field_MiB("size_allocation_free", description = "heap free (allocation)")
 
   val Tasks_Ready = new Field("tasks_ready")
   val Tasks_Pending = new Field("tasks_pending")
@@ -59,8 +64,8 @@ object ML_Statistics {
   val GCs_Major = new Field("full_GCs", description = "GCs (major)")
   val GCs_Sharing = new Field("share_passes", description = "GCs (sharing)")
 
-  val Program_Code = new Field("size_code", description = "program code)")
-  val Program_Stack = new Field("size_stacks", description = "program stack")
+  val Program_Code = new Field_MiB("size_code", description = "program code)")
+  val Program_Stack = new Field_MiB("size_stacks", description = "program stack")
 
   val Threads_Total = new Field("threads_total")
   val Threads_ML = new Field("threads_in_ML", description = "threads (ML)")
@@ -77,10 +82,10 @@ object ML_Statistics {
   val Speed_CPU = new Field("speed_CPU")
   val Speed_GC = new Field("speed_GC")
 
-  val Java_Heap_Size = new Field("java_heap_size", description = "Java heap size")
-  val Java_Heap_Free = new Field("java_heap_free", description = "Java heap free")
-  val Java_Heap_Size_Major = new Field("java_heap_size_major", description = "Java heap size (major GC)")
-  val Java_Heap_Free_Major = new Field("java_heap_free_major", description = "Java heap free (major GC)")
+  val Java_Heap_Size = new Field_MiB("java_heap_size", description = "Java heap size")
+  val Java_Heap_Free = new Field_MiB("java_heap_free", description = "Java heap free")
+  val Java_Heap_Size_Major = new Field_MiB("java_heap_size_major", description = "Java heap size (major GC)")
+  val Java_Heap_Free_Major = new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)")
   val Java_Threads_Total = new Field("java_threads_total", description = "Java threads total")
   val Java_Workers_Total = new Field("java_workers_total", description = "Java workers total")
   val Java_Workers_Active = new Field("java_workers_active", description = "Java workers active")
@@ -175,9 +180,7 @@ object ML_Statistics {
 
   /* standard fields */
 
-  sealed case class Fields(title: String, content: List[Field], scale_MiB: Boolean = false) {
-    def scale(y: Double): Double = if (scale_MiB) Space.B(y).MiB else y
-  }
+  sealed case class Fields(title: String, content: List[Field])
 
   val tasks_fields: Fields =
     Fields("Future tasks",
@@ -192,10 +195,10 @@ object ML_Statistics {
 
   val heap_fields: Fields =
     Fields("Heap", List(Heap_Size, Heap_Size_Allocation, Heap_Free_Allocation,
-      Heap_Free_Major, Heap_Free_Minor), scale_MiB = true)
+      Heap_Free_Major, Heap_Free_Minor))
 
   val program_fields: Fields =
-    Fields("Program", List(Program_Code, Program_Stack), scale_MiB = true)
+    Fields("Program", List(Program_Code, Program_Stack))
 
   val threads_fields: Fields =
     Fields("Threads", List(Threads_Total, Threads_ML, Threads_Wait_Condvar,
@@ -212,7 +215,7 @@ object ML_Statistics {
 
   val java_heap_fields: Fields =
     Fields("Java heap", List(Java_Heap_Size, Java_Heap_Free,
-      Java_Heap_Size_Major, Java_Heap_Free_Major), scale_MiB = true)
+      Java_Heap_Size_Major, Java_Heap_Free_Major))
 
   val java_thread_fields: Fields =
     Fields("Java threads", List(Java_Threads_Total, Java_Workers_Total, Java_Workers_Active))
@@ -227,15 +230,11 @@ object ML_Statistics {
 
   val all_fields: List[Fields] = main_fields ::: other_fields
 
-  def field_scale(x: Field, y: Double): Double =
-    all_fields.collectFirst({ case fields if fields.content.contains(x) => fields.scale(y) })
-      .getOrElse(y)
-
 
   /* content interpretation */
 
   final case class Entry(time: Double, data: Map[String, Double]) {
-    def get(field: Field): Double = data.getOrElse(field.name, 0.0)
+    def get(field: Field): Double = field.scale(data.getOrElse(field.name, 0.0))
   }
 
   val empty: ML_Statistics = apply(Nil)
@@ -358,7 +357,7 @@ final class ML_Statistics private(
     for (field <- selected_fields) {
       val series = new XYSeries(field.name)
       series.setDescription(field.title)
-      content.foreach(e => series.add(e.time, ML_Statistics.field_scale(field, e.get(field))))
+      content.foreach(e => series.add(e.time, e.get(field)))
       data.addSeries(series)
     }
   }
