@@ -93,12 +93,12 @@ object Java_Statistics {
     val workers = Isabelle_Thread.pool.getPoolSize
     val workers_active = Isabelle_Thread.pool.getActiveCount
     List(
-      "java_heap_size" -> memory.heap_size_minor.toString,
-      "java_heap_free" -> memory.heap_free_minor.toString,
-      "java_heap_size_major" -> memory.heap_size_major.toString,
-      "java_heap_free_major" -> memory.heap_free_major.toString,
-      "java_threads_total" -> threads.toString,
-      "java_workers_total" -> workers.toString,
-      "java_workers_active" -> workers_active.toString)
+      ML_Statistics.Java_Heap_Size.name -> memory.heap_size_minor.toString,
+      ML_Statistics.Java_Heap_Free.name -> memory.heap_free_minor.toString,
+      ML_Statistics.Java_Heap_Size_Major.name -> memory.heap_size_major.toString,
+      ML_Statistics.Java_Heap_Free_Major.name -> memory.heap_free_major.toString,
+      ML_Statistics.Java_Threads_Total.name -> threads.toString,
+      ML_Statistics.Java_Workers_Total.name -> workers.toString,
+      ML_Statistics.Java_Workers_Active.name -> workers_active.toString)
   }
 }

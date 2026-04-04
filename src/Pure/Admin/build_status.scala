@@ -88,8 +88,13 @@ object Build_Status {
     image_height: Int = default_image_height
   ): Unit = {
     val ml_statistics_domain =
-      Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
-        ML_Statistics.workers_fields).flatMap(_._2).toSet
+      Set.from(
+        for {
+          fields <-
+            Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
+              ML_Statistics.workers_fields)
+          field <- fields.content
+        } yield field.name)
 
     val data =
       read_data(options, progress = progress, profiles = profiles, only_sessions = only_sessions,
@@ -255,7 +260,7 @@ plot [] """ + range + " " +
     }
 
     def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
-      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.names)
+      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.content)
       Graphics_File.write_chart_png((dir + path).file, chart, width, height)
       this
     }
