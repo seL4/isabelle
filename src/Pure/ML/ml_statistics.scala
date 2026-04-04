@@ -11,40 +11,145 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.swing.{Frame, Component}
-
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer
 import org.jfree.chart.{JFreeChart, ChartPanel, ChartFactory}
-import org.jfree.chart.plot.PlotOrientation
+import org.jfree.chart.plot.{PlotOrientation, XYPlot}
+import org.jfree.data.xy.XYDataset
 
 
 object ML_Statistics {
   /* properties */
 
-  val Now = new Properties.Double("now")
-  def now(props: Properties.T): Double = Now.unapply(props).get
-
   def parse_properties(s: String): Properties.T =
     space_explode(',', s).flatMap(Properties.Eq.unapply)
+
+  val GC_Percent = new Properties.Int("GC_percent")
+
+
+  /* fields */
+
+  class Field(name: String, description: String = "") extends Properties.Double_View(name) {
+    def domain: Set[String] = Set(name)
+    def title: String = proper_string(description).getOrElse(Word.informal(name))
+    def get_space(props: Properties.T): Space = Space.B(get(props))
+    def get_time(props: Properties.T): Time = Time.seconds(get(props))
+    def scale(y: Double): Double = y
+  }
+
+  class Field_MiB(name: String, description: String = "") extends Field(name, description = description) {
+    override def scale(y: Double): Double = Space.B(y).MiB
+  }
+
+  val Now = new Field("now")
+  def now(props: Properties.T): Double = Now.unapply(props).get
+
+  val Heap_Size = new Field_MiB("size_heap", description =  "heap size")
+  val Heap_Free_Minor = new Field_MiB("size_heap_free_last_GC", description = "heap free (minor GC)")
+  val Heap_Free_Major = new Field_MiB("size_heap_free_last_full_GC", description = "heap free (major GC)")
+  val Heap_Size_Allocation = new Field_MiB("size_allocation", description = "heap size (allocation)")
+  val Heap_Free_Allocation = new Field_MiB("size_allocation_free", description = "heap free (allocation)")
+
+  val Tasks_Ready = new Field("tasks_ready")
+  val Tasks_Pending = new Field("tasks_pending")
+  val Tasks_Running = new Field("tasks_running")
+  val Tasks_Passive = new Field("tasks_passive")
+  val Tasks_Urgent = new Field("tasks_urgent")
+  val Tasks_Total = new Field("tasks_total")
+
+  val Workers_Total = new Field("workers_total")
+  val Workers_Active = new Field("workers_active")
+  val Workers_Waiting = new Field("workers_waiting")
+
+  val GCs_Minor = new Field("partial_GCs", description = "GCs (minor)")
+  val GCs_Major = new Field("full_GCs", description = "GCs (major)")
+  val GCs_Sharing = new Field("share_passes", description = "GCs (sharing)")
+
+  val Program_Code = new Field_MiB("size_code", description = "program code)")
+  val Program_Stack = new Field_MiB("size_stacks", description = "program stack")
+
+  val Threads_Total = new Field("threads_total")
+  val Threads_ML = new Field("threads_in_ML", description = "threads (ML)")
+  val Threads_Wait_Condvar = new Field("threads_wait_condvar")
+  val Threads_Wait_IO = new Field("threads_wait_IO")
+  val Threads_Wait_Mutex = new Field("threads_wait_mutex")
+  val Threads_Wait_Signal = new Field("threads_wait_signal")
+
+  val Time_Elapsed = new Field("time_elapsed")
+  val Time_Elapsed_GC = new Field("time_elapsed_GC")
+  val Time_CPU = new Field("time_CPU")
+  val Time_GC = new Field("time_GC")
+
+  val Speed_CPU = new Field("speed_CPU")
+  val Speed_GC = new Field("speed_GC")
+
+  val Java_Heap_Size = new Field_MiB("java_heap_size", description = "Java heap size")
+  val Java_Heap_Used = new Field_MiB("java_heap_used", description = "Java heap used")
+  val Java_Heap_Free: Field_MiB =
+    new Field_MiB("java_heap_free", description = "Java heap free") {
+      override def domain: Set[String] = Set(name, Java_Heap_Used.name)
+      override def unapply(props: Properties.T): Option[Double] =
+        for {
+          size <- Java_Heap_Size.unapply(props)
+          used <- Java_Heap_Used.unapply(props)
+        } yield size - used
+    }
+  val Java_Heap_Size_Major = new Field_MiB("java_heap_size_major", description = "Java heap size (major GC)")
+  val Java_Heap_Used_Major = new Field_MiB("java_heap_used_major", description = "Java heap used (major GC)")
+  val Java_Heap_Free_Major: Field_MiB =
+    new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)") {
+      override def domain: Set[String] = Set(name, Java_Heap_Used_Major.name)
+      override def unapply(props: Properties.T): Option[Double] =
+        for {
+          size <- Java_Heap_Size_Major.unapply(props)
+          used <- Java_Heap_Used_Major.unapply(props)
+        } yield size - used
+    }
+  val Java_Threads_Total = new Field("java_threads_total", description = "Java threads total")
+  val Java_Workers_Total = new Field("java_workers_total", description = "Java workers total")
+  val Java_Workers_Active = new Field("java_workers_active", description = "Java workers active")
 
 
   /* memory status */
 
-  val Heap_Size = new Properties.Long("size_heap")
-  val Heap_Free = new Properties.Long("size_heap_free_last_GC")
-  val GC_Percent = new Properties.Int("GC_percent")
-
-  sealed case class Memory_Status(heap_size: Space, heap_free: Space, gc_percent: Int) {
-    def heap_used: Space = heap_size.used(heap_free)
-    def heap_used_fraction: Double = heap_size.used_fraction(heap_free)
+  sealed case class Memory_Status(
+    heap_size: Space,
+    heap_free_minor: Space,
+    heap_free_major: Space,
+    gc_percent: Int
+  ) {
+    def heap_used_minor: Space = heap_size.used(heap_free_minor)
+    def heap_used_minor_fraction: Double = heap_size.used_fraction(heap_free_minor)
+    def heap_used_major: Space = heap_size.used(heap_free_major)
+    def heap_used_major_fraction: Double = heap_size.used_fraction(heap_free_major)
     def gc_progress: Option[Double] =
       if (1 <= gc_percent && gc_percent <= 100) Some((gc_percent - 1) * 0.01) else None
   }
 
   def memory_status(props: Properties.T): Memory_Status = {
-    val heap_size = Space.bytes(Heap_Size.get(props))
-    val heap_free = Space.bytes(Heap_Free.get(props))
+    val heap_size = Heap_Size.get_space(props)
+    val heap_free_minor = Heap_Free_Minor.get_space(props)
+    val heap_free_major = Heap_Free_Major.get_space(props)
     val gc_percent = GC_Percent.get(props)
-    Memory_Status(heap_size, heap_free, gc_percent)
+    Memory_Status(heap_size, heap_free_minor, heap_free_major, gc_percent)
+  }
+
+
+  /* JVM statistics */
+
+  def jvm_statistics(): Properties.T = {
+    val memory = Java_Statistics.memory_status()
+    val threads = Thread.activeCount()
+    val workers = Isabelle_Thread.pool.getPoolSize
+    val workers_active = Isabelle_Thread.pool.getActiveCount
+    List(
+      Java_Heap_Size.name -> memory.heap_size_minor.toString,
+      Java_Heap_Used.name -> memory.heap_used_minor.toString,
+      Java_Heap_Size_Major.name -> memory.heap_size_major.toString,
+      Java_Heap_Used_Major.name -> memory.heap_used_major.toString,
+      Java_Threads_Total.name -> threads.toString,
+      Java_Workers_Total.name -> workers.toString,
+      Java_Workers_Active.name -> workers_active.toString)
   }
 
 
@@ -88,7 +193,7 @@ object ML_Statistics {
 
     private def consume(props: Properties.T): Unit = synchronized {
       if (session != null) {
-        val props1 = session.cache.props(props ::: Java_Statistics.jvm_statistics())
+        val props1 = session.cache.props(props ::: jvm_statistics())
         session.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }
@@ -112,67 +217,61 @@ object ML_Statistics {
 
   /* standard fields */
 
-  sealed case class Fields(title: String, names: List[String], scale_MiB: Boolean = false) {
-    def scale(y: Double): Double = if (scale_MiB) Space.B(y).MiB else y
-  }
+  sealed case class Fields(title: String, content: List[Field])
 
   val tasks_fields: Fields =
     Fields("Future tasks",
-      List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive",
-        "tasks_urgent", "tasks_total"))
+      List(Tasks_Ready, Tasks_Pending, Tasks_Running, Tasks_Passive,
+        Tasks_Urgent, Tasks_Total))
 
   val workers_fields: Fields =
-    Fields("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
+    Fields("Worker threads", List(Workers_Total, Workers_Active, Workers_Waiting))
 
-  val GC_fields: Fields =
-    Fields("GCs", List("partial_GCs", "full_GCs", "share_passes"))
+  val GCs_fields: Fields =
+    Fields("GCs", List(GCs_Minor, GCs_Major, GCs_Sharing))
 
   val heap_fields: Fields =
-    Fields("Heap", List("size_heap", "size_allocation", "size_allocation_free",
-      "size_heap_free_last_full_GC", "size_heap_free_last_GC"), scale_MiB = true)
+    Fields("Heap", List(Heap_Size, Heap_Size_Allocation, Heap_Free_Allocation,
+      Heap_Free_Major, Heap_Free_Minor))
 
   val program_fields: Fields =
-    Fields("Program", List("size_code", "size_stacks"), scale_MiB = true)
+    Fields("Program", List(Program_Code, Program_Stack))
 
   val threads_fields: Fields =
-    Fields("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
-      "threads_wait_IO", "threads_wait_mutex", "threads_wait_signal"))
+    Fields("Threads", List(Threads_Total, Threads_ML, Threads_Wait_Condvar,
+      Threads_Wait_IO, Threads_Wait_Mutex, Threads_Wait_Signal))
 
   val time_fields: Fields =
-    Fields("Time", List("time_elapsed", "time_elapsed_GC", "time_CPU", "time_GC"))
+    Fields("Time", List(Time_Elapsed, Time_Elapsed_GC, Time_CPU, Time_GC))
 
   val speed_fields: Fields =
-    Fields("Speed", List("speed_CPU", "speed_GC"))
+    Fields("Speed", List(Speed_CPU, Speed_GC))
 
-  private val time_speed = Map("time_CPU" -> "speed_CPU", "time_GC" -> "speed_GC")
+  private val time_speed =
+    Map(Time_CPU.name -> Speed_CPU.name, Time_GC.name -> Speed_GC.name)
 
   val java_heap_fields: Fields =
-    Fields("Java heap", List(
-      "java_heap_size_before_gc", "java_heap_size_after_gc",
-      "java_heap_used_before_gc", "java_heap_used_after_gc"), scale_MiB = true)
+    Fields("Java heap", List(Java_Heap_Size, Java_Heap_Free,
+      Java_Heap_Size_Major, Java_Heap_Free_Major))
 
   val java_thread_fields: Fields =
-    Fields("Java threads", List("java_threads_total", "java_workers_total", "java_workers_active"))
+    Fields("Java threads", List(Java_Threads_Total, Java_Workers_Total, Java_Workers_Active))
 
 
   val main_fields: List[Fields] =
     List(heap_fields, tasks_fields, workers_fields)
 
   val other_fields: List[Fields] =
-    List(threads_fields, GC_fields, program_fields, time_fields, speed_fields,
+    List(threads_fields, GCs_fields, program_fields, time_fields, speed_fields,
       java_heap_fields, java_thread_fields)
 
   val all_fields: List[Fields] = main_fields ::: other_fields
-
-  def field_scale(x: String, y: Double): Double =
-    all_fields.collectFirst({ case fields if fields.names.contains(x) => fields.scale(y) })
-      .getOrElse(y)
 
 
   /* content interpretation */
 
   final case class Entry(time: Double, data: Map[String, Double]) {
-    def get(field: String): Double = data.getOrElse(field, 0.0)
+    def get(field: Field): Double = field.scale(data.getOrElse(field.name, 0.0))
   }
 
   val empty: ML_Statistics = apply(Nil)
@@ -236,6 +335,13 @@ object ML_Statistics {
 
     new ML_Statistics(heading, fields, content, time_start, time_stop)
   }
+
+  def make_domain(fields: List[Field]): Set[String] =
+    Set.from(
+      for {
+        field <- fields.iterator
+        name <- field.domain.iterator
+      } yield name)
 }
 
 final class ML_Statistics private(
@@ -254,10 +360,10 @@ final class ML_Statistics private(
 
   /* content */
 
-  def maximum(field: String): Double =
+  def maximum(field: ML_Statistics.Field): Double =
     content.foldLeft(0.0) { case (m, e) => m max e.get(field) }
 
-  def average(field: String): Double = {
+  def average(field: ML_Statistics.Field): Double = {
     @tailrec def sum(t0: Double, list: List[ML_Statistics.Entry], acc: Double): Double =
       list match {
         case Nil => acc
@@ -275,40 +381,51 @@ final class ML_Statistics private(
 
   /* memory content */
 
-  def maximum_code: Space = Space.B(maximum("size_code"))
-  def average_code: Space = Space.B(average("size_code"))
-  def maximum_stack: Space = Space.B(maximum("size_stacks"))
-  def average_stack: Space = Space.B(average("size_stacks"))
-  def maximum_heap: Space = Space.B(maximum("size_heap"))
-  def average_heap: Space = Space.B(average("size_heap"))
+  def maximum_code: Space = Space.B(maximum(ML_Statistics.Program_Code))
+  def average_code: Space = Space.B(average(ML_Statistics.Program_Code))
+  def maximum_stack: Space = Space.B(maximum(ML_Statistics.Program_Stack))
+  def average_stack: Space = Space.B(average(ML_Statistics.Program_Stack))
+  def maximum_heap: Space = Space.B(maximum(ML_Statistics.Heap_Size))
+  def average_heap: Space = Space.B(average(ML_Statistics.Heap_Size))
 
-  def maximum_java_heap1: Space = Space.B(maximum("java_heap_size_before_gc"))
-  def average_java_heap1: Space = Space.B(average("java_heap_size_before_gc"))
-  def maximum_java_heap2: Space = Space.B(maximum("java_heap_size_after_gc"))
-  def average_java_heap2: Space = Space.B(average("java_heap_size_after_gc"))
+  def maximum_java_heap: Space = Space.B(maximum(ML_Statistics.Java_Heap_Size))
+  def average_java_heap: Space = Space.B(average(ML_Statistics.Java_Heap_Size))
+  def maximum_java_heap_major: Space = Space.B(maximum(ML_Statistics.Java_Heap_Size_Major))
+  def average_java_heap_major: Space = Space.B(average(ML_Statistics.Java_Heap_Size_Major))
 
 
   /* charts */
 
-  def update_data(data: XYSeriesCollection, selected_fields: List[String]): Unit = {
+  def update_data(data: XYSeriesCollection, selected_fields: List[ML_Statistics.Field]): Unit = {
     data.removeAllSeries()
     for (field <- selected_fields) {
-      val series = new XYSeries(field)
-      content.foreach(e => series.add(e.time, ML_Statistics.field_scale(field, e.get(field))))
+      val series = new XYSeries(field.name)
+      series.setDescription(field.title)
+      content.foreach(e => series.add(e.time, e.get(field)))
       data.addSeries(series)
     }
   }
 
-  def chart(title: String, selected_fields: List[String]): JFreeChart = {
+  def chart(title: String, selected_fields: List[ML_Statistics.Field]): JFreeChart = {
     val data = new XYSeriesCollection
     update_data(data, selected_fields)
 
-    ChartFactory.createXYLineChart(title, "time", "value", data,
-      PlotOrientation.VERTICAL, true, true, true)
+    val chart =
+      ChartFactory.createXYLineChart(title, "time", "value", data,
+        PlotOrientation.VERTICAL, true, true, true)
+
+    chart.getPlot.asInstanceOf[XYPlot].getRenderer.asInstanceOf[XYLineAndShapeRenderer]
+      .setLegendItemLabelGenerator((dataset: XYDataset, series: Int) =>
+        dataset match {
+          case datas: XYSeriesCollection => datas.getSeries(series).getDescription
+          case _ => "undefined"
+        })
+
+    chart
   }
 
   def chart(fields: ML_Statistics.Fields): JFreeChart =
-    chart(fields.title, fields.names)
+    chart(fields.title, fields.content)
 
   def show_frames(fields: List[ML_Statistics.Fields] = ML_Statistics.main_fields): Unit =
     fields.map(chart).foreach(c =>

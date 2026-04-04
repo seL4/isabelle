@@ -87,62 +87,87 @@ object Properties {
     if (ys.isEmpty) Nil else List((x, cat_lines(ys)))
 
 
-  /* entry types */
+  /* typed view on entries (read-only) */
 
-  class String(val name: java.lang.String) {
-    def apply(value: java.lang.String): T = List((name, value))
-    def unapply(props: T): Option[java.lang.String] =
-      props.find(_._1 == name).map(_._2)
+  trait View {
+    // key
+    def name: java.lang.String
+    override def toString: java.lang.String = name
+    override def equals(that: Any): scala.Boolean =
+      that match {
+        case other: View => name == other.name
+        case _ => false
+      }
+    override def hashCode: scala.Int = name.hashCode
 
-    def make(value: java.lang.String): T = if (value.isEmpty) Nil else apply(value)
-    def get(props: T): java.lang.String = unapply(props).getOrElse("")
+    // value
+    type V
+    def default: V
+    def unapply(props: T): Option[V]
+    def get(props: T): V = unapply(props).getOrElse(default)
   }
 
-  class Boolean(val name: java.lang.String) {
-    def apply(value: scala.Boolean): T = List((name, Value.Boolean(value)))
-    def unapply(props: T): Option[scala.Boolean] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Value.Boolean.unapply(value)
-      }
-
-    def make(value: scala.Boolean): T = if (!value) Nil else apply(value)
-    def get(props: T): scala.Boolean = unapply(props).getOrElse(false)
+  class String_View(override val name: java.lang.String) extends View {
+    type V = java.lang.String
+    override def default: V = ""
+    override def unapply(props: T): Option[V] =
+      Properties.get(props, name)
   }
 
-  class Int(val name: java.lang.String) {
-    def apply(value: scala.Int): T = List((name, Value.Int(value)))
-    def unapply(props: T): Option[scala.Int] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Value.Int.unapply(value)
-      }
-
-    def make(value: scala.Int): T = if (value == 0) Nil else apply(value)
-    def get(props: T): scala.Int = unapply(props).getOrElse(0)
+  class Boolean_View(override val name: java.lang.String) extends View {
+    type V = scala.Boolean
+    override def default: V = false
+    override def unapply(props: T): Option[V] =
+      Properties.get(props, name).flatMap(Value.Boolean.unapply)
   }
 
-  class Long(val name: java.lang.String) {
-    def apply(value: scala.Long): T = List((name, Value.Long(value)))
-    def unapply(props: T): Option[scala.Long] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Value.Long.unapply(value)
-      }
-
-    def make(value: scala.Long): T = if (value == 0L) Nil else apply(value)
-    def get(props: T): scala.Long = unapply(props).getOrElse(0)
+  class Int_View(override val name: java.lang.String) extends View {
+    type V = scala.Int
+    override def default: V = 0
+    override def unapply(props: T): Option[V] =
+      Properties.get(props, name).flatMap(Value.Int.unapply)
   }
 
-  class Double(val name: java.lang.String) {
-    def apply(value: scala.Double): T = List((name, Value.Double(value)))
-    def unapply(props: T): Option[scala.Double] =
-      props.find(_._1 == name) match {
-        case None => None
-        case Some((_, value)) => Value.Double.unapply(value)
-      }
+  class Long_View(override val name: java.lang.String) extends View {
+    type V = scala.Long
+    override def default: V = 0L
+    override def unapply(props: T): Option[V] =
+      Properties.get(props, name).flatMap(Value.Long.unapply)
+  }
 
-    def make(value: scala.Double): T = if (value == 0.0) Nil else apply(value)
-    def get(props: T): scala.Double = unapply(props).getOrElse(0.0)
+  class Double_View(override val name: java.lang.String) extends View {
+    type V = scala.Double
+    override def default: V = 0.0
+    override def unapply(props: T): Option[V] =
+      Properties.get(props, name).flatMap(Value.Double.unapply)
+  }
+
+
+  /* typed access to entries */
+
+  trait Access extends View {
+    def apply_value(value: V): java.lang.String
+    def apply(value: V): T = List(name -> apply_value(value))
+    def make(value: V): T = if (value == default) Nil else apply(value)
+  }
+
+  class String(name: java.lang.String) extends String_View(name) with Access {
+    override def apply_value(value: V): java.lang.String = value
+  }
+
+  class Boolean(name: java.lang.String) extends Boolean_View(name) with Access {
+    override def apply_value(value: V): java.lang.String = Value.Boolean(value)
+  }
+
+  class Int(name: java.lang.String) extends Int_View(name) with Access {
+    override def apply_value(value: V): java.lang.String = Value.Int(value)
+  }
+
+  class Long(name: java.lang.String) extends Long_View(name) with Access {
+    override def apply_value(value: V): java.lang.String = Value.Long(value)
+  }
+
+  class Double(name: java.lang.String) extends Double_View(name) with Access {
+    override def apply_value(value: V): java.lang.String = Value.Double(value)
   }
 }

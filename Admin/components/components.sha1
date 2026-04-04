@@ -207,6 +207,7 @@ d30109fe63cec35c31cee9ffd17ae3a13c1e6a33 isabelle_setup-20230922.tar.gz
 cd92c141883f0f6a18adceb885316c8b6119e648 isabelle_setup-20240327.tar.gz
 ed96100db1c7fd0beee0c93929609cab42e952b8 isabelle_setup-20250613.tar.gz
 d2dcf8bd7eb5151b83e7b91c94ad5d9807d38a38 isabelle_setup-20260221.tar.gz
+17b51d1297ce8c9b2455621df09032cccc2e8776 itext-2.1.5.tar.gz
 f23037b322b968c61350f9ec9995a4f397e6c71c javamail-1.4.7.tar.gz
 18e6b60ceb98e327fbf14e52f4613dd5b0483d2f javamail-20240109.tar.gz
 dc826bc0d715cd4190d1bb2e7122321eea5355de javamail-20250122.tar.gz
@@ -359,6 +360,7 @@ a0744f1948abdde4bfb51dd4769b619e7444baf1 jedit_build-20210510-1.tar.gz
 d911f63a5c9b4c7335bb73f805cb1711ce017a84 jfreechart-1.5.0.tar.gz
 d84b7d8ef273afec55284327fca7dd20f5ecb77a jfreechart-1.5.1.tar.gz
 6fa0c221ef55919b684449f0111a8112358e94ff jfreechart-1.5.3.tar.gz
+8623160b385d957a61583841c64acc21c0f4b3e8 jfreechart-1.5.6.tar.gz
 c8a19a36adf6cefa779d85f22ded2f4654e68ea5 jortho-1.0-1.tar.gz
 2155e0bdbd29cd3d2905454de2e7203b9661d239 jortho-1.0-2.tar.gz
 ffe179867cf5ffaabbb6bb096db9bdc0d7110065 jortho-1.0.tar.gz

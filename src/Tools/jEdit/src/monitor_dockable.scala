@@ -51,7 +51,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   private def update_chart(): Unit = {
     ML_Statistics.all_fields.find(_.title == data_name) match {
       case None =>
-      case Some(fields) => ML_Statistics(statistics.toList).update_data(data, fields.names)
+      case Some(fields) => ML_Statistics(statistics.toList).update_data(data, fields.content)
     }
   }
 

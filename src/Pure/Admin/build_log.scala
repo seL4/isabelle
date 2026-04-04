@@ -261,12 +261,13 @@ object Build_Log {
       Build_Log.parse_build_info(log_file, ml_statistics)
 
     def parse_session_info(
+        process_timing: Timing = Timing.zero,
         command_timings: Boolean = false,
         theory_timings: Boolean = false,
         ml_statistics: Boolean = false,
         task_statistics: Boolean = false): Session_Info =
       Build_Log.parse_session_info(
-        log_file, command_timings, theory_timings, ml_statistics, task_statistics)
+        log_file, process_timing, command_timings, theory_timings, ml_statistics, task_statistics)
   }
 
 
@@ -618,8 +619,23 @@ object Build_Log {
 
   /** session info: produced by isabelle build as session database **/
 
+  object Session_Timing {
+    def make(ml_timing: Timing = Timing.zero, process_timing: Timing = Timing.zero): Session_Timing =
+      Session_Timing(
+        (if (ml_timing.is_zero) Nil
+         else Markup.Timing_Properties(ml_timing)) :::
+        (if (process_timing.is_zero) Nil
+         else Markup.Process_Timing_Properties(process_timing)))
+  }
+
+  sealed case class Session_Timing(props: Properties.T) {
+    def ml_threads: Int = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
+    def ml_timing: Timing = Markup.Timing_Properties.get(props)
+    def process_timing: Timing = Markup.Process_Timing_Properties.get(props)
+  }
+
   sealed case class Session_Info(
-    session_timing: Properties.T,
+    session_timing: Session_Timing,
     command_timings: List[Properties.T],
     theory_timings: List[Properties.T],
     ml_statistics: List[Properties.T],
@@ -632,13 +648,18 @@ object Build_Log {
 
   private def parse_session_info(
     log_file: Log_File,
+    process_timing: Timing,
     command_timings: Boolean,
     theory_timings: Boolean,
     ml_statistics: Boolean,
     task_statistics: Boolean
   ): Session_Info = {
+    val ml_timing =
+      Markup.Timing_Properties.get(
+        log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil)
     Session_Info(
-      session_timing = log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil,
+      session_timing =
+        Session_Timing.make(ml_timing = ml_timing, process_timing = process_timing),
       command_timings =
         if (command_timings) log_file.filter_props(Protocol.Command_Timing_Marker) else Nil,
       theory_timings =

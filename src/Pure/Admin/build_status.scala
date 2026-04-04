@@ -78,6 +78,10 @@ object Build_Status {
 
   /* build status */
 
+  private val build_status_fields =
+    List(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
+      ML_Statistics.workers_fields).flatMap(_.content)
+
   def build_status(options: Options,
     progress: Progress = new Progress,
     profiles: List[Profile] = default_profiles,
@@ -87,13 +91,10 @@ object Build_Status {
     image_width: Int = default_image_width,
     image_height: Int = default_image_height
   ): Unit = {
-    val ml_statistics_domain =
-      Iterator(ML_Statistics.heap_fields, ML_Statistics.program_fields, ML_Statistics.tasks_fields,
-        ML_Statistics.workers_fields).flatMap(_._2).toSet
-
     val data =
       read_data(options, progress = progress, profiles = profiles, only_sessions = only_sessions,
-        ml_statistics = ml_statistics, ml_statistics_domain = ml_statistics_domain)
+        ml_statistics = ml_statistics,
+        ml_statistics_domain = ML_Statistics.make_domain(build_status_fields))
 
     present_data(data, progress = progress, target_dir = target_dir,
       image_width = image_width, image_height = image_height)
@@ -255,7 +256,7 @@ plot [] """ + range + " " +
     }
 
     def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
-      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.names)
+      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.content)
       Graphics_File.write_chart_png((dir + path).file, chart, width, height)
       this
     }

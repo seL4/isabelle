@@ -219,7 +219,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
         "module = " + jedit_patched + "/jedit.jar\n" +
         "no_build = true\n" +
         "requirements = env:JEDIT_JARS\n" +
-        ("sources =" :: java_sources.sorted.map("  " + _)).mkString("", " \\\n", "\n"))
+        ("sources =" :: java_sources.map("  " + _)).mkString("", " \\\n", "\n"))
     }
 
 

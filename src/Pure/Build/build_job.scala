@@ -67,7 +67,7 @@ object Build_Job {
         }
         try {
           val command_timings = store.read_command_timings(db, name)
-          val elapsed = Time.seconds(Markup.Elapsed.get(store.read_session_timing(db, name)))
+          val elapsed = store.read_session_timing(db, name).ml_timing.elapsed
           new Session_Context(
             name, deps, ancestors, session_prefs, sources_shasum, timeout,
             elapsed, command_timings, build_uuid)
@@ -205,7 +205,7 @@ object Build_Job {
     }
 
     def command_timing(state_id: Document_ID.Generic, props: Properties.T): Unit = synchronized {
-      val elapsed = Time.seconds(Markup.Elapsed.get(props))
+      val elapsed = Time.seconds(Markup.Timing_Properties.Elapsed.get(props))
       if (elapsed.is_notable(build_timing_threshold)) {
         write_process_output(
           Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_export)))
@@ -584,6 +584,7 @@ object Build_Job {
           val build_log =
             Build_Log.Log_File(session_name, process_result.out_lines, cache = store.cache).
               parse_session_info(
+                process_timing = process_result.timing,
                 command_timings = true,
                 theory_timings = true,
                 ml_statistics = true,
@@ -620,14 +621,14 @@ object Build_Job {
           process_result.err_lines.foreach(progress.echo(_))
 
           if (process_result.ok) {
-            val props = build_log.session_timing
-            val threads = Markup.Session_Timing.Threads.unapply(props) getOrElse 1
-            val timing = Markup.Timing_Properties.get(props)
+            val ml_threads = build_log.session_timing.ml_threads
+            val ml_timing = build_log.session_timing.ml_timing
+            val process_timing = build_log.session_timing.process_timing
             progress.echo(
-              "Timing " + session_name + " (" + threads + " threads, " + timing.message_factor + ")",
+              "Timing " + session_name + " (" + ml_threads + " threads, " + ml_timing.message_factor + ")",
               verbose = true)
             progress.echo(
-              "Finished " + session_name + " (" + process_result.timing.message_resources + ")")
+              "Finished " + session_name + " (" + process_timing.message_resources + ")")
           }
           else {
             progress.echo(

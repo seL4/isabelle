@@ -207,6 +207,10 @@ via "isabelle build" or "isabelle process_theories".
 for "isabelle getenv" to display notable values from the Isabelle
 settings environment: ISABELLE_HOME etc.
 
+* The command-line tool "isabelle version" supports option "-n", which
+is like "-i", but does not output a newline. This is useful to write the
+result into a file, e.g. "etc/ISABELLE_VERSION".
+
 * Isabelle/Scala operations Build.build(), Build.build_logic() etc.
 already include progress.interrupt_handler for the main loop. It is no
 longer required as a separate wrapper for command-line tools etc.

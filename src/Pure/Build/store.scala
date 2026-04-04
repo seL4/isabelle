@@ -238,8 +238,14 @@ object Store {
       db: SQL.Database, name: String, column: SQL.Column, cache: Term.Cache
     ): List[Properties.T] = Properties.uncompress(read_bytes(db, name, column), cache = cache)
 
-    def read_session_timing(db: SQL.Database, name: String, cache: Term.Cache): Properties.T =
-      Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache)
+    def read_session_timing(
+      db: SQL.Database,
+      name: String,
+      cache: Term.Cache
+    ): Build_Log.Session_Timing = {
+      Build_Log.Session_Timing(
+        Properties.decode(read_bytes(db, name, Session_Info.session_timing), cache = cache))
+    }
 
     def read_command_timings(db: SQL.Database, name: String): Bytes =
       read_bytes(db, name, Session_Info.command_timings)
@@ -290,7 +296,7 @@ object Store {
       db.execute_statement(Session_Info.table.insert(), body =
         { stmt =>
           stmt.string(1) = session_name
-          stmt.bytes(2) = Properties.encode(build_log.session_timing)
+          stmt.bytes(2) = Properties.encode(build_log.session_timing.props)
           stmt.bytes(3) = Properties.compress(build_log.command_timings, cache = cache)
           stmt.bytes(4) = Properties.compress(build_log.theory_timings, cache = cache)
           stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache)
@@ -674,7 +680,7 @@ class Store private(
     }
   }
 
-  def read_session_timing(db: SQL.Database, session: String): Properties.T =
+  def read_session_timing(db: SQL.Database, session: String): Build_Log.Session_Timing =
     Store.private_data.transaction_lock(db, label = "Store.read_session_timing") {
       Store.private_data.read_session_timing(db, session, cache)
     }

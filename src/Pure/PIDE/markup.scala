@@ -502,11 +502,11 @@ object Markup {
 
   /* timing */
 
-  val Elapsed = new Properties.Double("elapsed")
-  val CPU = new Properties.Double("cpu")
-  val GC = new Properties.Double("gc")
+  class Timing_Props(prefix: String = "") {
+    val Elapsed = new Properties.Double(prefix + "elapsed")
+    val CPU = new Properties.Double(prefix + "cpu")
+    val GC = new Properties.Double(prefix + "gc")
 
-  object Timing_Properties {
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
 
@@ -517,6 +517,9 @@ object Markup {
       isabelle.Timing.make(elapsed, cpu, gc)
     }
   }
+
+  object Timing_Properties extends Timing_Props()
+  object Process_Timing_Properties extends Timing_Props(prefix = "process_")
 
 
   /* process result */
@@ -709,7 +712,8 @@ object Markup {
   }
 
   val Command_Offset = new Properties.Int("command_offset")
-  private val command_timing_exports: Set[String] = Set(FILE, OFFSET, NAME, Elapsed.name)
+  private val command_timing_exports: Set[String] =
+    Set(FILE, OFFSET, NAME, Timing_Properties.Elapsed.name)
   def command_timing_export(entry: Properties.Entry): Boolean = command_timing_exports(entry._1)
 
   object Command_Timing extends Properties_Function("command_timing")
