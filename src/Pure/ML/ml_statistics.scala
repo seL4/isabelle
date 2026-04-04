@@ -381,17 +381,17 @@ final class ML_Statistics private(
 
   /* memory content */
 
-  def maximum_code: Space = Space.B(maximum(ML_Statistics.Program_Code))
-  def average_code: Space = Space.B(average(ML_Statistics.Program_Code))
-  def maximum_stack: Space = Space.B(maximum(ML_Statistics.Program_Stack))
-  def average_stack: Space = Space.B(average(ML_Statistics.Program_Stack))
-  def maximum_heap: Space = Space.B(maximum(ML_Statistics.Heap_Size))
-  def average_heap: Space = Space.B(average(ML_Statistics.Heap_Size))
+  def maximum_code: Space = Space.MiB(maximum(ML_Statistics.Program_Code))
+  def average_code: Space = Space.MiB(average(ML_Statistics.Program_Code))
+  def maximum_stack: Space = Space.MiB(maximum(ML_Statistics.Program_Stack))
+  def average_stack: Space = Space.MiB(average(ML_Statistics.Program_Stack))
+  def maximum_heap: Space = Space.MiB(maximum(ML_Statistics.Heap_Size))
+  def average_heap: Space = Space.MiB(average(ML_Statistics.Heap_Size))
 
-  def maximum_java_heap: Space = Space.B(maximum(ML_Statistics.Java_Heap_Size))
-  def average_java_heap: Space = Space.B(average(ML_Statistics.Java_Heap_Size))
-  def maximum_java_heap_major: Space = Space.B(maximum(ML_Statistics.Java_Heap_Size_Major))
-  def average_java_heap_major: Space = Space.B(average(ML_Statistics.Java_Heap_Size_Major))
+  def maximum_java_heap: Space = Space.MiB(maximum(ML_Statistics.Java_Heap_Size))
+  def average_java_heap: Space = Space.MiB(average(ML_Statistics.Java_Heap_Size))
+  def maximum_java_heap_major: Space = Space.MiB(maximum(ML_Statistics.Java_Heap_Size_Major))
+  def average_java_heap_major: Space = Space.MiB(average(ML_Statistics.Java_Heap_Size_Major))
 
 
   /* charts */
