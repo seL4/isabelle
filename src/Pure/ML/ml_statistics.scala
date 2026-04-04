@@ -135,6 +135,24 @@ object ML_Statistics {
   }
 
 
+  /* JVM statistics */
+
+  def jvm_statistics(): Properties.T = {
+    val memory = Java_Statistics.memory_status()
+    val threads = Thread.activeCount()
+    val workers = Isabelle_Thread.pool.getPoolSize
+    val workers_active = Isabelle_Thread.pool.getActiveCount
+    List(
+      Java_Heap_Size.name -> memory.heap_size_minor.toString,
+      Java_Heap_Used.name -> memory.heap_used_minor.toString,
+      Java_Heap_Size_Major.name -> memory.heap_size_major.toString,
+      Java_Heap_Used_Major.name -> memory.heap_used_major.toString,
+      Java_Threads_Total.name -> threads.toString,
+      Java_Workers_Total.name -> workers.toString,
+      Java_Workers_Active.name -> workers_active.toString)
+  }
+
+
   /* monitor process */
 
   def monitor(ml_settings: ML_Settings, pid: Long,
@@ -175,7 +193,7 @@ object ML_Statistics {
 
     private def consume(props: Properties.T): Unit = synchronized {
       if (session != null) {
-        val props1 = session.cache.props(props ::: Java_Statistics.jvm_statistics())
+        val props1 = session.cache.props(props ::: jvm_statistics())
         session.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }

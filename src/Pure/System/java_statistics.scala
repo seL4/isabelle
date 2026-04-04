@@ -83,22 +83,4 @@ object Java_Statistics {
       heap_size_major = gc_major.size_after_gc,
       heap_free_major = gc_major.free_after_gc)
   }
-
-
-  /* JVM statistics */
-
-  def jvm_statistics(): Properties.T = {
-    val memory = memory_status()
-    val threads = Thread.activeCount()
-    val workers = Isabelle_Thread.pool.getPoolSize
-    val workers_active = Isabelle_Thread.pool.getActiveCount
-    List(
-      ML_Statistics.Java_Heap_Size.name -> memory.heap_size_minor.toString,
-      ML_Statistics.Java_Heap_Used.name -> memory.heap_used_minor.toString,
-      ML_Statistics.Java_Heap_Size_Major.name -> memory.heap_size_major.toString,
-      ML_Statistics.Java_Heap_Used_Major.name -> memory.heap_used_major.toString,
-      ML_Statistics.Java_Threads_Total.name -> threads.toString,
-      ML_Statistics.Java_Workers_Total.name -> workers.toString,
-      ML_Statistics.Java_Workers_Active.name -> workers_active.toString)
-  }
 }
