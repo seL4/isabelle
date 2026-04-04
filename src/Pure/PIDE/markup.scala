@@ -502,10 +502,10 @@ object Markup {
 
   /* timing */
 
-  object Timing_Properties {
-    val Elapsed = new Properties.Double("elapsed")
-    val CPU = new Properties.Double("cpu")
-    val GC = new Properties.Double("gc")
+  class Timing_Props(prefix: String = "") {
+    val Elapsed = new Properties.Double(prefix + "elapsed")
+    val CPU = new Properties.Double(prefix + "cpu")
+    val GC = new Properties.Double(prefix + "gc")
 
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
@@ -517,6 +517,9 @@ object Markup {
       isabelle.Timing.make(elapsed, cpu, gc)
     }
   }
+
+  object Timing_Properties extends Timing_Props()
+  object Process_Timing_Properties extends Timing_Props(prefix = "process_")
 
 
   /* process result */
