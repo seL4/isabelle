@@ -30,6 +30,7 @@ object ML_Statistics {
   /* fields */
 
   class Field(name: String, description: String = "") extends Properties.Double_View(name) {
+    def domain: Set[String] = Set(name)
     def title: String = proper_string(description).getOrElse(Word.informal(name))
     def get_space(props: Properties.T): Space = Space.B(get(props))
     def get_time(props: Properties.T): Time = Time.seconds(get(props))
@@ -298,6 +299,13 @@ object ML_Statistics {
 
     new ML_Statistics(heading, fields, content, time_start, time_stop)
   }
+
+  def make_domain(fields: List[Field]): Set[String] =
+    Set.from(
+      for {
+        field <- fields.iterator
+        name <- field.domain.iterator
+      } yield name)
 }
 
 final class ML_Statistics private(
