@@ -11,6 +11,50 @@ import scala.collection.mutable
 
 
 object Build_Profiling {
+  /* presentation */
+
+  def default_image_width: Int = 800
+  def default_image_height: Int = 600
+
+  def image_name(name: String, kind: String, ext: String = "png"): String =
+    name + "_" + kind + "." + ext
+
+  sealed case class Image(name: String, width: Int, height: Int) {
+    def path: Path = Path.basic(name)
+
+    def write_gnuplot_png(
+      dir: Path,
+      data: Path,
+      title: String,
+      plots: List[String],
+      range: String
+    ): Image = {
+      Isabelle_System.with_tmp_file("gnuplot") { tmp_file =>
+        File.write(tmp_file, """
+set terminal png size """ + width + "," + height + """
+set output """ + quote(File.standard_path(dir + path)) + """
+set xdata time
+set timefmt "%s"
+set format x "%d-%b"
+set xlabel """ + quote(title) + """ noenhanced
+set key left bottom
+plot [] """ + range + " " +
+          plots.map(s => quote(File.standard_path(data)) + " " + s).mkString(", ") + "\n")
+
+        val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(tmp_file))
+        if (!result.ok) result.error("Gnuplot failed for " + quote(title)).check
+      }
+      this
+    }
+
+    def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
+      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.content)
+      Graphics_File.write_chart_png((dir + path).file, chart, width, height)
+      this
+    }
+  }
+
+
   /* build with profiling results */
 
   sealed case class Entry(
@@ -23,7 +67,7 @@ object Build_Profiling {
     maximum_heap: Space,
     average_heap: Space,
     stored_heap: Space,
-    images: List[Build_Status.Image]
+    images: List[Image]
   ) {
     def order: Long = - session_timing.process_timing.elapsed.ms
   }
@@ -47,8 +91,8 @@ object Build_Profiling {
     numa_shuffling: Boolean = false,
     max_jobs: Int = 1,
     fresh_build: Boolean = false,
-    image_width: Int = Build_Status.default_image_width,
-    image_height: Int = Build_Status.default_image_height
+    image_width: Int = default_image_width,
+    image_height: Int = default_image_height
   ): Results = {
     val results =
       Build.build(options, selection = selection, progress = progress, build_heap = build_heap,
@@ -65,8 +109,8 @@ object Build_Profiling {
           val session_timing = store.read_session_timing(db, session)
           val ml_stats = ML_Statistics(store.read_ml_statistics(db, session))
 
-          def chart_image(kind: String, fields: ML_Statistics.Fields): Build_Status.Image =
-            Build_Status.Image(Build_Status.image_name(session, kind), image_width, image_height)
+          def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
+            Image(image_name(session, kind), image_width, image_height)
               .write_chart_png(output_dir, ml_stats, fields)
 
           val images =

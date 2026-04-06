@@ -11,10 +11,7 @@ object Build_Status {
   /* defaults */
 
   def default_target_dir: Path = Path.explode("build_status")
-  def default_image_width: Int = 800
-  def default_image_height: Int = 600
   def default_history: Int = 30
-
   def default_profiles: List[Profile] = Isabelle_Cronjob.build_status_profiles
 
 
@@ -88,8 +85,8 @@ object Build_Status {
     only_sessions: Set[String] = Set.empty,
     target_dir: Path = default_target_dir,
     ml_statistics: Boolean = false,
-    image_width: Int = default_image_width,
-    image_height: Int = default_image_height
+    image_width: Int = Build_Profiling.default_image_width,
+    image_height: Int = Build_Profiling.default_image_height
   ): Unit = {
     val data =
       read_data(options, progress = progress, profiles = profiles, only_sessions = only_sessions,
@@ -222,44 +219,6 @@ object Build_Status {
         HTML.tooltip_errors(HTML.text(name), errors.map(s => HTML.text(Symbol.decode(s)))) ::
           HTML.text(print_version(isabelle_version, afp_version, chapter))
       }
-    }
-  }
-
-  def image_name(name: String, kind: String, ext: String = "png"): String =
-    name + "_" + kind + "." + ext
-
-  sealed case class Image(name: String, width: Int, height: Int) {
-    def path: Path = Path.basic(name)
-
-    def write_gnuplot_png(
-      dir: Path,
-      data: Path,
-      title: String,
-      plots: List[String],
-      range: String
-    ): Image = {
-      Isabelle_System.with_tmp_file("gnuplot") { tmp_file =>
-        File.write(tmp_file, """
-set terminal png size """ + width + "," + height + """
-set output """ + quote(File.standard_path(dir + path)) + """
-set xdata time
-set timefmt "%s"
-set format x "%d-%b"
-set xlabel """ + quote(title) + """ noenhanced
-set key left bottom
-plot [] """ + range + " " +
-          plots.map(s => quote(File.standard_path(data)) + " " + s).mkString(", ") + "\n")
-
-        val result = Isabelle_System.bash("\"$ISABELLE_GNUPLOT\" " + File.bash_path(tmp_file))
-        if (!result.ok) result.error("Gnuplot failed for " + quote(title)).check
-      }
-      this
-    }
-
-    def write_chart_png(dir: Path, ml_stats: ML_Statistics, fields: ML_Statistics.Fields): Image = {
-      val chart = ml_stats.chart(fields.title + ": " + ml_stats.heading, fields.content)
-      Graphics_File.write_chart_png((dir + path).file, chart, width, height)
-      this
     }
   }
 
@@ -422,8 +381,8 @@ plot [] """ + range + " " +
   def present_data(data: Data,
     progress: Progress = new Progress,
     target_dir: Path = default_target_dir,
-    image_width: Int = default_image_width,
-    image_height: Int = default_image_height
+    image_width: Int = Build_Profiling.default_image_width,
+    image_height: Int = Build_Profiling.default_image_height
   ): Unit = {
     def clean_name(name: String): String =
       name.flatMap(c => if (c == ' ' || c == '/') "_" else if (c == ',') "" else c.toString)
@@ -521,13 +480,15 @@ plot [] """ + range + " " +
                 """ using 1:12 smooth sbezier title "heap stored (smooth)" """,
                 """ using 1:12 smooth csplines title "heap stored" """)
 
-            def image(kind: String): Image =
-              Image(image_name(session.name, kind), image_width, image_height)
+            def image(kind: String): Build_Profiling.Image =
+              Build_Profiling.Image(
+                Build_Profiling.image_name(session.name, kind), image_width, image_height)
 
-            def gnuplot_image(kind: String, plots: List[String], range: String): Image =
+            def gnuplot_image(
+                kind: String, plots: List[String], range: String): Build_Profiling.Image =
               image(kind).write_gnuplot_png(dir, data_file, session.name, plots, range)
 
-            def chart_image(kind: String, fields: ML_Statistics.Fields): Image =
+            def chart_image(kind: String, fields: ML_Statistics.Fields): Build_Profiling.Image =
               image(kind).write_chart_png(dir, session.ml_statistics, fields)
 
             val images =
@@ -610,8 +571,8 @@ plot [] """ + range + " " +
         var ml_statistics = false
         var only_sessions = Set.empty[String]
         var options = Options.init()
-        var image_width = default_image_width
-        var image_height = default_image_height
+        var image_width = Build_Profiling.default_image_width
+        var image_height = Build_Profiling.default_image_height
         var verbose = false
 
         val getopts = Getopts("""
@@ -623,7 +584,8 @@ Usage: isabelle build_status [OPTIONS]
     -S SESSIONS  only given SESSIONS (comma separated)
     -l DAYS      length of relevant history (default """ + options.int("build_log_history") + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -s WxH       size of PNG image (default """ + default_image_width + "x" + default_image_height + """)
+    -s WxH       size of PNG image (default """ +
+          Build_Profiling.default_image_width + "x" + Build_Profiling.default_image_height + """)
     -v           verbose
 
   Present performance statistics from build log database, which is specified
