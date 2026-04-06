@@ -517,6 +517,41 @@ abstract class Session extends Document.Session {
 
     /* prover output */
 
+    def handle_init(): Unit = {
+      val init_ok =
+        try {
+          Isabelle_System.make_services(classOf[Session.Protocol_Handler])
+            .foreach(init_protocol_handler)
+          true
+        }
+        catch {
+          case exn: Throwable =>
+            prover.get.protocol_command(
+              "Prover.stop", XML.Encode.int(1), XML.string(Exn.message(exn)))
+            false
+        }
+
+      if (init_ok) {
+        prover.get.options(prover_options(session_options))
+        prover.get.init_session(resources)
+
+        phase = Session.Ready
+        debugger.ready()
+      }
+    }
+
+    def handle_exit(process_result: Process_Result): Unit = {
+      val exit_state = global_state.value
+      if (prover.defined) protocol_handlers.exit(exit_state)
+      for (id <- exit_state.theories.keys) {
+        val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
+        finished_theories.post(snapshot)
+      }
+      file_formats.stop_session()
+      phase = Session.Terminated(process_result)
+      prover.reset()
+    }
+
     def handle_output(output: Prover.Output): Unit = {
     //{{{
       def bad_output(): Unit = {
@@ -534,110 +569,80 @@ abstract class Session extends Document.Session {
         catch { case _: Document.State.Fail => bad_output() }
       }
 
-      output match {
-        case msg: Prover.Protocol_Output =>
-          val handled = protocol_handlers.invoke(msg)
-          if (!handled) {
-            msg.properties match {
-              case Protocol.Command_Timing(state_id, props) if prover.defined =>
-                val message = XML.elem(Markup(Markup.Command_Timing.name, props))
-                change_command(_.accumulate(state_id, cache.elem(message), cache))
-                command_timings.post(Session.Command_Timing(state_id, props))
+      def handle_protocol_output(msg: Prover.Protocol_Output): Unit =
+        msg.properties match {
+          case Protocol.Command_Timing(state_id, props) if prover.defined =>
+            val message = XML.elem(Markup(Markup.Command_Timing.name, props))
+            change_command(_.accumulate(state_id, cache.elem(message), cache))
+            command_timings.post(Session.Command_Timing(state_id, props))
 
-              case Markup.Task_Statistics(props) =>
-                task_statistics.post(Session.Task_Statistics(props))
+          case Markup.Task_Statistics(props) =>
+            task_statistics.post(Session.Task_Statistics(props))
 
-              case Protocol.Export(args)
-              if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
-                val id = Value.Long.unapply(args.id.get).get
-                val entry = Export.Entry.make(Sessions.DRAFT, args, msg.chunk, cache)
-                change_command(_.add_export(id, (args.serial, entry)))
+          case Protocol.Export(args)
+          if args.id.isDefined && Value.Long.unapply(args.id.get).isDefined =>
+            val id = Value.Long.unapply(args.id.get).get
+            val entry = Export.Entry.make(Sessions.DRAFT, args, msg.chunk, cache)
+            change_command(_.add_export(id, (args.serial, entry)))
 
-              case Protocol.Loading_Theory(node_name, id, commands) =>
-                val blobs_info = build_blobs_info(node_name)
-                try {
-                  global_state.change(_.begin_theory(node_name, id, commands, msg.text, blobs_info))
-                }
-                catch { case _: Document.State.Fail => bad_output() }
+          case Protocol.Loading_Theory(node_name, id, commands) =>
+            val blobs_info = build_blobs_info(node_name)
+            try {
+              global_state.change(_.begin_theory(node_name, id, commands, msg.text, blobs_info))
+            }
+            catch { case _: Document.State.Fail => bad_output() }
 
-              case List(Markup.Commands_Accepted.THIS) =>
-                msg.text match {
-                  case Protocol.Commands_Accepted(ids) =>
-                    ids.foreach(id =>
-                      change_command(_.accumulate(id, Protocol.Commands_Accepted.message, cache)))
-                  case _ => bad_output()
-                }
-
-              case List(Markup.Assign_Update.THIS) =>
-                msg.text match {
-                  case Protocol.Assign_Update(id, edited, update) =>
-                    try {
-                      val (edited_nodes, cmds) =
-                        global_state.change_result(_.assign(id, edited, update))
-                      change_buffer.invoke(true, edited_nodes, cmds)
-                      manager.send(Session.Change_Flush)
-                    }
-                    catch { case _: Document.State.Fail => bad_output() }
-                  case _ => bad_output()
-                }
-                delay_prune.invoke()
-
-              case List(Markup.Removed_Versions.THIS) =>
-                msg.text match {
-                  case Protocol.Removed(removed) =>
-                    try {
-                      global_state.change(_.removed_versions(removed))
-                      manager.send(Session.Change_Flush)
-                    }
-                    catch { case _: Document.State.Fail => bad_output() }
-                  case _ => bad_output()
-                }
-
+          case List(Markup.Commands_Accepted.THIS) =>
+            msg.text match {
+              case Protocol.Commands_Accepted(ids) =>
+                ids.foreach(id =>
+                  change_command(_.accumulate(id, Protocol.Commands_Accepted.message, cache)))
               case _ => bad_output()
             }
-          }
-        case _ =>
-          output.properties match {
-            case Position.Id(state_id) =>
-              change_command(_.accumulate(state_id, output.message, cache))
 
-            case _ if output.is_init =>
-              val init_ok =
+          case List(Markup.Assign_Update.THIS) =>
+            msg.text match {
+              case Protocol.Assign_Update(id, edited, update) =>
                 try {
-                  Isabelle_System.make_services(classOf[Session.Protocol_Handler])
-                    .foreach(init_protocol_handler)
-                  true
+                  val (edited_nodes, cmds) =
+                    global_state.change_result(_.assign(id, edited, update))
+                  change_buffer.invoke(true, edited_nodes, cmds)
+                  manager.send(Session.Change_Flush)
                 }
-                catch {
-                  case exn: Throwable =>
-                    prover.get.protocol_command(
-                      "Prover.stop", XML.Encode.int(1), XML.string(Exn.message(exn)))
-                    false
+                catch { case _: Document.State.Fail => bad_output() }
+              case _ => bad_output()
+            }
+            delay_prune.invoke()
+
+          case List(Markup.Removed_Versions.THIS) =>
+            msg.text match {
+              case Protocol.Removed(removed) =>
+                try {
+                  global_state.change(_.removed_versions(removed))
+                  manager.send(Session.Change_Flush)
                 }
+                catch { case _: Document.State.Fail => bad_output() }
+              case _ => bad_output()
+            }
 
-              if (init_ok) {
-                prover.get.options(prover_options(session_options))
-                prover.get.init_session(resources)
-
-                phase = Session.Ready
-                debugger.ready()
-              }
-
-            case props if output.is_exit =>
-              val exit_state = global_state.value
-              if (prover.defined) protocol_handlers.exit(exit_state)
-              for (id <- exit_state.theories.keys) {
-                val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
-                finished_theories.post(snapshot)
-              }
-              file_formats.stop_session()
-              phase = Session.Terminated(Markup.Process_Result.get(props))
-              prover.reset()
-
-            case _ =>
-              raw_output_messages.post(output)
-          }
+          case _ => bad_output()
         }
+
+      if (output.is_init) handle_init()
+      else if (output.is_exit) handle_exit(Markup.Process_Result.get(output.properties))
+      else {
+        output match {
+          case msg: Prover.Protocol_Output =>
+            val handled = protocol_handlers.invoke(msg)
+            if (!handled) handle_protocol_output(msg)
+          case _ =>
+            output.properties match {
+              case Position.Id(state_id) =>
+                change_command(_.accumulate(state_id, output.message, cache))
+              case _ => raw_output_messages.post(output)
+            }
+          }
+      }
     //}}}
     }
 
