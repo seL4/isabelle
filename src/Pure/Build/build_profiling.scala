@@ -103,6 +103,8 @@ plot [] """ + range + " " +
     maximum_heap: Space,
     average_heap: Space,
     stored_heap: Space,
+    isabelle_version: String,
+    afp_version: String,
     images: List[Image]
   ) {
     def order: Long = - session_timing.process_timing.elapsed.ms
@@ -139,6 +141,9 @@ plot [] """ + range + " " +
     progress.echo("Output directory " + output_dir.absolute)
     Isabelle_System.make_directory(output_dir)
 
+    val isabelle_version = Mercurial.id_repository(Path.ISABELLE_HOME).getOrElse("")
+    val afp_version = afp_root.flatMap(Mercurial.id_repository(_)).getOrElse("")
+
     val store = results.store
     val raw_entries =
       for (session <- results.sessions_ok) yield {
@@ -170,6 +175,8 @@ plot [] """ + range + " " +
             maximum_heap = ml_stats.maximum_heap,
             average_heap = ml_stats.average_heap,
             stored_heap = store.get_session(session).heap_size,
+            isabelle_version = isabelle_version,
+            afp_version = afp_version,
             images = images)
         }
       }
