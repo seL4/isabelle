@@ -116,6 +116,7 @@ plot [] """ + range + " " +
 
   def build_profiling(
     options: Options,
+    title: String = "",
     output_dir: Path = default_output_dir,
     selection: Sessions.Selection = Sessions.Selection.empty,
     progress: Progress = new Progress,
@@ -170,9 +171,10 @@ plot [] """ + range + " " +
 
     val entries = raw_entries.sortBy(_.order)
 
+    val heading = "Build profiling" + if_proper(title, ": " + title)
     HTML.write_document(output_dir, "index.html",
-      List(HTML.title("Sessions")),
-      HTML.chapter("Sessions") ::
+      List(HTML.title(heading)),
+      HTML.chapter(heading) ::
       HTML.par(
         List(HTML.itemize(
           entries.map(entry =>
@@ -209,6 +211,7 @@ plot [] """ + range + " " +
         var numa_shuffling = false
         var output_dir = default_output_dir
         var requirements = false
+        var title = ""
         val exclude_session_groups = new mutable.ListBuffer[String]
         var all_sessions = false
         var build_heap = false
@@ -231,6 +234,7 @@ Usage: isabelle build_profiling [OPTIONS] [SESSIONS ...]
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
     -O DIR       output directory (default: """ + default_output_dir + """)
     -R           refer to requirements of selected sessions
+    -T TEXT      title for presentation
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -b           build heap images
@@ -250,6 +254,7 @@ Usage: isabelle build_profiling [OPTIONS] [SESSIONS ...]
           "N" -> (_ => numa_shuffling = true),
           "O:" -> (arg => output_dir = Path.explode(arg)),
           "R" -> (_ => requirements = true),
+          "T:" -> (arg => title = arg),
           "X:" -> (arg => exclude_session_groups += arg),
           "a" -> (_ => all_sessions = true),
           "b" -> (_ => build_heap = true),
@@ -271,6 +276,7 @@ Usage: isabelle build_profiling [OPTIONS] [SESSIONS ...]
         val results =
           progress.interrupt_handler {
             build_profiling(options,
+              title = title,
               output_dir = output_dir,
               selection = Sessions.Selection(
                 requirements = requirements,
