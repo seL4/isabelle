@@ -620,8 +620,13 @@ object Build_Log {
   /** session info: produced by isabelle build as session database **/
 
   object Session_Timing {
-    def make(ml_timing: Timing = Timing.zero, process_timing: Timing = Timing.zero): Session_Timing =
+    def make(
+      ml_threads: Int = 0,
+      ml_timing: Timing = Timing.zero,
+      process_timing: Timing = Timing.zero
+    ): Session_Timing =
       Session_Timing(
+        Markup.Session_Timing.Threads.make(ml_threads) :::
         Markup.Timing_Properties.make(ml_timing) :::
         Markup.Process_Timing_Properties.make(process_timing))
   }
@@ -652,12 +657,14 @@ object Build_Log {
     ml_statistics: Boolean,
     task_statistics: Boolean
   ): Session_Info = {
-    val ml_timing =
-      Markup.Timing_Properties.get(
-        log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil)
+    val session_timing_props =
+      log_file.find_props(Protocol.Session_Timing_Marker) getOrElse Nil
     Session_Info(
       session_timing =
-        Session_Timing.make(ml_timing = ml_timing, process_timing = process_timing),
+        Session_Timing.make(
+          ml_threads = Markup.Session_Timing.Threads.get(session_timing_props),
+          ml_timing = Markup.Timing_Properties.get(session_timing_props),
+          process_timing = process_timing),
       command_timings =
         if (command_timings) log_file.filter_props(Protocol.Command_Timing_Marker) else Nil,
       theory_timings =
