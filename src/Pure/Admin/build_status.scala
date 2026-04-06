@@ -514,9 +514,10 @@ object Build_Status {
             session.name -> images
           }, data_entry.sessions).toMap
 
+      val heading = "Isabelle build status for " + data_name
       HTML.write_document(dir, "index.html",
-        List(HTML.title("Isabelle build status for " + data_name)),
-        HTML.chapter("Isabelle build status for " + data_name) ::
+        List(HTML.title(heading)),
+        HTML.chapter(heading) ::
         HTML.par(
           List(HTML.description(
             List(
