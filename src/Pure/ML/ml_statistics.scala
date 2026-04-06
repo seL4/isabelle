@@ -92,7 +92,7 @@ object ML_Statistics {
   val Java_Heap_Used = new Field_MiB("java_heap_used", description = "Java heap used")
   val Java_Heap_Free: Field_MiB =
     new Field_MiB("java_heap_free", description = "Java heap free") {
-      override def domain: Set[String] = Set(name, Java_Heap_Used.name)
+      override def domain: Set[String] = Set(Java_Heap_Size.name, Java_Heap_Used.name)
       override def unapply(props: Properties.T): Option[Double] =
         for {
           size <- Java_Heap_Size.unapply(props)
@@ -105,7 +105,7 @@ object ML_Statistics {
     new Field_MiB("java_heap_used_major", description = "Java heap used (major GC)")
   val Java_Heap_Free_Major: Field_MiB =
     new Field_MiB("java_heap_free_major", description = "Java heap free (major GC)") {
-      override def domain: Set[String] = Set(name, Java_Heap_Used_Major.name)
+      override def domain: Set[String] = Set(Java_Heap_Size_Major.name, Java_Heap_Used_Major.name)
       override def unapply(props: Properties.T): Option[Double] =
         for {
           size <- Java_Heap_Size_Major.unapply(props)
@@ -278,7 +278,15 @@ object ML_Statistics {
   /* content interpretation */
 
   final case class Entry(time: Double, data: Map[String, Double]) {
-    def get(field: Field): Double = field.scale(data.getOrElse(field.name, 0.0))
+    def get(field: Field): Double = {
+      val props =
+        List.from(
+          for {
+            x <- field.domain.iterator
+            y <- data.get(x)
+          } yield x -> Value.Double(y))
+      field.scale(field.get(props))
+    }
   }
 
   val empty: ML_Statistics = apply(Nil)
