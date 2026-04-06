@@ -74,10 +74,10 @@ fun parse_real s =
   | NONE => raise Fail ("Bad real " ^ quote s));
 
 fun print_real x =
-  let val s = signed_string_of_real x in
-    (case space_explode "." s of
-      [a, b] => if forall_string (fn c => c = "0") b then a else s
-    | _ => s)
+  let val y = Real.floor x in
+    (case Real.compareReal (x, Real.fromInt y) of
+      IEEEReal.EQUAL => print_int y
+    | _ => signed_string_of_real x)
   end;
 
 end;
