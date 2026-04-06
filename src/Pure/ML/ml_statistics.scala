@@ -43,7 +43,6 @@ object ML_Statistics {
   }
 
   val Now = new Field("now")
-  def now(props: Properties.T): Double = Now.unapply(props).get
 
   val Heap_Size =
     new Field_MiB("size_heap", description =  "heap size")
@@ -291,9 +290,9 @@ object ML_Statistics {
   ): ML_Statistics = {
     require(ml_statistics0.forall(props => Now.unapply(props).isDefined), "missing \"now\" field")
 
-    val ml_statistics = ml_statistics0.sortBy(now)
-    val time_start = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.head)
-    val time_stop = if (ml_statistics.isEmpty) 0.0 else now(ml_statistics.last)
+    val ml_statistics = ml_statistics0.sortBy(Now.get)
+    val time_start = if (ml_statistics.isEmpty) 0.0 else Now.get(ml_statistics.head)
+    val time_stop = if (ml_statistics.isEmpty) 0.0 else Now.get(ml_statistics.last)
 
     val fields =
       SortedSet.from[String](
@@ -306,7 +305,7 @@ object ML_Statistics {
       var last_edge = Map.empty[String, (Double, Double, Double)]
       val result = new mutable.ListBuffer[ML_Statistics.Entry]
       for (props <- ml_statistics) {
-        val time = now(props) - time_start
+        val time = Now.get(props) - time_start
 
         // rising edges -- relative speed
         val speeds =
