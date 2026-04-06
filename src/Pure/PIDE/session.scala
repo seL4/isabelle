@@ -623,7 +623,7 @@ abstract class Session extends Document.Session {
                 debugger.ready()
               }
 
-            case Markup.Process_Result(result) if output.is_exit =>
+            case props if output.is_exit =>
               val exit_state = global_state.value
               if (prover.defined) protocol_handlers.exit(exit_state)
               for (id <- exit_state.theories.keys) {
@@ -631,7 +631,7 @@ abstract class Session extends Document.Session {
                 finished_theories.post(snapshot)
               }
               file_formats.stop_session()
-              phase = Session.Terminated(result)
+              phase = Session.Terminated(Markup.Process_Result.get(props))
               prover.reset()
 
             case _ =>

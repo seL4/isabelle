@@ -439,13 +439,8 @@ object Build_Job {
                 session.synchronized { stderr ++= Symbol.encode(XML.content(message)) }
               }
               else if (msg.is_exit) {
-                val err =
-                  "Prover terminated" +
-                    (msg.properties match {
-                      case Markup.Process_Result(result) => ": " + result.print_rc
-                      case _ => ""
-                    })
-                session.errors(List(err))
+                val result = Markup.Process_Result.get(msg.properties)
+                session.errors(List("Prover terminated: " + result.print_rc))
               }
             case _ =>
           }

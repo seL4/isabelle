@@ -91,7 +91,7 @@ class Prover(
   }
 
   private def exit_message(result: Process_Result): Unit = {
-    output(Markup.EXIT, Markup.Process_Result(result),
+    output(Markup.EXIT, Markup.Process_Result.make(result),
       List(XML.Text(result.print_return_code)))
   }
 

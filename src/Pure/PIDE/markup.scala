@@ -510,6 +510,11 @@ object Markup {
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
 
+    def make(timing: isabelle.Timing): Properties.T =
+      Elapsed.make(timing.elapsed.seconds) :::
+        CPU.make(timing.cpu.seconds) :::
+        GC.make(timing.gc.seconds)
+
     def get(props: Properties.T): isabelle.Timing = {
       val elapsed = Time.seconds(Elapsed.get(props))
       val cpu = Time.seconds(CPU.get(props))
@@ -524,19 +529,14 @@ object Markup {
 
   /* process result */
 
-  val Return_Code = new Properties.Int("return_code")
-
   object Process_Result {
-    def apply(result: Process_Result): Properties.T =
-      Return_Code(result.rc) :::
-        (if (result.timing.is_zero) Nil else Timing_Properties(result.timing))
+    val Return_Code = new Properties.Int("return_code")
 
-    def unapply(props: Properties.T): Option[Process_Result] =
-      props match {
-        case Return_Code(rc) =>
-          Some(isabelle.Process_Result(rc, timing = Timing_Properties.get(props)))
-        case _ => None
-      }
+    def make(result: Process_Result): Properties.T =
+      Return_Code.make(result.rc) ::: Timing_Properties.make(result.timing)
+
+    def get(props: Properties.T): Process_Result =
+      isabelle.Process_Result(Return_Code.get(props), timing = Timing_Properties.get(props))
   }
 
 
