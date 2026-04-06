@@ -15,7 +15,7 @@ object ML_Syntax {
 
   def print_int(x: Int): String = signed(Value.Int(x))
   def print_long(x: Long): String = signed(Value.Long(x))
-  def print_double(x: Double): String = signed(Value.Double(x))
+  def print_double(x: Double): String = signed(x.toString)
 
 
   /* string */

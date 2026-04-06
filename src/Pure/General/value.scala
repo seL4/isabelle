@@ -52,7 +52,10 @@ object Value {
   }
 
   object Double {
-    def apply(x: scala.Double): java.lang.String = x.toString
+    def apply(x: scala.Double): java.lang.String = {
+      val y = x.toLong
+      if (y.toDouble == x) Long(y) else x.toString
+    }
     def unapply(s: java.lang.String): Option[scala.Double] =
       try { Some(java.lang.Double.parseDouble(s)) }
       catch { case _: NumberFormatException => None }
@@ -61,10 +64,7 @@ object Value {
   }
 
   object Seconds {
-    def apply(t: Time): java.lang.String = {
-      val s = t.seconds
-      if (s.toInt.toDouble == s) s.toInt.toString else t.toString
-    }
+    def apply(t: Time): java.lang.String = Double(t.seconds)
     def unapply(s: java.lang.String): Option[Time] = Double.unapply(s).map(Time.seconds)
     def parse(s: java.lang.String): Time =
       unapply(s) getOrElse error("Bad real (for seconds): " + quote(s))
