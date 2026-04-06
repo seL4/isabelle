@@ -153,7 +153,12 @@ plot [] """ + range + " " +
           val images =
             List(
               chart_image("heap", ML_Statistics.heap_fields),
-              chart_image("java_heap", ML_Statistics.java_heap_fields))
+              chart_image("java_heap", ML_Statistics.java_heap_fields)) :::
+            (if (session_timing.ml_threads > 1)
+              List(
+                chart_image("tasks", ML_Statistics.tasks_fields),
+                chart_image("workers", ML_Statistics.workers_fields))
+             else Nil)
 
           Entry(
             session = session,
