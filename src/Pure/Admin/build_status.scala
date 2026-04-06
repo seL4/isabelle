@@ -123,7 +123,7 @@ object Build_Status {
     require(entries.nonEmpty, "no entries")
 
     lazy val sorted_entries: List[Entry] =
-      entries.valuesIterator.toList.sortBy(entry => - entry.date)
+      entries.valuesIterator.toList.sortBy(_.order)
 
     def head: Entry = sorted_entries.head
     def order: Long = - head.timing.elapsed.ms
@@ -210,6 +210,7 @@ object Build_Status {
     errors: List[String]
   ) {
     val date: Long = (afp_pull_date getOrElse pull_date).unix_epoch
+    def order: Long = - date
 
     def finished: Boolean = status == Build_Log.Session_Status.finished
     def failed: Boolean = status == Build_Log.Session_Status.failed
@@ -404,7 +405,7 @@ plot [] """ + range + " " +
     val sorted_entries =
       (for {
         (name, sessions) <- data_entries.toList
-        sorted_sessions <- proper_list(sessions.toList.map(_._2).sortBy(_.order))
+        sorted_sessions <- proper_list(sessions.valuesIterator.toList.sortBy(_.order))
       }
       yield {
         val hosts = get_hosts(name).toList.sorted
