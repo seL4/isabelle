@@ -66,9 +66,9 @@ sources = \
   src/Pure/Build/build_ci.scala \
   src/Pure/Build/build_cluster.scala \
   src/Pure/Build/build_job.scala \
+  src/Pure/Build/build_manager.scala \
   src/Pure/Build/build_process.scala \
   src/Pure/Build/build_profiling.scala \
-  src/Pure/Build/build_manager.scala \
   src/Pure/Build/build_schedule.scala \
   src/Pure/Build/database_progress.scala \
   src/Pure/Build/export.scala \
@@ -88,8 +88,8 @@ sources = \
   src/Pure/Concurrent/par_list.scala \
   src/Pure/Concurrent/synchronized.scala \
   src/Pure/GUI/color_value.scala \
-  src/Pure/GUI/font_metric.scala \
   src/Pure/GUI/desktop_app.scala \
+  src/Pure/GUI/font_metric.scala \
   src/Pure/GUI/gui.scala \
   src/Pure/GUI/gui_thread.scala \
   src/Pure/GUI/popup.scala \
@@ -363,8 +363,8 @@ services = \
   isabelle.Bibtex$File_Format \
   isabelle.Build$Engine$Default \
   isabelle.Build_Schedule$Build_Engine \
-  isabelle.Caddy_Setup \
   isabelle.CI_Jobs \
+  isabelle.Caddy_Setup \
   isabelle.Document_Build$Build_Engine \
   isabelle.Document_Build$LIPIcs_LuaLaTeX_Engine \
   isabelle.Document_Build$LIPIcs_PDFLaTeX_Engine \
@@ -383,9 +383,9 @@ services = \
   isabelle.Simplifier_Trace$Handler \
   isabelle.Tools \
   isabelle.jedit.Isabelle_Menu_Provider \
+  isabelle.jedit.JEdit_JAR$Scala_Functions \
   isabelle.jedit.JEdit_Plugin0 \
   isabelle.jedit.JEdit_Plugin1 \
-  isabelle.jedit.JEdit_JAR$Scala_Functions \
   isabelle.nitpick.Kodkod$Handler \
   isabelle.nitpick.Scala_Functions \
   isabelle.spark.SPARK$Load_Command1 \
