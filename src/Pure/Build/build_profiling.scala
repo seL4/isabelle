@@ -204,7 +204,9 @@ plot [] """ + range + " " +
                 average_heap = entry.average_heap,
                 stored_heap = entry.stored_heap,
                 maximum_java_heap = entry.maximum_java_heap,
-                average_java_heap = entry.average_java_heap)) ::
+                average_java_heap = entry.average_java_heap,
+                isabelle_version = entry.isabelle_version,
+                afp_version = entry.afp_version)) ::
             entry.images.map(image =>
               HTML.size(image.width / 2, image.height / 2)(HTML.image(image.name)))))))
 
