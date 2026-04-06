@@ -622,10 +622,8 @@ object Build_Log {
   object Session_Timing {
     def make(ml_timing: Timing = Timing.zero, process_timing: Timing = Timing.zero): Session_Timing =
       Session_Timing(
-        (if (ml_timing.is_zero) Nil
-         else Markup.Timing_Properties(ml_timing)) :::
-        (if (process_timing.is_zero) Nil
-         else Markup.Process_Timing_Properties(process_timing)))
+        Markup.Timing_Properties.make(ml_timing) :::
+        Markup.Process_Timing_Properties.make(process_timing))
   }
 
   sealed case class Session_Timing(props: Properties.T) {

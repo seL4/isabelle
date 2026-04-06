@@ -507,9 +507,6 @@ object Markup {
     val CPU = new Properties.Double(prefix + "cpu")
     val GC = new Properties.Double(prefix + "gc")
 
-    def apply(timing: isabelle.Timing): Properties.T =
-      Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
-
     def make(timing: isabelle.Timing): Properties.T =
       Elapsed.make(timing.elapsed.seconds) :::
         CPU.make(timing.cpu.seconds) :::
