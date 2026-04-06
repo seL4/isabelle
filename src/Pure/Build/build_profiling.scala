@@ -72,7 +72,7 @@ plot [] """ + range + " " +
     (if (timing.is_zero) Nil
      else List(HTML.text("timing:") -> HTML.text(timing.message_resources))) :::
     (if (ml_timing.is_zero) Nil
-     else List(HTML.text("ML timing:") -> HTML.text(ml_timing.message_resources))) :::
+     else List(HTML.text("ML timing:") -> HTML.text(ml_timing.message_factor))) :::
     maximum_code.print_relevant.map(s => HTML.text("ML code maximum:") -> HTML.text(s)).toList :::
     average_code.print_relevant.map(s => HTML.text("ML code average:") -> HTML.text(s)).toList :::
     maximum_stack.print_relevant.map(s => HTML.text("ML stack maximum:") -> HTML.text(s)).toList :::
