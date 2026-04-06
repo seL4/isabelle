@@ -54,6 +54,42 @@ plot [] """ + range + " " +
     }
   }
 
+  def html_description_items(
+    timing: Timing = Timing.zero,
+    ml_timing: Timing = Timing.zero,
+    maximum_code: Space = Space.zero,
+    average_code: Space = Space.zero,
+    maximum_stack: Space = Space.zero,
+    average_stack: Space = Space.zero,
+    maximum_heap: Space = Space.zero,
+    average_heap: Space = Space.zero,
+    stored_heap: Space = Space.zero,
+    maximum_java_heap: Space = Space.zero,
+    average_java_heap: Space = Space.zero,
+    isabelle_version: String = "",
+    afp_version: String = ""
+  ): List[(XML.Body, XML.Body)] = {
+    (if (timing.is_zero) Nil
+     else List(HTML.text("timing:") -> HTML.text(timing.message_resources))) :::
+    (if (ml_timing.is_zero) Nil
+     else List(HTML.text("ML timing:") -> HTML.text(ml_timing.message_resources))) :::
+    maximum_code.print_relevant.map(s => HTML.text("ML code maximum:") -> HTML.text(s)).toList :::
+    average_code.print_relevant.map(s => HTML.text("ML code average:") -> HTML.text(s)).toList :::
+    maximum_stack.print_relevant.map(s => HTML.text("ML stack maximum:") -> HTML.text(s)).toList :::
+    average_stack.print_relevant.map(s => HTML.text("ML stack average:") -> HTML.text(s)).toList :::
+    maximum_heap.print_relevant.map(s => HTML.text("ML heap maximum:") -> HTML.text(s)).toList :::
+    average_heap.print_relevant.map(s => HTML.text("ML heap average:") -> HTML.text(s)).toList :::
+    stored_heap.print_relevant.map(s => HTML.text("ML heap stored:") -> HTML.text(s)).toList :::
+    maximum_java_heap.print_relevant.map(s =>
+      HTML.text("Java heap maximum:") -> HTML.text(s)).toList :::
+    average_java_heap.print_relevant.map(s =>
+      HTML.text("Java heap average:") -> HTML.text(s)).toList :::
+    proper_string(isabelle_version).map(s =>
+      HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
+    proper_string(afp_version).map(s =>
+      HTML.text("AFP version:") -> HTML.text(s)).toList
+  }
+
 
   /* build with profiling results */
 
@@ -147,16 +183,14 @@ plot [] """ + range + " " +
           HTML.section(HTML.id("session_" + entry.session), entry.session),
           HTML.par(
             HTML.description(
-              List(
-                HTML.text("timing:") ->
-                  HTML.text(entry.session_timing.process_timing.message_resources),
-                HTML.text("ML timing:") ->
-                  HTML.text(entry.session_timing.ml_timing.message_resources),
-                HTML.text("ML heap maximum:") -> HTML.text(entry.maximum_heap.print),
-                HTML.text("ML heap average:") -> HTML.text(entry.average_heap.print),
-                HTML.text("ML heap stored:") -> HTML.text(entry.stored_heap.print),
-                HTML.text("Java heap maximum:") -> HTML.text(entry.maximum_java_heap.print),
-                HTML.text("Java heap average:") -> HTML.text(entry.average_java_heap.print))) ::
+              html_description_items(
+                timing = entry.session_timing.process_timing,
+                ml_timing = entry.session_timing.ml_timing,
+                maximum_heap = entry.maximum_heap,
+                average_heap = entry.average_heap,
+                stored_heap = entry.stored_heap,
+                maximum_java_heap = entry.maximum_java_heap,
+                average_java_heap = entry.average_java_heap)) ::
             entry.images.map(image =>
               HTML.size(image.width / 2, image.height / 2)(HTML.image(image.name)))))))
 

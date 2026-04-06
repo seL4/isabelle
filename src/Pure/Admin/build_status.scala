@@ -532,29 +532,20 @@ object Build_Status {
             HTML.section(HTML.id("session_" + session.name), session.name),
             HTML.par(
               HTML.description(
-                List(
-                  HTML.text("data:") ->
-                    List(HTML.link(data_files(session.name).file_name, HTML.text("CSV"))),
-                  HTML.text("timing:") -> HTML.text(session.head.timing.message_resources),
-                  HTML.text("ML timing:") -> HTML.text(session.head.ml_timing.message_resources)) :::
-                session.head.maximum_code.print_relevant.map(s =>
-                  HTML.text("code maximum:") -> HTML.text(s)).toList :::
-                session.head.average_code.print_relevant.map(s =>
-                  HTML.text("code average:") -> HTML.text(s)).toList :::
-                session.head.maximum_stack.print_relevant.map(s =>
-                  HTML.text("stack maximum:") -> HTML.text(s)).toList :::
-                session.head.average_stack.print_relevant.map(s =>
-                  HTML.text("stack average:") -> HTML.text(s)).toList :::
-                session.head.maximum_heap.print_relevant.map(s =>
-                  HTML.text("heap maximum:") -> HTML.text(s)).toList :::
-                session.head.average_heap.print_relevant.map(s =>
-                  HTML.text("heap average:") -> HTML.text(s)).toList :::
-                session.head.stored_heap.print_relevant.map(s =>
-                  HTML.text("heap stored:") -> HTML.text(s)).toList :::
-                proper_string(session.head.isabelle_version).map(s =>
-                  HTML.text("Isabelle version:") -> HTML.text(s)).toList :::
-                proper_string(session.head.afp_version).map(s =>
-                  HTML.text("AFP version:") -> HTML.text(s)).toList) ::
+                (HTML.text("data:") ->
+                  List(HTML.link(data_files(session.name).file_name, HTML.text("CSV")))) ::
+                Build_Profiling.html_description_items(
+                  timing = session.head.timing,
+                  ml_timing = session.head.ml_timing,
+                  maximum_code = session.head.maximum_code,
+                  average_code = session.head.average_code,
+                  maximum_stack = session.head.maximum_stack,
+                  average_stack = session.head.average_stack,
+                  maximum_heap = session.head.maximum_heap,
+                  average_heap = session.head.average_heap,
+                  stored_heap = session.head.stored_heap,
+                  isabelle_version = session.head.isabelle_version,
+                  afp_version = session.head.afp_version)) ::
               session_plots.getOrElse(session.name, Nil).map(image =>
                 HTML.size(image.width / 2, image.height / 2)(HTML.image(image.name)))))))
     }
