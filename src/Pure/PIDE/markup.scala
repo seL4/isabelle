@@ -451,9 +451,7 @@ object Markup {
 
     sealed case class Args(name: String, kind: String, is_begin: Boolean) {
       def properties: Properties.T =
-        (if (name.isEmpty) Nil else Name(name)) :::
-        (if (kind.isEmpty) Nil else Kind(kind)) :::
-        (if (!is_begin) Nil else Is_Begin(is_begin))
+        Name.make(name) ::: Kind.make(kind) ::: Is_Begin.make(is_begin)
     }
 
     def apply(args: Args): Markup = Markup(COMMAND_SPAN, args.properties)
