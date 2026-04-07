@@ -605,7 +605,6 @@ object Sessions {
       entry: Session_Entry,
       dir: Path,
       options: Options,
-      options0: Options = Options.defaults,
       augment_options: String => List[Options.Spec] = _ => Nil,
       chapter_defs: Chapter_Defs = Chapter_Defs.empty,
       chapter: String = UNSORTED,
@@ -630,7 +629,7 @@ object Sessions {
           session_options.make_prefs(defaults = session_options0, filter = _.session_content)
 
         val build_prefs_digests =
-          session_options.changed(defaults = options0, filter = _.session_content)
+          session_options.changed(filter = _.session_content)
             .map(ch => SHA1.digest(ch.print_prefs) -> make_build_prefs(ch.name))
 
         val theories =
@@ -842,7 +841,6 @@ object Sessions {
                 Info.make(entry,
                   dir = root.dir,
                   options = options,
-                  options0 = Options.defaults,
                   augment_options = augment_options,
                   chapter_defs = chapter_defs,
                   chapter = chapter,
