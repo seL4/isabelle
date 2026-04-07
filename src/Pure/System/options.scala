@@ -66,8 +66,6 @@ object Options {
   }
 
   sealed case class Change(name: String, value: String, unknown: Boolean) {
-    def spec: Spec = Spec.eq(name, value)
-
     def print_prefs: String =
       name + " = " + Outer_Syntax.quote_string(value) +
         if_proper(unknown, "  (* unknown *)") + "\n"
