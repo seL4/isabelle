@@ -6,6 +6,8 @@ System options with external string representation.
 
 package isabelle
 
+import scala.collection.immutable.SortedMap
+
 
 object Options {
   val empty: Options = new Options()
@@ -324,7 +326,7 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
 
 final class Options private(
-  options: Map[String, Options.Entry] = Map.empty,
+  options: SortedMap[String, Options.Entry] = SortedMap.empty,
   val section: String = ""
 ) {
   def defined(name: String): Boolean = options.isDefinedAt(name)
@@ -337,7 +339,7 @@ final class Options private(
     if_proper(opt.public, "public ") + opt.print
 
   def print(filter: Options.Entry => Boolean = _ => true): String =
-    cat_lines(iterator.filter(filter).toList.sortBy(_.name).map(print_entry))
+    cat_lines(iterator.flatMap(entry => if (filter(entry)) Some(print_entry(entry)) else None))
 
   def description(name: String): String = check_name(name).description
 
@@ -524,7 +526,7 @@ final class Options private(
         (name, opt2) <- options.iterator
         opt1 = defaults.get(name)
         if (opt1.isEmpty || opt1.get.value != opt2.value) && filter(opt2)
-      } yield Options.Change(name, opt2.value, opt1.isEmpty)).sortBy(_.name)
+      } yield Options.Change(name, opt2.value, opt1.isEmpty))
   }
 
 
