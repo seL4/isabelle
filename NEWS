@@ -196,6 +196,9 @@ sets. Minor INCOMPATIBILITY.
 
 *** ML ***
 
+* Options.update_default allows to update the thread-local default for
+system options, without affecting the underlying ML process default.
+
 * Obsolete Thy_Info.use_thy_legacy has been removed. Rare
 INCOMPATIBILITY: need to use formal PIDE session to load theories, e.g.
 via "isabelle build" or "isabelle process_theories".

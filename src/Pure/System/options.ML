@@ -31,6 +31,9 @@ sig
   val set_process_default: T -> unit
   val reset_process_default: unit -> unit
   val load_process_default: unit -> unit
+  val get_thread_default: unit -> T option
+  val set_thread_default: T option -> unit
+  val setmp_thread_default: T option -> ('a -> 'b) -> 'a -> 'b
   val default: unit -> T
   val default_typ: string -> string
   val default_bool: string -> bool
@@ -39,7 +42,7 @@ sig
   val default_seconds: string -> Time.time
   val default_string: string -> string
   val get_default: string -> string
-  val put_default: string -> string -> unit
+  val update_default: (string * string) list -> unit
 end;
 
 structure Options: OPTIONS =
@@ -170,15 +173,17 @@ fun decode body =
 
 (** implicit default **)
 
+(* process default *)
+
 val process_default = Synchronized.var "Options.process_default" (NONE: T option);
 
 fun missing_process_default () =
   error "Missing default for system options within Isabelle/ML process";
 
-fun change_process_default f x y =
-  Synchronized.change process_default
-    (fn SOME options => SOME (f x y options)
-      | NONE => missing_process_default ());
+fun get_process_default () =
+  (case Synchronized.value process_default of
+    SOME options => options
+  | NONE => missing_process_default ());
 
 fun set_process_default options = Synchronized.change process_default (K (SOME options));
 fun reset_process_default () = Synchronized.change process_default (K NONE);
@@ -191,10 +196,21 @@ fun load_process_default () =
       |> Option.app (set_process_default o decode o YXML.parse_body_bytes));
 
 
+(* thread default *)
+
+val thread_default = Thread_Data.var () : T Thread_Data.var;
+
+fun get_thread_default () = Thread_Data.get thread_default;
+val set_thread_default = Thread_Data.put thread_default;
+fun setmp_thread_default opt f x = Thread_Data.setmp thread_default opt f x;
+
+
+(* generic default *)
+
 fun default () =
-  (case Synchronized.value process_default of
+  (case get_thread_default () of
     SOME options => options
-  | NONE => missing_process_default ());
+  | NONE => get_process_default ());
 
 fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
@@ -205,8 +221,12 @@ fun default_string name = string (default ()) name;
 
 fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;
-val put_default = change_process_default update;
 
+fun update_default upds =
+  set_thread_default (SOME (default () |> fold (uncurry update) upds));
+
+
+(* Pure bootstrap *)
 
 val _ = load_process_default ();
 val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");
