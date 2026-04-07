@@ -34,6 +34,6 @@ object Command_Line {
     thread.join()
   }
 
-  def ML_tool(body: List[String]): String =
+  def ML_tool(body: List[ML_Syntax.Source]): ML_Syntax.Source =
     "Command_Line.tool (fn () => (" + body.mkString("; ") + "));"
 }
