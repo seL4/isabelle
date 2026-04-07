@@ -829,8 +829,7 @@ object Sessions {
             }
         }
 
-      val options0 = Options.defaults
-      val session_prefs = options.make_prefs(defaults = options0, filter = _.session_content)
+      val session_prefs = options.make_prefs(filter = _.session_content)
 
       val root_infos = {
         var chapter = UNSORTED
@@ -843,7 +842,7 @@ object Sessions {
                 Info.make(entry,
                   dir = root.dir,
                   options = options,
-                  options0 = options0,
+                  options0 = Options.defaults,
                   augment_options = augment_options,
                   chapter_defs = chapter_defs,
                   chapter = chapter,
