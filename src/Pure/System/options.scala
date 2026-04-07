@@ -331,7 +331,10 @@ final class Options private(
 
   def iterator: Iterator[Options.Entry] = options.valuesIterator
 
-  override def toString: String = iterator.mkString("Options(", ",", ")")
+  override def toString: String = {
+    val prefs = changed().map(_.print_prefs).mkString
+    "Options.init(prefs = " + quote(quote(quote("\n" + prefs))) + ")"
+  }
 
   private def print_entry(opt: Options.Entry): String =
     if_proper(opt.public, "public ") + opt.print
