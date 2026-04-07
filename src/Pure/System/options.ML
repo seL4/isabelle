@@ -28,6 +28,9 @@ sig
   val update: string -> string -> T -> T
   val encode: T XML.Encode.T
   val decode: T XML.Decode.T
+  val set_process_default: T -> unit
+  val reset_process_default: unit -> unit
+  val load_process_default: unit -> unit
   val default: unit -> T
   val default_typ: string -> string
   val default_bool: string -> bool
@@ -37,9 +40,6 @@ sig
   val default_string: string -> string
   val get_default: string -> string
   val put_default: string -> string -> unit
-  val set_process_default: T -> unit
-  val reset_process_default: unit -> unit
-  val load_process_default: unit -> unit
 end;
 
 structure Options: OPTIONS =
@@ -180,6 +180,17 @@ fun change_process_default f x y =
     (fn SOME options => SOME (f x y options)
       | NONE => missing_process_default ());
 
+fun set_process_default options = Synchronized.change process_default (K (SOME options));
+fun reset_process_default () = Synchronized.change process_default (K NONE);
+
+fun load_process_default () =
+  (case getenv "ISABELLE_PROCESS_OPTIONS" of
+    "" => ()
+  | name =>
+      try Bytes.read (Path.explode name)
+      |> Option.app (set_process_default o decode o YXML.parse_body_bytes));
+
+
 fun default () =
   (case Synchronized.value process_default of
     SOME options => options
@@ -196,15 +207,6 @@ fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;
 val put_default = change_process_default update;
 
-fun set_process_default options = Synchronized.change process_default (K (SOME options));
-fun reset_process_default () = Synchronized.change process_default (K NONE);
-
-fun load_process_default () =
-  (case getenv "ISABELLE_PROCESS_OPTIONS" of
-    "" => ()
-  | name =>
-      try Bytes.read (Path.explode name)
-      |> Option.app (set_process_default o decode o YXML.parse_body_bytes));
 
 val _ = load_process_default ();
 val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");
