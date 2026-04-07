@@ -1,4 +1,4 @@
-title = Demo
+title = Isabelle/Scala tool demo
 module = lib/demo.jar
 requirements = \
   env:ISABELLE_SCALA_JAR
