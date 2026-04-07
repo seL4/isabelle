@@ -37,9 +37,9 @@ sig
   val default_string: string -> string
   val get_default: string -> string
   val put_default: string -> string -> unit
-  val set_default: T -> unit
-  val reset_default: unit -> unit
-  val load_default: unit -> unit
+  val set_process_default: T -> unit
+  val reset_process_default: unit -> unit
+  val load_process_default: unit -> unit
 end;
 
 structure Options: OPTIONS =
@@ -168,21 +168,22 @@ fun decode body =
 
 
 
-(** global default **)
+(** implicit default **)
 
-val global_default = Synchronized.var "Options.default" (NONE: T option);
+val process_default = Synchronized.var "Options.process_default" (NONE: T option);
 
-fun err_no_default () = error "Missing default for system options within Isabelle/ML process";
+fun missing_process_default () =
+  error "Missing default for system options within Isabelle/ML process";
 
-fun change_default f x y =
-  Synchronized.change global_default
+fun change_process_default f x y =
+  Synchronized.change process_default
     (fn SOME options => SOME (f x y options)
-      | NONE => err_no_default ());
+      | NONE => missing_process_default ());
 
 fun default () =
-  (case Synchronized.value global_default of
+  (case Synchronized.value process_default of
     SOME options => options
-  | NONE => err_no_default ());
+  | NONE => missing_process_default ());
 
 fun default_typ name = typ (default ()) name;
 fun default_bool name = bool (default ()) name;
@@ -193,19 +194,19 @@ fun default_string name = string (default ()) name;
 
 fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;
-val put_default = change_default update;
+val put_default = change_process_default update;
 
-fun set_default options = Synchronized.change global_default (K (SOME options));
-fun reset_default () = Synchronized.change global_default (K NONE);
+fun set_process_default options = Synchronized.change process_default (K (SOME options));
+fun reset_process_default () = Synchronized.change process_default (K NONE);
 
-fun load_default () =
+fun load_process_default () =
   (case getenv "ISABELLE_PROCESS_OPTIONS" of
     "" => ()
   | name =>
       try Bytes.read (Path.explode name)
-      |> Option.app (set_default o decode o YXML.parse_body_bytes));
+      |> Option.app (set_process_default o decode o YXML.parse_body_bytes));
 
-val _ = load_default ();
+val _ = load_process_default ();
 val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");
 
 end;
