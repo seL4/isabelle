@@ -30,9 +30,10 @@ object ML_Process {
   ): Bash.Process = {
     val ml_options = options.standard_ml()
     val ml_settings = ML_Settings(ml_options)
+    val session_bootstrap = session_heaps.isEmpty
 
     val eval_init =
-      if (session_heaps.isEmpty) {
+      if (session_bootstrap) {
         List(
           """
           fun chapter (_: string) = ();
@@ -66,13 +67,13 @@ object ML_Process {
 
 
     // options
-    val eval_options = if (session_heaps.isEmpty) Nil else List("Options.load_process_default ()")
+    val eval_options = if (session_bootstrap) Nil else List("Options.load_process_default ()")
     val isabelle_process_options = Isabelle_System.tmp_file("options")
     File.restrict(File.path(isabelle_process_options))
     File.write(isabelle_process_options, YXML.string_of_body(ml_options.encode))
 
     // session resources
-    val eval_init_session = if (session_heaps.isEmpty) Nil else List("Resources.init_session_env ()")
+    val eval_init_session = if (session_bootstrap) Nil else List("Resources.init_session_env ()")
     val init_session = Isabelle_System.tmp_file("init_session")
     File.restrict(File.path(init_session))
     File.write(init_session, YXML.string_of_body(new Resources(session_background).init_session_xml))
@@ -80,7 +81,7 @@ object ML_Process {
     // process
     val eval_process =
       proper_string(eval_main).getOrElse(
-        if (session_heaps.isEmpty) {
+        if (session_bootstrap) {
           "PolyML.print_depth " + ML_Syntax.print_int(ml_options.int("ML_print_depth"))
         }
         else "Isabelle_Process.init ()")
