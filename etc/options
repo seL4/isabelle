@@ -91,18 +91,18 @@ option print_mode : string = "" for content
 
 section "Parallel Processing and Timing"
 
-public option threads : int = 0 for build
+public option threads : int = 0 for build ML_process
   -- "maximum number of worker threads for prover process (0 = guess from hardware)"
-option threads_trace : int = 0
+option threads_trace : int = 0 for ML_process
   -- "level of tracing information for multithreading"
-option threads_stack_limit : real = 0.25
+option threads_stack_limit : real = 0.25 for ML_process
   -- "maximum stack size for worker threads (in giga words, 0 = unlimited)"
 
 public option parallel_limit : int = 0 for build
   -- "approximative limit for parallel tasks (0 = unlimited)"
 public option parallel_print : bool = true for build
   -- "parallel and asynchronous printing of results"
-public option parallel_proofs : int = 1 for build
+public option parallel_proofs : int = 1 for build ML_process
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01 for build
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
@@ -113,13 +113,13 @@ option build_timing_threshold : real = 0.1 for build
 public option timeout_scale : real = 1.0 for build
   -- "scale factor for timeout in Isabelle/ML and session build"
 
-option context_data_timing : bool = false for build
+option context_data_timing : bool = false for build ML_process
   -- "timing for context data operations"
 
-option context_theory_tracing : bool = false for build
+option context_theory_tracing : bool = false for build ML_process
   -- "tracing of persistent theory values within ML heap"
 
-option context_proof_tracing : bool = false for build
+option context_proof_tracing : bool = false for build ML_process
   -- "tracing of persistent Proof.context values within ML heap"
 
 
@@ -128,7 +128,7 @@ section "Detail of Theory and Proof Processing"
 option record_theories : bool = false for content
   -- "record intermediate theory commands and results"
 
-option record_proofs : int = -1 for content
+option record_proofs : int = -1 for content ML_process
   -- "set level of proofterm recording: 0, 1, 2, negative means unchanged"
 option quick_and_dirty : bool = false for content
   -- "if true then some tools will OMIT some proofs"
@@ -173,7 +173,7 @@ option system_heaps : bool = false for build
 
 section "ML System"
 
-option ML_print_depth : int = 20 for content
+option ML_print_depth : int = 20 for content ML_process
   -- "ML print depth for toplevel pretty-printing"
 
 public option ML_exception_trace : bool = false
@@ -455,7 +455,7 @@ section "Theory Export"
 option export_theory : bool = false for content
   -- "export theory content to Isabelle/Scala"
 
-option export_standard_proofs : bool = false for content
+option export_standard_proofs : bool = false for content ML_process
   -- "export standardized proof terms to Isabelle/Scala (not scalable)"
 
 option export_proofs : bool = false for content

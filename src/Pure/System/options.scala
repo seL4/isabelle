@@ -102,6 +102,7 @@ object Options {
   case object String extends Type
   case object Unknown extends Type
 
+  val TAG_ML_PROCESS = "ML_process"  // global configuration of underlying ML process
   val TAG_CONTENT = "content"    // formal theory content
   val TAG_DOCUMENT = "document"  // document preparation
   val TAG_BUILD = "build"        // relevant for "isabelle build"
@@ -156,6 +157,7 @@ object Options {
     def unknown: Boolean = typ == Unknown
 
     def for_tag(tag: String): Boolean = tags.contains(tag)
+    def for_ML_process: Boolean = for_tag(TAG_ML_PROCESS)
     def for_content: Boolean = for_tag(TAG_CONTENT)
     def for_document: Boolean = for_tag(TAG_DOCUMENT)
     def for_color_dialog: Boolean = for_tag(TAG_COLOR_DIALOG)
