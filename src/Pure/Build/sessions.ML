@@ -96,8 +96,8 @@ val session_parser =
             Markup.comment;
 
         val _ =
-          (options @ maps #1 theories) |> List.app (fn (x, y) =>
-            ignore (Completion.check_option_value ctxt x y (Options.default ()))
+          (options @ maps #1 theories) |> List.app (fn spec =>
+            ignore (Completion.check_option_value ctxt spec (Options.default ()))
               handle ERROR msg => Output.error_message msg);
 
         fun check_thy source =
