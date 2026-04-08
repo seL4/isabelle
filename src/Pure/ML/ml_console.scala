@@ -80,7 +80,7 @@ Usage: isabelle console [OPTIONS]
       // process loop
       val process =
         ML_Process(options, session_background, session_heaps, args = List("-i"), redirect = true,
-          modes = if (raw_ml_system) Nil else modes ::: List("ASCII"))
+          modes = if (raw_ml_system) Nil else modes ::: List("ASCII"))._2
 
       val rc =
         Exn.Interrupt.signal_handler { process.interrupt() } {

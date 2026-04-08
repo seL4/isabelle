@@ -27,7 +27,7 @@ object ML_Process {
     env: JMap[String, String] = Isabelle_System.Settings.env(),
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
-  ): Bash.Process = {
+  ): (Options, Bash.Process) = {
     val ml_options = options.standard_ml()
     val ml_settings = ML_Settings(ml_options)
     val session_bootstrap = session_heaps.isEmpty
@@ -116,18 +116,20 @@ object ML_Process {
 
     val process_policy = ml_options.string("process_policy")
     val process_prefix = if_proper(process_policy, process_policy + " ")
+    val process =
+      Bash.process(
+        process_prefix + File.bash_path(ml_settings.polyml_exe) + " -q " + Bash.strings(bash_args),
+        cwd = cwd,
+        env = bash_env,
+        redirect = redirect,
+        cleanup = { () =>
+          isabelle_process_options.delete
+          init_session.delete
+          Isabelle_System.rm_tree(isabelle_tmp)
+          cleanup()
+        })
 
-    Bash.process(
-      process_prefix + File.bash_path(ml_settings.polyml_exe) + " -q " + Bash.strings(bash_args),
-      cwd = cwd,
-      env = bash_env,
-      redirect = redirect,
-      cleanup = { () =>
-        isabelle_process_options.delete
-        init_session.delete
-        Isabelle_System.rm_tree(isabelle_tmp)
-        cleanup()
-      })
+    (ml_options, process)
   }
 
 
@@ -175,7 +177,7 @@ Usage: isabelle ML_process [OPTIONS]
 
     val process =
       ML_Process(options, session_background, session_heaps,
-        args = eval_args.toList, modes = modes, cwd = cwd, redirect = redirect)
+        args = eval_args.toList, modes = modes, cwd = cwd, redirect = redirect)._2
 
     if (internal) process.result()
     else {
