@@ -260,13 +260,13 @@ object Options {
 
   def inline(content: String): Options = Parsers.parse_file(empty, "inline", content)
 
-  def init(prefs: String = read_prefs(file = PREFS), specs: Update = Nil): Options = {
+  def init(prefs: String = read_prefs(file = PREFS), update: Update = Nil): Options = {
     var options = empty
     for {
       dir <- Components.directories()
       file = dir + OPTIONS if file.is_file
     } { options = Parsers.parse_file(options, file.implode, File.read(file)) }
-    Parsers.parse_prefs(options, prefs) ++ specs
+    Parsers.parse_prefs(options, prefs) ++ update
   }
 
   lazy val defaults: Options = init(prefs = "")
@@ -498,7 +498,7 @@ final class Options private(
 
   def + (s: String): Options = this + Options.Spec.make(s)
 
-  def ++ (specs: Options.Update): Options = specs.foldLeft(this)(_ + _)
+  def ++ (update: Options.Update): Options = update.foldLeft(this)(_ + _)
 
 
   /* sections */

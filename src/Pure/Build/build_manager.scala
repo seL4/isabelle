@@ -1958,7 +1958,7 @@ Usage: isabelle build_manager_database [OPTIONS]
       var export_files = false
       var fresh_build = false
       val session_groups = new mutable.ListBuffer[String]
-      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+      var options = Options.init(update = Options.Spec.ISABELLE_BUILD_OPTIONS)
       val prefs = new mutable.ListBuffer[Options.Spec]
       var verbose = false
       var rev = ""

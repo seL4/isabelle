@@ -234,7 +234,7 @@ plot [] """ + range + " " +
         var fresh_build = false
         val session_groups = new mutable.ListBuffer[String]
         var max_jobs = 1
-        var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+        var options = Options.init(update = Options.Spec.ISABELLE_BUILD_OPTIONS)
         var verbose = false
         val exclude_sessions = new mutable.ListBuffer[String]
 

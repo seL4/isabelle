@@ -30,7 +30,7 @@ object ML_Settings {
     }
 
   def init(ml_platform: String = ""): ML_Settings =
-    apply(Options.init(specs =
+    apply(Options.init(update =
       if (ml_platform.isEmpty) Nil else List(Options.Spec("ML_platform", Some(ml_platform)))))
 }
 

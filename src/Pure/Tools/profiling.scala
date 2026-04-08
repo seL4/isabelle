@@ -305,7 +305,7 @@ object Profiling {
         var dirs: List[Path] = Nil
         var session_groups: List[String] = Nil
         var max_jobs: Option[Int] = None
-        var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+        var options = Options.init(update = Options.Spec.ISABELLE_BUILD_OPTIONS)
         var verbose = false
         var exclude_sessions: List[String] = Nil
 

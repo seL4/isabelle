@@ -374,7 +374,7 @@ object Build {
       var max_jobs: Option[Int] = None
       var list_files = false
       var no_build = false
-      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+      var options = Options.init(update = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var verbose = false
       val exclude_sessions = new mutable.ListBuffer[String]
 
@@ -593,7 +593,7 @@ Usage: isabelle build [OPTIONS] [SESSIONS ...]
       var force = false
       var list_builds = false
       var options =
-        Options.init(specs =
+        Options.init(update =
           Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var remove_builds = false
 
@@ -696,7 +696,7 @@ Usage: isabelle build_process [OPTIONS]
       val dirs = new mutable.ListBuffer[Path]
       var max_jobs: Option[Int] = None
       var options =
-        Options.init(specs =
+        Options.init(update =
           Options.Spec.ISABELLE_BUILD_OPTIONS ::: List(Options.Spec.make("build_database")))
       var quiet = false
       var verbose = false

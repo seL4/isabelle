@@ -1729,7 +1729,7 @@ object Build_Schedule {
       var all_sessions = false
       val dirs = new mutable.ListBuffer[Path]
       val session_groups = new mutable.ListBuffer[String]
-      var options = Options.init(specs = Options.Spec.ISABELLE_BUILD_OPTIONS)
+      var options = Options.init(update = Options.Spec.ISABELLE_BUILD_OPTIONS)
       var verbose = false
       val exclude_sessions = new mutable.ListBuffer[String]
 
