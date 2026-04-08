@@ -25,11 +25,11 @@ object Isabelle_Process {
     val channel = System_Channel()
     val (process_options, process) =
       try {
-        val ml_options =
+        val channel_options =
           options.
             string.update("system_channel_address", channel.address).
             string.update("system_channel_password", channel.password)
-        ML_Process(ml_options, session_background, session_heaps,
+        ML_Process(channel_options, session_background, session_heaps,
           use_prelude = use_prelude, eval_main = eval_main,
           modes = modes, cwd = cwd, env = env)
       }
