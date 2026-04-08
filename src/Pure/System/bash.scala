@@ -455,12 +455,12 @@ object Bash {
 
     override def exit(exit_state: Document.State): Unit = exit()
 
-    override def prover_options(options: Options): Options = {
+    override def prover_options: List[Options.Spec] = {
       val address = if (server == null) "" else server.address
       val password = if (server == null) "" else server.password
-      options +
-        ("bash_process_address=" + address) +
-        ("bash_process_password=" + password)
+      List(
+        Options.Spec.eq("bash_process_address", address),
+        Options.Spec.eq("bash_process_password", password))
     }
   }
 }

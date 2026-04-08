@@ -466,7 +466,7 @@ object Build_Job {
                 case Exn.Res(_) =>
                   val resources_xml = session.resources.init_session_xml
                   val encode_options: XML.Encode.T[Options] =
-                    options => session.prover_options(options).encode
+                    options => (options ++ session.prover_options).encode
                   val args_xml =
                     {
                       import XML.Encode._

@@ -118,7 +118,7 @@ object Session {
     def init(session: Session): Unit = {}
     def exit(state: Document.State): Unit = {}
     def functions: Protocol_Functions = Nil
-    def prover_options(options: Options): Options = options
+    def prover_options: List[Options.Spec] = Nil
   }
 
 
@@ -422,8 +422,8 @@ abstract class Session extends Document.Session {
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
 
-  def prover_options(options: Options): Options =
-    protocol_handlers.prover_options(file_formats.prover_options(options))
+  def prover_options: List[Options.Spec] =
+    file_formats.prover_options ::: protocol_handlers.prover_options
 
 
   /* debugger */
@@ -532,7 +532,7 @@ abstract class Session extends Document.Session {
         }
 
       if (init_ok) {
-        prover.get.options(prover_options(session_options))
+        prover.get.options(session_options ++ prover_options)
         prover.get.init_session(resources)
 
         phase = Session.Ready
@@ -706,7 +706,7 @@ abstract class Session extends Document.Session {
 
           case Update_Options(options) =>
             if (prover.defined && is_ready) {
-              prover.get.options(prover_options(options))
+              prover.get.options(options ++ prover_options)
               handle_raw_edits()
             }
             global_options.post(Session.Global_Options(options))

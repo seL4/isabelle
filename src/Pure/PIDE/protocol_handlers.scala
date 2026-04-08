@@ -68,11 +68,8 @@ object Protocol_Handlers {
 class Protocol_Handlers private(session: Session) {
   private val state = Synchronized(Protocol_Handlers.State(session))
 
-  def prover_options(options: Options): Options =
-    state.value.handlers.foldLeft(options) {
-      case (opts, (_, handler)) => handler.prover_options(opts)
-    }
-
+  def prover_options: List[Options.Spec] =
+    state.value.handlers.valuesIterator.flatMap(_.prover_options).toList
   def get(name: String): Option[Session.Protocol_Handler] = state.value.get(name)
   def init(handler: Session.Protocol_Handler): Unit = state.change(_.init(handler))
   def init(name: String): Unit = state.change(_.init(name))
