@@ -44,7 +44,7 @@ object Build_CI {
   sealed trait Hosts {
     def hosts_spec: String
     def max_jobs: Option[Int]
-    def prefs: List[Options.Spec]
+    def prefs: Options.Update
     def numa_shuffling: Boolean
     def build_cluster: Boolean
   }
@@ -53,13 +53,13 @@ object Build_CI {
     extends Hosts {
     def hosts_spec: String = host_spec
     def max_jobs: Option[Int] = Some(jobs)
-    def prefs: List[Options.Spec] = List(Options.Spec.eq("threads", threads.toString))
+    def prefs: Options.Update = List(Options.Spec.eq("threads", threads.toString))
     def build_cluster: Boolean = false
   }
 
   case class Cluster(hosts_spec: String, numa_shuffling: Boolean = true) extends Hosts {
     def max_jobs: Option[Int] = None
-    def prefs: List[Options.Spec] = Nil
+    def prefs: Options.Update = Nil
     def build_cluster: Boolean = true
   }
 
@@ -107,7 +107,7 @@ object Build_CI {
     presentation: Boolean = false,
     clean_build: Boolean = false,
     select_dirs: List[Path] = Nil,
-    build_prefs: List[Options.Spec] = Nil,
+    build_prefs: Options.Update = Nil,
     hook: Hook = none,
     extra_components: List[String] = Nil,
     other_settings: List[String] = Nil,
@@ -118,8 +118,8 @@ object Build_CI {
 
     def afp_root: Option[Path] = if (!afp) None else Some(AFP.BASE)
 
-    def prefs: List[Options.Spec] = build_prefs ++ hosts.prefs ++ document_prefs
-    def document_prefs: List[Options.Spec] =
+    def prefs: Options.Update = build_prefs ++ hosts.prefs ++ document_prefs
+    def document_prefs: Options.Update =
       if (!presentation) Nil
       else List(
         Options.Spec.eq("browser_info", "true"),

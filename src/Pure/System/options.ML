@@ -26,6 +26,7 @@ sig
   val put_string: string -> string -> T -> T
   val declare: {pos: Position.T, name: string, typ: string, value: string} -> T -> T
   type spec = string * string
+  type update = spec list
   val update: spec -> T -> T
   val encode: T XML.Encode.T
   val decode: T XML.Decode.T
@@ -43,7 +44,7 @@ sig
   val default_seconds: string -> Time.time
   val default_string: string -> string
   val get_default: string -> string
-  val update_default: spec list -> unit
+  val update_default: update -> unit
 end;
 
 structure Options: OPTIONS =
@@ -144,6 +145,8 @@ fun declare {pos, name, typ, value} (Options tab) =
 
 type spec = string * string;
 
+type update = spec list;
+
 fun update ((name, value): spec) (options as Options tab) =
   let
     val opt = check_name options name;
@@ -225,8 +228,8 @@ fun default_string name = string (default ()) name;
 fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;
 
-fun update_default specs =
-  set_thread_default (SOME (default () |> fold update specs));
+fun update_default upd =
+  set_thread_default (SOME (default () |> fold update upd));
 
 
 (* Pure bootstrap *)

@@ -193,7 +193,7 @@ object Build {
     no_build: Boolean = false,
     soft_build: Boolean = false,
     export_files: Boolean = false,
-    augment_options: String => List[Options.Spec] = _ => Nil,
+    augment_options: String => Options.Update = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Results = {
@@ -632,7 +632,7 @@ Usage: isabelle build_process [OPTIONS]
   def build_worker_command(
     host: Build_Cluster.Host,
     ssh: SSH.System = SSH.Local,
-    build_options: List[Options.Spec] = Nil,
+    build_options: Options.Update = Nil,
     build_id: String = "",
     isabelle_home: Path = Path.current,
     dirs: List[Path] = Nil,

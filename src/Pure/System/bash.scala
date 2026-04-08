@@ -455,7 +455,7 @@ object Bash {
 
     override def exit(exit_state: Document.State): Unit = exit()
 
-    override def prover_options: List[Options.Spec] = {
+    override def prover_options: Options.Update = {
       val address = if (server == null) "" else server.address
       val password = if (server == null) "" else server.password
       List(

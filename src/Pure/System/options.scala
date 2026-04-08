@@ -12,10 +12,12 @@ import scala.collection.immutable.SortedMap
 object Options {
   val empty: Options = new Options()
 
+  type Update = List[Spec]
+
   object Spec {
     val syntax: Outer_Syntax = Outer_Syntax.empty + "=" + ","
 
-    def parse(content: String): List[Spec] = {
+    def parse(content: String): Update = {
       val parser = Parsers.repsep(Parsers.option_spec, Parsers.$$$(","))
       val reader = Token.reader(Token.explode(syntax.keywords, content), Token.Pos.none)
       Parsers.parse_all(parser, reader) match {
@@ -33,7 +35,7 @@ object Options {
         case _ => Spec(s)
       }
 
-    def ISABELLE_BUILD_OPTIONS: List[Spec] =
+    def ISABELLE_BUILD_OPTIONS: Update =
       Word.explode(Isabelle_System.getenv("ISABELLE_BUILD_OPTIONS")).map(make)
 
     def print_value(s: String): String =
@@ -258,7 +260,7 @@ object Options {
 
   def inline(content: String): Options = Parsers.parse_file(empty, "inline", content)
 
-  def init(prefs: String = read_prefs(file = PREFS), specs: List[Spec] = Nil): Options = {
+  def init(prefs: String = read_prefs(file = PREFS), specs: Update = Nil): Options = {
     var options = empty
     for {
       dir <- Components.directories()
@@ -496,7 +498,7 @@ final class Options private(
 
   def + (s: String): Options = this + Options.Spec.make(s)
 
-  def ++ (specs: List[Options.Spec]): Options = specs.foldLeft(this)(_ + _)
+  def ++ (specs: Options.Update): Options = specs.foldLeft(this)(_ + _)
 
 
   /* sections */

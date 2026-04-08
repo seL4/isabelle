@@ -64,7 +64,7 @@ object Registry {
 
   trait Host extends Table {
     def prefix = "host"
-    type Value = List[Options.Spec]
+    type Value = Options.Update
 
     def options_spec(a: TOML.Key, b: TOML.T): Option[Options.Spec] =
       TOML.Scalar.unapply(b).map(Options.Spec.eq(a, _))
@@ -79,7 +79,7 @@ object Registry {
   object Cluster extends Table with Strict {
     def prefix = "cluster"
     def prefix_hosts = "hosts"
-    type Value = List[(String, List[Options.Spec])]
+    type Value = List[(String, Options.Update)]
 
     override def table_value(registry: Registry, t: TOML.Table, a: String): Value = {
       val hosts =

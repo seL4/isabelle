@@ -611,7 +611,7 @@ object Find_Facts {
     sessions: List[String],
     ssh: SSH.System = SSH.Local,
     isabelle_home: Path = Path.current,
-    options: List[Options.Spec] = Nil,
+    options: Options.Update = Nil,
     dirs: List[Path] = Nil,
     browser_info: Boolean = true,
     no_build: Boolean = false,

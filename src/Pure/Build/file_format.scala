@@ -48,13 +48,13 @@ object File_Format {
     override def toString: String =
       agents.mkString("File_Format.Session(", ", ", ")")
 
-    def prover_options: List[Options.Spec] = agents.flatMap(_.prover_options)
+    def prover_options: Options.Update = agents.flatMap(_.prover_options)
 
     def stop_session(): Unit = agents.foreach(_.stop())
   }
 
   trait Agent {
-    def prover_options: List[Options.Spec] = Nil
+    def prover_options: Options.Update = Nil
     def stop(): Unit = {}
   }
 

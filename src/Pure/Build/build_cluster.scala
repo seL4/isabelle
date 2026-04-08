@@ -54,7 +54,7 @@ object Build_Cluster {
       home: String = parameters.string(HOME),
       shared: Boolean = parameters.bool(SHARED),
       settings: List[String] = split_lines(parameters.string(SETTINGS)),
-      options: List[Options.Spec] = Nil
+      options: Options.Update = Nil
     ): Host = {
       new Host(name, hostname, user, port, jobs, numa, dirs, home, shared, settings, options)
     }
@@ -120,7 +120,7 @@ object Build_Cluster {
     val home: String,
     val shared: Boolean,
     val settings: List[String],
-    val options: List[Options.Spec]
+    val options: Options.Update
   ) {
     host =>
 

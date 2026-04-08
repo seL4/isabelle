@@ -35,7 +35,7 @@ object Sessions {
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     infos: List[Info] = Nil,
-    augment_options: String => List[Options.Spec] = _ => Nil
+    augment_options: String => Options.Update = _ => Nil
   ): Structure = {
     val roots = load_root_files(dirs = dirs, select_dirs = select_dirs)
     Structure.make(options, augment_options, roots = roots, infos = infos)
@@ -605,7 +605,7 @@ object Sessions {
       entry: Session_Entry,
       dir: Path,
       options: Options,
-      augment_options: String => List[Options.Spec] = _ => Nil,
+      augment_options: String => Options.Update = _ => Nil,
       chapter_defs: Chapter_Defs = Chapter_Defs.empty,
       chapter: String = UNSORTED,
       dir_selected: Boolean = false,
@@ -815,7 +815,7 @@ object Sessions {
 
     def make(
       options: Options,
-      augment_options: String => List[Options.Spec] = _ => Nil,
+      augment_options: String => Options.Update = _ => Nil,
       roots: List[Root_File] = Nil,
       infos: List[Info] = Nil
     ): Structure = {
@@ -1119,16 +1119,16 @@ object Sessions {
     path: String = ".",
     parent: Option[String] = None,
     description: String = "",
-    options: List[Options.Spec] = Nil,
+    options: Options.Update = Nil,
     imports: List[String] = Nil,
     directories: List[String] = Nil,
-    theories: List[(List[Options.Spec], List[((String, Position.T), Boolean)])] = Nil,
+    theories: List[(Options.Update, List[((String, Position.T), Boolean)])] = Nil,
     document_theories: List[(String, Position.T)] = Nil,
     document_files: List[(String, String)] = Nil,
     export_files: List[(String, Int, List[String])] = Nil,
     export_classpath: List[String] = Nil
   ) extends Entry {
-    def theories_no_position: List[(List[Options.Spec], List[(String, Boolean)])] =
+    def theories_no_position: List[(Options.Update, List[(String, Boolean)])] =
       theories.map({ case (a, b) => (a, b.map({ case ((c, _), d) => (c, d) })) })
     def document_theories_no_position: List[String] =
       document_theories.map(_._1)

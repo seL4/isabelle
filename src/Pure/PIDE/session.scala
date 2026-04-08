@@ -118,7 +118,7 @@ object Session {
     def init(session: Session): Unit = {}
     def exit(state: Document.State): Unit = {}
     def functions: Protocol_Functions = Nil
-    def prover_options: List[Options.Spec] = Nil
+    def prover_options: Options.Update = Nil
   }
 
 
@@ -422,7 +422,7 @@ abstract class Session extends Document.Session {
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
 
-  def prover_options: List[Options.Spec] =
+  def prover_options: Options.Update =
     file_formats.prover_options ::: protocol_handlers.prover_options
 
 

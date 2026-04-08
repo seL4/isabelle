@@ -41,7 +41,7 @@ object Update_Tool {
   }
 
   def update(options: Options,
-    update_options: List[Options.Spec],
+    update_options: Options.Update,
     selection: Sessions.Selection = Sessions.Selection.empty,
     base_logics: List[String] = Nil,
     progress: Progress = new Progress,
@@ -67,7 +67,7 @@ object Update_Tool {
     // test
     options ++ update_options
 
-    def augment_options(name: String): List[Options.Spec] =
+    def augment_options(name: String): Options.Update =
       if (exclude(name)) Nil else update_options
 
 
@@ -153,7 +153,7 @@ object Update_Tool {
         var base_logics: List[String] = List(Isabelle_System.default_logic())
         var no_build = false
         var options = Options.init()
-        var update_options: List[Options.Spec] = Nil
+        var update_options: Options.Update = Nil
         var verbose = false
         var exclude_sessions: List[String] = Nil
 

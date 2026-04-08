@@ -370,7 +370,7 @@ object Build_Schedule {
     benchmark_score: Double,
     numa: Boolean = false,
     numa_nodes: List[Int] = Nil,
-    options: List[Options.Spec] = Nil)
+    options: Options.Update = Nil)
 
   object Host_Infos {
     def load(
@@ -1489,7 +1489,7 @@ object Build_Schedule {
     select_dirs: List[Path] = Nil,
     infos: List[Sessions.Info] = Nil,
     numa_shuffling: Boolean = false,
-    augment_options: String => List[Options.Spec] = _ => Nil,
+    augment_options: String => Options.Update = _ => Nil,
     session_setup: (String, Session) => Unit = (_, _) => (),
     cache: Rich_Text.Cache = Rich_Text.Cache.make()
   ): Schedule = {

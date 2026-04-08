@@ -69,7 +69,7 @@ object Build_Manager {
   case class User_Build(
     user: String,
     afp_rev: Option[String] = None,
-    prefs: List[Options.Spec] = Nil,
+    prefs: Options.Update = Nil,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     base_sessions: List[String] = Nil,
@@ -1885,7 +1885,7 @@ Usage: isabelle build_manager_database [OPTIONS]
     fresh_build: Boolean = false,
     session_groups: List[String] = Nil,
     sessions: List[String] = Nil,
-    prefs: List[Options.Spec] = Nil,
+    prefs: Options.Update = Nil,
     exclude_sessions: List[String] = Nil,
     verbose: Boolean = false,
     rev: String = "",

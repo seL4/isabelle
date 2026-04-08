@@ -68,7 +68,7 @@ object Protocol_Handlers {
 class Protocol_Handlers private(session: Session) {
   private val state = Synchronized(Protocol_Handlers.State(session))
 
-  def prover_options: List[Options.Spec] =
+  def prover_options: Options.Update =
     state.value.handlers.valuesIterator.flatMap(_.prover_options).toList
   def get(name: String): Option[Session.Protocol_Handler] = state.value.get(name)
   def init(handler: Session.Protocol_Handler): Unit = state.change(_.init(handler))
