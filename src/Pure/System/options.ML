@@ -30,8 +30,8 @@ sig
   val update: update -> T -> T
   val encode: T XML.Encode.T
   val decode: T XML.Decode.T
-  val set_process_default: T -> unit
-  val reset_process_default: unit -> unit
+  val the_process_default: unit -> T
+  val set_process_default: T option -> unit
   val load_process_default: unit -> unit
   val get_thread_default: unit -> T option
   val set_thread_default: T option -> unit
@@ -186,20 +186,19 @@ val process_default = Synchronized.var "Options.process_default" (NONE: T option
 fun missing_process_default () =
   error "Missing default for system options within Isabelle/ML process";
 
-fun get_process_default () =
+fun the_process_default () =
   (case Synchronized.value process_default of
     SOME options => options
   | NONE => missing_process_default ());
 
-fun set_process_default options = Synchronized.change process_default (K (SOME options));
-fun reset_process_default () = Synchronized.change process_default (K NONE);
+fun set_process_default opt = Synchronized.change process_default (K opt);
 
 fun load_process_default () =
   (case getenv "ISABELLE_PROCESS_OPTIONS" of
     "" => ()
   | name =>
       try Bytes.read (Path.explode name)
-      |> Option.app (set_process_default o decode o YXML.parse_body_bytes));
+      |> Option.app (set_process_default o SOME o decode o YXML.parse_body_bytes));
 
 
 (* thread default *)
@@ -216,7 +215,7 @@ fun setmp_thread_default opt f x = Thread_Data.setmp thread_default opt f x;
 fun default upd =
   (case get_thread_default () of
     SOME options => options
-  | NONE => get_process_default ())
+  | NONE => the_process_default ())
   |> update upd;
 
 fun default_typ name = typ (default []) name;

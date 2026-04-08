@@ -51,7 +51,7 @@ fun build_theories qualifier (options, thys) =
     val conds = filter_out (can getenv_strict) condition;
     val loaded_theories =
       if null conds then
-        (Options.set_process_default options;
+        (Options.set_process_default (SOME options);
           Isabelle_Process.init_options ();
           Future.fork I;
           (Thy_Info.use_theories options qualifier
