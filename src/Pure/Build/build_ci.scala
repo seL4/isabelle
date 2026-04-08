@@ -118,7 +118,7 @@ object Build_CI {
 
     def afp_root: Option[Path] = if (!afp) None else Some(AFP.BASE)
 
-    def prefs: Options.Update = build_prefs ++ hosts.prefs ++ document_prefs
+    def prefs: Options.Update = build_prefs ::: hosts.prefs ::: document_prefs
     def document_prefs: Options.Update =
       if (!presentation) Nil
       else List(
