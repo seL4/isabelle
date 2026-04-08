@@ -27,7 +27,7 @@ sig
   val declare: {pos: Position.T, name: string, typ: string, value: string} -> T -> T
   type spec = string * string
   type update = spec list
-  val update: spec -> T -> T
+  val update: update -> T -> T
   val encode: T XML.Encode.T
   val decode: T XML.Decode.T
   val set_process_default: T -> unit
@@ -147,13 +147,13 @@ type spec = string * string;
 
 type update = spec list;
 
-fun update ((name, value): spec) (options as Options tab) =
+val update = fold (fn ((name, value): spec) => fn options as Options tab =>
   let
     val opt = check_name options name;
     val options' =
       Options (Symtab.update (name, {pos = #pos opt, typ = #typ opt, value = value}) tab);
     val _ = check_value options' name;
-  in options' end;
+  in options' end);
 
 
 (* XML data *)
@@ -229,7 +229,7 @@ fun get_default name =
   let val options = default () in get (typ options name) SOME options name end;
 
 fun update_default upd =
-  set_thread_default (SOME (default () |> fold update upd));
+  set_thread_default (SOME (default () |> update upd));
 
 
 (* Pure bootstrap *)

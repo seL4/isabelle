@@ -100,7 +100,7 @@ fun check_option_value ctxt ((name, pos), (value, pos')) options =
   let
     val _ = check_option options ctxt (name, pos);
     val options' =
-      Options.update (name, value) options
+      Options.update [(name, value)] options
         handle ERROR msg => error (msg ^ Position.here pos');
   in (name, options') end;
 
