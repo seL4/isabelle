@@ -47,6 +47,7 @@ end;
 fun build_theories qualifier (options, thys) =
   let
     val _ = ML_Profiling.check_mode (Options.string options "profiling");
+    val print_mode = space_explode "," (Options.string options "print_mode") @ print_mode_value ();
     val condition = space_explode "," (Options.string options "condition");
     val conds = filter_out (can getenv_strict) condition;
     val loaded_theories =
@@ -55,8 +56,7 @@ fun build_theories qualifier (options, thys) =
           Isabelle_Process.init_options ();
           Future.fork I;
           (Thy_Info.use_theories options qualifier
-          |> Unsynchronized.setmp print_mode
-              (space_explode "," (Options.string options "print_mode") @ print_mode_value ())) thys)
+            |> Unsynchronized.setmp Print_Mode.print_mode print_mode) thys)
       else
        (Output.physical_stderr ("Skipping theories " ^ commas_quote (map #1 thys) ^
           " (undefined " ^ commas conds ^ ")\n"); [])
