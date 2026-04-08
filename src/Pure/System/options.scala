@@ -476,24 +476,30 @@ final class Options private(
     }
   }
 
-  def + (spec: Options.Spec): Options = {
-    val name = spec.name
-    if (spec.permissive && !defined(name)) {
-      val value = spec.value.getOrElse("")
-      val opt =
-        Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
-      new Options(options + (name -> opt), section)
-    }
+  def spec_unknown(spec: Options.Spec): Boolean =
+    spec.permissive && !defined(spec.name)
+
+  def spec_value(spec: Options.Spec): String =
+    if (spec_unknown(spec)) spec.value.getOrElse("")
     else {
+      val name = spec.name
       val opt = check_name(name)
-      def put(value: String): Options =
-        (new Options(options + (name -> opt.copy(value = value)), section)).check_value(name)
       spec.value orElse opt.standard_value match {
-        case Some(value) => put(value)
-        case None if opt.typ == Options.Bool => put("true")
+        case Some(value) => value
+        case None if opt.typ == Options.Bool => "true"
         case None => error("Missing value for option " + quote(name) + " : " + opt.typ.print)
       }
     }
+
+  def + (spec: Options.Spec): Options = {
+    val name = spec.name
+    val value = spec_value(spec)
+    val opt =
+      if (spec_unknown(spec)) {
+        Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
+      }
+      else check_name(name).copy(value = value)
+    (new Options(options + (name -> opt), section)).check_value(name)
   }
 
   def + (s: String): Options = this + Options.Spec.make(s)
