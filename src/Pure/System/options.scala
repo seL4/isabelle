@@ -65,6 +65,11 @@ object Options {
       }
   }
 
+  object Change {
+    def print_prefs(changed: Iterable[Change]): String =
+      changed.map(_.print_prefs).mkString
+ }
+
   sealed case class Change(name: String, value: String, unknown: Boolean) {
     def print_prefs: String =
       name + " = " + Outer_Syntax.quote_string(value) +
@@ -331,10 +336,9 @@ final class Options private(
 
   def iterator: Iterator[Options.Entry] = options.valuesIterator
 
-  override def toString: String = {
-    val prefs = changed().map(_.print_prefs).mkString
-    "Options.init(prefs = " + quote(quote(quote("\n" + prefs))) + ")"
-  }
+  override def toString: String =
+    "Options.init(prefs = " +
+      quote(quote(quote("\n" + Options.Change.print_prefs(changed())))) + ")"
 
   private def print_entry(opt: Options.Entry): String =
     if_proper(opt.public, "public ") + opt.print
@@ -536,7 +540,7 @@ final class Options private(
   def make_prefs(
     defaults: Options = Options.defaults,
     filter: Options.Entry => Boolean = _ => true
-  ): String = changed(defaults = defaults, filter = filter).map(_.print_prefs).mkString
+  ): String = Options.Change.print_prefs(changed(defaults = defaults, filter = filter))
 
   def save_prefs(file: Path = Options.PREFS, defaults: Options = Options.defaults): Unit = {
     val prefs = make_prefs(defaults = defaults)
