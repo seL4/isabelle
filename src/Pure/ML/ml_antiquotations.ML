@@ -53,7 +53,7 @@ val _ = Theory.setup
 val _ = Theory.setup
  (ML_Antiquotation.value_embedded \<^binding>\<open>system_option\<close>
     (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>
-      (Completion.check_option (Options.default ()) ctxt (name, pos) |> ML_Syntax.print_string))) #>
+      (Completion.check_option (Options.default []) ctxt (name, pos) |> ML_Syntax.print_string))) #>
 
   ML_Antiquotation.value_embedded \<^binding>\<open>theory\<close>
     (Args.context -- Scan.lift Parse.embedded_position >> (fn (ctxt, (name, pos)) =>

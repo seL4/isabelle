@@ -60,7 +60,7 @@ fun check_keyword ctxt (name, pos) =
   else error ("Bad outer syntax keyword " ^ quote name ^ Position.here pos);
 
 fun check_system_option ctxt arg =
-  (Completion.check_option (Options.default ()) ctxt arg; true)
+  (Completion.check_option (Options.default []) ctxt arg; true)
     handle ERROR _ => false;
 
 val arg = enclose "{" "}" o clean_string;

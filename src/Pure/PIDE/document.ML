@@ -806,7 +806,7 @@ in
 fun update old_version_id new_version_id edits consolidate state =
   Runtime.exn_trace_system (fn () =>
   let
-    val options = Options.default ();
+    val options = Options.default [];
     val the_command_name = #1 o the_command state;
     val the_command_span = Outer_Syntax.make_span o Lazy.force o #4 o the_command state;
 

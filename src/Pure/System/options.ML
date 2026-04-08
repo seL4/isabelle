@@ -36,7 +36,7 @@ sig
   val get_thread_default: unit -> T option
   val set_thread_default: T option -> unit
   val setmp_thread_default: T option -> ('a -> 'b) -> 'a -> 'b
-  val default: unit -> T
+  val default: update -> T
   val default_typ: string -> string
   val default_bool: string -> bool
   val default_int: string -> int
@@ -213,23 +213,23 @@ fun setmp_thread_default opt f x = Thread_Data.setmp thread_default opt f x;
 
 (* generic default *)
 
-fun default () =
+fun default upd =
   (case get_thread_default () of
     SOME options => options
-  | NONE => get_process_default ());
+  | NONE => get_process_default ())
+  |> update upd;
 
-fun default_typ name = typ (default ()) name;
-fun default_bool name = bool (default ()) name;
-fun default_int name = int (default ()) name;
-fun default_real name = real (default ()) name;
-fun default_seconds name = seconds (default ()) name;
-fun default_string name = string (default ()) name;
+fun default_typ name = typ (default []) name;
+fun default_bool name = bool (default []) name;
+fun default_int name = int (default []) name;
+fun default_real name = real (default []) name;
+fun default_seconds name = seconds (default []) name;
+fun default_string name = string (default []) name;
 
 fun get_default name =
-  let val options = default () in get (typ options name) SOME options name end;
+  let val options = default [] in get (typ options name) SOME options name end;
 
-fun update_default upd =
-  set_thread_default (SOME (default () |> update upd));
+fun update_default upd = set_thread_default (SOME (default upd));
 
 
 (* Pure bootstrap *)

@@ -296,7 +296,7 @@ val _ = Theory.setup
   (Document_Output.antiquotation_verbatim_embedded \<^binding>\<open>system_option\<close>
     (Scan.lift Parse.embedded_position)
     (fn ctxt => fn (name, pos) =>
-      let val _ = Completion.check_option (Options.default ()) ctxt (name, pos);
+      let val _ = Completion.check_option (Options.default []) ctxt (name, pos);
       in name end));
 
 
