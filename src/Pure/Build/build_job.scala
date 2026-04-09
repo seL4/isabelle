@@ -214,6 +214,12 @@ object Build_Job {
       nodes_changed += state_id
       nodes_delay.invoke()
     }
+
+    def theory_timing(name: Document.Node.Name): Unit = synchronized {
+      val t = nodes_status(name).cumulated_time
+      val props = Markup.Name(name.theory) ::: Markup.Timing_Properties.Elapsed.make(t.seconds)
+      write_process_output(Protocol.Theory_Timing_Marker(props))
+    }
   }
 
   class Session_Job private[Build_Job](
@@ -395,6 +401,8 @@ object Build_Job {
           session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
             case snapshot =>
               if (!progress.stopped) {
+                session.theory_timing(snapshot.node_name)
+
                 def export_(name: String, xml: XML.Body, compress: Boolean = true): Unit = {
                   if (!progress.stopped) {
                     val theory_name = snapshot.node_name.theory

@@ -206,6 +206,9 @@ via "isabelle build" or "isabelle process_theories".
 
 *** System ***
 
+* The command-line tool "isabelle build_log" works again. It was broken
+in Isabelle2025-1 and Isabelle2025-2.
+
 * The command-line tool "isabelle home" provides a convenient shortcut
 for "isabelle getenv" to display notable values from the Isabelle
 settings environment: ISABELLE_HOME etc.
