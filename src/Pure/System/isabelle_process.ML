@@ -194,15 +194,11 @@ end;
 fun init_options () =
   let
     val interactive = Options.default_bool \<^system_option>\<open>interactive\<close>;
-    val parallel_proofs = Options.default_int \<^system_option>\<open>parallel_proofs\<close>;
     val record_proofs = Options.default_int \<^system_option>\<open>record_proofs\<close>;
   in
     ML_Print_Depth.set_print_depth (Options.default_int \<^system_option>\<open>ML_print_depth\<close>);
     Multithreading.trace := Options.default_int \<^system_option>\<open>threads_trace\<close>;
     Multithreading.max_threads_update (Options.default_int \<^system_option>\<open>threads\<close>);
-    Multithreading.parallel_proofs :=
-      (if not interactive then parallel_proofs
-       else if parallel_proofs > 0 then 3 else 0);
     Isabelle_Thread.threads_stack_limit := Options.default_real \<^system_option>\<open>threads_stack_limit\<close>;
     if Options.default_bool \<^system_option>\<open>export_standard_proofs\<close> then Proofterm.proofs := 2 else ();
     if record_proofs < 0 then () else Proofterm.proofs := record_proofs;

@@ -105,7 +105,7 @@ public option parallel_limit : int = 0 for build
   -- "approximative limit for parallel tasks (0 = unlimited)"
 public option parallel_print : bool = true for build
   -- "parallel and asynchronous printing of results"
-public option parallel_proofs : int = 1 for build ML_process
+public option parallel_proofs : int = 1 for build
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_subproofs_threshold : real = 0.01 for build
   -- "lower bound of timing estimate for forked nested proofs (seconds)"

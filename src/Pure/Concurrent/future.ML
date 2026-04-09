@@ -599,8 +599,14 @@ fun enabled () =
 
 val relevant = (fn [] => false | [_] => false | _ => enabled ());
 
+fun parallel_proofs () =
+  let
+    val m = Options.default_int "parallel_proofs";
+    val interactive = Options.default_bool "interactive";
+  in if not interactive then m else if m > 0 then 3 else 0 end;
+
 fun proofs_enabled n =
-  ! Multithreading.parallel_proofs >= n andalso is_some (worker_task ()) andalso enabled ();
+  parallel_proofs () >= n andalso is_some (worker_task ()) andalso enabled ();
 
 fun proofs_enabled_timing t =
   proofs_enabled 1 andalso Time.toReal t >= Options.default_real "parallel_subproofs_threshold";

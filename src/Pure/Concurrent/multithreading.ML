@@ -11,7 +11,6 @@ sig
   val num_processors: unit -> int
   val max_threads: unit -> int
   val max_threads_update: int -> unit
-  val parallel_proofs: int ref
   val sync_wait: Time.time option -> Thread.ConditionVar.conditionVar -> Thread.Mutex.mutex ->
     bool Exn.result
   val trace: int ref
@@ -49,11 +48,6 @@ fun max_threads () = ! max_threads_state;
 fun max_threads_update m = max_threads_state := max_threads_result m;
 
 end;
-
-
-(* parallel_proofs *)
-
-val parallel_proofs = ref 1;
 
 
 (* synchronous wait *)
