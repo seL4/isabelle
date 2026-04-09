@@ -98,6 +98,9 @@ option threads_trace : int = 0 for ML_process
 option threads_stack_limit : real = 0.25 for ML_process
   -- "maximum stack size for worker threads (in giga words, 0 = unlimited)"
 
+option interactive : bool = false for ML_process
+  -- "interactive mode (implicitly provided by the PIDE session)"
+
 public option parallel_limit : int = 0 for build
   -- "approximative limit for parallel tasks (0 = unlimited)"
 public option parallel_print : bool = true for build

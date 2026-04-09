@@ -51,7 +51,7 @@ object Headless {
     session =>
 
     override def session_options: Options = _session_options
-
+    override def interactive: Boolean = true
     override def resources: Headless.Resources = _resources
 
 

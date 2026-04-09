@@ -291,6 +291,7 @@ object Build_Job {
           val session =
             new Build_Session(progress) {
               override def session_options: Options = options
+              override def interactive: Boolean = false
 
               override val store: Store = build_context.store
 

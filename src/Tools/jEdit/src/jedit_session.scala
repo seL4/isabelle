@@ -163,6 +163,7 @@ object JEdit_Session {
 
 class JEdit_Session(_session_options: => Options) extends Session {
   override def session_options: Options = _session_options
+  override def interactive: Boolean = true
   override val resources: JEdit_Resources = JEdit_Resources(session_options)
   override val store: Store = Store(JEdit_Session.session_options(session_options))
 

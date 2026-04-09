@@ -9,7 +9,6 @@ sig
   val reset_tracing: Document_ID.exec -> unit
   val crashes: exn list Synchronized.var
   val init_options: unit -> unit
-  val init_options_interactive: unit -> unit
   val init: unit -> unit
   val init_build: unit -> unit
 end;
@@ -193,26 +192,26 @@ end;
 (* init options *)
 
 fun init_options () =
- (ML_Print_Depth.set_print_depth (Options.default_int \<^system_option>\<open>ML_print_depth\<close>);
-  Multithreading.trace := Options.default_int \<^system_option>\<open>threads_trace\<close>;
-  Multithreading.max_threads_update (Options.default_int \<^system_option>\<open>threads\<close>);
-  Multithreading.parallel_proofs := Options.default_int \<^system_option>\<open>parallel_proofs\<close>;
-  Isabelle_Thread.threads_stack_limit := Options.default_real \<^system_option>\<open>threads_stack_limit\<close>;
-  if Options.default_bool \<^system_option>\<open>export_standard_proofs\<close> then Proofterm.proofs := 2 else ();
-  let val proofs = Options.default_int \<^system_option>\<open>record_proofs\<close>
-  in if proofs < 0 then () else Proofterm.proofs := proofs end;
-  Printer.show_markup_default := false;
-  Context.theory_tracing := Options.default_bool \<^system_option>\<open>context_theory_tracing\<close>;
-  Context.proof_tracing := Options.default_bool \<^system_option>\<open>context_proof_tracing\<close>;
-  Context.data_timing := Options.default_bool \<^system_option>\<open>context_data_timing\<close>;
-  Syntax.cache_persistent := false);
-
-fun init_options_interactive () =
- (init_options ();
-  Multithreading.parallel_proofs :=
-    (if Options.default_int \<^system_option>\<open>parallel_proofs\<close> > 0 then 3 else 0);
-  Printer.show_markup_default := true;
-  Syntax.cache_persistent := true);
+  let
+    val interactive = Options.default_bool \<^system_option>\<open>interactive\<close>;
+    val parallel_proofs = Options.default_int \<^system_option>\<open>parallel_proofs\<close>;
+    val record_proofs = Options.default_int \<^system_option>\<open>record_proofs\<close>;
+  in
+    ML_Print_Depth.set_print_depth (Options.default_int \<^system_option>\<open>ML_print_depth\<close>);
+    Multithreading.trace := Options.default_int \<^system_option>\<open>threads_trace\<close>;
+    Multithreading.max_threads_update (Options.default_int \<^system_option>\<open>threads\<close>);
+    Multithreading.parallel_proofs :=
+      (if not interactive then parallel_proofs
+       else if parallel_proofs > 0 then 3 else 0);
+    Isabelle_Thread.threads_stack_limit := Options.default_real \<^system_option>\<open>threads_stack_limit\<close>;
+    if Options.default_bool \<^system_option>\<open>export_standard_proofs\<close> then Proofterm.proofs := 2 else ();
+    if record_proofs < 0 then () else Proofterm.proofs := record_proofs;
+    Printer.show_markup_default := interactive;
+    Context.theory_tracing := Options.default_bool \<^system_option>\<open>context_theory_tracing\<close>;
+    Context.proof_tracing := Options.default_bool \<^system_option>\<open>context_proof_tracing\<close>;
+    Context.data_timing := Options.default_bool \<^system_option>\<open>context_data_timing\<close>;
+    Syntax.cache_persistent := interactive
+  end;
 
 
 (* generic init *)

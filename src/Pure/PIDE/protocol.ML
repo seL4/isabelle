@@ -21,7 +21,7 @@ val _ =
   Protocol_Command.define_bytes "Prover.options"
     (fn [options_yxml] =>
       (Options.set_process_default (SOME (Options.decode (YXML.parse_body_bytes options_yxml)));
-       Isabelle_Process.init_options_interactive ()));
+       Isabelle_Process.init_options ()));
 
 val _ =
   Protocol_Command.define_bytes "Prover.init_session"

@@ -127,6 +127,7 @@ object Session {
   def bootstrap(options: Options): Session =
     new Session {
       override def session_options: Options = options
+      override def interactive: Boolean = false
       override def resources: Resources = Resources.bootstrap
     }
 
@@ -143,6 +144,7 @@ abstract class Session extends Document.Session {
   override def toString: String = resources.session_base.session_name
 
   def session_options: Options
+  def interactive: Boolean
   def resources: Resources
 
   val store: Store = Store(session_options)
@@ -423,7 +425,8 @@ abstract class Session extends Document.Session {
     protocol_handlers.init(handler)
 
   def prover_options: Options.Update =
-    file_formats.prover_options ::: protocol_handlers.prover_options
+    (file_formats.prover_options ::: protocol_handlers.prover_options) :::
+      List(Options.Spec.eq("interactive", Value.Boolean(interactive)))
 
 
   /* debugger */

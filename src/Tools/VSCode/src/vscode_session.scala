@@ -15,5 +15,6 @@ class VSCode_Session(
   _resources: VSCode_Resources
 ) extends Session {
   override def session_options: Options = _session_options
+  override def interactive: Boolean = true
   override def resources: VSCode_Resources = _resources
 }
