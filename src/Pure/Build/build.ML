@@ -67,15 +67,15 @@ fun build_theories qualifier (options, thys) =
 
 val _ =
   Protocol_Command.define_bytes "build_session"
-    (fn [resources_yxml, args_yxml] =>
+    (fn session_name_bytes :: resources_yxml :: theories_yxml =>
         let
+          val session_name = Bytes.content session_name_bytes;
           val _ = Resources.init_session_yxml resources_yxml;
-          val (session_name, theories) =
-            YXML.parse_body_bytes args_yxml |>
+          val theories = theories_yxml |> map (YXML.parse_body_bytes #>
               let
                 open XML.Decode;
                 val position = Position.of_properties o properties;
-              in pair string (list (pair Options.decode (list (pair string position)))) end;
+              in pair Options.decode (list (pair string position)) end);
 
           val _ = Session.init session_name;
 

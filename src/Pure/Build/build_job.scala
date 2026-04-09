@@ -465,15 +465,15 @@ object Build_Job {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
                   val resources_xml = session.resources.init_session_xml
-                  val encode_options: XML.Encode.T[Options.Update] =
-                    opts => (process.options ++ opts ++ session.prover_options).encode
-                  val args_xml =
-                    {
+                  val theories_xml =
+                    info.theories.map({ arg =>
                       import XML.Encode._
-                      pair(string, list(pair(encode_options, list(pair(string, properties)))))(
-                        (session_name, info.theories))
-                    }
-                  session.protocol_command("build_session", resources_xml, args_xml)
+                      val encode_options: T[Options.Update] =
+                        opts => (process.options ++ opts ++ session.prover_options).encode
+                      pair(encode_options, list(pair(string, properties)))(arg)
+                    })
+                  session.protocol_command_args("build_session",
+                    XML.string(session_name) :: resources_xml :: theories_xml)
                   session.errors_result()
                 case Exn.Exn(exn) => Exn.Res(List(Exn.message(exn)))
               }
