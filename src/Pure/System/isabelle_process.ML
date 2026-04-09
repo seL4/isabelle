@@ -193,7 +193,7 @@ end;
 
 fun init_options () =
   let
-    val interactive = Options.default_bool \<^system_option>\<open>interactive\<close>;
+    val interactive = Options.default_interactive ();
     val record_proofs = Options.default_int \<^system_option>\<open>record_proofs\<close>;
   in
     ML_Print_Depth.set_print_depth (Options.default_int \<^system_option>\<open>ML_print_depth\<close>);

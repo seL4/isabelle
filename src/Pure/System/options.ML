@@ -45,6 +45,8 @@ sig
   val default_string: string -> string
   val get_default: string -> string
   val update_default: update -> unit
+  val interactive: T -> bool
+  val default_interactive: unit -> bool
 end;
 
 structure Options: OPTIONS =
@@ -235,5 +237,12 @@ fun update_default upd = set_thread_default (SOME (default upd));
 
 val _ = load_process_default ();
 val _ = ML_Print_Depth.set_print_depth (default_int "ML_print_depth");
+
+
+
+(** specific options **)
+
+fun interactive options = bool options "interactive";
+fun default_interactive () = interactive (default []);
 
 end;

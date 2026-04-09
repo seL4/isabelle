@@ -602,7 +602,7 @@ val relevant = (fn [] => false | [_] => false | _ => enabled ());
 fun parallel_proofs () =
   let
     val m = Options.default_int "parallel_proofs";
-    val interactive = Options.default_bool "interactive";
+    val interactive = Options.default_interactive ();
   in if not interactive then m else if m > 0 then 3 else 0 end;
 
 fun proofs_enabled n =
