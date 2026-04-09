@@ -202,7 +202,6 @@ fun init_options () =
     Isabelle_Thread.threads_stack_limit := Options.default_real \<^system_option>\<open>threads_stack_limit\<close>;
     if Options.default_bool \<^system_option>\<open>export_standard_proofs\<close> then Proofterm.proofs := 2 else ();
     if record_proofs < 0 then () else Proofterm.proofs := record_proofs;
-    Printer.show_markup_default := interactive;
     Context.theory_tracing := Options.default_bool \<^system_option>\<open>context_theory_tracing\<close>;
     Context.proof_tracing := Options.default_bool \<^system_option>\<open>context_proof_tracing\<close>;
     Context.data_timing := Options.default_bool \<^system_option>\<open>context_data_timing\<close>;
