@@ -465,8 +465,8 @@ object Build_Job {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
                   val resources_xml = session.resources.init_session_xml
-                  val encode_options: XML.Encode.T[Options] =
-                    options => (options ++ session.prover_options).encode
+                  val encode_options: XML.Encode.T[Options.Update] =
+                    opts => (process.options ++ opts ++ session.prover_options).encode
                   val args_xml =
                     {
                       import XML.Encode._

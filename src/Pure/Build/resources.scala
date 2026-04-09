@@ -262,8 +262,8 @@ class Resources(
   def session_dependencies(
     info: Sessions.Info,
     progress: Progress = new Progress
-  ) : Dependencies[Options] = {
-    info.theories.foldLeft(Dependencies.empty[Options]) {
+  ) : Dependencies[Options.Update] = {
+    info.theories.foldLeft(Dependencies.empty[Options.Update]) {
       case (dependencies, (options, thys)) =>
         dependencies.require_thys(options,
           for { (thy, pos) <- thys } yield (import_name(info, thy), pos),

@@ -101,7 +101,7 @@ object Sessions {
     proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
-    used_theories: List[(Document.Node.Name, Options)] = Nil,  // new imports
+    used_theories: List[(Document.Node.Name, Options.Update)] = Nil,  // new imports
     theory_load_commands: Map[String, List[(Command_Span.Span, Symbol.Offset)]] = Map.empty,
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
@@ -632,15 +632,15 @@ object Sessions {
           session_options.changed(filter = _.session_content)
             .map(ch => SHA1.digest(ch.print_prefs) -> make_build_prefs(ch.name))
 
+        val theories_options = entry.theories.map({ case (opts, _) => session_options ++ opts })
         val theories =
           entry.theories.map({ case (opts, thys) =>
-            (session_options ++ opts,
-              thys.map({ case ((thy, pos), _) =>
-                val thy_name = Thy_Header.import_name(thy)
-                if (illegal_theory(thy_name)) {
-                  error("Illegal theory name " + quote(thy_name) + Position.here(pos))
-                }
-                else (thy, pos) })) })
+            (opts, thys.map({ case ((thy, pos), _) =>
+              val thy_name = Thy_Header.import_name(thy)
+              if (illegal_theory(thy_name)) {
+                error("Illegal theory name " + quote(thy_name) + Position.here(pos))
+              }
+              else (thy, pos) })) })
 
         val global_theories =
           for { (_, thys) <- entry.theories; ((thy, pos), global) <- thys if global }
@@ -653,7 +653,7 @@ object Sessions {
             else thy_name
           }
 
-        val conditions = Conditions.make(theories.iterator.map(_._1)).toList
+        val conditions = Conditions.make(theories_options).toList
 
         val document_files =
           entry.document_files.map({ case (s1, s2) => (Path.explode(s1), Path.explode(s2)) })
@@ -698,7 +698,7 @@ object Sessions {
     options: Options,
     session_prefs: String,
     imports: List[String],
-    theories: List[(Options, List[(String, Position.T)])],
+    theories: List[(Options.Update, List[(String, Position.T)])],
     global_theories: List[String],
     document_theories: List[(String, Position.T)],
     document_files: List[(Path, Path)],

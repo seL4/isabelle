@@ -231,11 +231,13 @@ object Dump {
       for {
         session_name <-
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
-        (name, theory_options) <- deps(session_name).used_theories
+        (name, theory_opts) <- deps(session_name).used_theories
         if !resources.loaded_theory(name)
         if {
           def warn(msg: String): Unit =
             progress.echo_warning("Skipping theory " + name + "  (" + msg + ")")
+
+          val theory_options = options ++ theory_opts
 
           val bad_conditions = Sessions.Conditions(theory_options).bad
           if (bad_conditions.nonEmpty) {
