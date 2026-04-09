@@ -193,7 +193,6 @@ end;
 
 fun init_options () =
   let
-    val interactive = Options.default_interactive ();
     val record_proofs = Options.default_int \<^system_option>\<open>record_proofs\<close>;
   in
     ML_Print_Depth.set_print_depth (Options.default_int \<^system_option>\<open>ML_print_depth\<close>);
@@ -204,8 +203,7 @@ fun init_options () =
     if record_proofs < 0 then () else Proofterm.proofs := record_proofs;
     Context.theory_tracing := Options.default_bool \<^system_option>\<open>context_theory_tracing\<close>;
     Context.proof_tracing := Options.default_bool \<^system_option>\<open>context_proof_tracing\<close>;
-    Context.data_timing := Options.default_bool \<^system_option>\<open>context_data_timing\<close>;
-    Syntax.cache_persistent := interactive
+    Context.data_timing := Options.default_bool \<^system_option>\<open>context_data_timing\<close>
   end;
 
 

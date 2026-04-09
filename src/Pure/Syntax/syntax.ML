@@ -77,7 +77,6 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T list
   type syntax
-  val cache_persistent: bool Unsynchronized.ref
   val cache_syntax: syntax -> unit
   val eq_syntax: syntax * syntax -> bool
   datatype approx = Prefix of string | Infix of {assoc: Printer.assoc, delim: string, pri: int}
@@ -480,10 +479,8 @@ datatype syntax =
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     prtabs: Printer.prtabs} * stamp;
 
-val cache_persistent = Unsynchronized.ref false;
-
 fun cache_eval (gram: Parser.gram Synchronized.cache) =
-  Synchronized.cache_eval {persistent = ! cache_persistent} gram;
+  Synchronized.cache_eval {persistent = Options.default_interactive ()} gram;
 
 fun cache_syntax (Syntax ({gram, ...}, _)) = ignore (cache_eval gram);
 
