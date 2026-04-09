@@ -45,7 +45,6 @@ sig
   val exit: transition -> transition
   val present: presentation -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
-  val keep': (bool -> state -> unit) -> transition -> transition
   val keep_proof: (state -> unit) -> transition -> transition
   val is_ignored: transition -> bool
   val is_malformed: transition -> bool
@@ -259,7 +258,7 @@ datatype trans =
   (*formal exit of theory*)
   Exit |
   (*keep state unchanged*)
-  Keep of (bool -> state -> unit) * presentation option |
+  Keep of (state -> unit) * presentation option |
   (*node transaction and presentation*)
   Transaction of (bool -> node -> node_presentation) * presentation option;
 
@@ -306,7 +305,7 @@ fun apply_tr int trans state =
                 (Theory (Context.Theory (tap Thm.expose_theory (Theory.end_theory thy)))))
             NONE;
       in State ((Toplevel, pr_ctxt), (get_theory node', NONE)) end
-  | (Keep (f, g), _) => no_update (fn x => f int x) g state
+  | (Keep (f, g), _) => no_update (fn x => f x) g state
   | (Transaction _, Toplevel) => raise UNDEF
   | (Transaction (f, g), _) => update (fn x => f int x) g state
   | _ => raise UNDEF);
@@ -400,9 +399,8 @@ fun present_transaction f g = add_trans (Transaction (f, g));
 fun transaction f = present_transaction f NONE;
 fun transaction0 f = present_transaction (node_presentation oo f) NONE;
 
-fun present g = add_trans (Keep (fn _ => fn _ => (), SOME g));
-fun keep f = add_trans (Keep (K f, NONE));
-fun keep' f = add_trans (Keep (f, NONE));
+fun present g = add_trans (Keep (fn _ => (), SOME g));
+fun keep f = add_trans (Keep (f, NONE));
 
 fun keep_proof f =
   keep (fn st =>
