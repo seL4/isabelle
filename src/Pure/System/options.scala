@@ -420,7 +420,7 @@ final class Options private(
   def threads(default: => Int = Multithreading.num_processors()): Int =
     Multithreading.max_threads(value = int("threads"), default = default)
 
-  def standard_ml(): Options = int.update("threads", threads())
+  def ml_threads(): Options = int.update("threads", threads())
 
 
   /* external updates */

@@ -28,7 +28,7 @@ object ML_Process {
     redirect: Boolean = false,
     cleanup: () => Unit = () => ()
   ): (Options, Bash.Process) = {
-    val ml_options = options.standard_ml()
+    val ml_options = options.ml_threads()
     val ml_settings = ML_Settings(ml_options)
     val session_bootstrap = session_heaps.isEmpty
 
