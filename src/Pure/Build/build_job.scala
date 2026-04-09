@@ -464,12 +464,13 @@ object Build_Job {
             Isabelle_Thread.interrupt_handle(process.terminate()) {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
+                  val prover_options = session.prover_options
                   val resources_xml = session.resources.init_session_xml
                   val theories_xml =
                     info.theories.map({ arg =>
                       import XML.Encode._
                       val encode_options: T[Options.Update] =
-                        opts => (process.options ++ opts ++ session.prover_options).encode
+                        opts => (process.options ++ opts ++ prover_options).encode
                       pair(encode_options, list(pair(string, properties)))(arg)
                     })
                   session.protocol_command_args("build_session",
