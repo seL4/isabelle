@@ -480,13 +480,13 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>definition\<close> "constant definition"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>definition\<close> "constant definition"
     (Scan.option Parse_Spec.constdecl -- (Parse_Spec.opt_thm_name ":" -- Parse.prop) --
       Parse_Spec.if_assumes -- Parse.for_fixes >> (fn (((decl, spec), prems), params) =>
-        #2 oo Specification.definition_cmd decl params prems spec));
+        #2 o Specification.definition_cmd decl params prems spec));
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>abbreviation\<close> "constant abbreviation"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>abbreviation\<close> "constant abbreviation"
     (Parse.syntax_mode -- Scan.option Parse_Spec.constdecl -- Parse.prop -- Parse.for_fixes
       >> (fn (((mode, decl), spec), params) => Specification.abbreviation_cmd mode decl params spec));
 
@@ -583,15 +583,15 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>lemmas\<close> "define theorems"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>lemmas\<close> "define theorems"
     (Parse_Spec.name_facts -- Parse.for_fixes >>
-      (fn (facts, fixes) => #2 oo Specification.theorems_cmd Thm.theoremK facts fixes));
+      (fn (facts, fixes) => #2 o Specification.theorems_cmd Thm.theoremK facts fixes));
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>declare\<close> "declare theorems"
+  Outer_Syntax.local_theory \<^command_keyword>\<open>declare\<close> "declare theorems"
     (Parse.and_list1 Parse.thms1 -- Parse.for_fixes
       >> (fn (facts, fixes) =>
-          #2 oo Specification.theorems_cmd "" [(Binding.empty_atts, flat facts)] fixes));
+          #2 o Specification.theorems_cmd "" [(Binding.empty_atts, flat facts)] fixes));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>named_theorems\<close>

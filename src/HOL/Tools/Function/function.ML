@@ -14,7 +14,7 @@ sig
 
   val add_function_cmd: (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> Function_Common.function_config ->
-    (Proof.context -> tactic) -> bool -> local_theory -> info * local_theory
+    (Proof.context -> tactic) -> local_theory -> info * local_theory
 
   val function: (binding * typ option * mixfix) list ->
     Specification.multi_specs -> Function_Common.function_config ->
@@ -153,7 +153,8 @@ fun gen_add_function do_print prep fixspec eqns config tac lthy =
   end
 
 val add_function = gen_add_function false Specification.check_multi_specs
-fun add_function_cmd a b c d int = gen_add_function int Specification.read_multi_specs a b c d
+fun add_function_cmd a b c d lthy =
+  gen_add_function (Interactive.enabled ()) Specification.read_multi_specs a b c d lthy
 
 fun gen_function do_print prep fixspec eqns config lthy =
   let

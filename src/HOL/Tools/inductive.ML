@@ -35,15 +35,15 @@ sig
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
   val rulify: Proof.context -> thm -> thm
-  val inductive_cases: (Attrib.binding * term list) list -> bool -> local_theory ->
+  val inductive_cases: (Attrib.binding * term list) list -> local_theory ->
     (string * thm list) list * local_theory
-  val inductive_cases_cmd: (Attrib.binding * string list) list -> bool -> local_theory ->
+  val inductive_cases_cmd: (Attrib.binding * string list) list -> local_theory ->
     (string * thm list) list * local_theory
   val ind_cases_rules: Proof.context ->
     string list -> (binding * string option * mixfix) list -> thm list
-  val inductive_simps: (Attrib.binding * term list) list -> bool -> local_theory ->
+  val inductive_simps: (Attrib.binding * term list) list -> local_theory ->
     (string * thm list) list * local_theory
-  val inductive_simps_cmd: (Attrib.binding * string list) list -> bool -> local_theory ->
+  val inductive_simps_cmd: (Attrib.binding * string list) list -> local_theory ->
     (string * thm list) list * local_theory
   type flags =
     {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
@@ -607,8 +607,10 @@ end;
 
 (* inductive_cases *)
 
-fun gen_inductive_cases prep_att prep_prop args int lthy =
+fun gen_inductive_cases prep_att prep_prop args lthy =
   let
+    val int = Interactive.enabled ();
+
     val thmss =
       map snd args
       |> burrow (grouped 10 Par_List.map_independent (mk_cases lthy o prep_prop lthy));
@@ -672,8 +674,10 @@ fun mk_simp_eq ctxt prop =
 
 (* inductive simps *)
 
-fun gen_inductive_simps prep_att prep_prop args int lthy =
+fun gen_inductive_simps prep_att prep_prop args lthy =
   let
+    val int = Interactive.enabled ();
+
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att lthy) atts),
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
@@ -1313,14 +1317,14 @@ val _ =
     (ind_decl true);
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>inductive_cases\<close>
+  Outer_Syntax.local_theory \<^command_keyword>\<open>inductive_cases\<close>
     "create simplified instances of elimination rules"
-    (Parse.and_list1 Parse_Spec.simple_specs >> (#2 ooo inductive_cases_cmd));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (#2 oo inductive_cases_cmd));
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>inductive_simps\<close>
+  Outer_Syntax.local_theory \<^command_keyword>\<open>inductive_simps\<close>
     "create simplification rules for inductive predicates"
-    (Parse.and_list1 Parse_Spec.simple_specs >> (#2 ooo inductive_simps_cmd));
+    (Parse.and_list1 Parse_Spec.simple_specs >> (#2 oo inductive_simps_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_inductives\<close>

@@ -13,7 +13,7 @@ sig
     local_theory -> Proof.context
   val add_fun_cmd : (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> Function_Common.function_config ->
-    bool -> local_theory -> Proof.context
+    local_theory -> Proof.context
 end
 
 structure Function_Fun : FUNCTION_FUN =
@@ -165,12 +165,12 @@ fun gen_add_fun add lthy =
   end
 
 fun add_fun a b c = gen_add_fun (Function.add_function a b c)
-fun add_fun_cmd a b c int = gen_add_fun (fn tac => Function.add_function_cmd a b c tac int)
+fun add_fun_cmd a b c = gen_add_fun (fn tac => Function.add_function_cmd a b c tac)
 
 
 
 val _ =
-  Outer_Syntax.local_theory' \<^command_keyword>\<open>fun\<close>
+  Outer_Syntax.local_theory \<^command_keyword>\<open>fun\<close>
     "define general recursive functions (short version)"
     (function_parser fun_config
       >> (fn (config, (fixes, specs)) => add_fun_cmd fixes specs config))

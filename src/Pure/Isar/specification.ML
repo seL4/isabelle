@@ -37,11 +37,11 @@ sig
     local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd: (binding * string option * mixfix) option ->
     (binding * string option * mixfix) list -> string list -> Attrib.binding * string ->
-    bool -> local_theory -> (term * (string * thm)) * local_theory
+    local_theory -> (term * (string * thm)) * local_theory
   val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option ->
-    (binding * typ option * mixfix) list -> term -> bool -> local_theory -> local_theory
+    (binding * typ option * mixfix) list -> term -> local_theory -> local_theory
   val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option ->
-    (binding * string option * mixfix) list -> string -> bool -> local_theory -> local_theory
+    (binding * string option * mixfix) list -> string -> local_theory -> local_theory
   val alias: binding * string -> local_theory -> local_theory
   val alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
   val type_alias: binding * string -> local_theory -> local_theory
@@ -49,11 +49,11 @@ sig
   val theorems: string ->
     (Attrib.binding * Attrib.thms) list ->
     (binding * typ option * mixfix) list ->
-    bool -> local_theory -> (string * thm list) list * local_theory
+    local_theory -> (string * thm list) list * local_theory
   val theorems_cmd: string ->
     (Attrib.binding * (Facts.ref * Token.src list) list) list ->
     (binding * string option * mixfix) list ->
-    bool -> local_theory -> (string * thm list) list * local_theory
+    local_theory -> (string * thm list) list * local_theory
   val theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.name list -> Element.context_i list -> Element.statement_i ->
@@ -275,13 +275,16 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
   in ((lhs, (def_name, th)), lthy4) end;
 
 fun definition xs ys As B = gen_def check_spec_open (K I) xs ys As B false;
-val definition_cmd = gen_def read_spec_open Attrib.check_src;
+fun definition_cmd xs ys As B lthy =
+  gen_def read_spec_open Attrib.check_src xs ys As B (Interactive.enabled ()) lthy;
 
 
 (* abbreviation *)
 
-fun gen_abbrev prep_spec mode raw_var raw_params raw_spec int lthy =
+fun gen_abbrev prep_spec mode raw_var raw_params raw_spec lthy =
   let
+    val int = Interactive.enabled ();
+
     val lthy1 = lthy |> Proof_Context.set_syntax_mode mode;
     val ((vars, xs, get_pos, spec), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
@@ -332,9 +335,10 @@ val type_alias_cmd =
 
 local
 
-fun gen_theorems prep_fact prep_att add_fixes
-    kind raw_facts raw_fixes int lthy =
+fun gen_theorems prep_fact prep_att add_fixes kind raw_facts raw_fixes lthy =
   let
+    val int = Interactive.enabled ();
+
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map (prep_att lthy) atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map (prep_att lthy) more_atts))));

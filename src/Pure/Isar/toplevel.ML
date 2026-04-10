@@ -57,8 +57,8 @@ sig
   val end_main_target: transition -> transition
   val begin_nested_target: (Context.generic -> local_theory) -> transition -> transition
   val end_nested_target: transition -> transition
-  val local_theory': (bool * Position.T) option -> (xstring * Position.T) option ->
-    (bool -> local_theory -> local_theory) -> presentation option -> transition -> transition
+  val local_theory_presentation: (bool * Position.T) option -> (xstring * Position.T) option ->
+    (local_theory -> local_theory) -> presentation -> transition -> transition
   val local_theory: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: (xstring * Position.T) option -> presentation ->
@@ -473,20 +473,20 @@ fun restricted_context (SOME (strict, scope)) =
       Proof_Context.map_naming (Name_Space.restricted strict scope)
   | restricted_context NONE = I;
 
-fun local_theory' restricted target f = present_transaction (fn int =>
+fun local_theory' restricted target f = present_transaction (fn _ =>
   (fn Theory gthy =>
         let
           val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
           val lthy' = lthy
             |> restricted_context restricted
             |> Local_Theory.new_group
-            |> f int
+            |> f
             |> Local_Theory.reset_group;
         in (Theory (finish lthy'), lthy') end
     | _ => raise UNDEF));
 
-fun local_theory restricted target f =
-  local_theory' restricted target (K f) NONE;
+fun local_theory_presentation restricted target f g = local_theory' restricted target f (SOME g);
+fun local_theory restricted target f = local_theory' restricted target f NONE;
 
 fun present_local_theory target g = present_transaction (fn _ =>
   (fn Theory gthy =>
