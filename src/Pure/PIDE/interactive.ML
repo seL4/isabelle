@@ -14,10 +14,17 @@ end;
 structure Interactive: INTERACTIVE =
 struct
 
-val system_option = "interactive";
+(* interactive mode *)
 
-fun enabled () = Options.default_bool system_option;
-fun setmp b f x = Options.with_update_default [(system_option, Value.print_bool b)] f x;
+local
+  val system_option = "interactive"
+in
+  fun enabled () = Options.default_bool system_option;
+  fun setmp b f x = Options.with_update_default [(system_option, Value.print_bool b)] f x;
+end;
+
+
+(* parallel proofs *)
 
 fun parallel_proofs () =
   let
