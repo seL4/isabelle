@@ -122,22 +122,16 @@ lemma orbit_inv_eq:
   assumes "permutation f"
   shows "orbit (inv f) x = orbit f x" (is "?L = ?R")
 proof -
-  { fix g y assume A: "permutation g" "y \<in> orbit (inv g) x"
-    have "y \<in> orbit g x"
-    proof -
-      have inv_g: "\<And>y. x = g y \<Longrightarrow> inv g x = y" "\<And>y. inv g (g y) = y"
-        by (metis A(1) bij_inv_eq_iff permutation_bijective)+
-
-      { fix y assume "y \<in> orbit g x"
-        then have "inv g y \<in> orbit g x"
-          by (cases) (simp_all add: inv_g A(1) permutation_self_in_orbit)
-      } note inv_g_in_orb = this
-
-      from A(2) show ?thesis
-        by induct (simp_all add: inv_g_in_orb A permutation_self_in_orbit)
-    qed
-  } note orb_inv_ss = this
-
+  have orb_inv_ss: "y \<in> orbit g x"
+    if A: "permutation g" "y \<in> orbit (inv g) x" for g y
+  proof -
+    have inv_g: "\<And>y. x = g y \<Longrightarrow> inv g x = y" "\<And>y. inv g (g y) = y"
+      by (metis A(1) bij_inv_eq_iff permutation_bijective)+
+    have inv_g_in_orb: "inv g y \<in> orbit g x" if "y \<in> orbit g x" for y
+      using that by (cases) (simp_all add: inv_g A(1) permutation_self_in_orbit)
+    from A(2) show ?thesis
+      by induct (simp_all add: inv_g_in_orb A permutation_self_in_orbit)
+  qed
   have "inv (inv f) = f"
     by (simp add: assms inv_inv_eq permutation_bijective)
   then show ?thesis
@@ -208,9 +202,9 @@ qed
 lemma orbit_cong0:
   assumes "x \<in> A" "f \<in> A \<rightarrow> A" "\<And>y. y \<in> A \<Longrightarrow> f y = g y" shows "orbit f x = orbit g x"
 proof -
-  { fix n have "(f ^^ n) x = (g ^^ n) x \<and> (f ^^ n) x \<in> A"
-      by (induct n rule: nat.induct) (insert assms, auto)
-  } then show ?thesis by (auto simp: orbit_altdef)
+  have "(f ^^ n) x = (g ^^ n) x \<and> (f ^^ n) x \<in> A" for n
+    by (induct n rule: nat.induct) (use assms in auto)
+  then show ?thesis by (auto simp: orbit_altdef)
 qed
 
 lemma orbit_cong:
@@ -271,9 +265,9 @@ lemma orbit_cyclic_eq3:
 lemma orbit_eq_singleton_iff: "orbit f x = {x} \<longleftrightarrow> f x = x" (is "?L \<longleftrightarrow> ?R")
 proof
   assume A: ?R
-  { fix y assume "y \<in> orbit f x" then have "y = x"
-      by induct (auto simp: A)
-  } then show ?L by (metis orbit_nonempty singletonI subsetI subset_singletonD)
+  have "y = x" if "y \<in> orbit f x" for y
+    using that by induct (auto simp: A)
+  then show ?L by (metis orbit_nonempty singletonI subsetI subset_singletonD)
 next
   assume A: ?L
   then have "\<And>y. y \<in> orbit f x \<Longrightarrow> f x = y"
@@ -336,30 +330,26 @@ lemma perm_restrict_diff_cyclic:
   assumes "f permutes S" "cyclic_on f A"
   shows "perm_restrict f (S - A) permutes (S - A)"
 proof -
-  { fix y
-    have "\<exists>x. perm_restrict f (S - A) x = y"
-    proof cases
-      assume A: "y \<in> S - A"
-      with \<open>f permutes S\<close> obtain x where "f x = y" "x \<in> S"
-        unfolding permutes_def by auto metis
-      moreover
-      with A have "x \<notin> A" by (metis Diff_iff assms(2) cyclic_on_inI)
-      ultimately
-      have "perm_restrict f (S - A) x = y"  by (simp add: perm_restrict_simps)
-      then show ?thesis ..
-    next
-      assume "y \<notin> S - A"
-      then have "perm_restrict f (S - A) y = y" by (simp add: perm_restrict_simps)
-      then show ?thesis ..
-    qed
-  } note X = this
-
-  { fix x y assume "perm_restrict f (S - A) x = perm_restrict f (S - A) y"
-    with assms have "x = y"
-      by (auto simp: perm_restrict_def permutes_def split: if_splits intro: cyclic_on_f_in)
-  } note Y = this
-
-  show ?thesis by (auto simp: permutes_def perm_restrict_simps X intro: Y)
+  have *: "\<exists>x. perm_restrict f (S - A) x = y" for y
+  proof (cases "y \<in> S - A")
+    case True
+    with \<open>f permutes S\<close> obtain x where x: "f x = y" "x \<in> S"
+      unfolding permutes_def by auto metis
+    with True have "x \<notin> A" by (metis Diff_iff assms(2) cyclic_on_inI)
+    with x have "perm_restrict f (S - A) x = y"
+      by (simp add: perm_restrict_simps)
+    then show ?thesis ..
+  next
+    case False
+    then have "perm_restrict f (S - A) y = y"
+      by (simp add: perm_restrict_simps)
+    then show ?thesis ..
+  qed
+  have **: "x = y"
+    if "perm_restrict f (S - A) x = perm_restrict f (S - A) y" for x y
+    using assms that
+    by (auto simp: perm_restrict_def permutes_def split: if_splits intro: cyclic_on_f_in)
+  show ?thesis by (auto simp: permutes_def perm_restrict_simps * intro: **)
 qed
 
 lemma permutes_decompose:
@@ -371,7 +361,8 @@ proof (induction arbitrary: f rule: finite_psubset_induct)
 
   show ?case
   proof (cases "S = {}")
-    case True then show ?thesis by (intro exI[where x="{}"]) auto
+    case True
+    then show ?thesis by (intro exI[where x="{}"]) auto
   next
     case False
     then obtain s where "s \<in> S" by auto
@@ -382,8 +373,10 @@ proof (induction arbitrary: f rule: finite_psubset_induct)
 
     let ?f' = "perm_restrict f (S - orbit f s)"
 
-    have "f s \<in> S" using \<open>f permutes S\<close> \<open>s \<in> S\<close> by (auto simp: permutes_in_image)
-    then have "S - orbit f s \<subset> S" using orbit.base[of f s] \<open>s \<in> S\<close> by blast
+    have "f s \<in> S"
+      using \<open>f permutes S\<close> \<open>s \<in> S\<close> by (auto simp: permutes_in_image)
+    then have "S - orbit f s \<subset> S"
+      using orbit.base[of f s] \<open>s \<in> S\<close> by blast
     moreover
     have "?f' permutes (S - orbit f s)"
       using \<open>f permutes S\<close> cyclic_orbit by (rule perm_restrict_diff_cyclic)
@@ -392,11 +385,13 @@ proof (induction arbitrary: f rule: finite_psubset_induct)
         "\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 \<longrightarrow> c1 \<inter> c2 = {}"
       using psubset.IH by metis
 
-    { fix c assume "c \<in> C"
-      then have *: "\<And>x. x \<in> c \<Longrightarrow> perm_restrict f (S - orbit f s) x = f x"
+    have in_C_cyclic: "cyclic_on f c" if "c \<in> C" for c
+    proof -
+      from that have *: "\<And>x. x \<in> c \<Longrightarrow> perm_restrict f (S - orbit f s) x = f x"
         using C(2) \<open>f permutes S\<close> by (auto simp add: perm_restrict_def)
-      then have "cyclic_on f c" using C(1)[OF \<open>c \<in> C\<close>] by (simp cong: cyclic_cong add: *)
-    } note in_C_cyclic = this
+      then show ?thesis
+        using C(1)[OF \<open>c \<in> C\<close>] by (simp cong: cyclic_cong add: *)
+    qed
 
     have Un_ins: "\<Union>(insert (orbit f s) C) = S"
       using \<open>\<Union>C = _\<close>  \<open>orbit f s \<subseteq> S\<close> by blast

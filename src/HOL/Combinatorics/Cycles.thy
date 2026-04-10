@@ -41,33 +41,34 @@ lemma cycle_permutes: "(cycle_of_list cs) permutes (set cs)"
 theorem cyclic_rotation:
   assumes "cycle cs" shows "map ((cycle_of_list cs) ^^ n) cs = rotate n cs"
 proof -
-  { have "map (cycle_of_list cs) cs = rotate1 cs" using assms(1)
-    proof (induction cs rule: cycle_of_list.induct)
-      case (1 i j cs)
-      then have \<open>i \<notin> set cs\<close> \<open>j \<notin> set cs\<close>
-        by auto
-      then have \<open>map (Transposition.transpose i j) cs = cs\<close>
-        by (auto intro: map_idI simp add: transpose_eq_iff)
-      show ?case
-      proof (cases)
-        assume "cs = Nil" thus ?thesis by simp
-      next
-        assume "cs \<noteq> Nil" hence ge_two: "length (j # cs) \<ge> 2"
-          using not_less by auto
-        have "map (cycle_of_list (i # j # cs)) (i # j # cs) =
+  have cyclic_rotation': "map (cycle_of_list cs) cs = rotate1 cs"
+    using assms(1)
+  proof (induction cs rule: cycle_of_list.induct)
+    case (1 i j cs)
+    then have \<open>i \<notin> set cs\<close> \<open>j \<notin> set cs\<close>
+      by auto
+    then have \<open>map (Transposition.transpose i j) cs = cs\<close>
+      by (auto intro: map_idI simp add: transpose_eq_iff)
+    show ?case
+    proof (cases "cs = Nil")
+      case True
+      then show ?thesis by simp
+    next
+      case False
+      then have ge_two: "length (j # cs) \<ge> 2"
+        using not_less by auto
+      have "map (cycle_of_list (i # j # cs)) (i # j # cs) =
               map (transpose i j) (map (cycle_of_list (j # cs)) (i # j # cs))" by simp
-        also have " ... = map (transpose i j) (i # (rotate1 (j # cs)))"
-          by (metis "1.IH" "1.prems" distinct.simps(2) id_outside_supp list.simps(9))
-        also have " ... = map (transpose i j) (i # (cs @ [j]))" by simp
-        also have " ... = j # (map (transpose i j) cs) @ [i]" by simp
-        also have " ... = j # cs @ [i]"
-          using \<open>map (Transposition.transpose i j) cs = cs\<close> by simp
-        also have " ... = rotate1 (i # j # cs)" by simp
-        finally show ?thesis .
-      qed
-    qed simp_all }
-  note cyclic_rotation' = this
-
+      also have " ... = map (transpose i j) (i # (rotate1 (j # cs)))"
+        by (metis "1.IH" "1.prems" distinct.simps(2) id_outside_supp list.simps(9))
+      also have " ... = map (transpose i j) (i # (cs @ [j]))" by simp
+      also have " ... = j # (map (transpose i j) cs) @ [i]" by simp
+      also have " ... = j # cs @ [i]"
+        using \<open>map (Transposition.transpose i j) cs = cs\<close> by simp
+      also have " ... = rotate1 (i # j # cs)" by simp
+      finally show ?thesis .
+    qed
+  qed simp_all
   show ?thesis
     using cyclic_rotation' by (induct n) (auto, metis map_map rotate1_rotate_swap rotate_map)
 qed
@@ -92,25 +93,25 @@ qed
 corollary cycle_of_list_rotate_independent:
   assumes "cycle cs" shows "(cycle_of_list cs) = (cycle_of_list (rotate n cs))"
 proof -
-  { fix cs :: "'a list" assume cs: "cycle cs"
-    have "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
-    proof -
-      from cs have rotate1_cs: "cycle (rotate1 cs)" by simp
-      hence "map (cycle_of_list (rotate1 cs)) (rotate1 cs) = (rotate 2 cs)"
-        using cyclic_rotation[OF rotate1_cs, of 1] by (simp add: numeral_2_eq_2)
-      moreover have "map (cycle_of_list cs) (rotate1 cs) = (rotate 2 cs)"
-        using cyclic_rotation[OF cs]
-        by (metis One_nat_def Suc_1 funpow.simps(2) id_apply map_map rotate0 rotate_Suc)
-      ultimately have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<in> set cs" for i
-        using that map_eq_conv unfolding sym[OF set_rotate1[of cs]] by fastforce  
-      moreover have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<notin> set cs" for i
-        using that by (simp add: id_outside_supp)
-      ultimately show "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
-        by blast
-    qed } note rotate1_lemma = this
-
+  have rotate1_lemma: "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
+    if cs: "cycle cs" for cs :: "'a list"
+  proof -
+    from cs have rotate1_cs: "cycle (rotate1 cs)" by simp
+    hence "map (cycle_of_list (rotate1 cs)) (rotate1 cs) = (rotate 2 cs)"
+      using cyclic_rotation[OF rotate1_cs, of 1] by (simp add: numeral_2_eq_2)
+    moreover have "map (cycle_of_list cs) (rotate1 cs) = (rotate 2 cs)"
+      using cyclic_rotation[OF cs]
+      by (metis One_nat_def Suc_1 funpow.simps(2) id_apply map_map rotate0 rotate_Suc)
+    ultimately have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<in> set cs" for i
+      using that map_eq_conv unfolding sym[OF set_rotate1[of cs]] by fastforce  
+    moreover have "(cycle_of_list cs) i = (cycle_of_list (rotate1 cs)) i" if "i \<notin> set cs" for i
+      using that by (simp add: id_outside_supp)
+    ultimately show "(cycle_of_list cs) = (cycle_of_list (rotate1 cs))"
+      by blast
+  qed
   show ?thesis
-    using rotate1_lemma[of "rotate n cs"] by (induct n) (auto, metis assms distinct_rotate rotate1_lemma)
+    using rotate1_lemma[of "rotate n cs"]
+    by (induct n) (auto, metis assms distinct_rotate rotate1_lemma)
 qed
 
 
@@ -146,17 +147,19 @@ lemma cycles_commute:
   assumes "cycle p" "cycle q" and "set p \<inter> set q = {}"
   shows "(cycle_of_list p) \<circ> (cycle_of_list q) = (cycle_of_list q) \<circ> (cycle_of_list p)"
 proof
-  { fix p :: "'a list" and q :: "'a list" and i :: "'a"
-    assume A: "cycle p" "cycle q" "set p \<inter> set q = {}" "i \<in> set p" "i \<notin> set q"
-    have "((cycle_of_list p) \<circ> (cycle_of_list q)) i =
-          ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
-    proof -
-      have "((cycle_of_list p) \<circ> (cycle_of_list q)) i = (cycle_of_list p) i"
-        using id_outside_supp[OF A(5)] by simp
-      also have " ... = ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
-        using id_outside_supp[of "(cycle_of_list p) i"] cycle_is_surj[OF A(1)] A(3,4) by fastforce
-      finally show ?thesis .
-    qed } note aui_lemma = this
+  have aui_lemma:
+    "((cycle_of_list p) \<circ> (cycle_of_list q)) i =
+       ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
+    if that: "cycle p" "cycle q" "set p \<inter> set q = {}" "i \<in> set p" "i \<notin> set q"
+    for p :: "'a list" and q :: "'a list" and i :: "'a"
+  proof -
+    have "((cycle_of_list p) \<circ> (cycle_of_list q)) i = (cycle_of_list p) i"
+      using id_outside_supp[OF that(5)] by simp
+    also have " ... = ((cycle_of_list q) \<circ> (cycle_of_list p)) i"
+      using id_outside_supp[of "(cycle_of_list p) i"] cycle_is_surj[OF that(1)] that(3,4)
+      by fastforce
+    finally show ?thesis .
+  qed
 
   fix i consider "i \<in> set p" "i \<notin> set q" | "i \<notin> set p" "i \<in> set q" | "i \<notin> set p" "i \<notin> set q"
     using \<open>set p \<inter> set q = {}\<close> by blast
@@ -270,10 +273,14 @@ lemma least_power_gt_one:
 
 lemma least_power_minimal:
   assumes "(p ^^ n) a = a" shows "(least_power p a) dvd n"
-proof (cases "n = 0", simp)
+proof (cases "n = 0")
+  case True
+  then show ?thesis by simp
+next
+  case False
   let ?lpow = "least_power p"
 
-  assume "n \<noteq> 0" then have "n > 0" by simp
+  from False have "n > 0" by simp
   hence "(p ^^ (?lpow a)) a = a" and "least_power p a > 0"
     using assms unfolding least_power_def by (metis (mono_tags, lifting) LeastI)+
   hence aux_lemma: "(p ^^ ((?lpow a) * k)) a = a" for k :: nat
@@ -342,27 +349,27 @@ qed
 lemma disjoint_support:
   assumes "permutation p" shows "disjoint (range (\<lambda>a. set (support p a)))" (is "disjoint ?A")
 proof (rule disjointI)
-  { fix i j a b
-    assume "set (support p a) \<inter> set (support p b) \<noteq> {}" have "set (support p a) \<subseteq> set (support p b)"
-      unfolding support_set[OF assms]
-    proof (auto)
-      from \<open>set (support p a) \<inter> set (support p b) \<noteq> {}\<close>
-      obtain i j where ij: "(p ^^ i) a = (p ^^ j) b"
-        by auto
+  have aux_lemma: "set (support p a) \<subseteq> set (support p b)"
+    if "set (support p a) \<inter> set (support p b) \<noteq> {}" for i j a b
+    unfolding support_set[OF assms]
+  proof (auto)
+    from \<open>set (support p a) \<inter> set (support p b) \<noteq> {}\<close>
+    obtain i j where ij: "(p ^^ i) a = (p ^^ j) b"
+      by auto
 
-      fix k
-      have "(p ^^ k) a = (p ^^ (k + (least_power p a) * l)) a" for l
-        using least_power_dvd[OF assms] by (induct l) (simp, metis dvd_triv_left funpow_add o_def)
-      then obtain m where "m \<ge> i" and "(p ^^ m) a = (p ^^ k) a"
-        using least_power_of_permutation(2)[OF assms]
-        by (metis dividend_less_times_div le_eq_less_or_eq mult_Suc_right trans_less_add2)
-      hence "(p ^^ m) a = (p ^^ (m - i)) ((p ^^ i) a)"
-        by (metis Nat.le_imp_diff_is_add funpow_add o_apply)
-      with \<open>(p ^^ m) a = (p ^^ k) a\<close> have "(p ^^ k) a = (p ^^ ((m - i) + j)) b"
-        unfolding ij by (simp add: funpow_add)
-      thus "(p ^^ k) a \<in> range (\<lambda>i. (p ^^ i) b)"
-        by blast
-    qed } note aux_lemma = this
+    fix k
+    have "(p ^^ k) a = (p ^^ (k + (least_power p a) * l)) a" for l
+      using least_power_dvd[OF assms] by (induct l) (simp, metis dvd_triv_left funpow_add o_def)
+    then obtain m where "m \<ge> i" and "(p ^^ m) a = (p ^^ k) a"
+      using least_power_of_permutation(2)[OF assms]
+      by (metis dividend_less_times_div le_eq_less_or_eq mult_Suc_right trans_less_add2)
+    hence "(p ^^ m) a = (p ^^ (m - i)) ((p ^^ i) a)"
+      by (metis Nat.le_imp_diff_is_add funpow_add o_apply)
+    with \<open>(p ^^ m) a = (p ^^ k) a\<close> have "(p ^^ k) a = (p ^^ ((m - i) + j)) b"
+      unfolding ij by (simp add: funpow_add)
+    thus "(p ^^ k) a \<in> range (\<lambda>i. (p ^^ i) b)"
+      by blast
+  qed
 
   fix supp_a supp_b
   assume "supp_a \<in> ?A" and "supp_b \<in> ?A"
@@ -398,7 +405,7 @@ qed
 lemma support_coverture:
   assumes "permutation p" shows "\<Union> { set (support p a) | a. p a \<noteq> a } = { a. p a \<noteq> a }"
 proof
-  show "{ a. p a \<noteq> a } \<subseteq> \<Union> { set (support p a) | a. p a \<noteq> a }"
+  show "{a. p a \<noteq> a} \<subseteq> \<Union> { set (support p a) | a. p a \<noteq> a }"
   proof
     fix a assume "a \<in> { a. p a \<noteq> a }"
     have "a \<in> set (support p a)"
@@ -430,16 +437,17 @@ proof -
     by (simp add: hd_map rotate1_hd_tl)
   also have " ... = map p (support p a)"
   proof (rule nth_equalityI, auto)
-    fix i assume "i < least_power p a" show "(tl (support p a) @ [a]) ! i = p ((p ^^ i) a)"
-    proof (cases)
-      assume i: "i = least_power p a - 1"
+    fix i assume "i < least_power p a"
+    show "(tl (support p a) @ [a]) ! i = p ((p ^^ i) a)"
+    proof (cases "i = least_power p a - 1")
+      case i: True
       hence "(tl (support p a) @ [ a ]) ! i = a"
         by (metis (no_types, lifting) diff_zero length_map length_tl length_upt nth_append_length)
       also have " ... = p ((p ^^ i) a)"
         by (metis (mono_tags, opaque_lifting) least_power_props i Suc_diff_1 funpow_simps_right(2) funpow_swap1 o_apply)
       finally show ?thesis .
     next
-      assume "i \<noteq> least_power p a - 1"
+      case False
       with \<open>i < least_power p a\<close> have "i < least_power p a - 1"
         by simp
       hence "(tl (support p a) @ [ a ]) ! i = (p ^^ (Suc i)) a"
@@ -509,15 +517,17 @@ theorem cycle_decomposition:
   using assms
 proof(induct "card S" arbitrary: S p rule: less_induct)
   case less show ?case
-  proof (cases)
-    assume "S = {}" thus ?thesis
+  proof (cases "S = {}")
+    case True
+    then show ?thesis
       using empty less(2) by auto
   next
+    case False
+    then obtain s where "s \<in> S" by blast
+
     have is_permutation: "permutation p"
       using less(2-3) unfolding permutation_permutes by blast
 
-    assume "S \<noteq> {}" then obtain s where "s \<in> S"
-      by blast
     define q where "q = (\<lambda>y. if y \<in> (S - set (support p s)) then p y else y)"
     have "(cycle_of_list (support p s) \<circ> q) = p"
     proof

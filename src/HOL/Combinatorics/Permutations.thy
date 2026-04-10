@@ -589,12 +589,10 @@ proof -
   next
     case 4
     have bij_inv: "bij_betw (inv_into A f) B A" by (intro bij_betw_inv_into assms)
-    {
-      fix \<pi> assume "\<pi> permutes B"
-      from permutes_bij_inv_into[OF this bij_inv] and assms
-        have "(\<lambda>x. if x \<in> A then inv_into A f (\<pi> (f x)) else x) permutes A"
-        by (simp add: inv_into_inv_into_eq cong: if_cong)
-    }
+    have "(\<lambda>x. if x \<in> A then inv_into A f (\<pi> (f x)) else x) permutes A"
+      if "\<pi> permutes B" for \<pi>
+      using permutes_bij_inv_into[OF that bij_inv] and assms
+      by (simp add: inv_into_inv_into_eq cong: if_cong)
     from this show ?case by (auto simp: permutes_inv)
   next
     case 1
@@ -703,13 +701,12 @@ proof (induct arbitrary: n)
   then show ?case by simp
 next
   case (insert x F)
-  {
-    fix n
-    assume card_insert: "card (insert x F) = n"
-    let ?xF = "{p. p permutes insert x F}"
-    let ?pF = "{p. p permutes F}"
-    let ?pF' = "{(b, p). b \<in> insert x F \<and> p \<in> ?pF}"
-    let ?g = "(\<lambda>(b, p). transpose x b \<circ> p)"
+  let ?xF = "{p. p permutes insert x F}"
+  let ?pF = "{p. p permutes F}"
+  let ?pF' = "{(b, p). b \<in> insert x F \<and> p \<in> ?pF}"
+  let ?g = "(\<lambda>(b, p). transpose x b \<circ> p)"
+  have "card ?xF = fact n" if card_insert: "card (insert x F) = n" for n
+  proof -
     have xfgpF': "?xF = ?g ` ?pF'"
       by (rule permutes_insert[of x F])
     from \<open>x \<notin> F\<close> \<open>finite F\<close> card_insert have Fs: "card F = n - 1"
@@ -722,11 +719,12 @@ next
       by simp
     have ginj: "inj_on ?g ?pF'"
     proof -
-      {
-        fix b p c q
-        assume bp: "(b, p) \<in> ?pF'"
-        assume cq: "(c, q) \<in> ?pF'"
-        assume eq: "?g (b, p) = ?g (c, q)"
+      have "(b, p) = (c, q)"
+        if bp: "(b, p) \<in> ?pF'"
+        and cq: "(c, q) \<in> ?pF'"
+        and eq: "?g (b, p) = ?g (c, q)"
+        for b p c q
+      proof -
         from bp cq have pF: "p permutes F" and qF: "q permutes F"
           by auto
         from pF \<open>x \<notin> F\<close> eq have "b = ?g (b, p) x"
@@ -744,9 +742,9 @@ next
           by simp
         then have "p = q"
           by (simp add: o_assoc)
-        with \<open>b = c\<close> have "(b, p) = (c, q)"
+        with \<open>b = c\<close> show ?thesis
           by simp
-      }
+      qed
       then show ?thesis
         unfolding inj_on_def by blast
     qed
@@ -762,9 +760,9 @@ next
       by (simp only: Collect_case_prod Collect_mem_eq card_cartesian_product) (simp add: n)
     from finite_imageI[OF pF'f, of ?g] have xFf: "finite ?xF"
       by (simp add: xfgpF' n)
-    from * have "card ?xF = fact n"
+    from * show ?thesis
       unfolding xFf by blast
-  }
+  qed
   with insert show ?case by simp
 qed
 
@@ -2153,13 +2151,14 @@ proof -
   proof (rule sum.reindex)
     let ?f = "(\<lambda>(b, y). transpose a b \<circ> y)"
     let ?P = "{p. p permutes S}"
-    {
-      fix b c p q
-      assume b: "b \<in> insert a S"
-      assume c: "c \<in> insert a S"
-      assume p: "p permutes S"
-      assume q: "q permutes S"
-      assume eq: "transpose a b \<circ> p = transpose a c \<circ> q"
+    have "b = c \<and> p = q"
+      if b: "b \<in> insert a S"
+      and c: "c \<in> insert a S"
+      and p: "p permutes S"
+      and q: "q permutes S"
+      and eq: "transpose a b \<circ> p = transpose a c \<circ> q"
+      for b c p q
+    proof -
       from p q aS have pa: "p a = a" and qa: "q a = a"
         unfolding permutes_def by metis+
       from eq have "(transpose a b \<circ> p) a  = (transpose a c \<circ> q) a"
@@ -2171,9 +2170,8 @@ proof -
         (\<lambda>p. transpose a c \<circ> p) (transpose a c \<circ> q)" by simp
       then have "p = q"
         unfolding o_assoc swap_id_idempotent by simp
-      with bc have "b = c \<and> p = q"
-        by blast
-    }
+      with bc show ?thesis by blast
+    qed
     then show "inj_on ?f (insert a S \<times> ?P)"
       unfolding inj_on_def by clarify metis
   qed
