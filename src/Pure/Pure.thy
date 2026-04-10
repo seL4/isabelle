@@ -566,7 +566,7 @@ val short_statement =
         Element.Shows shows));
 
 fun theorem spec schematic descr =
-  Outer_Syntax.local_theory_to_proof' spec ("state " ^ descr)
+  Outer_Syntax.local_theory_to_proof spec ("state " ^ descr)
     ((long_statement || short_statement) >> (fn (long, binding, includes, elems, concl) =>
       ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
         long Thm.theoremK NONE (K I) binding includes elems concl)));

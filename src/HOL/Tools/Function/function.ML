@@ -22,7 +22,7 @@ sig
 
   val function_cmd: (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> Function_Common.function_config ->
-    bool -> local_theory -> Proof.state
+    local_theory -> Proof.state
 
   val prove_termination: term option -> tactic -> local_theory ->
     info * local_theory
@@ -167,7 +167,8 @@ fun gen_function do_print prep fixspec eqns config lthy =
   end
 
 val function = gen_function false Specification.check_multi_specs
-fun function_cmd a b c int = gen_function int Specification.read_multi_specs a b c
+fun function_cmd a b c lthy =
+  gen_function (Interactive.enabled ()) Specification.read_multi_specs a b c lthy
 
 fun prepare_termination_proof prep_binding prep_term raw_term_opt lthy =
   let
@@ -279,7 +280,7 @@ fun get_info ctxt t = Function_Common.retrieve_function_data ctxt t
 (* outer syntax *)
 
 val _ =
-  Outer_Syntax.local_theory_to_proof' \<^command_keyword>\<open>function\<close>
+  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>function\<close>
     "define general recursive functions"
     (function_parser default_config
       >> (fn (config, (fixes, specs)) => function_cmd fixes specs config))

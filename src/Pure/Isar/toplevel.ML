@@ -63,8 +63,6 @@ sig
     (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: (xstring * Position.T) option -> presentation ->
     transition -> transition
-  val local_theory_to_proof': (bool * Position.T) option -> (xstring * Position.T) option ->
-    (bool -> local_theory -> Proof.state) -> transition -> transition
   val local_theory_to_proof: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
@@ -533,18 +531,15 @@ fun begin_proof init_proof = transaction0 (fn int =>
 
 in
 
-fun local_theory_to_proof' restricted target f = begin_proof
-  (fn int => fn gthy =>
+fun local_theory_to_proof restricted target f = begin_proof
+  (fn _ => fn gthy =>
     let
       val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
       val prf = lthy
         |> restricted_context restricted
         |> Local_Theory.new_group
-        |> f int;
+        |> f;
     in (finish o Local_Theory.reset_group, prf) end);
-
-fun local_theory_to_proof restricted target f =
-  local_theory_to_proof' restricted target (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>

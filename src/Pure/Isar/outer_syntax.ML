@@ -15,8 +15,6 @@ sig
     (local_theory -> local_theory) parser -> (theory -> local_theory) parser -> unit
   val local_theory: command_keyword -> string ->
     (local_theory -> local_theory) parser -> unit
-  val local_theory_to_proof': command_keyword -> string ->
-    (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: command_keyword -> string ->
     (local_theory -> Proof.state) parser -> unit
   val bootstrap: bool Config.T
@@ -163,7 +161,6 @@ fun local_theory_command trans command_keyword comment parse =
       Parse.opt_target -- parse >> (fn (target, f) => trans restricted target f)));
 
 val local_theory = local_theory_command Toplevel.local_theory;
-val local_theory_to_proof' = local_theory_command Toplevel.local_theory_to_proof';
 val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
 
 

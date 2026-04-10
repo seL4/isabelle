@@ -57,19 +57,19 @@ sig
   val theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.name list -> Element.context_i list -> Element.statement_i ->
-    bool -> local_theory -> Proof.state
+    local_theory -> Proof.state
   val theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.xname list -> Element.context list -> Element.statement ->
-    bool -> local_theory -> Proof.state
+    local_theory -> Proof.state
   val schematic_theorem: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.name list -> Element.context_i list -> Element.statement_i ->
-    bool -> local_theory -> Proof.state
+    local_theory -> Proof.state
   val schematic_theorem_cmd: bool -> string -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.xname list -> Element.context list -> Element.statement ->
-    bool -> local_theory -> Proof.state
+    local_theory -> Proof.state
 end;
 
 structure Specification: SPECIFICATION =
@@ -392,7 +392,7 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
   end;
 
 fun gen_theorem schematic bundle_includes prep_att prep_stmt
-    long kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl int lthy =
+    long kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl lthy =
   let
     val _ = Local_Theory.assert lthy;
 
@@ -403,7 +403,8 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
     val atts = more_atts @ map (prep_att lthy) raw_atts;
 
     val print_results =
-      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()};
+      Proof_Display.print_results
+        {interactive = Interactive.enabled (), pos = Position.thread_data ()};
 
     fun after_qed' results goal_ctxt' =
       let

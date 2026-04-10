@@ -48,10 +48,11 @@ fun prove_vc vc_name lthy =
     val thy = Proof_Context.theory_of lthy;
     val (ctxt, stmt) = get_vc thy vc_name
   in
-    Specification.theorem true Thm.theoremK NONE
-      (fn thmss => (Local_Theory.background_theory
-         (SPARK_VCs.mark_proved vc_name (flat thmss))))
-      (Binding.name vc_name, []) [] ctxt stmt false lthy
+    Interactive.setmp false (fn () =>
+      Specification.theorem true Thm.theoremK NONE
+        (fn thmss => (Local_Theory.background_theory
+           (SPARK_VCs.mark_proved vc_name (flat thmss))))
+        (Binding.name vc_name, []) [] ctxt stmt lthy) ()
   end;
 
 fun string_of_status NONE = "(unproved)"
