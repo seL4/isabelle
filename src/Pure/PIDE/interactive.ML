@@ -9,6 +9,7 @@ sig
   val enabled: unit -> bool
   val setmp: bool -> ('a -> 'b) -> 'a -> 'b
   val parallel_proofs: unit -> int
+  val setmp_parallel_proofs: int -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Interactive: INTERACTIVE =
@@ -26,9 +27,14 @@ end;
 
 (* parallel proofs *)
 
-fun parallel_proofs () =
-  let
-    val m = Options.default_int "parallel_proofs";
-  in if not (enabled ()) then m else if m > 0 then 3 else 0 end;
+local
+  val system_option = "parallel_proofs"
+in
+  fun parallel_proofs () =
+    let val m = Options.default_int system_option;
+    in if not (enabled ()) then m else if m > 0 then 3 else 0 end;
+  fun setmp_parallel_proofs m f x =
+    Options.with_update_default [(system_option, Value.print_int m)] f x;
+end;
 
 end;
