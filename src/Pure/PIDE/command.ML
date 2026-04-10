@@ -184,15 +184,15 @@ fun reset_state keywords tr st0 = Toplevel.setmp_thread_position tr (fn () =>
     | SOME st => (Output.error_message (Toplevel.type_error tr ^ " -- using reset state"); st))
   end) ();
 
-fun run keywords int tr st =
+fun run keywords tr st =
   if Future.proofs_enabled 1 andalso Keyword.is_diag keywords (Toplevel.name_of tr) then
     let
       val (tr1, tr2) = Toplevel.fork_presentation tr;
       val _ =
         Execution.fork {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
-          (fn () => Toplevel.command_exception int tr1 st);
-    in Toplevel.command_errors int tr2 st end
-  else Toplevel.command_errors int tr st;
+          (fn () => Toplevel.command_exception tr1 st);
+    in Toplevel.command_errors tr2 st end
+  else Toplevel.command_errors tr st;
 
 fun check_comments ctxt =
   Document_Output.check_comments ctxt o Input.source_explode o Token.input_of;
@@ -231,7 +231,7 @@ fun eval_state keywords span tr ({state, ...}: eval_state) =
 
     val _ = report_indent tr st;
     val _ = status tr Markup.running;
-    val (errs1, result) = run keywords true tr st;
+    val (errs1, result) = run keywords tr st;
     val errs2 =
       (case result of
         NONE => []

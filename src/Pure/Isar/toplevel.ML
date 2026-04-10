@@ -76,8 +76,8 @@ sig
   val skip_proof_close: transition -> transition
   val exec_id: Document_ID.exec -> transition -> transition
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
-  val command_errors: bool -> transition -> state -> Runtime.error list * state option
-  val command_exception: bool -> transition -> state -> state
+  val command_errors: transition -> state -> Runtime.error list * state option
+  val command_exception: transition -> state -> state
   val reset_theory: state -> state option
   val reset_proof: state -> state option
   val reset_notepad: state -> state option
@@ -287,7 +287,7 @@ fun update f g state =
         val prev_thy = get_theory node;
       in present_state true g (f node) prev_thy end) ();
 
-fun apply_tr int trans state =
+fun apply_tr trans state =
   (case (trans, node_of state) of
     (Init f, Toplevel) =>
       Runtime.controlled_execution NONE (fn () =>
@@ -306,11 +306,11 @@ fun apply_tr int trans state =
   | (Transaction (f, g), _) => update f g state
   | _ => raise UNDEF);
 
-fun apply_body _ [] _ = raise UNDEF
-  | apply_body int [tr] state = apply_tr int tr state
-  | apply_body int (tr :: trs) state =
-      apply_body int trs state
-        handle Runtime.UNDEF => apply_tr int tr state;
+fun apply_body [] _ = raise UNDEF
+  | apply_body [tr] state = apply_tr tr state
+  | apply_body (tr :: trs) state =
+      apply_body trs state
+        handle Runtime.UNDEF => apply_tr tr state;
 
 fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
   let
@@ -321,8 +321,8 @@ fun apply_markers name markers (state as State ((node, pr_ctxt), prev_thy)) =
 
 in
 
-fun apply_capture int name markers trans state =
-  (case Exn.capture_body (fn () => apply_body int trans state |> apply_markers name markers) of
+fun apply_capture name markers trans state =
+  (case Exn.capture_body (fn () => apply_body trans state |> apply_markers name markers) of
     Exn.Res res => res
   | Exn.Exn exn => (state, SOME exn));
 
@@ -614,18 +614,18 @@ fun show_state tr (st', opt_err) =
       else opt_err;
   in (st', opt_err') end;
 
-fun app int (tr as Transition {name, markers, trans, ...}) =
+fun app (tr as Transition {name, markers, trans, ...}) =
   setmp_thread_position tr
-    ((apply_capture int name markers trans
+    ((apply_capture name markers trans
         |> not (is_ignored tr) ? Timing.command_timing (name_of tr) (pos_of tr))
       ##> Option.map (fn Runtime.UNDEF => ERROR (type_error tr) | exn => exn)
       #> show_state tr);
 
-fun command_transition int tr st =
+fun command_transition tr st =
   let
     val (st', opt_err) =
       Context.setmp_generic_context (try (Context.Proof o presentation_context0) st)
-        (fn () => app int tr st) ();
+        (fn () => app tr st) ();
     val opt_err' = opt_err |> Option.map
       (fn Runtime.EXCURSION_FAIL exn_info => exn_info
         | exn => (Runtime.exn_context (try context_of st) exn, at_command tr));
@@ -633,13 +633,13 @@ fun command_transition int tr st =
 
 in
 
-fun command_errors int tr st =
-  (case command_transition int tr st of
+fun command_errors tr st =
+  (case command_transition tr st of
     (st', NONE) => ([], SOME st')
   | (_, SOME (exn, _)) => (Runtime.exn_messages exn, NONE));
 
-fun command_exception int tr st =
-  (case command_transition int tr st of
+fun command_exception tr st =
+  (case command_transition tr st of
     (st', NONE) => st'
   | (_, SOME (exn, info)) =>
       if Exn.is_interrupt_proper exn then Exn.reraise exn
@@ -654,7 +654,7 @@ local
 
 fun reset_state check trans st =
   if check st then NONE
-  else #2 (command_errors false (trans empty) st);
+  else #2 (command_errors (trans empty) st);
 
 in
 
@@ -720,8 +720,6 @@ fun future_proofs_enabled estimate st =
         then Future.proofs_enabled 1
         else Future.proofs_enabled 2 orelse Future.proofs_enabled_timing estimate));
 
-val command = command_exception false;
-
 in
 
 fun fork_presentation tr = (markers [] tr, ignored (pos_of tr));
@@ -734,9 +732,9 @@ fun atom_result keywords tr st =
           val (tr1, tr2) = fork_presentation tr;
           val _ =
             Execution.fork {name = "Toplevel.diag", pos = pos_of tr, pri = ~1}
-              (fn () => command tr1 st);
-        in command tr2 st end
-      else command tr st;
+              (fn () => command_exception tr1 st);
+        in command_exception tr2 st end
+      else command_exception tr st;
   in (Result (tr, st'), st') end;
 
 fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result keywords tr st
@@ -767,7 +765,7 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
                       val node' = Proof (Proof_Node.apply (K state) prf, (finish, orig_gthy));
                       val (results, result_state) =
                         State (node_presentation node', prev_thy)
-                        |> fold_map (element_result keywords) body_elems ||> command end_tr1;
+                        |> fold_map (element_result keywords) body_elems ||> command_exception end_tr1;
                     in (Result_List results, presentation_context0 result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 
@@ -777,8 +775,8 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
               end_proof (future_proof #>
                 (fn state => state |> Proof.global_done_proof |> Result.put (get_result state)));
 
-            val st'' = st' |> command (head_tr |> reset_trans |> forked_proof);
-            val end_st = st'' |> command end_tr2;
+            val st'' = st' |> command_exception (head_tr |> reset_trans |> forked_proof);
+            val end_st = st'' |> command_exception end_tr2;
             val end_result = Result (end_tr, end_st);
             val result =
               Result_List [head_result, Result.get (presentation_context0 st''), end_result];
