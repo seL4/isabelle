@@ -105,7 +105,7 @@ text %mlref \<open>
   Toplevel.transition -> Toplevel.transition"} \\
   @{define_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.result Seq.seq) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{define_ML Toplevel.end_proof: "(bool -> Proof.state -> Proof.context) ->
+  @{define_ML Toplevel.end_proof: "(Proof.state -> Proof.context) ->
   Toplevel.transition -> Toplevel.transition"} \\
   \end{mldecls}
 

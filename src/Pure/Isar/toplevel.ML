@@ -66,7 +66,7 @@ sig
   val local_theory_to_proof: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
-  val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
+  val end_proof: (Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
@@ -496,12 +496,12 @@ fun present_local_theory target g = present_transaction (fn _ =>
 
 (* proof transitions *)
 
-fun end_proof f = transaction (fn int =>
+fun end_proof f = transaction (fn _ =>
   (fn Proof (prf, (finish, _)) =>
         let val state = Proof_Node.current prf in
           if can (Proof.assert_bottom true) state then
             let
-              val ctxt' = f int state;
+              val ctxt' = f state;
               val gthy' = finish ctxt';
             in (Theory gthy', ctxt') end
           else raise UNDEF
@@ -778,7 +778,7 @@ fun element_result keywords (Thy_Element.Element (tr, NONE)) st = atom_result ke
             val forked_proof =
               proof (future_proof #>
                 (fn state => state |> Proof.local_done_proof |> put_result (get_result state))) o
-              end_proof (fn _ => future_proof #>
+              end_proof (future_proof #>
                 (fn state => state |> Proof.global_done_proof |> Result.put (get_result state)));
 
             val st'' = st' |> command (head_tr |> reset_trans |> forked_proof);
