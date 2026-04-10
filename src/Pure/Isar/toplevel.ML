@@ -51,7 +51,7 @@ sig
   val ignored: Position.T -> transition
   val malformed: Position.T -> string -> transition
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
-  val theory': (bool -> theory -> theory) -> presentation option -> transition -> transition
+  val theory_presentation: (theory -> theory) -> presentation -> transition -> transition
   val theory: (theory -> theory) -> transition -> transition
   val begin_main_target: bool -> (theory -> local_theory) -> transition -> transition
   val end_main_target: transition -> transition
@@ -424,16 +424,17 @@ fun generic_theory f = transaction (fn _ =>
   (fn Theory gthy => node_presentation (Theory (f gthy))
     | _ => raise UNDEF));
 
-fun theory' f = present_transaction (fn int =>
+fun theory' f = present_transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
       let val thy' = thy
         |> Sign.new_group
-        |> f int
+        |> f
         |> Sign.reset_group;
       in node_presentation (Theory (Context.Theory thy')) end
     | _ => raise UNDEF));
 
-fun theory f = theory' (K f) NONE;
+fun theory_presentation f g = theory' f (SOME g);
+fun theory f = theory' f NONE;
 
 fun begin_main_target begin f = transaction (fn _ =>
   (fn Theory (Context.Theory thy) =>
