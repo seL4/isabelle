@@ -13,14 +13,14 @@ sig
   val sym_add: attribute
   val sym_del: attribute
   val symmetric: attribute
-  val also: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
+  val also: thm list option -> Proof.state -> Proof.state Seq.result Seq.seq
   val also_cmd: (Facts.ref * Token.src list) list option ->
-    bool -> Proof.state -> Proof.state Seq.result Seq.seq
-  val finally: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
-  val finally_cmd: (Facts.ref * Token.src list) list option -> bool ->
     Proof.state -> Proof.state Seq.result Seq.seq
-  val moreover: bool -> Proof.state -> Proof.state
-  val ultimately: bool -> Proof.state -> Proof.state
+  val finally: thm list option -> Proof.state -> Proof.state Seq.result Seq.seq
+  val finally_cmd: (Facts.ref * Token.src list) list option ->
+    Proof.state -> Proof.state Seq.result Seq.seq
+  val moreover: Proof.state -> Proof.state
+  val ultimately: Proof.state -> Proof.state
 end;
 
 structure Calculation: CALCULATION =
@@ -150,14 +150,14 @@ fun assert_sane final =
         Context_Position.report (Proof.context_of state) (Position.thread_data ()) Markup.improper
       else ());
 
-fun maintain_calculation int final calc state =
+fun maintain_calculation final calc state =
   let
     val state' = state
       |> update_calculation (SOME calc)
       |> Proof.improper_reset_facts;
     val ctxt' = Proof.context_of state';
     val _ =
-      if int then
+      if Interactive.enabled () then
         Proof_Context.pretty_fact ctxt'
           (Proof_Context.full_name ctxt' (Binding.name calculationN), calc)
         |> Pretty.writeln
@@ -167,7 +167,7 @@ fun maintain_calculation int final calc state =
 
 (* also and finally *)
 
-fun calculate prep_rules final raw_rules int state =
+fun calculate prep_rules final raw_rules state =
   let
     val ctxt = Proof.context_of state;
     val pretty_thm = Thm.pretty_thm ctxt;
@@ -212,7 +212,7 @@ fun calculate prep_rules final raw_rules int state =
     val _ = initial andalso is_some opt_rules andalso
       error "Initial calculation -- no rules to be given";
   in
-    calculations |> Seq.map_result (fn calc => maintain_calculation int final calc state)
+    calculations |> Seq.map_result (fn calc => maintain_calculation final calc state)
   end;
 
 val also = calculate (K I) false;
@@ -223,7 +223,7 @@ val finally_cmd = calculate Attrib.eval_thms true;
 
 (* moreover and ultimately *)
 
-fun collect final int state =
+fun collect final state =
   let
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, thms) =
@@ -232,7 +232,7 @@ fun collect final int state =
       | SOME thms => (false, thms));
     val calc = thms @ facts;
     val _ = initial andalso final andalso error "No calculation yet";
-  in maintain_calculation int final calc state end;
+  in maintain_calculation final calc state end;
 
 val moreover = collect false;
 val ultimately = collect true;

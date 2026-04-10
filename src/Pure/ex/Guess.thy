@@ -46,8 +46,8 @@ text \<open>
 ML \<open>
 signature GUESS =
 sig
-  val guess: (binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
-  val guess_cmd: (binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess: (binding * typ option * mixfix) list -> Proof.state -> Proof.state
+  val guess_cmd: (binding * string option * mixfix) list -> Proof.state -> Proof.state
 end;
 
 structure Guess: GUESS =
@@ -113,7 +113,7 @@ fun polymorphic ctxt vars =
   let val Ts = map Logic.dest_type (Variable.polymorphic ctxt (map (Logic.mk_type o #2) vars))
   in map2 (fn (x, _, mx) => fn T => ((x, T), mx)) vars Ts end;
 
-fun gen_guess prep_var raw_vars int state =
+fun gen_guess prep_var raw_vars state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -147,9 +147,12 @@ fun gen_guess prep_var raw_vars int state =
 
     val guess = (("guess", 0), propT);
     val goal = Var guess;
-    fun print_result ctxt' (k, [(s, [_, th])]) =
-      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()}
-        ctxt' (k, [(s, [th])]);
+
+    val print_results =
+      Proof_Display.print_results
+        {interactive = Interactive.enabled (), pos = Position.thread_data ()};
+    fun print_result ctxt' (k, [(s, [_, th])]) = print_results ctxt' (k, [(s, [th])]);
+
     val before_qed =
       Method.primitive_text (fn ctxt =>
         Goal.conclude #> Simplifier.norm_hhf ctxt #>
@@ -186,7 +189,7 @@ val guess_cmd = gen_guess Proof_Context.read_var;
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>guess\<close> "wild guessing (unstructured)"
-    (Scan.optional Parse.vars [] >> (Toplevel.proof' o guess_cmd));
+    (Scan.optional Parse.vars [] >> (Toplevel.proof o guess_cmd));
 
 end;
 

@@ -129,19 +129,19 @@ sig
   val have: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
-    (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
+    (Thm.binding * (term * term list) list) list -> state -> thm list * state
   val have_cmd: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
+    (Attrib.binding * (string * string list) list) list -> state -> thm list * state
   val show: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * typ option * mixfix) list ->
     (Thm.binding * (term * term list) list) list ->
-    (Thm.binding * (term * term list) list) list -> bool -> state -> thm list * state
+    (Thm.binding * (term * term list) list) list -> state -> thm list * state
   val show_cmd: bool -> Method.text option -> (context * thm list list -> state -> state) ->
     (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
-    (Attrib.binding * (string * string list) list) list -> bool -> state -> thm list * state
+    (Attrib.binding * (string * string list) list) list -> state -> thm list * state
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> state -> state
   val global_future_terminal_proof: Method.text_range * Method.text_range option -> state -> context
@@ -1233,13 +1233,15 @@ fun internal_goal print_results mode =
 
 local
 
-fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int =
+fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows state =
   local_goal
-    (Proof_Display.print_results {interactive = int, pos = Position.thread_data ()})
-    prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows;
+    (Proof_Display.print_results {interactive = Interactive.enabled (), pos = Position.thread_data ()})
+    prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows state;
 
-fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows int state =
+fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows state =
   let
+    val int = Interactive.enabled ();
+
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =

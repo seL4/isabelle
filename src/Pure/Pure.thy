@@ -840,22 +840,22 @@ val structured_statement =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>have\<close> "state local goal"
     (structured_statement >> (fn (a, b, c, d) =>
-      Toplevel.proof' (fn int => Proof.have_cmd a NONE (K I) b c d int #> #2)));
+      Toplevel.proof (Proof.have_cmd a NONE (K I) b c d #> #2)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>show\<close> "state local goal, to refine pending subgoals"
     (structured_statement >> (fn (a, b, c, d) =>
-      Toplevel.proof' (fn int => Proof.show_cmd a NONE (K I) b c d int #> #2)));
+      Toplevel.proof (Proof.show_cmd a NONE (K I) b c d #> #2)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>hence\<close> "old-style alias of \"then have\""
     (structured_statement >> (fn (a, b, c, d) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.have_cmd a NONE (K I) b c d int #> #2)));
+      Toplevel.proof (Proof.chain #> Proof.have_cmd a NONE (K I) b c d #> #2)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>thus\<close> "old-style alias of  \"then show\""
     (structured_statement >> (fn (a, b, c, d) =>
-      Toplevel.proof' (fn int => Proof.chain #> Proof.show_cmd a NONE (K I) b c d int #> #2)));
+      Toplevel.proof (Proof.chain #> Proof.show_cmd a NONE (K I) b c d #> #2)));
 
 in end\<close>
 
@@ -926,12 +926,12 @@ val _ =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>consider\<close> "state cases rule"
-    (Parse_Spec.obtains >> (Toplevel.proof' o Obtain.consider_cmd));
+    (Parse_Spec.obtains >> (Toplevel.proof o Obtain.consider_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>obtain\<close> "generalized elimination"
     (Parse.parbinding -- Scan.optional (Parse.vars --| Parse.where_) [] -- structured_statement
-      >> (fn ((a, b), (c, d, e)) => Toplevel.proof' (Obtain.obtain_cmd a b c d e)));
+      >> (fn ((a, b), (c, d, e)) => Toplevel.proof (Obtain.obtain_cmd a b c d e)));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>let\<close> "bind text variables"
@@ -1090,21 +1090,21 @@ val calculation_args =
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>also\<close> "combine calculation and current facts"
-    (calculation_args >> (Toplevel.proofs' o Calculation.also_cmd));
+    (calculation_args >> (Toplevel.proofs o Calculation.also_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>finally\<close>
     "combine calculation and current facts, exhibit result"
-    (calculation_args >> (Toplevel.proofs' o Calculation.finally_cmd));
+    (calculation_args >> (Toplevel.proofs o Calculation.finally_cmd));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>moreover\<close> "augment calculation by current facts"
-    (Scan.succeed (Toplevel.proof' Calculation.moreover));
+    (Scan.succeed (Toplevel.proof Calculation.moreover));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>ultimately\<close>
     "augment calculation by current facts, exhibit result"
-    (Scan.succeed (Toplevel.proof' Calculation.ultimately));
+    (Scan.succeed (Toplevel.proof Calculation.ultimately));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>print_trans_rules\<close> "print transitivity rules"

@@ -13,14 +13,14 @@ sig
   val read_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
   val cert_obtains: Proof.context -> term -> Element.obtains_i -> (binding * term) list
   val parse_obtains: Proof.context -> term -> Element.obtains -> (binding * term) list
-  val consider: Element.obtains_i -> bool -> Proof.state -> Proof.state
-  val consider_cmd: Element.obtains -> bool -> Proof.state -> Proof.state
+  val consider: Element.obtains_i -> Proof.state -> Proof.state
+  val consider_cmd: Element.obtains -> Proof.state -> Proof.state
   val obtain: binding -> (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list -> (term * term list) list list ->
-    (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
+    (Thm.binding * (term * term list) list) list -> Proof.state -> Proof.state
   val obtain_cmd: binding -> (binding * string option * mixfix) list ->
     (binding * string option * mixfix) list -> (string * string list) list list ->
-    (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
+    (Attrib.binding * (string * string list) list) list -> Proof.state -> Proof.state
   val check_result: Proof.context -> term -> thm -> thm
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     ((string * cterm) list * thm list) * Proof.context
@@ -156,7 +156,7 @@ end;
 
 local
 
-fun gen_consider prep_obtains raw_obtains int state =
+fun gen_consider prep_obtains raw_obtains state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
@@ -169,7 +169,7 @@ fun gen_consider prep_obtains raw_obtains int state =
     |> Proof.have true NONE (K I)
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       (map (fn (a, A) => ((a, [Context_Rules.intro_query NONE]), [(A, [])])) obtains)
-      [((Binding.empty, atts), [(thesis, [])])] int
+      [((Binding.empty, atts), [(thesis, [])])]
     |-> Proof.refine_insert
   end;
 
@@ -195,7 +195,7 @@ end;
 
 local
 
-fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw_concls int state =
+fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw_concls state =
   let
     val _ = Proof.assert_forward_or_chain state;
 
@@ -228,7 +228,7 @@ fun gen_obtain prep_stmt prep_att that_binding raw_decls raw_fixes raw_prems raw
     |> Proof.have true NONE after_qed
       [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)]
       [((that_binding, [Context_Rules.intro_query NONE]), [(that_prop, [])])]
-      [(Binding.empty_atts, [(thesis, [])])] int
+      [(Binding.empty_atts, [(thesis, [])])]
     |-> Proof.refine_insert
     |> Proof.map_context (fold Variable.bind_term result_binds)
   end;
