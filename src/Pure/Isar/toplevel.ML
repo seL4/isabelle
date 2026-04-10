@@ -511,10 +511,10 @@ fun end_proof f = transaction (fn _ =>
 
 local
 
-fun begin_proof init_proof = transaction0 (fn int =>
+fun begin_proof init_proof = transaction0 (fn _ =>
   (fn Theory gthy =>
     let
-      val (finish, prf) = init_proof int gthy;
+      val (finish, prf) = init_proof gthy;
       val document = Options.default_string "document";
       val skip = (document = "" orelse document = "false") andalso Goal.skip_proofs_enabled ();
       val schematic_goal = try Proof.schematic_goal prf;
@@ -532,7 +532,7 @@ fun begin_proof init_proof = transaction0 (fn int =>
 in
 
 fun local_theory_to_proof restricted target f = begin_proof
-  (fn _ => fn gthy =>
+  (fn gthy =>
     let
       val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
       val prf = lthy
@@ -542,7 +542,7 @@ fun local_theory_to_proof restricted target f = begin_proof
     in (finish o Local_Theory.reset_group, prf) end);
 
 fun theory_to_proof f = begin_proof
-  (fn _ => fn gthy =>
+  (fn gthy =>
     (Context.Theory o Sign.reset_group o Sign.change_check o Proof_Context.theory_of,
       (case gthy of
         Context.Theory thy => f (Sign.new_group thy)
