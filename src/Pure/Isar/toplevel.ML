@@ -524,7 +524,7 @@ fun begin_proof init_proof = transaction0 (fn int =>
         else ();
     in
       if skip andalso schematic_goal = SOME false then
-        Skipped_Proof (0, (finish (Proof.global_skip_proof true prf), gthy))
+        Skipped_Proof (0, (finish (Interactive.setmp true Proof.global_skip_proof prf), gthy))
       else Proof (Proof_Node.init prf, (finish, gthy))
     end
   | _ => raise UNDEF));

@@ -17,7 +17,7 @@ sig
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
   val goal_cases_tac: string list -> context_tactic
-  val cheating: bool -> method
+  val cheating: method
   val intro: Proof.context -> thm list -> method
   val elim: Proof.context -> thm list -> method
   val unfold: thm list -> Proof.context -> method
@@ -56,7 +56,7 @@ sig
   val standard_text: text
   val this_text: text
   val done_text: text
-  val sorry_text: bool -> text
+  val sorry_text: text
   val finish_text: text option * bool -> text
   val print_methods: bool -> Proof.context -> unit
   val check_name: Proof.context -> xstring * Position.T -> string
@@ -152,10 +152,10 @@ fun goal_cases_tac case_names : context_tactic =
 
 (* cheating *)
 
-fun cheating int = CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
-  if int orelse Config.get ctxt quick_and_dirty then
+val cheating = CONTEXT_METHOD (fn _ => fn (ctxt, st) =>
+  if Interactive.enabled () orelse Config.get ctxt quick_and_dirty then
     TACTIC_CONTEXT ctxt (ALLGOALS (Skip_Proof.cheat_tac ctxt) st)
-  else error "Cheating requires quick_and_dirty mode!");
+  else error "Cheating requires interactive or quick_and_dirty mode!");
 
 
 (* unfold intro/elim rules *)
@@ -378,7 +378,7 @@ val succeed_text = Basic (K succeed);
 val standard_text = Source (Token.make_src ("standard", Position.none) []);
 val this_text = Basic this;
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
-fun sorry_text int = Basic (fn _ => cheating int);
+val sorry_text = Basic (K cheating);
 
 fun finish_text (NONE, immed) = Basic (finish immed)
   | finish_text (SOME txt, immed) =

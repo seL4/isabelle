@@ -113,12 +113,12 @@ sig
   val local_terminal_proof: Method.text_range * Method.text_range option -> state -> state
   val local_default_proof: state -> state
   val local_immediate_proof: state -> state
-  val local_skip_proof: bool -> state -> state
+  val local_skip_proof: state -> state
   val local_done_proof: state -> state
   val global_terminal_proof: Method.text_range * Method.text_range option -> state -> context
   val global_default_proof: state -> context
   val global_immediate_proof: state -> context
-  val global_skip_proof: bool -> state -> context
+  val global_skip_proof: state -> context
   val global_done_proof: state -> context
   val internal_goal: (context -> (string * string) * (string * thm list) list -> unit) ->
     Proof_Context.mode -> bool -> string -> Method.text option ->
@@ -1189,7 +1189,7 @@ fun terminal_proof qeds initial terminal state =
   in
     if Goal.skip_proofs_enabled () andalso not (is_relevant state) then
       state
-      |> proof (SOME (Method.sorry_text true, #2 initial'))
+      |> Interactive.setmp true (proof (SOME (Method.sorry_text, #2 initial')))
       |> Seq.maps_results (qeds (#2 (#2 initial), (NONE, #2 terminal)))
     else
       state
@@ -1216,12 +1216,12 @@ end;
 
 (* skip proofs *)
 
-fun local_skip_proof int state =
-  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+fun local_skip_proof state =
+  local_terminal_proof ((Method.sorry_text, Position.no_range), NONE) state before
   Skip_Proof.report (context_of state);
 
-fun global_skip_proof int state =
-  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+fun global_skip_proof state =
+  global_terminal_proof ((Method.sorry_text, Position.no_range), NONE) state before
   Skip_Proof.report (context_of state);
 
 
@@ -1258,7 +1258,8 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
         |> Output.writeln_urgent
       else ();
     val test_proof =
-      local_skip_proof true
+      local_skip_proof
+      |> Interactive.setmp true
       |> Unsynchronized.setmp testing true
       |> Exn.result;
 

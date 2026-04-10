@@ -172,7 +172,7 @@ val local_terminal_proof = Toplevel.proof o Proof.local_future_terminal_proof;
 val local_default_proof = Toplevel.proof Proof.local_default_proof;
 val local_immediate_proof = Toplevel.proof Proof.local_immediate_proof;
 val local_done_proof = Toplevel.proof Proof.local_done_proof;
-val local_skip_proof = Toplevel.proof' Proof.local_skip_proof;
+val local_skip_proof = Toplevel.proof Proof.local_skip_proof;
 
 
 (* global endings *)
@@ -181,7 +181,7 @@ fun global_qed m = Toplevel.end_proof (K (Proof.global_qed (m, true)));
 val global_terminal_proof = Toplevel.end_proof o K o Proof.global_future_terminal_proof;
 val global_default_proof = Toplevel.end_proof (K Proof.global_default_proof);
 val global_immediate_proof = Toplevel.end_proof (K Proof.global_immediate_proof);
-val global_skip_proof = Toplevel.end_proof Proof.global_skip_proof;
+val global_skip_proof = Toplevel.end_proof (K Proof.global_skip_proof);
 val global_done_proof = Toplevel.end_proof (K Proof.global_done_proof);
 
 
