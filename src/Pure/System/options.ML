@@ -44,7 +44,7 @@ sig
   val default_seconds: string -> Time.time
   val default_string: string -> string
   val get_default: string -> string
-  val update_default: update -> unit
+  val with_update_default: update -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Options: OPTIONS =
@@ -228,7 +228,7 @@ fun default_string name = string (default []) name;
 fun get_default name =
   let val options = default [] in get (typ options name) SOME options name end;
 
-fun update_default upd = set_thread_default (SOME (default upd));
+fun with_update_default upd f x = setmp_thread_default (SOME (default upd)) f x;
 
 
 (* Pure bootstrap *)

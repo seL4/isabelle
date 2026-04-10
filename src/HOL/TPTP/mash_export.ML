@@ -285,15 +285,15 @@ val generate_mepo_suggestions =
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
 fun generate_mash_suggestions algorithm ctxt =
-  (Options.update_default [(\<^system_option>\<open>MaSh\<close>, algorithm)];
-   Sledgehammer_MaSh.mash_unlearn ctxt;
-   generate_mepo_or_mash_suggestions
+  Options.with_update_default [(\<^system_option>\<open>MaSh\<close>, algorithm)] (fn () =>
+   (Sledgehammer_MaSh.mash_unlearn ctxt;
+    generate_mepo_or_mash_suggestions
      (fn ctxt => fn thy_name => fn params as {provers = prover :: _, ...} =>
           fn max_suggs => fn hyp_ts => fn concl_t =>
         tap (Sledgehammer_MaSh.mash_learn_facts ctxt params prover 2 false
           Sledgehammer_Util.one_year)
         #> Sledgehammer_MaSh.mash_suggested_facts ctxt thy_name params max_suggs hyp_ts concl_t
-        #> fst) ctxt)
+        #> fst) ctxt)) ()
 
 fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name mesh_file_name =
   let
