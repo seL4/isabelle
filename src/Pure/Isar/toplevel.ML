@@ -68,8 +68,6 @@ sig
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
-  val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
-  val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val actual_proof: (Proof_Node.T -> Proof_Node.T) -> transition -> transition
@@ -557,14 +555,12 @@ val forget_proof = transaction0 (fn _ =>
     | Skipped_Proof (_, (_, orig_gthy)) => Theory orig_gthy
     | _ => raise UNDEF));
 
-fun proofs' f = transaction0 (fn int =>
-  (fn Proof (prf, x) => Proof (Proof_Node.applys (f int) prf, x)
+fun proofs f = transaction0 (fn _ =>
+  (fn Proof (prf, x) => Proof (Proof_Node.applys f prf, x)
     | skip as Skipped_Proof _ => skip
     | _ => raise UNDEF));
 
-fun proof' f = proofs' ((Seq.single o Seq.Result) oo f);
-val proofs = proofs' o K;
-val proof = proof' o K;
+fun proof f = proofs ((Seq.single o Seq.Result) o f);
 
 
 (* skipped proofs *)
