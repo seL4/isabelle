@@ -480,7 +480,7 @@ datatype syntax =
     prtabs: Printer.prtabs} * stamp;
 
 fun cache_eval (gram: Parser.gram Synchronized.cache) =
-  Synchronized.cache_eval {persistent = Options.default_interactive ()} gram;
+  Synchronized.cache_eval {persistent = Interactive.enabled ()} gram;
 
 fun cache_syntax (Syntax ({gram, ...}, _)) = ignore (cache_eval gram);
 

@@ -51,7 +51,7 @@ struct
 
 val show_types = Config.declare_option_bool ("show_types", \<^here>);
 val show_sorts = Config.declare_option_bool ("show_sorts", \<^here>);
-val show_markup = Config.declare_bool ("show_markup", \<^here>) (fn _ => Options.default_interactive ());
+val show_markup = Config.declare_bool ("show_markup", \<^here>) (fn _ => Interactive.enabled ());
 val show_consts_markup = Config.declare_bool ("show_consts_markup", \<^here>) (K true);
 val show_structs = Config.declare_bool ("show_structs", \<^here>) (K false);
 val show_question_marks = Config.declare_option_bool ("show_question_marks", \<^here>);

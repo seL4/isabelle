@@ -107,6 +107,7 @@ ML_file "PIDE/document_id.ML";
 ML_file "General/graph.ML";
 
 ML_file "System/options.ML";
+ML_file "PIDE/interactive.ML";
 
 
 subsection "Fundamental structures";
