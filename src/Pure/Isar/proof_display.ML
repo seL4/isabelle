@@ -294,16 +294,11 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 (* results *)
 
-val verbose =
-  Config.declare_bool ("verbose", \<^here>) (K false);
-
 val show_results =
   Attrib.setup_config_bool \<^binding>\<open>show_results\<close>
-    (fn context =>
-      Config.get_generic context verbose orelse
-      Options.default_bool \<^system_option>\<open>show_results\<close>);
+    (fn _ => Options.default_bool \<^system_option>\<open>show_results\<close>);
 
-fun no_print verb ctxt = not (Config.get (Config.put verbose verb ctxt) show_results);
+fun no_print verbose ctxt = not (verbose andalso Config.get ctxt show_results);
 
 local
 

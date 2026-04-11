@@ -13,6 +13,14 @@ New in this Isabelle version
 locale interpretations etc. This results in multiple PIDE markup, which
 can be displayed to end-users as hyperlinks with multiple choices.
 
+* Output of results (statements of definitions, theorems etc.) no longer
+depends on interactive mode (within the PIDE editor), but works in
+batch-builds as well. The system option "show_results" and the context
+option of the same name serve as a guard to actual output, without any
+special cases. The default show_results=true, but show_results=false may
+be used in situations where output is too bulky to be printed, e.g. in
+the theory as "context notes [[show_results = false]] begin ... end".
+
 
 *** Pure ***
 
