@@ -49,7 +49,7 @@ fun prove_vc vc_name lthy =
     val (ctxt, stmt) = get_vc thy vc_name
   in
     Interactive.setmp false (fn () =>
-      Specification.theorem true Thm.theoremK NONE
+      Specification.theorem {verbose = true, long = true, kind = Thm.theoremK} NONE
         (fn thmss => (Local_Theory.background_theory
            (SPARK_VCs.mark_proved vc_name (flat thmss))))
         (Binding.name vc_name, []) [] ctxt stmt lthy) ()

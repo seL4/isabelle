@@ -150,7 +150,7 @@ fun gen_guess prep_var raw_vars state =
 
     val print_results =
       Proof_Display.print_results
-        {interactive = Interactive.enabled (), pos = Position.thread_data ()};
+        {verbose = Interactive.enabled (), pos = Position.thread_data ()};
     fun print_result ctxt' (k, [(s, [_, th])]) = print_results ctxt' (k, [(s, [th])]);
 
     val before_qed =

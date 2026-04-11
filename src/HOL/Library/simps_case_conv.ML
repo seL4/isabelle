@@ -117,8 +117,7 @@ fun case_of_simps_cmd (bind, thms_ref) lthy =
     val thm = Attrib.eval_thms lthy thms_ref |> to_case lthy
     val (res, lthy') = Local_Theory.note (bind', [thm]) lthy 
     val _ =
-      Proof_Display.print_results
-        {interactive = Interactive.enabled (), pos = Position.thread_data ()}
+      Proof_Display.print_results {verbose = true, pos = Position.thread_data ()}
         lthy' ((Thm.theoremK, ""), [res])
   in lthy' end
 
@@ -131,8 +130,7 @@ fun simps_of_case_cmd ((bind, thm_ref), splits_ref) lthy =
       else gen_to_simps lthy (Attrib.eval_thms lthy splits_ref) thm
     val (res, lthy') = Local_Theory.note (bind', simps) lthy
     val _ =
-      Proof_Display.print_results
-        {interactive = Interactive.enabled (), pos = Position.thread_data ()}
+      Proof_Display.print_results {verbose = true, pos = Position.thread_data ()}
         lthy' ((Thm.theoremK, ""), [res])
   in lthy' end
 

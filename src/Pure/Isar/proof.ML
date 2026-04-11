@@ -1235,12 +1235,12 @@ local
 
 fun gen_have prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows state =
   local_goal
-    (Proof_Display.print_results {interactive = Interactive.enabled (), pos = Position.thread_data ()})
+    (Proof_Display.print_results {verbose = Interactive.enabled (), pos = Position.thread_data ()})
     prep_statement prep_att strict_asm "have" before_qed after_qed fixes assumes shows state;
 
 fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assumes shows state =
   let
-    val int = Interactive.enabled ();
+    val verbose = Interactive.enabled ();
 
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
@@ -1251,10 +1251,10 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
 
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results {interactive = int, pos = Position.thread_data ()} ctxt res;
+      else Proof_Display.print_results {verbose = verbose, pos = Position.thread_data ()} ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
-      else if int then
+      else if verbose then
         Proof_Display.string_of_rule ctxt "Successful" th
         |> Markup.markup Markup.text_fold
         |> Output.writeln_urgent
@@ -1273,7 +1273,7 @@ fun gen_show prep_statement prep_att strict_asm before_qed after_qed fixes assum
     state
     |> local_goal print_results prep_statement prep_att strict_asm
       "show" before_qed after_qed' fixes assumes shows
-    ||> int ? (fn goal_state =>
+    ||> verbose ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res _ => goal_state
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))

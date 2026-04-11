@@ -18,7 +18,7 @@ sig
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val show_results: bool Config.T
-  val print_results: {interactive: bool, pos: Position.T} -> Proof.context ->
+  val print_results: {verbose: bool, pos: Position.T} -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_theorem: Position.T -> Proof.context -> string * thm list -> unit
   val print_consts: bool -> Position.T -> Proof.context ->
@@ -294,16 +294,16 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
 
 (* results *)
 
-val interactive =
-  Config.declare_bool ("interactive", \<^here>) (K false);
+val verbose =
+  Config.declare_bool ("verbose", \<^here>) (K false);
 
 val show_results =
   Attrib.setup_config_bool \<^binding>\<open>show_results\<close>
     (fn context =>
-      Config.get_generic context interactive orelse
+      Config.get_generic context verbose orelse
       Options.default_bool \<^system_option>\<open>show_results\<close>);
 
-fun no_print int ctxt = not (Config.get (Config.put interactive int ctxt) show_results);
+fun no_print verb ctxt = not (Config.get (Config.put verbose verb ctxt) show_results);
 
 local
 
@@ -318,8 +318,8 @@ fun pretty_facts ctxt =
 
 in
 
-fun print_results {interactive, pos} ctxt ((kind, name), facts) =
-  if kind = "" orelse no_print interactive ctxt then ()
+fun print_results {verbose, pos} ctxt ((kind, name), facts) =
+  if kind = "" orelse no_print verbose ctxt then ()
   else if name = "" then
     Pretty.writeln_urgent
       (Pretty.block (Pretty.mark_position pos (Pretty.keyword1 kind) :: Pretty.brk 1 ::
@@ -333,7 +333,7 @@ fun print_results {interactive, pos} ctxt ((kind, name), facts) =
           Pretty.block1 (Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]);
 
 fun print_theorem pos ctxt fact =
-  print_results {interactive = true, pos = pos} ctxt ((Thm.theoremK, ""), [fact]);
+  print_results {verbose = true, pos = pos} ctxt ((Thm.theoremK, ""), [fact]);
 
 end;
 

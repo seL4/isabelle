@@ -569,7 +569,7 @@ fun theorem spec schematic descr =
   Outer_Syntax.local_theory_to_proof spec ("state " ^ descr)
     ((long_statement || short_statement) >> (fn (long, binding, includes, elems, concl) =>
       ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
-        long Thm.theoremK NONE (K I) binding includes elems concl)));
+        {verbose = true, long = long, kind = Thm.theoremK} NONE (K I) binding includes elems concl)));
 
 val _ = theorem \<^command_keyword>\<open>theorem\<close> false "theorem";
 val _ = theorem \<^command_keyword>\<open>lemma\<close> false "lemma";
@@ -585,13 +585,15 @@ local
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>lemmas\<close> "define theorems"
     (Parse_Spec.name_facts -- Parse.for_fixes >>
-      (fn (facts, fixes) => #2 o Specification.theorems_cmd Thm.theoremK facts fixes));
+      (fn (facts, fixes) =>
+        #2 o Specification.theorems_cmd {verbose = true, kind = Thm.theoremK} facts fixes));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>declare\<close> "declare theorems"
     (Parse.and_list1 Parse.thms1 -- Parse.for_fixes
       >> (fn (facts, fixes) =>
-          #2 o Specification.theorems_cmd "" [(Binding.empty_atts, flat facts)] fixes));
+          #2 o Specification.theorems_cmd {verbose = true, kind = ""}
+            [(Binding.empty_atts, flat facts)] fixes));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>named_theorems\<close>

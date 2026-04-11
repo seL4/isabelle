@@ -46,27 +46,27 @@ sig
   val alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
   val type_alias: binding * string -> local_theory -> local_theory
   val type_alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
-  val theorems: string ->
+  val theorems: {verbose: bool, kind: string} ->
     (Attrib.binding * Attrib.thms) list ->
     (binding * typ option * mixfix) list ->
     local_theory -> (string * thm list) list * local_theory
-  val theorems_cmd: string ->
+  val theorems_cmd: {verbose: bool, kind: string} ->
     (Attrib.binding * (Facts.ref * Token.src list) list) list ->
     (binding * string option * mixfix) list ->
     local_theory -> (string * thm list) list * local_theory
-  val theorem: bool -> string -> Method.text option ->
+  val theorem: {verbose: bool, long: bool, kind: string} -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.name list -> Element.context_i list -> Element.statement_i ->
     local_theory -> Proof.state
-  val theorem_cmd: bool -> string -> Method.text option ->
+  val theorem_cmd: {verbose: bool, long: bool, kind: string} -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.xname list -> Element.context list -> Element.statement ->
     local_theory -> Proof.state
-  val schematic_theorem: bool -> string -> Method.text option ->
+  val schematic_theorem: {verbose: bool, long: bool, kind: string} -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.name list -> Element.context_i list -> Element.statement_i ->
     local_theory -> Proof.state
-  val schematic_theorem_cmd: bool -> string -> Method.text option ->
+  val schematic_theorem_cmd: {verbose: bool, long: bool, kind: string} -> Method.text option ->
     (thm list list -> local_theory -> local_theory) -> Attrib.binding ->
     Bundle.xname list -> Element.context list -> Element.statement ->
     local_theory -> Proof.state
@@ -335,10 +335,8 @@ val type_alias_cmd =
 
 local
 
-fun gen_theorems prep_fact prep_att add_fixes kind raw_facts raw_fixes lthy =
+fun gen_theorems prep_fact prep_att add_fixes {verbose, kind} raw_facts raw_fixes lthy =
   let
-    val int = Interactive.enabled ();
-
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map (prep_att lthy) atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map (prep_att lthy) more_atts))));
@@ -349,7 +347,7 @@ fun gen_theorems prep_fact prep_att add_fixes kind raw_facts raw_fixes lthy =
       |> Attrib.transform_facts (Proof_Context.export_morphism ctxt' lthy);
     val (res, lthy') = lthy |> Local_Theory.notes_kind kind facts';
     val _ =
-      Proof_Display.print_results {interactive = int, pos = Position.thread_data ()}
+      Proof_Display.print_results {verbose = verbose, pos = Position.thread_data ()}
         lthy' ((kind, ""), res);
   in (res, lthy') end;
 
@@ -391,8 +389,8 @@ fun prep_statement prep_att prep_stmt raw_elems raw_stmt ctxt =
         in ((Obtain.obtains_attribs raw_obtains, prems, stmt', SOME that'), that_ctxt) end)
   end;
 
-fun gen_theorem schematic bundle_includes prep_att prep_stmt
-    long kind before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl lthy =
+fun gen_theorem schematic bundle_includes prep_att prep_stmt {verbose, long, kind}
+    before_qed after_qed (name, raw_atts) raw_includes raw_elems raw_concl lthy =
   let
     val _ = Local_Theory.assert lthy;
 
@@ -403,8 +401,7 @@ fun gen_theorem schematic bundle_includes prep_att prep_stmt
     val atts = more_atts @ map (prep_att lthy) raw_atts;
 
     val print_results =
-      Proof_Display.print_results
-        {interactive = Interactive.enabled (), pos = Position.thread_data ()};
+      Proof_Display.print_results {verbose = verbose, pos = Position.thread_data ()};
 
     fun after_qed' results goal_ctxt' =
       let
