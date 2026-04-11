@@ -33,9 +33,9 @@ sig
   val the_process_default: unit -> T
   val set_process_default: T option -> unit
   val load_process_default: unit -> unit
-  val get_thread_default: unit -> T option
-  val set_thread_default: T option -> unit
-  val setmp_thread_default: T option -> ('a -> 'b) -> 'a -> 'b
+  val get_thread_update: unit -> update
+  val set_thread_update: update -> unit
+  val setmp_thread_update: update -> ('a -> 'b) -> 'a -> 'b
   val default: update -> T
   val default_typ: string -> string
   val default_bool: string -> bool
@@ -44,7 +44,7 @@ sig
   val default_seconds: string -> Time.time
   val default_string: string -> string
   val get_default: string -> string
-  val with_update_default: update -> ('a -> 'b) -> 'a -> 'b
+  val with_default_update: update -> ('a -> 'b) -> 'a -> 'b
 end;
 
 structure Options: OPTIONS =
@@ -201,22 +201,21 @@ fun load_process_default () =
       |> Option.app (set_process_default o SOME o decode o YXML.parse_body_bytes));
 
 
-(* thread default *)
+(* thread-local update *)
 
-val thread_default = Thread_Data.var () : T Thread_Data.var;
+val thread_update = Thread_Data.var () : update Thread_Data.var;
 
-fun get_thread_default () = Thread_Data.get thread_default;
-val set_thread_default = Thread_Data.put thread_default;
-fun setmp_thread_default opt f x = Thread_Data.setmp thread_default opt f x;
+fun get_thread_update () = Thread_Data.get thread_update |> these;
+val set_thread_update = Thread_Data.put thread_update o SOME;
+
+fun setmp_thread_update upd f x =
+  if get_thread_update () = upd then f x
+  else Thread_Data.setmp thread_update (SOME upd) f x;
 
 
 (* generic default *)
 
-fun default upd =
-  (case get_thread_default () of
-    SOME options => options
-  | NONE => the_process_default ())
-  |> update upd;
+fun default upd = the_process_default () |> update (get_thread_update ()) |> update upd;
 
 fun default_typ name = typ (default []) name;
 fun default_bool name = bool (default []) name;
@@ -228,7 +227,9 @@ fun default_string name = string (default []) name;
 fun get_default name =
   let val options = default [] in get (typ options name) SOME options name end;
 
-fun with_update_default upd f x = setmp_thread_default (SOME (default upd)) f x;
+fun with_default_update upd f x =
+  if null upd then f x
+  else setmp_thread_update (get_thread_update () @ upd) f x;
 
 
 (* Pure bootstrap *)

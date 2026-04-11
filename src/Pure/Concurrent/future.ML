@@ -442,7 +442,7 @@ fun future_job group atts (e: unit -> 'a) =
   let
     val result = Single_Assignment.var "future" : 'a result;
     val pos = Position.thread_data ();
-    val options_default = Options.get_thread_default ();
+    val options_update = Options.get_thread_update ();
     val context = Context.get_generic_context ();
     fun job ok =
       let
@@ -451,7 +451,7 @@ fun future_job group atts (e: unit -> 'a) =
             Exn.capture_body (fn () =>
               Thread_Attributes.with_attributes atts (fn _ =>
                 (Position.setmp_thread_data pos o
-                  Options.setmp_thread_default options_default o
+                  Options.setmp_thread_update options_update o
                   Context.setmp_generic_context context) e ()))
           else Isabelle_Thread.interrupt_exn;
       in assign_result group result (identify_result pos res) end;

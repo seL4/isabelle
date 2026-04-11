@@ -20,7 +20,7 @@ struct
 local val name = "interactive" in
 
 fun enabled () = Options.default_bool name;
-fun setmp b f x = Options.with_update_default [(name, Value.print_bool b)] f x;
+fun setmp b f x = Options.with_default_update [(name, Value.print_bool b)] f x;
 
 end;
 
@@ -34,7 +34,7 @@ fun parallel_proofs () =
   in if not (enabled ()) then m else if m > 0 then 3 else 0 end;
 
 fun setmp_parallel_proofs m f x =
-  Options.with_update_default [(name, Value.print_int m)] f x;
+  Options.with_default_update [(name, Value.print_int m)] f x;
 
 end;
 

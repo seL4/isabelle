@@ -285,7 +285,7 @@ val generate_mepo_suggestions =
        #> Sledgehammer_MePo.mepo_suggested_facts ctxt params max_suggs NONE hyp_ts concl_t)
 
 fun generate_mash_suggestions algorithm ctxt =
-  Options.with_update_default [(\<^system_option>\<open>MaSh\<close>, algorithm)] (fn () =>
+  Options.with_default_update [(\<^system_option>\<open>MaSh\<close>, algorithm)] (fn () =>
    (Sledgehammer_MaSh.mash_unlearn ctxt;
     generate_mepo_or_mash_suggestions
      (fn ctxt => fn thy_name => fn params as {provers = prover :: _, ...} =>
