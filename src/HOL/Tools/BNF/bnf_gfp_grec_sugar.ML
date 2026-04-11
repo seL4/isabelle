@@ -23,9 +23,9 @@ sig
   val derive_unique: Proof.context -> morphism -> term -> BNF_GFP_Grec.corec_info -> string ->
     thm -> thm
 
-  val corec_cmd: bool -> corec_option list -> (binding * string option * mixfix) list * string ->
-    local_theory -> local_theory
-  val corecursive_cmd: bool -> corec_option list ->
+  val corec_cmd: {verbose: bool} -> corec_option list ->
+    (binding * string option * mixfix) list * string -> local_theory -> local_theory
+  val corecursive_cmd: {verbose: bool} -> corec_option list ->
     (binding * string option * mixfix) list * string -> local_theory -> Proof.state
   val friend_of_corec_cmd: (string * string option) * string -> local_theory -> Proof.state
   val coinduction_upto_cmd: string * string -> local_theory -> local_theory
@@ -1819,7 +1819,7 @@ fun add_function binding parsed_eq lthy =
       Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt;
 
     val ({defname, pelims = [[pelim]], pinducts = [pinduct], psimps = [psimp], ...}, lthy') =
-      Function.add_function [(Binding.concealed binding, NONE, NoSyn)]
+      Function.add_function {verbose = false} [(Binding.concealed binding, NONE, NoSyn)]
         [(((Binding.concealed Binding.empty, []), parsed_eq), [], [])]
         Function_Common.default_config pat_completeness_auto lthy;
   in
@@ -1966,7 +1966,7 @@ fun derive_and_update_coinduct_cong_intross [] = pair (false, [])
       else
         ((false, extras), lthy));
 
-fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
+fun prepare_corec_ursive_cmd {verbose, long} opts (raw_fixes, raw_eq) lthy =
   let
     val _ = can the_single raw_fixes orelse
       error "Mutually corecursive functions not supported";
@@ -2023,7 +2023,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
       explore_corec_equation lthy3 true friend fun_name fun_free corec_parse_info res_T parsed_eq;
 
     val (((inner_fp_triple, termin_goals), corecUU_arg), lthy4) =
-      build_corecUU_arg_and_goals (not long_cmd) fun_free explored_eq lthy3;
+      build_corecUU_arg_and_goals (not long) fun_free explored_eq lthy3;
 
     fun def_fun (inner_fp_elims0, inner_fp_inducts0, inner_fp_simps0) const_transfers
         rho_transfers_foldeds lthy5 =
@@ -2060,7 +2060,7 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
         val ((fun_lhs0, (_, fun_def0)), (lthy9, lthy8')) = lthy7
           |> (snd o Local_Theory.begin_nested)
           |> Local_Theory.define def
-          |> tap (fn (def, lthy') => print_def_consts int [def] lthy')
+          |> tap (fn (def, lthy') => print_def_consts {verbose = verbose} [def] lthy')
           ||> `Local_Theory.end_nested;
 
         val parsed_eq = parse_corec_equation lthy9 [fun_free] eq;
@@ -2180,18 +2180,18 @@ fun prepare_corec_ursive_cmd int long_cmd opts (raw_fixes, raw_eq) lthy =
 
     val const_transfer_goals = fold (union (op aconv) o fst) transfer_goal_datas [];
     val (const_transfers, const_transfer_goals') =
-      if long_cmd then ([], const_transfer_goals)
+      if long then ([], const_transfer_goals)
       else fold (maybe_prove_transfer_goal lthy4) const_transfer_goals ([], []);
   in
     ((def_fun, (([res_T], prepareds, rho_datas, map snd transfer_goal_datas),
         (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals'))), lthy4)
   end;
 
-fun corec_cmd int opts (raw_fixes, raw_eq) lthy =
+fun corec_cmd {verbose} opts (raw_fixes, raw_eq) lthy =
   let
     val ((def_fun, (_, (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals))),
          lthy') =
-      prepare_corec_ursive_cmd int false opts (raw_fixes, raw_eq) lthy;
+      prepare_corec_ursive_cmd {verbose = verbose, long = false} opts (raw_fixes, raw_eq) lthy;
   in
     if not (null termin_goals) then
       error ("Termination prover failed (try " ^ quote (#1 \<^command_keyword>\<open>corecursive\<close>) ^
@@ -2203,11 +2203,11 @@ fun corec_cmd int opts (raw_fixes, raw_eq) lthy =
       def_fun inner_fp_triple const_transfers [] lthy'
   end;
 
-fun corecursive_cmd int opts (raw_fixes, raw_eq) lthy =
+fun corecursive_cmd {verbose} opts (raw_fixes, raw_eq) lthy =
   let
     val ((def_fun, (([Type (fpT_name, _)], prepareds, rho_datas, rho_transfer_goals),
             (inner_fp_triple, termin_goals), (const_transfers, const_transfer_goals))), lthy') =
-      prepare_corec_ursive_cmd int true opts (raw_fixes, raw_eq) lthy;
+      prepare_corec_ursive_cmd {verbose = verbose, long = true} opts (raw_fixes, raw_eq) lthy;
 
     val (rho_transfer_goals', unprime_rho_transfer_and_folds) =
       @{map 3} (fn (_, _, _, _, _, _, _, _, _, _, _, _, _) => fn (_, rho_def) =>
@@ -2373,13 +2373,13 @@ val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>corec\<close>
   "define nonprimitive corecursive functions"
   ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| \<^keyword>\<open>)\<close>) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
-   >> uncurry (corec_cmd true));
+   >> uncurry (corec_cmd {verbose = true}));
 
 val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>corecursive\<close>
   "define nonprimitive corecursive functions"
   ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| \<^keyword>\<open>)\<close>) []) -- (Parse.vars --| Parse.where_ -- Parse.prop)
-   >> uncurry (corecursive_cmd true));
+   >> uncurry (corecursive_cmd {verbose = true}));
 
 val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>friend_of_corec\<close>
   "register a function as a legal context for nonprimitive corecursion"

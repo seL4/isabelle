@@ -94,7 +94,7 @@ fun add_equality fcT fcT_name As ctrs inject_thms distinct_thms =
           mk_Trueprop_eq (mk_side \<^const_name>\<open>HOL.equal\<close>, mk_side \<^const_name>\<open>HOL.eq\<close>)
           |> Syntax.check_term lthy;
         val ((_, (_, raw_def)), lthy') =
-          Specification.definition NONE [] [] (Binding.empty_atts, spec) lthy;
+          Specification.definition {verbose = false} NONE [] [] (Binding.empty_atts, spec) lthy;
         val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy');
         val def = singleton (Proof_Context.export lthy' thy_ctxt) raw_def;
       in

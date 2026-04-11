@@ -776,7 +776,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       val _ = Pretty.writeln (Pretty.block [Pretty.str "Defining simplified version:\n",
                                             Syntax.pretty_term ctxt eq])
     
-      val (_, ctxt') = Specification.definition NONE [] [] ((def, []), eq) ctxt
+      val (_, ctxt') = Specification.definition {verbose = false} NONE [] [] ((def, []), eq) ctxt
     
     in
       ((def_name, orig_name), ctxt')
@@ -978,7 +978,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       in
         if #partial config
         then Partial_Function.add_partial_function "option" bindings part_specs lthy |>> PartialFunction o snd
-        else Function.add_function bindings specs fun_config pat_completeness_auto lthy |>> Function
+        else Function.add_function {verbose = false} bindings specs fun_config pat_completeness_auto lthy |>> Function
       end
 
     val (info,ctxt) = 

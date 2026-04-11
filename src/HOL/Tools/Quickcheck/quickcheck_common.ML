@@ -361,7 +361,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
     let
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
     in
-      Function.add_function
+      Function.add_function {verbose = false}
         (map (fn (name, T) => (Binding.concealed (Binding.name name), SOME T, NoSyn))
           (names ~~ Ts))
         (map (fn t => (((Binding.concealed Binding.empty, []), t), [], [])) eqs_t)

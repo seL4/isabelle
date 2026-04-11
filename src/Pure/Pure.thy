@@ -483,12 +483,13 @@ val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>definition\<close> "constant definition"
     (Scan.option Parse_Spec.constdecl -- (Parse_Spec.opt_thm_name ":" -- Parse.prop) --
       Parse_Spec.if_assumes -- Parse.for_fixes >> (fn (((decl, spec), prems), params) =>
-        #2 o Specification.definition_cmd decl params prems spec));
+        #2 o Specification.definition_cmd {verbose = true} decl params prems spec));
 
 val _ =
   Outer_Syntax.local_theory \<^command_keyword>\<open>abbreviation\<close> "constant abbreviation"
     (Parse.syntax_mode -- Scan.option Parse_Spec.constdecl -- Parse.prop -- Parse.for_fixes
-      >> (fn (((mode, decl), spec), params) => Specification.abbreviation_cmd mode decl params spec));
+      >> (fn (((mode, decl), spec), params) =>
+        Specification.abbreviation_cmd {verbose = true} mode decl params spec));
 
 val axiomatization =
   Parse.and_list1 (Parse_Spec.thm_name ":" -- Parse.prop) --

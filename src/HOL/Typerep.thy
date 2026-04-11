@@ -58,7 +58,7 @@ fun add_typerep tyco thy =
     thy
     |> Class.instantiation ([tyco], vs, \<^sort>\<open>typerep\<close>)
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition NONE [] [] (Binding.empty_atts, eq))
+    |-> (fn eq => Specification.definition {verbose = false} NONE [] [] (Binding.empty_atts, eq))
     |> snd
     |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
   end;

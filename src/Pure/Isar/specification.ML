@@ -32,15 +32,15 @@ sig
     (binding * string option * mixfix) list -> string list ->
     (Attrib.binding * string) list -> theory -> (term list * thm list) * theory
   val axiom: Attrib.binding * term -> theory -> thm * theory
-  val definition: (binding * typ option * mixfix) option ->
+  val definition: {verbose: bool} -> (binding * typ option * mixfix) option ->
     (binding * typ option * mixfix) list -> term list -> Attrib.binding * term ->
     local_theory -> (term * (string * thm)) * local_theory
-  val definition_cmd: (binding * string option * mixfix) option ->
+  val definition_cmd: {verbose: bool} -> (binding * string option * mixfix) option ->
     (binding * string option * mixfix) list -> string list -> Attrib.binding * string ->
     local_theory -> (term * (string * thm)) * local_theory
-  val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option ->
+  val abbreviation: {verbose: bool} -> Syntax.mode -> (binding * typ option * mixfix) option ->
     (binding * typ option * mixfix) list -> term -> local_theory -> local_theory
-  val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option ->
+  val abbreviation_cmd: {verbose: bool} -> Syntax.mode -> (binding * string option * mixfix) option ->
     (binding * string option * mixfix) list -> string -> local_theory -> local_theory
   val alias: binding * string -> local_theory -> local_theory
   val alias_cmd: binding * (xstring * Position.T) -> local_theory -> local_theory
@@ -239,7 +239,7 @@ fun axiom (b, ax) = axiomatization [] [] [] [(b, ax)] #>> (hd o snd);
 
 (* definition *)
 
-fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_spec) int lthy =
+fun gen_def prep_spec prep_att {verbose} raw_var raw_params raw_prems ((a, raw_atts), raw_spec) lthy =
   let
     val atts = map (prep_att lthy) raw_atts;
 
@@ -270,21 +270,18 @@ fun gen_def prep_spec prep_att raw_var raw_params raw_prems ((a, raw_atts), raw_
     val lhs' = Morphism.term (Local_Theory.target_morphism lthy4) lhs;
 
     val _ =
-      Proof_Display.print_consts int (Position.thread_data ()) lthy4
+      Proof_Display.print_consts {verbose = verbose, pos = Position.thread_data ()} lthy4
         (Frees.defined (Frees.build (Frees.add_frees lhs'))) [(x, T)];
   in ((lhs, (def_name, th)), lthy4) end;
 
-fun definition xs ys As B = gen_def check_spec_open (K I) xs ys As B false;
-fun definition_cmd xs ys As B lthy =
-  gen_def read_spec_open Attrib.check_src xs ys As B (Interactive.enabled ()) lthy;
+val definition = gen_def check_spec_open (K I);
+val definition_cmd = gen_def read_spec_open Attrib.check_src;
 
 
 (* abbreviation *)
 
-fun gen_abbrev prep_spec mode raw_var raw_params raw_spec lthy =
+fun gen_abbrev prep_spec {verbose} mode raw_var raw_params raw_spec lthy =
   let
-    val int = Interactive.enabled ();
-
     val lthy1 = lthy |> Proof_Context.set_syntax_mode mode;
     val ((vars, xs, get_pos, spec), _) = lthy
       |> Proof_Context.set_mode Proof_Context.mode_abbrev
@@ -303,7 +300,9 @@ fun gen_abbrev prep_spec mode raw_var raw_params raw_spec lthy =
       |> Local_Theory.abbrev mode ((b, mx), rhs) |> snd
       |> Proof_Context.restore_syntax_mode lthy;
 
-    val _ = Proof_Display.print_consts int (Position.thread_data ()) lthy2 (K false) [(x, T)];
+    val _ =
+      Proof_Display.print_consts {verbose = verbose, pos = Position.thread_data ()}
+        lthy2 (K false) [(x, T)];
   in lthy2 end;
 
 val abbreviation = gen_abbrev check_spec_open;

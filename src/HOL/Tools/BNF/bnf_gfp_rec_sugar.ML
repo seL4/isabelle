@@ -82,17 +82,17 @@ sig
   val gfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val primcorec_ursive: bool -> bool -> corec_option list -> ((binding * typ) * mixfix) list ->
+  val primcorec_ursive: {verbose: bool, auto: bool} -> corec_option list -> ((binding * typ) * mixfix) list ->
     ((binding * Token.T list list) * term) list -> term option list ->  Proof.context ->
     (term * 'a list) list list * (thm list list -> local_theory -> local_theory) * local_theory
-  val primcorec_ursive_cmd: bool -> bool -> corec_option list ->
+  val primcorec_ursive_cmd: {verbose: bool, auto: bool} -> corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context ->
     (term * 'a list) list list * (thm list list -> local_theory -> local_theory) * local_theory
-  val primcorecursive_cmd: bool -> corec_option list ->
+  val primcorecursive_cmd: {verbose: bool} -> corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     Proof.context -> Proof.state
-  val primcorec_cmd: bool -> corec_option list ->
+  val primcorec_cmd: {verbose: bool} -> corec_option list ->
     (binding * string option * mixfix) list * ((Attrib.binding * string) * string option) list ->
     local_theory -> local_theory
 end;
@@ -1055,7 +1055,7 @@ fun applied_fun_of fun_name fun_T fun_args =
 fun is_trivial_implies thm =
   uncurry (member (op aconv)) (Logic.strip_horn (Thm.prop_of thm));
 
-fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
+fun primcorec_ursive {verbose, auto} opts fixes specs of_specs_opt lthy =
   let
     val (bs, mxs) = map_split (apfst fst) fixes;
     val (arg_Ts, res_Ts) = map (strip_type o snd o fst #>> mk_tupleT_balanced) fixes |> split_list;
@@ -1556,31 +1556,31 @@ fun primcorec_ursive int auto opts fixes specs of_specs_opt lthy =
 
     fun after_qed thmss' =
       fold_map Local_Theory.define defs
-      #> tap (uncurry (print_def_consts int))
+      #> tap (uncurry (print_def_consts {verbose = verbose}))
       #-> prove thmss';
   in
     (goalss, after_qed, lthy)
   end;
 
-fun primcorec_ursive_cmd int auto opts (raw_fixes, raw_specs_of) lthy =
+fun primcorec_ursive_cmd flags opts (raw_fixes, raw_specs_of) lthy =
   let
     val (raw_specs, of_specs_opt) =
       split_list raw_specs_of ||> map (Option.map (Syntax.read_term lthy));
     val (fixes, specs) =
       fst (Specification.read_multi_specs raw_fixes (map (fn spec => (spec, [], [])) raw_specs) lthy);
   in
-    primcorec_ursive int auto opts fixes specs of_specs_opt lthy
+    primcorec_ursive flags opts fixes specs of_specs_opt lthy
   end;
 
-fun primcorecursive_cmd int = (fn (goalss, after_qed, lthy) =>
+fun primcorecursive_cmd {verbose} = (fn (goalss, after_qed, lthy) =>
     lthy
     |> Proof.theorem NONE after_qed goalss
     |> Proof.refine_singleton (Method.primitive_text (K I))) ooo
-  primcorec_ursive_cmd int false;
+  primcorec_ursive_cmd {verbose = verbose, auto = false};
 
-fun primcorec_cmd int = (fn (goalss, after_qed, lthy) =>
+fun primcorec_cmd {verbose} = (fn (goalss, after_qed, lthy) =>
     lthy |> after_qed (map (fn [] => [] | _ => use_primcorecursive ()) goalss)) ooo
-  primcorec_ursive_cmd int true;
+  primcorec_ursive_cmd {verbose = verbose, auto = true};
 
 val corec_option_parser = Parse.group (K "option")
   (Plugin_Name.parse_filter >> Plugins_Option
@@ -1595,13 +1595,13 @@ val _ = Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>primcorecur
   "define primitive corecursive functions"
   ((Scan.optional (\<^keyword>\<open>(\<close> |--
       Parse.!!! (Parse.list1 corec_option_parser) --| \<^keyword>\<open>)\<close>) []) --
-    (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorecursive_cmd true));
+    (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorecursive_cmd {verbose = true}));
 
 val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>primcorec\<close>
   "define primitive corecursive functions"
   ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 corec_option_parser)
       --| \<^keyword>\<open>)\<close>) []) --
-    (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorec_cmd true));
+    (Parse.vars -- where_alt_props_of_parser) >> uncurry (primcorec_cmd {verbose = true}));
 
 val _ = Theory.setup (gfp_rec_sugar_interpretation transfer_plugin
   gfp_rec_sugar_transfer_interpretation);

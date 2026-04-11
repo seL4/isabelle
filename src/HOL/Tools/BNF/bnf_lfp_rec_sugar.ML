@@ -63,18 +63,18 @@ sig
   val lfp_rec_sugar_interpretation: string ->
     (BNF_FP_Rec_Sugar_Util.fp_rec_sugar -> local_theory -> local_theory) -> theory -> theory
 
-  val primrec: bool -> rec_option list -> (binding * typ option * mixfix) list ->
+  val primrec: {verbose: bool} -> rec_option list -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> local_theory ->
     (term list * thm list * thm list list) * local_theory
-  val primrec_cmd: bool -> rec_option list -> (binding * string option * mixfix) list ->
+  val primrec_cmd: {verbose: bool} -> rec_option list -> (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> local_theory ->
     (term list * thm list * thm list list) * local_theory
-  val primrec_global: bool -> rec_option list -> (binding * typ option * mixfix) list ->
+  val primrec_global: {verbose: bool} -> rec_option list -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_overloaded: bool -> rec_option list -> (string * (string * typ) * bool) list ->
+  val primrec_overloaded: {verbose: bool} -> rec_option list -> (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list * thm list list) * theory
-  val primrec_simple: bool -> ((binding * typ) * mixfix) list -> term list -> local_theory ->
+  val primrec_simple: {verbose: bool} -> ((binding * typ) * mixfix) list -> term list -> local_theory ->
     ((string list * (binding -> binding) list)
      * (term list * thm list * (int list list * thm list list))) * local_theory
 end;
@@ -686,6 +686,6 @@ val _ = Outer_Syntax.local_theory \<^command_keyword>\<open>primrec\<close>
   "define primitive recursive functions"
   ((Scan.optional (\<^keyword>\<open>(\<close> |-- Parse.!!! (Parse.list1 rec_option_parser)
       --| \<^keyword>\<open>)\<close>) []) -- Parse_Spec.specification
-    >> (fn (opts, (fixes, specs)) => snd o primrec_cmd true opts fixes specs));
+    >> (fn (opts, (fixes, specs)) => snd o primrec_cmd {verbose = true} opts fixes specs));
 
 end;

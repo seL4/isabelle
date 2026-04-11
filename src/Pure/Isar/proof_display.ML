@@ -21,7 +21,7 @@ sig
   val print_results: {verbose: bool, pos: Position.T} -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_theorem: Position.T -> Proof.context -> string * thm list -> unit
-  val print_consts: bool -> Position.T -> Proof.context ->
+  val print_consts: {verbose: bool, pos: Position.T} -> Proof.context ->
     (string * typ -> bool) -> (string * typ) list -> unit
   val markup_extern_label: Position.T -> (Markup.T * xstring) option
   val print_label: Position.T -> string
@@ -355,8 +355,8 @@ fun pretty_consts pos ctxt pred cs =
 
 in
 
-fun print_consts int pos ctxt pred cs =
-  if null cs orelse no_print int ctxt then ()
+fun print_consts {verbose, pos} ctxt pred cs =
+  if null cs orelse no_print verbose ctxt then ()
   else Pretty.writeln (pretty_consts pos ctxt pred cs);
 
 end;

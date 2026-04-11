@@ -95,7 +95,7 @@ sig
   val mk_conjunctN: int -> int -> thm
   val conj_dests: int -> thm -> thm list
 
-  val print_def_consts: bool -> (term * (string * thm)) list -> Proof.context -> unit
+  val print_def_consts: {verbose: bool} -> (term * (string * thm)) list -> Proof.context -> unit
 end;
 
 structure BNF_FP_Rec_Sugar_Util : BNF_FP_REC_SUGAR_UTIL =
@@ -313,8 +313,8 @@ fun mk_conjunctN 1 1 = @{thm TrueE[OF TrueI]}
 
 fun conj_dests n thm = map (fn k => thm RS mk_conjunctN n k) (1 upto n);
 
-fun print_def_consts int defs ctxt =
-  Proof_Display.print_consts int (Position.thread_data ()) ctxt (K false)
+fun print_def_consts {verbose} defs ctxt =
+  Proof_Display.print_consts {verbose = verbose, pos = Position.thread_data ()} ctxt (K false)
     (map_filter (try (dest_Free o fst)) defs);
 
 end;

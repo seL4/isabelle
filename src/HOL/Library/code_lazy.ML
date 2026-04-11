@@ -88,7 +88,7 @@ fun add_syntax_definition short_type_name eagerT lazyT lazy_ctr lthy =
       Free (name, (freeT --> eagerT)) $ Bound 0,
       lazy_ctr $ (Const (\<^const_name>\<open>delay\<close>, (freeT --> lazyT')) $ Bound 0)))
     val lthy' = (snd o Local_Theory.begin_nested) lthy
-    val ((t, (_, thm)), lthy') = Specification.definition NONE [] [] 
+    val ((t, (_, thm)), lthy') = Specification.definition {verbose = false} NONE [] [] 
       ((Thm.def_binding (Binding.name name), []), def) lthy'
     val lthy' = Local_Theory.notation true ("", false) [(t, Mixfix.mixfix "_")] lthy'
     val lthy = Local_Theory.end_nested lthy'
@@ -303,7 +303,7 @@ fun code_lazy_type eager_type_string thy =
           lthy
           |> Local_Theory.begin_nested
           |> snd 
-          |> Specification.definition NONE [] [] ((Thm.def_binding binding, []), rhs)
+          |> Specification.definition {verbose = false} NONE [] [] ((Thm.def_binding binding, []), rhs)
         val lthy2 =
           lthy1
           |> Local_Theory.end_nested

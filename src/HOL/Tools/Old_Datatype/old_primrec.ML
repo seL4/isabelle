@@ -8,18 +8,18 @@ Primitive recursive functions on datatypes.
 
 signature OLD_PRIMREC =
 sig
-  val primrec: bool -> (binding * typ option * mixfix) list ->
+  val primrec: {verbose: bool} -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> local_theory ->
     {types: string list, result: term list * thm list} * local_theory
-  val primrec_cmd: bool -> (binding * string option * mixfix) list ->
+  val primrec_cmd: {verbose: bool} -> (binding * string option * mixfix) list ->
     Specification.multi_specs_cmd -> local_theory ->
     {types: string list, result: term list * thm list} * local_theory
-  val primrec_global: bool -> (binding * typ option * mixfix) list ->
+  val primrec_global: {verbose: bool} -> (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list) * theory
-  val primrec_overloaded: bool -> (string * (string * typ) * bool) list ->
+  val primrec_overloaded: {verbose: bool} -> (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     Specification.multi_specs -> theory -> (term list * thm list) * theory
-  val primrec_simple: bool -> ((binding * typ) * mixfix) list -> term list -> local_theory ->
+  val primrec_simple: {verbose: bool} -> ((binding * typ) * mixfix) list -> term list -> local_theory ->
     {prefix: string, types: string list, result: term list * thm list} * local_theory
 end;
 

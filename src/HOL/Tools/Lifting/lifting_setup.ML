@@ -88,7 +88,7 @@ fun define_pcrel (config: config) crel lthy0 =
     val rhs = \<^Const>\<open>relcompp rty rty' qty for param_rel_fixed fixed_crel\<close>
     val definition_term = Logic.mk_equals (lhs, rhs)
     fun note_def lthy =
-      Specification.definition (SOME (pcrel_name, SOME relator_type, NoSyn)) [] []
+      Specification.definition {verbose = false} (SOME (pcrel_name, SOME relator_type, NoSyn)) [] []
         (Binding.empty_atts, definition_term) lthy |>> (snd #> snd);
     fun raw_def lthy =
       let
