@@ -552,8 +552,8 @@ option system_channel_password : string = "" for connection
 section "Bash process execution server"
 
 option bash_process_debugging : bool = false for connection
-option bash_process_address : string = "" for connection
-option bash_process_password : string = "" for connection
+option bash_process_address : string = "" for connection ML_process
+option bash_process_password : string = "" for connection ML_process
 
 
 section "Continuous integration"
