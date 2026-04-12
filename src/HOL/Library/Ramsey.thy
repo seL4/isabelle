@@ -1096,6 +1096,54 @@ corollary Ramsey_nsets:
   obtains Y t where "Y \<subseteq> Z" "infinite Y" "t < s" "f ` nsets Y r \<subseteq> {t}"
   using Ramsey [of Z r f s] assms by (auto simp: nsets_def image_subset_iff)
 
+text \<open>Every infinite sequence of linearly ordered elements has an infinite monotone subsequence:\<close>
+
+corollary monotone_subsequence:
+  fixes f :: "nat \<Rightarrow> 'a::linorder"
+  shows "\<exists>I::nat set. infinite I \<and>
+            ((\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f i \<le> f j) \<or> (\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f i > f j))"
+proof -
+  let ?f = "\<lambda>M. if \<exists>i j. M = {i,j} \<and> i < j \<and> f i \<le> f j then 0 else 1 :: nat"
+  have "?f i < 2" for i by auto
+  with Ramsey2[OF infinite_UNIV_nat, of ?f 2]
+  obtain I t where It:
+    "infinite I" "t < 2" "\<forall>x\<in>I. \<forall>y\<in>I. x \<noteq> y \<longrightarrow> ?f {x,y} = t" by auto
+  show ?thesis
+  proof (cases "t = 0")
+    case True
+    hence "\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f i \<le> f j" using It(3)
+      by (metis doubleton_eq_iff not_one_le_zero order_less_imp_not_less order_refl)
+    then show ?thesis using It(1) by blast
+  next
+    case False
+    hence "\<And>i j. \<lbrakk> i \<in> I; j \<in> I; i < j \<rbrakk> \<Longrightarrow> f i > f j"
+      by (metis It(3) linorder_not_less nat_neq_iff)
+    then show ?thesis by (metis It(1))
+  qed
+qed
+
+text \<open>Every infinite sequence of \<open>nat\<close>s has an infinite monotonically increasing subsequence:\<close>
+
+corollary mono_incr_subsequence_nat:
+  fixes f :: "nat \<Rightarrow> nat"
+  shows "\<exists>I::nat set. infinite I \<and> (\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f i \<le> f j)"
+proof -
+  from monotone_subsequence[of f]
+  obtain I where I: "infinite I"
+    "(\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f i \<le> f j) \<or> (\<forall>i\<in>I. \<forall>j\<in>I. i < j \<longrightarrow> f j < f i)" (is "?A \<or> ?B")
+    by auto
+  from I(2) show ?thesis
+  proof
+    assume ?A thus ?thesis using I(1) by blast
+  next
+    assume ?B
+    hence False
+      using no_infinite_less_nat_down_chain[of "f o enumerate I"]
+      by (simp add: I(1) enumerate_in_set)
+    then show ?thesis ..
+  qed
+qed
+
 
 subsection \<open>Disjunctive Well-Foundedness\<close>
 
