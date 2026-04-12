@@ -309,15 +309,18 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
         more_options.foldLeft(options1)(_ + _)
       }
 
+
+      val progress = new Console_Progress()
+
       if (get_option != "") {
-        Output.writeln(options.check_name(get_option).value, stdout = true)
+        progress.echo(options.check_name(get_option).value)
       }
 
       if (get_option == "") {
         val filter: Options.Entry => Boolean =
           if (list_tags.isEmpty) (_ => true)
           else opt => list_tags.exists(opt.for_tag)
-        Output.writeln(options.print(filter = filter), stdout = true)
+        progress.echo(options.print(filter = filter))
       }
     })
 }
