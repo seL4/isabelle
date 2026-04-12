@@ -312,6 +312,25 @@ object Library {
       case _ => error(message)
     }
 
+  def runs[A](xs: List[A], eq: (A, A) => Boolean = (x: A, y: A) => x == y): List[List[A]] = {
+    val run = new mutable.ListBuffer[A]
+    val result = new mutable.ListBuffer[List[A]]
+
+    def flush(): Unit =
+      if (run.nonEmpty) {
+        result += run.toList
+        run.clear()
+      }
+
+    for (x <- xs) {
+      if (run.nonEmpty && !eq(run.last, x)) flush()
+      run += x
+    }
+
+    flush()
+    result.toList
+  }
+
 
   /* proper values */
 
