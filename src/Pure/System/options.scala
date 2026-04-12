@@ -300,23 +300,20 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
         "t:" -> (arg => list_tags = space_explode(',', arg)))
 
       val more_options = getopts(args)
-      if (get_option == "" && !list_options) getopts.usage()
+      if (get_option.isEmpty && !list_options) getopts.usage()
 
-      val options = {
-        val options0 = Options.init()
-        val options1 =
-          if (build_options) options0 ++ Options.Spec.ISABELLE_BUILD_OPTIONS else options0
-        more_options.foldLeft(options1)(_ + _)
-      }
+      val options =
+        more_options.foldLeft(
+          Options.init(update = if (build_options) Options.Spec.ISABELLE_BUILD_OPTIONS else Nil)
+        )(_ + _)
 
 
       val progress = new Console_Progress()
 
-      if (get_option != "") {
+      if (get_option.nonEmpty) {
         progress.echo(options.check_name(get_option).value)
       }
-
-      if (get_option == "") {
+      else {
         val filter: Options.Entry => Boolean =
           if (list_tags.isEmpty) (_ => true)
           else opt => list_tags.exists(opt.for_tag)
