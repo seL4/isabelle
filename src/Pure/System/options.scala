@@ -281,7 +281,6 @@ object Options {
       var get_option = ""
       var list_options = false
       var list_tags = List.empty[String]
-      var export_file = ""
 
       val getopts = Getopts("""
 Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
@@ -291,7 +290,6 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
     -g OPTION    get value of OPTION
     -l           list options
     -t TAGS      restrict list to given tags (comma-separated)
-    -x FILE      export options to FILE in YXML format
 
   Report Isabelle system options, augmented by MORE_OPTIONS given as
   arguments NAME=VAL or NAME.
@@ -299,32 +297,27 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
         "b" -> (_ => build_options = true),
         "g:" -> (arg => get_option = arg),
         "l" -> (_ => list_options = true),
-        "t:" -> (arg => list_tags = space_explode(',', arg)),
-        "x:" -> (arg => export_file = arg))
+        "t:" -> (arg => list_tags = space_explode(',', arg)))
 
       val more_options = getopts(args)
-      if (get_option == "" && !list_options && export_file == "") getopts.usage()
+      if (get_option.isEmpty && !list_options) getopts.usage()
 
-      val options = {
-        val options0 = Options.init()
-        val options1 =
-          if (build_options) options0 ++ Options.Spec.ISABELLE_BUILD_OPTIONS else options0
-        more_options.foldLeft(options1)(_ + _)
+      val options =
+        more_options.foldLeft(
+          Options.init(update = if (build_options) Options.Spec.ISABELLE_BUILD_OPTIONS else Nil)
+        )(_ + _)
+
+
+      val progress = new Console_Progress()
+
+      if (get_option.nonEmpty) {
+        progress.echo(options.check_name(get_option).value)
       }
-
-      if (get_option != "") {
-        Output.writeln(options.check_name(get_option).value, stdout = true)
-      }
-
-      if (export_file != "") {
-        File.write(Path.explode(export_file), YXML.string_of_body(options.encode))
-      }
-
-      if (get_option == "" && export_file == "") {
+      else {
         val filter: Options.Entry => Boolean =
           if (list_tags.isEmpty) (_ => true)
           else opt => list_tags.exists(opt.for_tag)
-        Output.writeln(options.print(filter = filter), stdout = true)
+        progress.echo(options.print(filter = filter))
       }
     })
 }
