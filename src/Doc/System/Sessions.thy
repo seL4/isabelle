@@ -326,7 +326,6 @@ text \<open>
     -g OPTION    get value of OPTION
     -l           list options
     -t TAGS      restrict list to given tags (comma-separated)
-    -x FILE      export options to FILE in YXML format
 
   Report Isabelle system options, augmented by MORE_OPTIONS given as
   arguments NAME=VAL or NAME.\<close>}
@@ -340,9 +339,6 @@ text \<open>
   Option \<^verbatim>\<open>-g\<close> prints the value of the given option. Option \<^verbatim>\<open>-l\<close> lists all
   options with their declaration and current value. Option \<^verbatim>\<open>-t\<close> restricts the
   listing to given tags (as comma-separated list), e.g. \<^verbatim>\<open>-t build,document\<close>.
-
-  Option \<^verbatim>\<open>-x\<close> specifies a file to export the result in YXML format, instead
-  of printing it in human-readable form.
 \<close>
 
 
