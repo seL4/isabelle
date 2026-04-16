@@ -660,6 +660,41 @@ lemma continuous_transform_within:
   using assms
   unfolding continuous_within by (force intro: Lim_transform_within)
 
+lemma continuous_within_comparison:
+  fixes f :: \<open>'a::metric_space \<Rightarrow> 'b::metric_space\<close>
+    and g :: \<open>'a::metric_space \<Rightarrow> 'c::metric_space\<close>
+  assumes \<open>continuous (at a within S) g\<close>
+    and \<open>\<And>x. x \<in> S \<Longrightarrow> dist (f a) (f x) \<le> dist (g a) (g x)\<close>
+  shows \<open>continuous (at a within S) f\<close>
+  unfolding continuous_within_eps_delta
+proof (intro allI impI)
+  fix \<epsilon> :: real assume \<open>\<epsilon> > 0\<close>
+  with assms(1)[unfolded continuous_within_eps_delta]
+  obtain \<delta> where \<open>\<delta> > 0\<close> and \<delta>: \<open>\<And>x'. x' \<in> S \<Longrightarrow> dist x' a < \<delta> \<Longrightarrow> dist (g x') (g a) < \<epsilon>\<close>
+    by auto
+  show \<open>\<exists>\<delta>>0. \<forall>x'\<in>S. dist x' a < \<delta> \<longrightarrow> dist (f x') (f a) < \<epsilon>\<close>
+  proof (intro exI conjI ballI impI)
+    show \<open>\<delta> > 0\<close> by fact
+  next
+    fix x' assume \<open>x' \<in> S\<close> \<open>dist x' a < \<delta>\<close>
+    have \<open>dist (f a) (f x') \<le> dist (g a) (g x')\<close> using assms(2) \<open>x' \<in> S\<close> by simp
+    also have \<open>dist (g a) (g x') = dist (g x') (g a)\<close> by (simp add: dist_commute)
+    also have \<open>\<dots> < \<epsilon>\<close> using \<delta> \<open>x' \<in> S\<close> \<open>dist x' a < \<delta>\<close> by simp
+    finally show \<open>dist (f x') (f a) < \<epsilon>\<close> by (simp add: dist_commute)
+  qed
+qed
+
+lemma continuous_within_ivl_split:
+  fixes c :: \<open>'a::linorder_topology\<close>
+  assumes \<open>c \<in> {a..b}\<close>
+  shows \<open>continuous (at c within {a..b}) f \<longleftrightarrow>
+         continuous (at c within {a..c}) f \<and> continuous (at c within {c..b}) f\<close>
+proof -
+  from assms have \<open>a \<le> c\<close> \<open>c \<le> b\<close> by auto
+  then have \<open>{a..b} = {a..c} \<union> {c..b}\<close> by (rule ivl_disj_un_two_touch(4) [symmetric])
+  then show ?thesis
+    by (simp add: continuous_within Lim_within_Un)
+qed
 
 section \<open>Closure and Limit Characterization\<close>
 

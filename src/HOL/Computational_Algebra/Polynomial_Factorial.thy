@@ -765,4 +765,6 @@ lemmas Gcd_poly_set_eq_fold [code] =
 lemmas Lcm_poly_set_eq_fold [code] =
   Lcm_set_eq_fold [where ?'a = "'a :: {factorial_ring_gcd,semiring_gcd_mult_normalize} poly"]
 
+hide_const (open) Polynomial.content
+
 end

@@ -1646,7 +1646,6 @@ proof -
     using * by (simp add: negligible_UNIV has_integral_iff)
 qed
 
-
 lemma negligible_linear_singular_image:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'n"
   assumes "linear f" "\<not> inj f"
@@ -2048,6 +2047,40 @@ proof -
     by (simp add: o_def)
   ultimately show ?thesis
     by (metis (no_types) image_comp negligible_differentiable_image_negligible order_refl)
+qed
+
+lemma negligible_linear_image:
+  fixes f :: \<open>'a::euclidean_space \<Rightarrow> 'a::euclidean_space\<close>
+  assumes \<open>linear f\<close> \<open>negligible S\<close>
+  shows \<open>negligible (f ` S)\<close>
+proof (cases \<open>inj f\<close>)
+  case True
+  have \<open>bounded_linear f\<close>
+    using \<open>linear f\<close> linear_conv_bounded_linear by blast
+  then have \<open>f differentiable_on S\<close>
+    using bounded_linear_imp_differentiable differentiable_on_def by blast
+    then show ?thesis
+    using negligible_differentiable_image_negligible assms(2) by blast
+next
+  case False
+  then show ?thesis
+  using \<open>linear f\<close> negligible_linear_singular_image by blast
+qed
+
+lemma negligible_linear_image_eq:
+  fixes f :: \<open>'a::euclidean_space \<Rightarrow> 'a::euclidean_space\<close>
+  assumes \<open>linear f\<close> \<open>inj f\<close>
+  shows \<open>negligible (f ` S) \<longleftrightarrow> negligible S\<close>
+proof
+  assume \<open>negligible S\<close>
+  then show \<open>negligible (f ` S)\<close>
+    using assms(1) negligible_linear_image by blast
+next
+  assume neg_fS: \<open>negligible (f ` S)\<close>
+  then have \<open>negligible (inv f ` f ` S)\<close>
+    using assms inj_linear_imp_inv_linear negligible_linear_image by blast
+  then show \<open>negligible S\<close>
+    using assms by force
 qed
 
 subsection\<open>Measurability of countable unions and intersections of various kinds.\<close>

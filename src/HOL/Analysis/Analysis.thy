@@ -26,6 +26,7 @@ theory Analysis
   Kronecker_Approximation_Theorem
   Weierstrass_Theorems
   (* Measure and Integration Theory *)
+  Rectifiable_Path
   Ball_Volume
   Integral_Test
   Improper_Integral
