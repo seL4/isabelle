@@ -176,7 +176,7 @@ proof -
         using S_def S_eq g_factor by auto
     have \<open>vector_variation {0..x} g = x\<close> if \<open>x \<in> {0..l}\<close> for x
     proof (rule antisym)
-      \<comment> \<open>Upper bound: 1-Lipschitz implies variation \<le> length of interval\<close>
+      \<comment> \<open>Upper bound: 1-Lipschitz implies variation is at most length of interval\<close>
       show \<open>vector_variation {0..x} g \<le> x\<close>
       proof (rule has_bounded_variation_works(2)[OF has_bounded_variation_on_subset[OF g_bv]])
         show \<open>{0..x} \<subseteq> {0..l}\<close> using that by auto
@@ -206,7 +206,8 @@ proof -
         finally show \<open>(\<Sum>k\<in>d. norm (g (Sup k) - g (Inf k))) \<le> x\<close> .
       qed
     next
-      \<comment> \<open>Lower bound: variation of @{term g} on @{term \<open>{0..x}\<close>} \<ge> @{term x} via factoring through @{term f}\<close>
+      \<comment> \<open>Lower bound: variation of @{term g} on @{term \<open>{0..x}\<close>} at least  @{term x} 
+           via factoring through @{term f}\<close>
       show \<open>x \<le> vector_variation {0..x} g\<close>
       proof -
         have x_in_S: \<open>x \<in> S\<close> using that S_eq by auto
@@ -261,7 +262,8 @@ proof -
           then show ?thesis
             unfolding vector_variation_def set_variation_def comp_def by auto
         qed
-          \<comment> \<open>Composition lemma: variation of @{term \<open>g \<circ> V\<close>} on @{term \<open>{a..t}\<close>} \<le> variation of @{term g} on @{term \<open>{V a..V t}\<close>}\<close>
+          \<comment> \<open>Composition lemma: variation of @{term \<open>g \<circ> V\<close>} on 
+               @{term \<open>{a..t}\<close>} is at most variation of @{term g} on @{term \<open>{V a..V t}\<close>}\<close>
         have \<open>vector_variation {a..t} (g \<circ> V) \<le> vector_variation {V a..V t} g\<close>
           using has_bounded_variation_compose_monotone(2)[OF g_bv_0x mono_V_at] .
         then have \<open>vector_variation {a..t} f \<le> vector_variation {0..x} g\<close>
