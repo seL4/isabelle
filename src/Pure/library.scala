@@ -15,10 +15,13 @@ import scala.util.matching.Regex
 object Library {
   /* resource management */
 
-  def using[A <: AutoCloseable, B](a: A)(f: A => B): B = {
-    try { f(a) }
-    finally { if (a != null) a.close() }
-  }
+  def using[A <: AutoCloseable, B](x: A | Null)(f: A => B): B =
+    x match {
+      case null => throw new NullPointerException
+      case a =>
+        try { f(a.asInstanceOf[A]) }
+        finally { a.asInstanceOf[AutoCloseable].close() }
+    }
 
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     opt.map(a => using(a)(f))
@@ -27,7 +30,7 @@ object Library {
     try { f(opt) }
     finally {
       opt match {
-        case Some(a) if a != null => a.close()
+        case Some(a) => a.close()
         case _ =>
       }
     }

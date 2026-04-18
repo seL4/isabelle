@@ -10,8 +10,8 @@ package object isabelle {
   val error = Exn.error _
   def cat_error(msgs: String*): Nothing = Exn.cat_error(msgs:_*)
 
-  def using[A <: AutoCloseable, B](a: A)(f: A => B): B =
-    Library.using(a)(f)
+  def using[A <: AutoCloseable, B](x: A | Null)(f: A => B): B =
+    Library.using(x)(f)
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     Library.using_option(opt)(f)
   def using_optional[A <: AutoCloseable, B](opt: Option[A])(f: Option[A] => B): B =
