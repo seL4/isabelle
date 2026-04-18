@@ -21,8 +21,9 @@ import scala.jdk.CollectionConverters._
 object Isabelle_System {
   /* properties */
 
-  def get_property(name: String): String =
-    System.getProperty(name, "").nn
+  def get_property(name: String): String = System.getProperty(name, "").nn
+
+  def get_property_bool(name: String): Boolean = get_property(name) == "true"
 
   def get_property_int(name: String): Int =
     Value.Int.unapply(System.getProperty(name, "0").nn).getOrElse(0)
