@@ -175,6 +175,8 @@ object Library {
 
   /* strings */
 
+  def trim_string(s: String): String = s.trim.nn
+
   def string_builder(hint: Int = 0)(body: StringBuilder => Unit): String = {
     val builder = new StringBuilder(if (hint <= 0) 16 else hint)
     body(builder)

@@ -113,7 +113,7 @@ object Host {
     for {
       path <- numa_info.toList
       if enabled && ssh.is_file(path)
-      n <- parse_numa_info(ssh.read(path).trim)
+      n <- parse_numa_info(Library.trim_string(ssh.read(path)))
     } yield n
   }
 

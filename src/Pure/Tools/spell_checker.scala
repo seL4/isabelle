@@ -75,7 +75,7 @@ object Spell_Checker {
       if (include) name else "-" + name
 
     def unapply(decl: String): Option[(String, Boolean)] = {
-      val decl1 = decl.trim
+      val decl1 = Library.trim_string(decl)
       if (decl1 == "" || decl1.startsWith("#")) None
       else
         Library.try_unprefix("-", decl1) match {
