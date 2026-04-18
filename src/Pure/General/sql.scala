@@ -42,7 +42,7 @@ object SQL {
     }
 
   def ident(s: String): Source =
-    Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\""))))
+    Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\"").nn)))
 
   def enclose(s: Source): Source = "(" + s + ")"
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
@@ -325,19 +325,21 @@ object SQL {
       }
     }
     object string {
-      def update(i: Int, x: String): Unit = rep.setString(i, x)
+      def update(i: Int, x: String | Null): Unit = rep.setString(i, x)
       def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
     }
     object bytes {
-      def update(i: Int, bytes: Bytes): Unit = {
-        if (bytes == null) rep.setBytes(i, null)
-        else if (bytes.size > Int.MaxValue) throw new IllegalArgumentException
-        else rep.setBinaryStream(i, bytes.stream(), bytes.size.toInt)
-      }
+      def update(i: Int, bytes: Bytes | Null): Unit =
+        bytes match {
+          case null => rep.setBytes(i, null)
+          case bs: Bytes =>
+            if (bs.size > Int.MaxValue) throw new IllegalArgumentException
+            else rep.setBinaryStream(i, bs.stream(), bs.size.toInt)
+        }
       def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
     }
     object date {
-      def update(i: Int, date: Date): Unit = db.update_date(stmt, i, date)
+      def update(i: Int, date: Date | Null): Unit = db.update_date(stmt, i, date)
       def update(i: Int, date: Option[Date]): Unit = update(i, date.orNull)
     }
 
@@ -347,14 +349,14 @@ object SQL {
       val it = batch.iterator
       if (it.nonEmpty) {
         for (body <- it) { body(this); rep.addBatch() }
-        val res = rep.executeBatch()
+        val res = rep.executeBatch().nn
         if (!res.forall(i => i >= 0 || i == java.sql.Statement.SUCCESS_NO_INFO)) {
           throw new Batch_Error(res.toList)
         }
       }
     }
 
-    def execute_query(): Result = new Result(this, rep.executeQuery())
+    def execute_query(): Result = new Result(this, rep.executeQuery().nn)
 
     override def close(): Unit = rep.close()
   }
@@ -379,7 +381,7 @@ object SQL {
     def double(column: Column): Double = rep.getDouble(column.name)
     def string(column: Column): String = {
       val s = rep.getString(column.name)
-      if (s == null) "" else s
+      if (s == null) "" else s.asInstanceOf[String]
     }
     def bytes(column: Column): Bytes = {
       val bs = rep.getBytes(column.name)
@@ -392,7 +394,7 @@ object SQL {
 
     def get[A](column: Column, f: Column => A): Option[A] = {
       val x = f(column)
-      if (rep.wasNull || x == null) None else Some(x)
+      if (rep.wasNull || x == null) None else Some(x.asInstanceOf[A])
     }
     def get_bool(column: Column): Option[Boolean] = get(column, bool)
     def get_int(column: Column): Option[Int] = get(column, int)
@@ -462,7 +464,7 @@ object SQL {
 
         the_postgresql_connection.getParameterStatus("server_version") match {
           case null => err("null")
-          case str =>
+          case str: String =>
             str.iterator.takeWhile(Symbol.is_ascii_digit).mkString match {
               case Value.Int(m) => Some(m)
               case _ => err(quote(str))
@@ -532,7 +534,7 @@ object SQL {
     /* statements and results */
 
     def statement(sql: Source): Statement =
-      new Statement(db, connection.prepareStatement(sql))
+      new Statement(db, connection.prepareStatement(sql).nn)
 
     def using_statement[A](sql: Source)(f: Statement => A): A =
       using(statement(sql))(f)
@@ -561,7 +563,7 @@ object SQL {
     def execute_query_statementB(sql: Source): Boolean =
       using_statement(sql)(stmt => using(stmt.execute_query())(_.next()))
 
-    def update_date(stmt: Statement, i: Int, date: Date): Unit
+    def update_date(stmt: Statement, i: Int, date: Date | Null): Unit
     def date(res: Result, column: Column): Date
 
     def insert_permissive(table: Table, sql: Source = ""): Source
@@ -572,15 +574,15 @@ object SQL {
     /* tables and views */
 
     def name_pattern(name: String): String = {
-      val escape = connection.getMetaData.getSearchStringEscape
+      val escape = connection.getMetaData.nn.getSearchStringEscape.nn
       name.iterator.map(c =>
         if_proper(c == '_' || c == '%' || c == escape(0), escape) + c).mkString
     }
 
     def get_tables(pattern: String = "%"): List[String] = {
       val result = new mutable.ListBuffer[String]
-      val rs = connection.getMetaData.getTables(null, null, pattern, null)
-      while (rs.next) { result += rs.getString(3) }
+      val rs = connection.getMetaData.nn.getTables(null, null, pattern, null).nn
+      while (rs.next) { result += rs.getString(3).nn }
       result.toList
     }
 
@@ -589,8 +591,8 @@ object SQL {
       pattern: String = "%"
     ): List[(String, String)] = {
       val result = new mutable.ListBuffer[(String, String)]
-      val rs = connection.getMetaData.getColumns(null, null, table_pattern, pattern)
-      while (rs.next) { result += (rs.getString(3) -> rs.getString(4)) }
+      val rs = connection.getMetaData.nn.getColumns(null, null, table_pattern, pattern).nn
+      while (rs.next) { result += (rs.getString(3).nn -> rs.getString(4).nn) }
       result.toList
     }
 
@@ -666,7 +668,7 @@ object SQLite {
 
     val config = new SQLiteConfig()
     config.setEncoding(SQLiteConfig.Encoding.UTF8)
-    val connection = config.createConnection("jdbc:sqlite:" + s1)
+    val connection = config.createConnection("jdbc:sqlite:" + s1).nn
 
     val db = new Database(path0.toString, connection)
 
@@ -683,11 +685,11 @@ object SQLite {
 
     def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_sqlite(T)
 
-    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
-      if (date == null) stmt.string(i) = (null: String)
-      else stmt.string(i) = date_format(date)
+    def update_date(stmt: SQL.Statement, i: Int, date: Date | Null): Unit =
+      if (date.asInstanceOf[Any] == null) stmt.string(i) = (null: String | Null)
+      else stmt.string(i) = date_format(date.asInstanceOf[Date])
 
-    def date(res: SQL.Result, column: SQL.Column): Date =
+    def date(res: SQL.Result, column: SQL.Column): Date | Null =
       proper_string(res.string(column)) match {
         case None => null
         case Some(s) => date_format.parse(s)
@@ -733,7 +735,7 @@ object PostgreSQL {
       "server " + quote(user + "@" + server + "/" + name) +
         if_proper(ssh, " via ssh " + quote(ssh.get.toString))
 
-    val connection = DriverManager.getConnection(url, user, password)
+    val connection = DriverManager.getConnection(url, user, password).nn
     val db = new Database(connection, print, server, server_close, receiver_delay)
 
     try { db.execute_statement("SET standard_conforming_strings = on") }
@@ -804,13 +806,13 @@ object PostgreSQL {
     def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_postgresql(T)
 
     // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
-    def update_date(stmt: SQL.Statement, i: Int, date: Date): Unit =
-      if (date == null) stmt.rep.setObject(i, null)
-      else stmt.rep.setObject(i, OffsetDateTime.from(date.to(Date.timezone_utc).rep))
+    def update_date(stmt: SQL.Statement, i: Int, date: Date | Null): Unit =
+      if (date.asInstanceOf[Any] == null) stmt.rep.setObject(i, null)
+      else stmt.rep.setObject(i, OffsetDateTime.from(date.asInstanceOf[Date].to(Date.timezone_utc).rep))
 
-    def date(res: SQL.Result, column: SQL.Column): Date = {
+    def date(res: SQL.Result, column: SQL.Column): Date | Null = {
       val obj = res.rep.getObject(column.name, classOf[OffsetDateTime])
-      if (obj == null) null else Date.instant(obj.toInstant)
+      if (obj == null) null else Date.instant(obj.nn.toInstant.nn)
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
@@ -853,8 +855,8 @@ object PostgreSQL {
               case Some(array) if array.nonEmpty =>
                 synchronized {
                   var received = _receiver_buffer.getOrElse(Map.empty)
-                  for (a <- array.iterator if a.getPID != self_pid) {
-                    val msg = SQL.Notification(a.getName, a.getParameter)
+                  for (a <- array.iterator; b <- proper_value(a) if b.getPID != self_pid) {
+                    val msg = SQL.Notification(b.getName.nn, b.getParameter.nn)
                     if (!received.isDefinedAt(msg)) {
                       val stamp = System.nanoTime()
                       received = received + (msg -> stamp)
