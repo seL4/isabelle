@@ -24,7 +24,7 @@ object Classpath {
   {
     val jar_files0 =
       for {
-        s <- space_explode(JFile.pathSeparatorChar, System.getProperty("java.class.path", ""))
+        s <- space_explode(JFile.pathSeparatorChar, Isabelle_System.get_property("java.class.path"))
         if s.nonEmpty
       } yield File.absolute(new JFile(s))
 

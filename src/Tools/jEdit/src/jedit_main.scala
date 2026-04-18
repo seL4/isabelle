@@ -88,8 +88,8 @@ object JEdit_Main {
             "-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS"))
 
           val jedit_server =
-            System.getProperty("isabelle.jedit_server") match {
-              case null | "" => "-noserver"
+            Isabelle_System.get_property("isabelle.jedit_server") match {
+              case "" => "-noserver"
               case name => "-server=" + name
             }
 

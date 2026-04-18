@@ -63,7 +63,7 @@ object Platform {
   private val Arm64 = """arm64|aarch64""".r
 
   def cpu_arch: String =
-    System.getProperty("os.arch", "") match {
+    Isabelle_System.get_property("os.arch") match {
       case X86_64() => "x86_64"
       case Arm64() => "arm64"
       case _ => error("Failed to determine CPU architecture")
@@ -116,7 +116,7 @@ object Platform {
 
   private val Version = """1\.(\d+)\.0_(\d+)""".r
   lazy val jvm_version: String =
-    System.getProperty("java.version") match {
+    Isabelle_System.get_property("java.version") match {
       case Version(a, b) => a + "u" + b
       case a => a
     }
@@ -124,5 +124,5 @@ object Platform {
 
   /* JVM name */
 
-  val jvm_name: String = System.getProperty("java.vm.name", "")
+  val jvm_name: String = Isabelle_System.get_property("java.vm.name")
 }

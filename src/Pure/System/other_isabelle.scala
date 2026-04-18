@@ -171,7 +171,7 @@ final class Other_Isabelle private(
   }
 
   def debug_settings(): List[String] = {
-    val debug = System.getProperty("isabelle.debug", "") == "true"
+    val debug = Isabelle_System.get_property("isabelle.debug") == "true"
     if (debug) {
       List("ISABELLE_JAVA_SYSTEM_OPTIONS=\"$ISABELLE_JAVA_SYSTEM_OPTIONS -Disabelle.debug=true\"")
     }

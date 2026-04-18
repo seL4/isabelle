@@ -60,7 +60,7 @@ object Java_Monitor {
           Untyped.the_method(ClassOf.Resources, "format").
             invoke(null,
               Untyped.get_static(ClassOf.Messages, "JCONSOLE_VERSION"),
-                System.getProperty("java.runtime.version")))
+                Isabelle_System.get_property("java.runtime.version")))
       }
 
       val jconsole =
