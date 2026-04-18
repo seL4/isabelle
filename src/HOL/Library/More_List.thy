@@ -273,9 +273,9 @@ lemma nth_default_take_eq:
     (if n < m then nth_default dflt xs n else dflt)"
   by (simp add: nth_default_def)
 
-lemma in_enumerate_iff_nth_default_eq:
-  "x \<noteq> dflt \<Longrightarrow> (n, x) \<in> set (enumerate 0 xs) \<longleftrightarrow> nth_default dflt xs n = x"
-  by (auto simp add: nth_default_def in_set_conv_nth enumerate_eq_zip)
+lemma in_indexed_from_iff_nth_default_eq:
+  "x \<noteq> dflt \<Longrightarrow> (n, x) \<in> set (indexed_from 0 xs) \<longleftrightarrow> nth_default dflt xs n = x"
+  by (auto simp add: nth_default_def in_set_conv_nth indexed_from_eq_zip)
 
 lemma last_conv_nth_default:
   assumes "xs \<noteq> []"
@@ -291,9 +291,9 @@ lemma finite_nth_default_neq_default [simp]:
   by (simp add: nth_default_def)
 
 lemma sorted_list_of_set_nth_default:
-  "sorted_list_of_set {k. nth_default dflt xs k \<noteq> dflt} = map fst (filter (\<lambda>(_, x). x \<noteq> dflt) (enumerate 0 xs))"
+  "sorted_list_of_set {k. nth_default dflt xs k \<noteq> dflt} = map fst (filter (\<lambda>(_, x). x \<noteq> dflt) (indexed_from 0 xs))"
   by (rule sorted_distinct_set_unique) (auto simp add: nth_default_def in_set_conv_nth
-    sorted_filter distinct_map_filter enumerate_eq_zip intro: rev_image_eqI)
+    sorted_filter distinct_map_filter indexed_from_eq_zip intro: rev_image_eqI)
 
 lemma map_nth_default:
   "map (nth_default x xs) [0..<length xs] = xs"

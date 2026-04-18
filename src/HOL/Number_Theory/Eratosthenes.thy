@@ -29,7 +29,7 @@ type_synonym marks = "bool list"
 
 definition numbers_of_marks :: "nat \<Rightarrow> marks \<Rightarrow> nat set"
 where
-  "numbers_of_marks n bs = fst ` {x \<in> set (enumerate n bs). snd x}"
+  "numbers_of_marks n bs = fst ` {x \<in> set (indexed_from n bs). snd x}"
 
 lemma numbers_of_marks_simps [simp, code]:
   "numbers_of_marks n [] = {}"
@@ -39,22 +39,22 @@ lemma numbers_of_marks_simps [simp, code]:
 
 lemma numbers_of_marks_Suc:
   "numbers_of_marks (Suc n) bs = Suc ` numbers_of_marks n bs"
-  by (auto simp add: numbers_of_marks_def enumerate_Suc_eq image_iff Bex_def)
+  by (auto simp add: numbers_of_marks_def indexed_from_Suc_eq image_iff Bex_def)
 
 lemma numbers_of_marks_replicate_False [simp]:
   "numbers_of_marks n (replicate m False) = {}"
-  by (auto simp add: numbers_of_marks_def enumerate_replicate_eq)
+  by (auto simp add: numbers_of_marks_def indexed_from_replicate_eq)
 
 lemma numbers_of_marks_replicate_True [simp]:
   "numbers_of_marks n (replicate m True) = {n..<n+m}"
-  by (auto simp add: numbers_of_marks_def enumerate_replicate_eq image_def)
+  by (auto simp add: numbers_of_marks_def indexed_from_replicate_eq image_def)
 
 lemma in_numbers_of_marks_eq:
   "m \<in> numbers_of_marks n bs \<longleftrightarrow> m \<in> {n..<n + length bs} \<and> bs ! (m - n)"
-  by (simp add: numbers_of_marks_def in_set_enumerate_eq image_iff add.commute)
+  by (simp add: numbers_of_marks_def in_set_indexed_from_eq image_iff add.commute)
 
 lemma sorted_list_of_set_numbers_of_marks:
-  "sorted_list_of_set (numbers_of_marks n bs) = map fst (filter snd (enumerate n bs))"
+  "sorted_list_of_set (numbers_of_marks n bs) = map fst (filter snd (indexed_from n bs))"
   by (auto simp add: numbers_of_marks_def distinct_map
     intro!: sorted_filter distinct_filter inj_onI sorted_distinct_set_unique)
 
@@ -63,7 +63,7 @@ text \<open>Marking out multiples in a sieve\<close>
 
 definition mark_out :: "nat \<Rightarrow> marks \<Rightarrow> marks"
 where
-  "mark_out n bs = map (\<lambda>(q, b). b \<and> \<not> Suc n dvd Suc (Suc q)) (enumerate n bs)"
+  "mark_out n bs = map (\<lambda>(q, b). b \<and> \<not> Suc n dvd Suc (Suc q)) (indexed_from n bs)"
 
 lemma mark_out_Nil [simp]: "mark_out n [] = []"
   by (simp add: mark_out_def)
@@ -73,8 +73,8 @@ lemma length_mark_out [simp]: "length (mark_out n bs) = length bs"
 
 lemma numbers_of_marks_mark_out:
     "numbers_of_marks n (mark_out m bs) = {q \<in> numbers_of_marks n bs. \<not> Suc m dvd Suc q - n}"
-  by (auto simp add: numbers_of_marks_def mark_out_def in_set_enumerate_eq image_iff
-    nth_enumerate_eq less_eq_dvd_minus)
+  by (auto simp add: numbers_of_marks_def mark_out_def in_set_indexed_from_eq image_iff
+    nth_indexed_from_eq less_eq_dvd_minus)
 
 
 text \<open>Auxiliary operation for efficient implementation\<close>
@@ -82,7 +82,7 @@ text \<open>Auxiliary operation for efficient implementation\<close>
 definition mark_out_aux :: "nat \<Rightarrow> nat \<Rightarrow> marks \<Rightarrow> marks"
 where
   "mark_out_aux n m bs =
-    map (\<lambda>(q, b). b \<and> (q < m + n \<or> \<not> Suc n dvd Suc (Suc q) + (n - m mod Suc n))) (enumerate n bs)"
+    map (\<lambda>(q, b). b \<and> (q < m + n \<or> \<not> Suc n dvd Suc (Suc q) + (n - m mod Suc n))) (indexed_from n bs)"
 
 lemma mark_out_code [code]: "mark_out n bs = mark_out_aux n n bs"
 proof -
@@ -114,7 +114,7 @@ proof -
     with \<open>n > 0\<close> C show False by simp
   qed
   show ?thesis
-    by (auto simp add: mark_out_def mark_out_aux_def in_set_enumerate_eq intro: aux)
+    by (auto simp add: mark_out_def mark_out_aux_def in_set_indexed_from_eq intro: aux)
 qed
 
 lemma mark_out_aux_simps [simp, code]:
@@ -129,7 +129,7 @@ next
   case 2
   show ?case
     by (auto simp add: mark_out_code [symmetric] mark_out_aux_def mark_out_def
-      enumerate_Suc_eq in_set_enumerate_eq less_eq_dvd_minus)
+      indexed_from_Suc_eq in_set_indexed_from_eq less_eq_dvd_minus)
 next
   case 3
   { define v where "v = Suc m"
@@ -157,7 +157,7 @@ next
   }
   then show ?case
     by (auto simp add: mark_out_aux_def
-      enumerate_Suc_eq in_set_enumerate_eq not_less)
+      indexed_from_Suc_eq in_set_indexed_from_eq not_less)
 qed
 
 
@@ -300,7 +300,7 @@ proof -
 qed
 
 lemma primes_upto_sieve [code]:
-  "primes_upto n = map fst (filter snd (enumerate 2 (sieve 1 (replicate (n - 1) True))))"
+  "primes_upto n = map fst (filter snd (indexed_from 2 (sieve 1 (replicate (n - 1) True))))"
   using primes_upto_def set_primes_upto set_primes_upto_sieve sorted_list_of_set_numbers_of_marks by presburger
 
 lemma prime_in_primes_upto: "prime n \<longleftrightarrow> n \<in> set (primes_upto n)"

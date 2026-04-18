@@ -279,8 +279,8 @@ text \<open>
 abbreviation length :: "'a list \<Rightarrow> nat" where
 "length \<equiv> size"
 
-definition enumerate :: "nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> 'a) list" where
-enumerate_eq_zip: "enumerate n xs = zip [n..<n + length xs] xs"
+definition indexed_from :: "nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> 'a) list" where
+indexed_from_eq_zip: "indexed_from n xs = zip [n..<n + length xs] xs"
 
 primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
 "rotate1 [] = []" |
@@ -347,7 +347,7 @@ text\<open>
 @{lemma "successively (\<noteq>) [True,False,True,False]" by simp}\\
 @{lemma "zip [a,b,c] [x,y,z] = [(a,x),(b,y),(c,z)]" by simp}\\
 @{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" by simp}\\
-@{lemma "enumerate 3 [a,b,c] = [(3,a),(4,b),(5,c)]" by normalization}\\
+@{lemma "indexed_from 3 [a,b,c] = [(3,a),(4,b),(5,c)]" by normalization}\\
 @{lemma "List.product [a,b] [c,d] = [(a, c), (a, d), (b, c), (b, d)]" by simp}\\
 @{lemma "product_lists [[a,b], [c], [d,e]] = [[a,c,d], [a,c,e], [b,c,d], [b,c,e]]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
@@ -5109,62 +5109,64 @@ lemma fold_replicate [simp]:
 by (subst foldr_fold [symmetric]) simp_all
 
 
-subsubsection \<open>\<^const>\<open>enumerate\<close>\<close>
+subsubsection \<open>\<^const>\<open>indexed_from\<close>\<close>
 
-lemma enumerate_simps [simp, code]:
-  "enumerate n [] = []"
-  "enumerate n (x # xs) = (n, x) # enumerate (Suc n) xs"
-  by (simp_all add: enumerate_eq_zip upt_rec)
+lemma indexed_from_simps [simp, code]:
+  "indexed_from n [] = []"
+  "indexed_from n (x # xs) = (n, x) # indexed_from (Suc n) xs"
+  by (simp_all add: indexed_from_eq_zip upt_rec)
 
-lemma length_enumerate [simp]:
-  "length (enumerate n xs) = length xs"
-by (simp add: enumerate_eq_zip)
+lemma length_indexed_from [simp]:
+  "length (indexed_from n xs) = length xs"
+by (simp add: indexed_from_eq_zip)
 
-lemma map_fst_enumerate [simp]:
-  "map fst (enumerate n xs) = [n..<n + length xs]"
-by (simp add: enumerate_eq_zip)
+lemma map_fst_indexed_from [simp]:
+  "map fst (indexed_from n xs) = [n..<n + length xs]"
+by (simp add: indexed_from_eq_zip)
 
-lemma map_snd_enumerate [simp]:
-  "map snd (enumerate n xs) = xs"
-by (simp add: enumerate_eq_zip)
+lemma map_snd_indexed_from [simp]:
+  "map snd (indexed_from n xs) = xs"
+by (simp add: indexed_from_eq_zip)
 
-lemma in_set_enumerate_eq:
-  "p \<in> set (enumerate n xs) \<longleftrightarrow> n \<le> fst p \<and> fst p < length xs + n \<and> nth xs (fst p - n) = snd p"
+lemma in_set_indexed_from_eq:
+  "p \<in> set (indexed_from n xs) \<longleftrightarrow> n \<le> fst p \<and> fst p < length xs + n \<and> nth xs (fst p - n) = snd p"
 proof -
-  { fix m
-    assume "n \<le> m"
-    moreover assume "m < length xs + n"
-    ultimately have "[n..<n + length xs] ! (m - n) = m \<and>
+  have "\<exists>q. [n..<n + length xs] ! q = m \<and> xs ! q = xs ! (m - n) \<and> q < length xs"
+    if "n \<le> m" "m < length xs + n" for m
+  proof -
+    from that have "[n..<n + length xs] ! (m - n) = m \<and>
       xs ! (m - n) = xs ! (m - n) \<and> m - n < length xs" by auto
-    then have "\<exists>q. [n..<n + length xs] ! q = m \<and>
-        xs ! q = xs ! (m - n) \<and> q < length xs" ..
-  } then show ?thesis by (cases p) (auto simp add: enumerate_eq_zip in_set_zip)
+    then show ?thesis
+      by auto
+  qed
+  then show ?thesis
+    by (cases p) (auto simp add: indexed_from_eq_zip in_set_zip)
 qed
 
-lemma nth_enumerate_eq: "m < length xs \<Longrightarrow> enumerate n xs ! m = (n + m, xs ! m)"
-by (simp add: enumerate_eq_zip)
+lemma nth_indexed_from_eq: "m < length xs \<Longrightarrow> indexed_from n xs ! m = (n + m, xs ! m)"
+by (simp add: indexed_from_eq_zip)
 
-lemma enumerate_replicate_eq:
-  "enumerate n (replicate m a) = map (\<lambda>q. (q, a)) [n..<n + m]"
+lemma indexed_from_replicate_eq:
+  "indexed_from n (replicate m a) = map (\<lambda>q. (q, a)) [n..<n + m]"
 by (rule pair_list_eqI)
-   (simp_all add: enumerate_eq_zip comp_def map_replicate_const)
+   (simp_all add: indexed_from_eq_zip comp_def map_replicate_const)
 
-lemma enumerate_Suc_eq:
-  "enumerate (Suc n) xs = map (apfst Suc) (enumerate n xs)"
+lemma indexed_from_Suc_eq:
+  "indexed_from (Suc n) xs = map (apfst Suc) (indexed_from n xs)"
 by (rule pair_list_eqI)
    (simp_all add: not_le, simp del: map_map add: map_Suc_upt map_map [symmetric])
 
-lemma distinct_enumerate [simp]:
-  "distinct (enumerate n xs)"
-by (simp add: enumerate_eq_zip distinct_zipI1)
+lemma distinct_indexed_from [simp]:
+  "distinct (indexed_from n xs)"
+by (simp add: indexed_from_eq_zip distinct_zipI1)
 
-lemma enumerate_append_eq:
-  "enumerate n (xs @ ys) = enumerate n xs @ enumerate (n + length xs) ys"
-  by (simp add: enumerate_eq_zip add.assoc zip_append2)
+lemma indexed_from_append_eq:
+  "indexed_from n (xs @ ys) = indexed_from n xs @ indexed_from (n + length xs) ys"
+  by (simp add: indexed_from_eq_zip add.assoc zip_append2)
 
-lemma enumerate_map_upt:
-  "enumerate n (map f [n..<m]) = map (\<lambda>k. (k, f k)) [n..<m]"
-by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map enumerate_eq_zip)
+lemma indexed_from_map_upt:
+  "indexed_from n (map f [n..<m]) = map (\<lambda>k. (k, f k)) [n..<m]"
+by (cases "n \<le> m") (simp_all add: zip_map2 zip_same_conv_map indexed_from_eq_zip)
 
 
 subsubsection \<open>\<^const>\<open>rotate1\<close> and \<^const>\<open>rotate\<close>\<close>
@@ -6411,8 +6413,8 @@ next
   qed
 qed
 
-lemma sorted_enumerate [simp]: "sorted (map fst (enumerate n xs))"
-by (simp add: enumerate_eq_zip)
+lemma sorted_indexed_from [simp]: "sorted (map fst (indexed_from n xs))"
+by (simp add: indexed_from_eq_zip)
 
 lemma sorted_insort_is_snoc: "sorted xs \<Longrightarrow> \<forall>x \<in> set xs. a \<ge> x \<Longrightarrow> insort a xs = xs @ [a]"
  by (induct xs) (auto dest!: insort_is_Cons)

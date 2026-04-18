@@ -1325,23 +1325,23 @@ lemma lookup_nth [simp]:
   by (fact nth.rep_eq)
 
 lemma keys_nth [simp]:
-  "keys (nth xs) =  fst ` {(n, v) \<in> set (enumerate 0 xs). v \<noteq> 0}"
+  "keys (nth xs) = fst ` {(n, v) \<in> set (indexed_from 0 xs). v \<noteq> 0}"
 proof transfer
   fix xs :: "'a list"
-  have "n \<in> fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
+  have "n \<in> fst ` {(n, v). (n, v) \<in> set (indexed_from 0 xs) \<and> v \<noteq> 0}"
     if "nth_default 0 xs n \<noteq> 0" for n
   proof -
     from that have "n < length xs" and "xs ! n \<noteq> 0"
       by (auto simp: nth_default_def split: if_splits)
-    then have "(n, xs ! n) \<in> {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}" (is "?x \<in> ?A")
-      by (auto simp: in_set_conv_nth enumerate_eq_zip)
+    then have "(n, xs ! n) \<in> {(n, v). (n, v) \<in> set (indexed_from 0 xs) \<and> v \<noteq> 0}" (is "?x \<in> ?A")
+      by (auto simp: in_set_conv_nth indexed_from_eq_zip)
     then have "fst ?x \<in> fst ` ?A"
       by blast
     then show ?thesis
       by simp
   qed
-  then show "{k. nth_default 0 xs k \<noteq> 0} = fst ` {(n, v). (n, v) \<in> set (enumerate 0 xs) \<and> v \<noteq> 0}"
-    by (auto simp: in_enumerate_iff_nth_default_eq)
+  then show "{k. nth_default 0 xs k \<noteq> 0} = fst ` {(n, v). (n, v) \<in> set (indexed_from 0 xs) \<and> v \<noteq> 0}"
+    by (auto simp: in_indexed_from_iff_nth_default_eq)
 qed
 
 lemma range_nth [simp]:

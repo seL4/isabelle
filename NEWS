@@ -184,6 +184,25 @@ For example:
       inj_on_the_image_dom
       ran_conv_dom
 
+* Constant "enumerate" in theory HOL.List renamed to more specific
+"indexed_from". Corresponding theorems renamed:
+  enumerate_eq_zip ~> indexed_from_eq_zip
+  enumerate_simps ~> indexed_from_simps
+  length_enumerate ~> length_indexed_from
+  map_fst_enumerate ~> map_fst_indexed_from
+  map_snd_enumerate ~> map_snd_indexed_from
+  in_set_enumerate_eq ~> in_set_indexed_from_eq
+  nth_enumerate_eq ~> nth_indexed_from_eq
+  enumerate_replicate_eq ~> indexed_from_replicate_eq
+  enumerate_Suc_eq ~> indexed_from_Suc_eq
+  distinct_enumerate ~> distinct_indexed_from
+  enumerate_append_eq ~> indexed_from_append_eq
+  enumerate_map_upt ~> indexed_from_map_upt
+  sorted_enumerate ~> sorted_indexed_from
+  in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
+
+INCOMPATIBILITY.
+
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
 reasonable implementation, but a lot of implementations would require
