@@ -184,7 +184,7 @@ class Scala_Console extends Shell("Scala") {
             val color = if (message.is_error) console.getErrorColor else null
             diag.print(color, message.text)
           }
-          Option(err).foreach(_.commandDone())
+          proper_value(err).foreach(_.commandDone())
           out.commandDone()
         }
         result.state

@@ -45,7 +45,7 @@ object PIDE {
 
   @volatile var _plugin: Main_Plugin = null
 
-  def get_plugin: Option[Main_Plugin] = Option(_plugin)
+  def get_plugin: Option[Main_Plugin] = proper_value(_plugin)
 
   def plugin: Main_Plugin =
     get_plugin.getOrElse(error("Uninitialized Isabelle/jEdit plugin"))

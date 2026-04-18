@@ -34,7 +34,7 @@ object Host {
       }
 
     def unapply(s: String): Option[List[Int]] =
-      space_explode(',', s).foldRight(Option(List.empty[Int])) {
+      space_explode(',', s).foldRight(proper_value(List.empty[Int])) {
         case (Single(Value.Int(i)), Some(elems)) => Some(i :: elems)
         case (Multiple(Value.Int(i), Value.Int(j)), Some(elems)) => Some((i to j).toList ::: elems)
         case _ => None

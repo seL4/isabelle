@@ -719,7 +719,7 @@ object Build_Manager {
       try { store.open_database() }
       catch { case exn: Throwable => close(); throw exn }
 
-    def close(): Unit = Option(_database).foreach(_.close())
+    def close(): Unit = proper_value(_database).foreach(_.close())
 
     protected var _state = State()
 
@@ -1595,11 +1595,11 @@ html { background-color: white; }"""))
       }
       catch { case exn: Throwable => close(); throw exn }
 
-    def cancel(): Unit = Option(_process).foreach(_.interrupt())
-    def terminate(): Unit = Option(_process).foreach(_.terminate())
+    def cancel(): Unit = proper_value(_process).foreach(_.interrupt())
+    def terminate(): Unit = proper_value(_process).foreach(_.terminate())
 
     def close(): Unit = {
-      Option(_dir).foreach(ssh.rm_tree)
+      proper_value(_dir).foreach(ssh.rm_tree)
       Isabelle_System.rm_tree(context.task_dir)
       ssh.close()
     }

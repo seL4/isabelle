@@ -25,7 +25,7 @@ object Isabelle_System {
   trait Settings_Env extends Settings { def env: JMap[String, String] }
 
   class Env(val env: JMap[String, String]) extends Settings_Env {
-    override def get(name: String): String = Option(env.get(name)).getOrElse("")
+    override def get(name: String): String = proper_value(env.get(name)).getOrElse("")
   }
 
   object No_Env extends Env(JMap.of())
@@ -484,7 +484,7 @@ object Isabelle_System {
         for {
           case (entry, Some(res)) <- items
           if !entry.isDirectory
-          t <- Option(entry.getLastModifiedTime)
+          t <- proper_value(entry.getLastModifiedTime)
         } Files.setLastModifiedTime(res, t)
       }
     }

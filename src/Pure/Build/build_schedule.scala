@@ -1034,7 +1034,7 @@ object Build_Schedule {
       catch { case exn: Throwable => close(); throw exn }
 
     override def close(): Unit = {
-      Option(_log_database).foreach(_.close())
+      proper_value(_log_database).foreach(_.close())
       super.close()
     }
 

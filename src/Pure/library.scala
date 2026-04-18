@@ -339,6 +339,9 @@ object Library {
 
   /* proper values */
 
+  def proper_value[A](x: A | Null): Option[A] =
+    if (x.asInstanceOf[Any] == null) None else Some(x.asInstanceOf[A])
+
   def proper_bool(b: Boolean): Option[Boolean] =
     if (!b) None else Some(b)
 

@@ -172,7 +172,7 @@ abstract class Session extends Document.Session {
   def read_theory(name: String, unicode_symbols: Boolean = false): Document.Snapshot =
     read_theory_cache.synchronized {
       val key = Session.Read_Theory_Key(name, unicode_symbols)
-      Option(read_theory_cache.get(key)).map(_.get) match {
+      proper_value(read_theory_cache.get(key)).map(_.get) match {
         case Some(snapshot: Document.Snapshot) => snapshot
         case _ =>
           val maybe_snapshot =

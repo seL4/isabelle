@@ -33,7 +33,7 @@ object JEdit_Lib {
   /* jEdit directories */
 
   def directories: List[JFile] =
-    (Option(jEdit.getSettingsDirectory).toList ::: List(jEdit.getJEditHome)).map(new JFile(_))
+    (proper_value(jEdit.getSettingsDirectory).toList ::: List(jEdit.getJEditHome)).map(new JFile(_))
 
 
   /* window geometry measurement */

@@ -1098,11 +1098,11 @@ extends AutoCloseable {
     catch { case exn: Throwable => close(); throw exn }
 
   def close(): Unit = synchronized {
-    Option(_database_server).flatten.foreach(_.close())
-    Option(_heaps_database).flatten.foreach(_.close())
-    Option(_build_database).flatten.foreach(_.close())
-    Option(_host_database).foreach(_.close())
-    Option(_build_cluster).foreach(_.close())
+    proper_value(_database_server).flatten.foreach(_.close())
+    proper_value(_heaps_database).flatten.foreach(_.close())
+    proper_value(_build_database).flatten.foreach(_.close())
+    proper_value(_host_database).foreach(_.close())
+    proper_value(_build_cluster).foreach(_.close())
     progress match {
       case db_progress: Database_Progress => db_progress.close()
       case _ =>

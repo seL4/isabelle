@@ -523,8 +523,8 @@ object GUI {
   def suppress_input(component: JComponent, pred: KeyStroke => Boolean): Unit =
     for {
       i <- input_maps.iterator
-      input <- Option(component.getInputMap(i))
-      keys <- Option(input.allKeys)
+      input <- proper_value(component.getInputMap(i))
+      keys <- proper_value(input.allKeys)
       key <- keys if pred(key)
     } input.put(key, "none")
 

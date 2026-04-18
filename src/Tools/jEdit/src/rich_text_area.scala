@@ -437,7 +437,7 @@ class Rich_Text_Area(
           val field = classOf[JEditChunk].getDeclaredField("lastSubstFont")
           field.setAccessible(true)
           field.set(null, null)
-          val res = Option(JEditChunk.getSubstFont(codepoint))
+          val res = proper_value(JEditChunk.getSubstFont(codepoint))
           cache += (codepoint -> res)
           res
         })

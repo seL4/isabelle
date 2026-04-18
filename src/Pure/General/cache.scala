@@ -38,7 +38,7 @@ class Cache(max_string: Int, initial_size: Int) {
     else {
       val ref = table.get(x)
       if (ref == null) None
-      else Option(ref.asInstanceOf[WeakReference[A]].get)
+      else proper_value(ref.asInstanceOf[WeakReference[A]].get)
     }
   }
 

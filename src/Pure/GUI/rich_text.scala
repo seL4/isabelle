@@ -91,7 +91,7 @@ object Rich_Text {
 
         def get: Option[Formatted] =
           cache.table.get(x) match {
-            case ref: WeakReference[Any] => Option(ref.get.asInstanceOf[Formatted])
+            case ref: WeakReference[Any] => proper_value(ref.get.asInstanceOf[Formatted])
             case null => None
           }
 
