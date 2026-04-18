@@ -52,12 +52,13 @@ final class Consumer_Thread[A] private(
   private val mailbox = Mailbox[Option[Request]](limit = limit)
 
   private val thread = Isabelle_Thread.fork(name = name, daemon = daemon) { main_loop(Nil) }
+  private def thread_name: String = proper_string(thread.getName).getOrElse("")
   def is_active(): Boolean = active && thread.isAlive
-  def check_thread(): Boolean = Thread.currentThread == thread
+  def check_thread(): Boolean = Isabelle_Thread.current == thread
 
   private def failure(exn: Throwable): Unit =
     Output.error_message(
-      "Consumer thread failure: " + quote(thread.getName) + "\n" + Exn.print(exn))
+      "Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn))
 
   private def robust_finish(): Unit =
     try { finish() } catch { case exn: Throwable => failure(exn) }
@@ -79,7 +80,7 @@ final class Consumer_Thread[A] private(
   private def request(req: Request): Unit = {
     synchronized {
       if (is_active()) mailbox.send(Some(req))
-      else error("Consumer thread not active: " + quote(thread.getName))
+      else error("Consumer thread not active: " + quote(thread_name))
     }
     req.await()
   }

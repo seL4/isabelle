@@ -110,7 +110,7 @@ object Exn {
 
     def dispose(): Unit = Thread.interrupted()
     def expose(): Unit = if (Thread.interrupted()) throw apply()
-    def impose(): Unit = Thread.currentThread.interrupt()
+    def impose(): Unit = Isabelle_Thread.current.interrupt()
 
     def signal_handler[A](h: => Unit)(e: => A): A = {
       val SIGINT = new Signal("INT")

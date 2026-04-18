@@ -13,14 +13,16 @@ import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
 object Isabelle_Thread {
   /* self-thread */
 
+  def current: Thread = Thread.currentThread().nn
+
   def self: Isabelle_Thread =
-    Thread.currentThread match {
+    current match {
       case thread: Isabelle_Thread => thread
       case thread => error("Isabelle-specific thread required: " + thread)
     }
 
   def check_self: Boolean =
-    Thread.currentThread.isInstanceOf[Isabelle_Thread]
+    current.isInstanceOf[Isabelle_Thread]
 
 
   /* create threads */
@@ -33,15 +35,16 @@ object Isabelle_Thread {
     if (suffix.startsWith(prefix)) suffix else prefix + suffix
   }
 
-  def current_thread_group: ThreadGroup = Thread.currentThread.getThreadGroup
+  def current_thread_group: Option[ThreadGroup] =
+    proper_value(Isabelle_Thread.current.getThreadGroup)
 
   lazy val worker_thread_group: ThreadGroup =
-    new ThreadGroup(current_thread_group, "Isabelle worker")
+    new ThreadGroup(current_thread_group.orNull, "Isabelle worker")
 
   def create(
     main: Runnable,
     name: String = "",
-    group: ThreadGroup = current_thread_group,
+    group: Option[ThreadGroup] = current_thread_group,
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false
@@ -52,7 +55,7 @@ object Isabelle_Thread {
 
   def fork(
     name: String = "",
-    group: ThreadGroup = current_thread_group,
+    group: Option[ThreadGroup] = current_thread_group,
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
@@ -77,7 +80,7 @@ object Isabelle_Thread {
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     executor.setThreadFactory(
-      create(_, name = make_name(base = "worker"), group = worker_thread_group))
+      create(_, name = make_name(base = "worker"), group = Some(worker_thread_group)))
     executor
   }
 
@@ -121,11 +124,11 @@ object Isabelle_Thread {
 class Isabelle_Thread private(
   main: Runnable,
   name: String,
-  group: ThreadGroup,
+  group: Option[ThreadGroup],
   pri: Int,
   daemon: Boolean,
   inherit_locals: Boolean
-) extends Thread(group, null, name, 0L, inherit_locals) {
+) extends Thread(group.orNull, null, name, 0L, inherit_locals) {
   thread =>
 
   thread.setPriority(pri)
@@ -133,7 +136,7 @@ class Isabelle_Thread private(
 
   override def run(): Unit = main.run()
 
-  def is_self: Boolean = Thread.currentThread == thread
+  def is_self: Boolean = Isabelle_Thread.current == thread
 
 
   /* interrupt state */

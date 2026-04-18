@@ -26,7 +26,7 @@ object Scala_Console {
     Scala.Interpreter.get { case int: Interpreter if int.console == console => int }
 
   def running_interpreter(): Interpreter = {
-    val self = Thread.currentThread()
+    val self = Isabelle_Thread.current
     Scala.Interpreter.get { case int: Interpreter if int.running_thread(self) => int }
       .getOrElse(error("Bad Scala interpreter thread"))
   }

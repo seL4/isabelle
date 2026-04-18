@@ -230,7 +230,7 @@ object Scala {
       Consumer_Thread.fork("Scala.Interpreter") {
         case Interpreter.Execute(command) =>
           try {
-            running.change(_ => Some(Thread.currentThread()))
+            running.change(_ => Some(Isabelle_Thread.current))
             state = command(context, state)
           }
           finally {
