@@ -10,7 +10,6 @@ package isabelle
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream,
   InputStreamReader, InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 import java.util.Arrays
@@ -42,7 +41,7 @@ object Bytes {
 
   def raw(s: String): Bytes =
     if (s.isEmpty) empty
-    else Builder.use(hint = s.length) { builder => builder += s.getBytes(ISO_8859_1) }
+    else Builder.use(hint = s.length) { builder => builder += UTF8.raw_bytes(s) }
 
   def apply(s: String): Bytes =
     if (s.isEmpty) empty
