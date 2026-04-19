@@ -188,37 +188,59 @@ object GUI {
     new ScrollPane(text)
   }
 
-  private def simple_dialog(
-    kind: Int,
-    default_title: String,
-    parent: Component,
-    title: String,
-    message: Iterable[Any]
+  private def java_message(message: Seq[AnyRef]): Array[AnyRef] =
+    message.iterator.map({ case x: scala.swing.Component => x.peer case x => x }).
+      toArray.asInstanceOf[Array[AnyRef]]
+
+  private def java_title(title: String, kind: Int): String =
+    proper_string(title) getOrElse {
+      kind match {
+        case JOptionPane.WARNING_MESSAGE => "Warning"
+        case JOptionPane.ERROR_MESSAGE => "Error"
+        case JOptionPane.INFORMATION_MESSAGE => "Information"
+        case JOptionPane.QUESTION_MESSAGE => "Question"
+        case _ => "Dialog"
+      }
+    }
+
+  def dialog(
+    kind: Int = JOptionPane.PLAIN_MESSAGE,
+    title: String = "",
+    message: Seq[AnyRef] = Seq.empty,
+    parent: Option[Component] = None
   ): Unit = {
     GUI_Thread.now {
-      val java_message =
-        message.iterator.map({ case x: scala.swing.Component => x.peer case x => x }).
-          toArray.asInstanceOf[Array[AnyRef]]
-      JOptionPane.showMessageDialog(parent, java_message,
-        if (title == null) default_title else title, kind)
+      JOptionPane.showMessageDialog(
+        parent.orNull, java_message(message), java_title(title, kind), kind)
     }
   }
 
-  def dialog(parent: Component, title: String, message: Any*): Unit =
-    simple_dialog(JOptionPane.PLAIN_MESSAGE, null, parent, title, message)
+  def warning_dialog(
+    title: String = "",
+    message: Seq[AnyRef] = Seq.empty,
+    parent: Option[Component] = None
+  ): Unit = {
+    dialog(kind = JOptionPane.WARNING_MESSAGE, title = title, message = message, parent = parent)
+  }
 
-  def warning_dialog(parent: Component, title: String, message: Any*): Unit =
-    simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning", parent, title, message)
+  def error_dialog(
+    title: String = "",
+    message: Seq[AnyRef] = Seq.empty,
+    parent: Option[Component] = None
+  ): Unit = {
+    dialog(kind = JOptionPane.ERROR_MESSAGE, title = title, message = message, parent = parent)
+  }
 
-  def error_dialog(parent: Component, title: String, message: Any*): Unit =
-    simple_dialog(JOptionPane.ERROR_MESSAGE, "Error", parent, title, message)
-
-  def confirm_dialog(parent: Component, title: String, option_type: Int, message: Any*): Int =
+  def confirm_dialog(
+    option_type: Int = JOptionPane.DEFAULT_OPTION,
+    title: String = "",
+    message: Seq[AnyRef] = Seq.empty,
+    parent: Option[Component] = None
+  ): Int =
     GUI_Thread.now {
-      val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
-      JOptionPane.showConfirmDialog(parent,
-        java_message.toArray.asInstanceOf[Array[AnyRef]], title,
-          option_type, JOptionPane.QUESTION_MESSAGE)
+      val kind = JOptionPane.QUESTION_MESSAGE
+      JOptionPane.showConfirmDialog(
+        parent.orNull, java_message(message), java_title(title, kind), option_type, kind)
     }
 
 

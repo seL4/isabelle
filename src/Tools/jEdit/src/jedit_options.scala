@@ -185,8 +185,10 @@ class JEdit_Options(init_options: Options) extends Options_Variable(init_options
               try { JEdit_Options.this += (opt_name, text) }
               catch {
                 case ERROR(msg) =>
-                  GUI.error_dialog(this.peer, "Failed to update options",
-                    GUI.scrollable_text(msg))
+                  GUI.error_dialog(
+                    title = "Failed to update options",
+                    message = Seq(GUI.scrollable_text(msg)),
+                    parent = Some(this.peer))
               }
           }
         text_area.peer.setInputVerifier({

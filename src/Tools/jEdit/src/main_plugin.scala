@@ -186,8 +186,10 @@ class Main_Plugin extends EBPlugin {
   val session_phase_changed: Session.Consumer[Session.Phase] = Session.Consumer("Isabelle/jEdit") {
     case Session.Terminated(result) if !result.ok =>
       GUI_Thread.later {
-        GUI.error_dialog(jEdit.getActiveView, "Prover process terminated with error",
-          "Isabelle Syslog", GUI.scrollable_text(session.syslog.content()))
+        GUI.error_dialog(
+          title = "Prover process terminated with error",
+          message = Seq("Isabelle Syslog", GUI.scrollable_text(session.syslog.content())),
+          parent = JEdit_Lib.jedit_view())
       }
 
     case Session.Ready if !shutting_down.value =>
@@ -196,12 +198,14 @@ class Main_Plugin extends EBPlugin {
       if (!JEdit_Options.continuous_checking()) {
         GUI_Thread.later {
           val answer =
-            GUI.confirm_dialog(jEdit.getActiveView,
-              "Continuous checking of PIDE document",
-              JOptionPane.YES_NO_OPTION,
-              "Continuous checking is presently disabled:",
-              "editor buffers will remain inactive!",
-              "Enable continuous checking now?")
+            GUI.confirm_dialog(
+              option_type = JOptionPane.YES_NO_OPTION,
+              title = "Continuous checking of PIDE document",
+              message =
+                Seq("Continuous checking is presently disabled:",
+                  "editor buffers will remain inactive!",
+                  "Enable continuous checking now?"),
+              parent = JEdit_Lib.jedit_view())
           if (answer == 0) JEdit_Options.continuous_checking.set()
         }
       }
@@ -299,9 +303,10 @@ class Main_Plugin extends EBPlugin {
     if (startup_failure.isDefined && !startup_notified) {
       message match {
         case _: EditorStarted =>
-          GUI.error_dialog(null, "Isabelle plugin startup failure",
-            GUI.scrollable_text(Exn.message(startup_failure.get)),
-            "Prover IDE inactive!")
+          GUI.error_dialog(
+            title = "Isabelle plugin startup failure",
+            message =
+              Seq(GUI.scrollable_text(Exn.message(startup_failure.get)), "Prover IDE inactive!"))
           startup_notified = true
         case _ =>
       }
@@ -315,9 +320,10 @@ class Main_Plugin extends EBPlugin {
           try { session.resources.session_background.check_errors }
           catch {
             case ERROR(msg) =>
-              GUI.warning_dialog(view,
-                "Bad session structure: may cause problems with theory imports",
-                GUI.scrollable_text(msg))
+              GUI.warning_dialog(
+                title = "Bad session structure: may cause problems with theory imports",
+                message = Seq(GUI.scrollable_text(msg)),
+                parent = proper_value(view))
           }
 
           JEdit_Menu.init()

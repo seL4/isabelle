@@ -628,7 +628,7 @@ object Isabelle {
   /* java monitor */
 
   def java_monitor(view: View): Unit =
-    Java_Monitor.java_monitor_external(view, look_and_feel = GUI.current_laf())
+    Java_Monitor.java_monitor_external(parent = Some(view), look_and_feel = GUI.current_laf())
 
 
   /* PIDE HTTP services */

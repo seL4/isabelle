@@ -220,9 +220,11 @@ object JEdit_Editor extends Editor {
           try { Isabelle_System.open(Url.escape_name(name)) }
           catch {
             case exn: Throwable =>
-              val view = editor_context.view
               GUI_Thread.later {
-                GUI.error_dialog(view, "System error", GUI.scrollable_text(Exn.message(exn)))
+                GUI.error_dialog(
+                  title = "System error",
+                  message = Seq(GUI.scrollable_text(Exn.message(exn))),
+                  parent = Some(editor_context.view))
               }
           }
         }
