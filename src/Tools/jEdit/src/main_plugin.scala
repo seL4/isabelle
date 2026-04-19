@@ -24,21 +24,29 @@ import org.gjt.sp.util.Log
 object PIDE {
   /* semantic document content */
 
-  def maybe_snapshot(view: View = null): Option[Document.Snapshot] = GUI_Thread.now {
-    val buffer = JEdit_Lib.jedit_view(view).getBuffer
-    Document_Model.get_snapshot(buffer)
+  def maybe_snapshot(view: Option[View] = None): Option[Document.Snapshot] = GUI_Thread.now {
+    for {
+      actual_view <- JEdit_Lib.jedit_view(view = view)
+      buffer <- proper_value(actual_view.getBuffer)
+      snapshot <- Document_Model.get_snapshot(buffer)
+    } yield snapshot
   }
 
-  def maybe_rendering(view: View = null): Option[JEdit_Rendering] = GUI_Thread.now {
-    val text_area = JEdit_Lib.jedit_view(view).getTextArea
-    Document_View.get_rendering(text_area)
+  def maybe_rendering(view: Option[View] = None): Option[JEdit_Rendering] = GUI_Thread.now {
+    for {
+      actual_view <- JEdit_Lib.jedit_view(view = view)
+      text_area <- proper_value(actual_view.getTextArea)
+      rendering <- Document_View.get_rendering(text_area)
+    } yield rendering
   }
 
-  def snapshot(view: View = null): Document.Snapshot =
-    maybe_snapshot(view) getOrElse error("No document model for current buffer")
+  def snapshot(view: View | Null = null): Document.Snapshot =
+    maybe_snapshot(view = proper_value(view))
+      .getOrElse(error("No document model for current buffer"))
 
-  def rendering(view: View = null): JEdit_Rendering =
-    maybe_rendering(view) getOrElse error("No document view for current text area")
+  def rendering(view: View | Null = null): JEdit_Rendering =
+    maybe_rendering(view = proper_value(view))
+      .getOrElse(error("No document view for current text area"))
 
 
   /* plugin instance */
@@ -473,8 +481,7 @@ class Main_Plugin extends EBPlugin {
 
     shutting_down.change(_ => false)
 
-    val view = jEdit.getActiveView
-    if (view != null) init_editor(view)
+    for (view <- JEdit_Lib.jedit_view()) init_editor(view)
   }
 
   override def stop(): Unit = {
