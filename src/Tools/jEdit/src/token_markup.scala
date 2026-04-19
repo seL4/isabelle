@@ -6,6 +6,7 @@ Outer syntax token markup.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -6,6 +6,7 @@ Tooltip based on Pretty_Text_Area.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -7,6 +7,7 @@ tooltips, hyperlinks etc.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

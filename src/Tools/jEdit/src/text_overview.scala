@@ -6,6 +6,7 @@ GUI component for text status overview.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

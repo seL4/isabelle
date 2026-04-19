@@ -6,6 +6,7 @@ ML status bar: heap and garbage collection.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 import java.awt.{Color, Dimension, Graphics, Graphics2D, Insets, RenderingHints}

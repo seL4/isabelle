@@ -6,6 +6,7 @@ Main plumbing for PIDE infrastructure as jEdit plugin.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

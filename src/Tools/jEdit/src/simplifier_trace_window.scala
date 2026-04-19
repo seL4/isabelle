@@ -6,6 +6,7 @@ Trace window with tree-style view of the simplifier trace.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

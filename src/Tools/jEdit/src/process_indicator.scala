@@ -6,6 +6,7 @@ Process indicator with animated icon.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

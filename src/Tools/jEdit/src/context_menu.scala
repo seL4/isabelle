@@ -6,6 +6,7 @@ Common context menu for Isabelle/jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

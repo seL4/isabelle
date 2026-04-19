@@ -6,6 +6,7 @@ Font information, derived from main jEdit view font.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

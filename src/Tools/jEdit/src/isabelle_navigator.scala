@@ -6,6 +6,7 @@ Navigate history of notable source positions.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

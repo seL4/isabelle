@@ -6,6 +6,7 @@ Systematic access to jEdit properties.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

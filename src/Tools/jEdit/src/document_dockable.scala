@@ -6,6 +6,7 @@ Dockable window for document build support.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

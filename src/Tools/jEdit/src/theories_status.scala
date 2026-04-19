@@ -6,6 +6,7 @@ GUI panel for status of theories.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

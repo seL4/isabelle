@@ -6,6 +6,7 @@ Access Isabelle session information via virtual file-system.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

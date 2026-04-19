@@ -6,6 +6,7 @@ Offline access to jEdit jar resources.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -6,6 +6,7 @@ Monitor for runtime statistics.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

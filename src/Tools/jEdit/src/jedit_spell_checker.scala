@@ -6,6 +6,7 @@ Specific spell-checker support for Isabelle/jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

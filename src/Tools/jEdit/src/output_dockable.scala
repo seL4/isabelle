@@ -6,6 +6,7 @@ Dockable window with result message output.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

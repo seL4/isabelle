@@ -6,6 +6,7 @@ Dockable window for timing information.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

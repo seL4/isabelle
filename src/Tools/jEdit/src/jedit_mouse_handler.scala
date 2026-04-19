@@ -6,6 +6,7 @@ Mouse handler for EditPane in Isabelle/jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

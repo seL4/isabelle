@@ -6,6 +6,7 @@ Support for extended syntax styles: subscript, superscript, bold, user fonts.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

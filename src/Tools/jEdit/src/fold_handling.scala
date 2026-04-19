@@ -6,6 +6,7 @@ Handling of folds within the text structure.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -6,6 +6,7 @@ Text structure based on Isabelle/Isar outer syntax.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -6,6 +6,7 @@ Stateless dockable window for graphview.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

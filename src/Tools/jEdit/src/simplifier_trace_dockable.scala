@@ -6,6 +6,7 @@ Dockable window with interactive simplifier trace.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

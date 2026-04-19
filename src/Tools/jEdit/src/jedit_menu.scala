@@ -6,6 +6,7 @@ Systematic modification of jEdit menus.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

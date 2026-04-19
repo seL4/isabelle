@@ -6,6 +6,7 @@ Main application entry point for Isabelle/jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

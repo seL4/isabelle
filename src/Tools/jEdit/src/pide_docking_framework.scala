@@ -6,6 +6,7 @@ PIDE docking framework: "Original" with some add-ons.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

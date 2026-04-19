@@ -7,6 +7,7 @@ Document view connected to jEdit text area.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

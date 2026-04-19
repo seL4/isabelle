@@ -6,6 +6,7 @@ Isabelle encoding -- based on UTF-8.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

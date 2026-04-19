@@ -6,6 +6,7 @@ Dockable window for Sledgehammer.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

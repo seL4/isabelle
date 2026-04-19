@@ -7,6 +7,7 @@ content and virtual file-systems.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

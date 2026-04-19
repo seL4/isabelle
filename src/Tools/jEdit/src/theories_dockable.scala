@@ -6,6 +6,7 @@ Dockable window for theories managed by prover.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

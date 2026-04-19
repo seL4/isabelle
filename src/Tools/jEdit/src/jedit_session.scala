@@ -7,6 +7,7 @@ implicit process environment and explicit options.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

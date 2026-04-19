@@ -6,6 +6,7 @@ Dockable window for Symbol Palette.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

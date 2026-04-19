@@ -6,6 +6,7 @@ Misc library functions for jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

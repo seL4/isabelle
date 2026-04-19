@@ -6,6 +6,7 @@ Dockable window with info text.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

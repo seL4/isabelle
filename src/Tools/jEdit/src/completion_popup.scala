@@ -6,6 +6,7 @@ Completion popup.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

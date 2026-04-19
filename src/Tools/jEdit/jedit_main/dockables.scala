@@ -6,6 +6,7 @@ Isabelle/jEdit dockables.
 
 package isabelle.jedit_main
 
+import scala.language.unsafeNulls
 
 import org.gjt.sp.jedit.View
 

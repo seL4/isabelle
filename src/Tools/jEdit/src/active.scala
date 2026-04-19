@@ -6,6 +6,7 @@ Active areas within the document.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 import org.gjt.sp.jedit.{ServiceManager, View}

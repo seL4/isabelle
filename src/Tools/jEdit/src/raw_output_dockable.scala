@@ -6,6 +6,7 @@ Dockable window for raw process output (stdout).
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

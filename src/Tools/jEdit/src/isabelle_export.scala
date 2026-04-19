@@ -6,6 +6,7 @@ Access Isabelle theory exports via virtual file-system.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

@@ -6,6 +6,7 @@ GUI component for structured output.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

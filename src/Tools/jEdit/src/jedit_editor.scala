@@ -6,6 +6,7 @@ PIDE editor operations for jEdit.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

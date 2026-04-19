@@ -6,6 +6,7 @@ Isabelle/jEdit plugins via dynamic Isabelle/Scala/Java modules.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 import isabelle._
 
 

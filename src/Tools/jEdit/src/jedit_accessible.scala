@@ -9,6 +9,7 @@ Support for accessible jEdit components, notably used with screenreaders:
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

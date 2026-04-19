@@ -8,6 +8,7 @@ node or auxiliary file (blob).
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

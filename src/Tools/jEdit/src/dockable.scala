@@ -6,6 +6,7 @@ Generic dockable window.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

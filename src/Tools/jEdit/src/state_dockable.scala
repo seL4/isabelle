@@ -6,6 +6,7 @@ Dockable window for proof state output.
 
 package isabelle.jedit
 
+import scala.language.unsafeNulls
 
 import isabelle._
 
