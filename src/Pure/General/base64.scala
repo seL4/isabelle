@@ -13,11 +13,11 @@ import java.io.{InputStream, OutputStream}
 object Base64 {
   /* main operations */
 
-  def encode(a: Array[Byte]): String = java.util.Base64.getEncoder.encodeToString(a)
-  def decode(s: String): Array[Byte] = java.util.Base64.getDecoder.decode(s)
+  def encode(a: Array[Byte]): String = java.util.Base64.getEncoder.nn.encodeToString(a).nn
+  def decode(s: String): Array[Byte] = java.util.Base64.getDecoder.nn.decode(s).nn
 
-  def encode_stream(s: OutputStream): OutputStream = java.util.Base64.getEncoder.wrap(s)
-  def decode_stream(s: InputStream): InputStream = java.util.Base64.getDecoder.wrap(s)
+  def encode_stream(s: OutputStream): OutputStream = java.util.Base64.getEncoder.nn.wrap(s).nn
+  def decode_stream(s: InputStream): InputStream = java.util.Base64.getDecoder.nn.wrap(s).nn
 
 
   /* Scala functions in ML */
