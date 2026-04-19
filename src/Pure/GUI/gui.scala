@@ -388,7 +388,7 @@ object GUI {
     private def parse(text: String): Int =
       text match {
         case Percent(s) =>
-          val i = Integer.parseInt(s)
+          val i = Value.Int.parse(s)
           if (10 <= i && i < 1000) i else 100
         case _ => 100
       }

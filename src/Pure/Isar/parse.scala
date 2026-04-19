@@ -58,7 +58,7 @@ object Parse {
     def command(name: String): Parser[String] = atom("command " + quote(name), _.is_command(name))
     def $$$(name: String): Parser[String] = atom("keyword " + quote(name), _.is_keyword(name))
     def string: Parser[String] = atom("string", _.is_string)
-    def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ (s => Integer.parseInt(s))
+    def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ Value.Nat.parse
     def name: Parser[String] = atom("name", _.is_name)
     def embedded: Parser[String] = atom("embedded content", _.is_embedded)
     def text: Parser[String] = atom("text", _.is_embedded)

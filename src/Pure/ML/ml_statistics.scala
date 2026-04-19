@@ -320,7 +320,7 @@ object ML_Statistics {
             val (x0, y0, s0) = last_edge.getOrElse(key, (0.0, 0.0, 0.0))
 
             val x1 = time
-            val y1 = java.lang.Double.parseDouble(value)
+            val y1 = Value.Double.parse(value)
             val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
 
             if (y1 > y0) {
@@ -335,7 +335,7 @@ object ML_Statistics {
             for {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
-              z = java.lang.Double.parseDouble(y) if z != 0.0
+              z = Value.Double.parse(y) if z != 0.0
             } yield { (x.intern, z) })
 
         result += ML_Statistics.Entry(time, data)
