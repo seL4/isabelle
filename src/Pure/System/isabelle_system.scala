@@ -214,7 +214,7 @@ object Isabelle_System {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target)) {
       try {
-        Files.copy(src.toPath, target.toPath,
+        Files.copy(src.java_path, target.java_path,
           StandardCopyOption.COPY_ATTRIBUTES,
           StandardCopyOption.REPLACE_EXISTING)
       }
@@ -254,7 +254,7 @@ object Isabelle_System {
   def move_file(src: JFile, dst: JFile): Unit = {
     val target = if (dst.isDirectory) new JFile(dst, src.getName) else dst
     if (!File.eq(src, target))
-      Files.move(src.toPath, target.toPath, StandardCopyOption.REPLACE_EXISTING)
+      Files.move(src.java_path, target.java_path, StandardCopyOption.REPLACE_EXISTING)
   }
 
   def move_file(src: Path, dst: Path): Unit = move_file(src.file, dst.file)
@@ -265,7 +265,7 @@ object Isabelle_System {
   def symlink(src: Path, dst: Path, force: Boolean = false, native: Boolean = false): Unit = {
     val src_file = src.file
     val dst_file = dst.file
-    val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.getName) else dst_file
+    val target = if (dst_file.isDirectory) new JFile(dst_file, src_file.file_name) else dst_file
 
     if (force) target.delete
 
@@ -277,7 +277,7 @@ object Isabelle_System {
       else isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
     }
 
-    try { Files.createSymbolicLink(target.toPath, src_file.toPath) }
+    try { Files.createSymbolicLink(target.java_path, src_file.java_path) }
     catch {
       case _: UnsupportedOperationException if Platform.is_windows => cygwin_link()
       case _: FileSystemException if Platform.is_windows => cygwin_link()
@@ -300,7 +300,7 @@ object Isabelle_System {
     initialized: Boolean = true
   ): JFile = {
     val suffix = if_proper(ext, "." + ext)
-    val file = Files.createTempFile(base_dir.toPath, name, suffix).toFile
+    val file = Files.createTempFile(base_dir.java_path, name, suffix).toFile
     if (initialized) file.deleteOnExit() else file.delete()
     file
   }
@@ -320,7 +320,7 @@ object Isabelle_System {
   def rm_tree(root: JFile): Unit = {
     root.delete
     if (root.isDirectory) {
-      Files.walkFileTree(root.toPath,
+      Files.walkFileTree(root.java_path,
         new SimpleFileVisitor[JPath] {
           override def visitFile(file: JPath, attrs: BasicFileAttributes): FileVisitResult = {
             try { Files.deleteIfExists(file) }
@@ -349,7 +349,7 @@ object Isabelle_System {
   }
 
   def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile = {
-    val dir = Files.createTempDirectory(base_dir.toPath, name).toFile
+    val dir = Files.createTempDirectory(base_dir.java_path, name).toFile
     dir.deleteOnExit()
     dir
   }

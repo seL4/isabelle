@@ -106,7 +106,7 @@ object Build_Job {
 
     def read_process_output(): List[String] = synchronized {
       require(process_output_writer.isEmpty, "read_process_output")
-      using(Files.newBufferedReader(process_output_file.toPath))(File.read_lines(_, _ => ()))
+      using(Files.newBufferedReader(process_output_file.java_path))(File.read_lines(_, _ => ()))
     }
 
     def write_process_output(str: String): Unit = synchronized {

@@ -75,7 +75,7 @@ object File {
 
   /* platform files */
 
-  def absolute(file: JFile): JFile = file.toPath.toAbsolutePath.normalize.toFile
+  def absolute(file: JFile): JFile = file.java_path.toAbsolutePath.normalize.toFile
   def canonical(file: JFile): JFile = file.getCanonicalFile
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
@@ -143,7 +143,7 @@ object File {
     if (!dir.is_dir) error("No such directory: " + dir.toString)
     val files = dir.file.listFiles
     if (files == null) Nil
-    else files.toList.map(_.getName).sorted
+    else files.toList.map(_.file_name).sorted
   }
 
   def get_entry(
@@ -180,7 +180,7 @@ object File {
       val options =
         if (follow_links) EnumSet.of(FileVisitOption.FOLLOW_LINKS)
         else EnumSet.noneOf(classOf[FileVisitOption])
-      Files.walkFileTree(start.toPath, options, Int.MaxValue,
+      Files.walkFileTree(start.java_path, options, Int.MaxValue,
         new SimpleFileVisitor[JPath] {
           override def preVisitDirectory(
             path: JPath,
@@ -312,7 +312,7 @@ object File {
   /* append */
 
   def append(file: JFile, text: String): Unit =
-    Files.write(file.toPath, UTF8.bytes(text),
+    Files.write(file.java_path, UTF8.bytes(text),
       StandardOpenOption.APPEND, StandardOpenOption.CREATE)
 
   def append(path: Path, text: String): Unit = append(path.file, text)
@@ -340,7 +340,7 @@ object File {
   /* eq */
 
   def eq(file1: JFile, file2: JFile): Boolean =
-    try { Files.isSameFile(file1.toPath, file2.toPath) }
+    try { Files.isSameFile(file1.java_path, file2.java_path) }
     catch { case ERROR(_) => false }
 
   def eq(path1: Path, path2: Path): Boolean = eq(path1.file, path2.file)

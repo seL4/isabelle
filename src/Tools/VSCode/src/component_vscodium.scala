@@ -297,7 +297,7 @@ object Component_VSCodium {
       if (platform.is_windows) {
         val files =
           File.find_files(dir.file, pred = { file =>
-            val name = file.getName
+            val name = file.file_name
             File.is_dll(name) || File.is_exe(name) || File.is_node(name)
           })
         files.foreach(file => File.set_executable(File.path(file)))

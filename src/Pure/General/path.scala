@@ -335,7 +335,7 @@ final class Path private(
   def check_file: Path = if (is_file) this else error("No such file: " + this.expand)
   def check_dir: Path = if (is_dir) this else error("No such directory: " + this.expand)
 
-  def java_path: JPath = file.toPath
+  def java_path: JPath = file.java_path
 
   def absolute_file: JFile = File.absolute(file)
   def canonical_file: JFile = File.canonical(file)

@@ -400,9 +400,9 @@ abstract class Rendering(
           (for {
             file <- files.iterator
 
-            name = file.getName
+            name = file.file_name
             if name.startsWith(base_name)
-            path_name = new JFile(name).toPath
+            path_name = new JFile(name).java_path
             if !ignore.exists(matcher => matcher.matches(path_name))
 
             text1 = (dir + Path.basic(name)).implode_short

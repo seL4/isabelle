@@ -57,7 +57,7 @@ object Elm {
       for {
         src_dir <- src_dirs
         path = dir + Path.explode(src_dir)
-        file <- File.find_files(path.file, _.getName.endsWith(".elm"))
+        file <- File.find_files(path.file, _.file_name.endsWith(".elm"))
         rel_path <- File.relative_path(dir, File.path(file))
       } yield rel_path
 

@@ -30,7 +30,7 @@ object Classpath {
 
     val jar_files1 =
       jar_files.flatMap(start =>
-          File.find_files(start, file => File.is_jar(file.getName)).sortBy(_.getName))
+          File.find_files(start, file => File.is_jar(file.file_name)).sortBy(_.file_name))
         .map(File.absolute)
 
     val tmp_jars =
@@ -87,7 +87,7 @@ class Classpath private(static_jars: List[JFile], dynamic_jars: List[JFile]) {
     val services_jars =
       jars.flatMap(jar =>
         init_services(File.standard_path(jar),
-          isabelle.setup.Build.get_services(jar.toPath).asScala.toList))
+          isabelle.setup.Build.get_services(jar.java_path).asScala.toList))
     services_env ::: services_jars
   }
 

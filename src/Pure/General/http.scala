@@ -28,7 +28,7 @@ object HTTP {
     val default_encoding: String = UTF8.charset.name
 
     def file_mime_type(file: JFile): String =
-      proper_value(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
+      proper_value(Files.probeContentType(file.java_path)).getOrElse(default_mime_type)
 
     def bytes_mime_type(bytes: Bytes, ext: String = ""): String =
       if (ext.isEmpty) default_mime_type
@@ -50,7 +50,7 @@ object HTTP {
 
     def read(file: JFile): Content = {
       val bytes = Bytes.read(file)
-      val file_name = file.getName
+      val file_name = file.file_name
       val mime_type = file_mime_type(file)
       apply(bytes, file_name = file_name, mime_type = mime_type)
     }

@@ -55,7 +55,7 @@ object File_Watcher {
         st.dirs.get(dir) match {
           case Some(key) if key.isValid => st
           case _ =>
-            val key = dir.toPath.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+            val key = dir.java_path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
             st.copy(dirs = st.dirs + (dir -> key))
         })
 
@@ -100,7 +100,7 @@ object File_Watcher {
                     val remove = if (key.reset) None else Some(dir)
                     val changed =
                       events.iterator.foldLeft(Set.empty[JFile]) {
-                        case (set, event) => set + dir.toPath.resolve(event.context).toFile
+                        case (set, event) => set + dir.java_path.resolve(event.context).toFile
                       }
                     (remove, changed)
                   case None =>

@@ -50,7 +50,7 @@ Usage: isabelle update_theorems [FILES|DIRS...]
 
       for {
         spec <- specs
-        file <- File.find_files(Path.explode(spec).file, file => File.is_thy(file.getName))
+        file <- File.find_files(Path.explode(spec).file, file => File.is_thy(file.file_name))
       } update_theorems(File.path(file))
     })
 }

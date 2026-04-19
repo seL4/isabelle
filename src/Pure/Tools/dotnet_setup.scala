@@ -119,7 +119,7 @@ DOTNET_CLI_HOME="$(platform_path "$ISABELLE_HOME_USER/dotnet")"
               " -NoPath"
           progress.bash(script, echo = progress.verbose,
             cwd = if (dry_run) Path.current else component_dir.path).check
-          for (exe <- File.find_files(platform_dir.file, pred = _.getName.endsWith(".exe"))) {
+          for (exe <- File.find_files(platform_dir.file, pred = _.file_name.endsWith(".exe"))) {
             File.set_executable(File.path(exe))
           }
         }

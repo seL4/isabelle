@@ -201,7 +201,7 @@ mac.CFBundleTypeRole=Editor
 
         val bad_files =
           File.find_files(app_root.file, pred = { file =>
-            try { Files.getPosixFilePermissions(file.toPath); false }
+            try { Files.getPosixFilePermissions(file.java_path); false }
             catch { case _: IOException => true }
           })
         for (file <- bad_files) {
@@ -220,7 +220,7 @@ mac.CFBundleTypeRole=Editor
           isabelle_components.flatMap(name =>
             if (name.containsSlice("polyml")) {
               File.find_files((isabelle_home + Path.explode(name)).file,
-                pred = file => file.getName == "poly.uuid")
+                pred = file => file.file_name == "poly.uuid")
             }
             else Nil).isEmpty
 

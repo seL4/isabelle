@@ -104,13 +104,13 @@ object Build_Log {
         case None => name
       }
     }
-    def plain_name(file: JFile): String = plain_name(file.getName)
+    def plain_name(file: JFile): String = plain_name(file.file_name)
 
     def apply(name: String, lines: List[String], cache: XML.Cache = XML.Cache.none): Log_File =
       new Log_File(plain_name(name), lines.map(s => cache.string(Library.trim_line(s))), cache)
 
     def read(file: JFile, cache: XML.Cache = XML.Cache.none): Log_File = {
-      val name = file.getName
+      val name = file.file_name
       val text =
         if (File.is_gz(name)) File.read_gzip(file)
         else if (File.is_xz(name)) Bytes.read(file).uncompress_xz(cache = cache.compress).text
@@ -131,7 +131,7 @@ object Build_Log {
       prefixes: List[String] = log_prefixes,
       suffixes: List[String] = log_suffixes
     ): Boolean = {
-      val name = file.getName
+      val name = file.file_name
 
       prefixes.exists(name.startsWith) &&
       suffixes.exists(name.endsWith) &&

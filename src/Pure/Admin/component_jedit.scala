@@ -171,8 +171,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       progress.echo("Patching jEdit sources ...")
       for {
-        file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).sortBy(_.getName)
-        name = file.getName
+        file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).sortBy(_.file_name)
+        name = file.file_name
         if !File.is_backup(name)
       } {
         val patch = File.read(File.path(file))
@@ -192,7 +192,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       }
 
       for {
-        svg_file <- File.find_files(tango_path.file, pred = file => File.is_svg(file.getName))
+        svg_file <- File.find_files(tango_path.file, pred = file => File.is_svg(file.file_name))
         rel_path <- File.relative_path(tango_path, File.path(svg_file))
       } {
         val dir = Isabelle_System.make_directory(jedit_tango_path + rel_path.dir)
@@ -210,10 +210,10 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         (for {
-          file <- File.find_files(source_org_dir.file, file => File.is_java(file.getName))
+          file <- File.find_files(source_org_dir.file, file => File.is_java(file.file_name))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
-        } yield File.path(component_path.java_path.relativize(file.toPath).toFile).implode).sorted
+        } yield File.path(component_path.java_path.relativize(file.java_path).toFile).implode).sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +

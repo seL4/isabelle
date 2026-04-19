@@ -5,6 +5,10 @@
 Root of isabelle package.
 */
 
+import java.io.{File => JFile}
+import java.nio.file.{Path => JPath}
+
+
 package object isabelle {
   val ERROR = Exn.ERROR
   val error = Exn.error _
@@ -30,4 +34,9 @@ package object isabelle {
   def proper_list[A](list: List[A] | Null): Option[List[A]] = Library.proper_list(list)
   def if_proper[A](x: Iterable[A] | Null, body: => String): String = Library.if_proper(x, body)
   def if_proper(b: Boolean, body: => String): String = Library.if_proper(b, body)
+
+  extension (file: JFile) {
+    def file_name: String = file.getName.nn
+    def java_path: JPath = file.toPath.nn
+  }
 }

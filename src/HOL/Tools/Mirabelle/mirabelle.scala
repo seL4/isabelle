@@ -17,7 +17,7 @@ object Mirabelle {
     (for {
       file <-
         File.find_files(Path.explode("~~/src/HOL/Tools/Mirabelle").file,
-          pred = file => File.is_ML(file.getName))
+          pred = file => File.is_ML(file.file_name))
       line <- split_lines(File.read(file))
       name <- line match { case Pattern(a) => Some(a) case _ => None }
     } yield name).sorted

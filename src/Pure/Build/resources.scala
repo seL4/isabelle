@@ -174,7 +174,7 @@ class Resources(
   def find_theory(file: JFile): Option[Document.Node.Name] = {
     for {
       qualifier <- sessions_structure.session_directories.get(File.canonical(file).getParentFile)
-      theory_base <- proper_string(Thy_Header.theory_name(file.getName))
+      theory_base <- proper_string(Thy_Header.theory_name(file.file_name))
       theory = theory_name(qualifier, theory_base)
       theory_node <- find_theory_node(theory)
       if File.eq(theory_node.path.file, file)

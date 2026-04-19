@@ -70,12 +70,12 @@ object Component_JCEF {
 
           for {
             file <- File.find_files(platform_dir.file).iterator
-            name = file.getName
+            name = file.file_name
             if File.is_dll(name) || File.is_exe(name)
           } File.set_executable(File.path(file))
 
           val classpath =
-            File.find_files(platform_dir.file, pred = file => File.is_jar(file.getName))
+            File.find_files(platform_dir.file, pred = file => File.is_jar(file.file_name))
               .flatMap(file => File.relative_path(platform_dir, File.path(file)))
               .map(_.implode).sorted.map(jar => "        " + quote("$ISABELLE_JCEF_HOME/" + jar))
               .mkString(" \\\n")
