@@ -28,8 +28,8 @@ class TTY_Loop(
           else done = true
         }
         if (result.nonEmpty) {
-          System.out.print(result.toString)
-          System.out.flush()
+          System.out.nn.print(result.toString)
+          System.out.nn.flush()
           result.clear()
         }
         else {
@@ -42,7 +42,7 @@ class TTY_Loop(
   }
 
   private val console_input = Future.thread[Unit]("console_input", uninterruptible = true) {
-    val console_reader = new BufferedReader(new InputStreamReader(System.in))
+    val console_reader = new BufferedReader(new InputStreamReader(System.in.nn))
     try {
       var finished = false
       while (!finished) {

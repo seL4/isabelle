@@ -341,7 +341,7 @@ Usage: isabelle vscode_server [OPTIONS]
           if (more_args.nonEmpty) getopts.usage()
 
           val log = Logger.make_file(log_file)
-          val channel = new Channel(System.in, System.out, log = log, verbose = verbose)
+          val channel = new Channel(System.in.nn, System.out.nn, log = log, verbose = verbose)
           val server =
             new Language_Server(channel, options, session_name = logic, session_dirs = dirs.toList,
               include_sessions = include_sessions.toList, session_ancestor = logic_ancestor,
@@ -358,7 +358,7 @@ Usage: isabelle vscode_server [OPTIONS]
         }
         catch {
           case exn: Throwable =>
-            val channel = new Channel(System.in, System.out)
+            val channel = new Channel(System.in.nn, System.out.nn)
             channel.error_message(Exn.message(exn))
             throw exn
         }
