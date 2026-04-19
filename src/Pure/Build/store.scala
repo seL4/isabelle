@@ -267,7 +267,7 @@ object Store {
         Session_Info.table.select(sql = Session_Info.session_name.where_equal(name)),
         { res =>
           val uuid =
-            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            try { proper_value(res.string(Session_Info.uuid)).getOrElse("") }
             catch { case _: SQLException => "" }
           Store.Build_Info(
             SHA1.fake_shasum(res.string(Session_Info.sources)),
@@ -282,7 +282,7 @@ object Store {
         Session_Info.table.select(List(Session_Info.uuid),
           sql = Session_Info.session_name.where_equal(name)),
         { res =>
-            try { Option(res.string(Session_Info.uuid)).getOrElse("") }
+            try { proper_value(res.string(Session_Info.uuid)).getOrElse("") }
             catch { case _: SQLException => "" }
         }).getOrElse("")
 

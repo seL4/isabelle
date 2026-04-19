@@ -26,7 +26,7 @@ object Scala_Console {
     Scala.Interpreter.get { case int: Interpreter if int.console == console => int }
 
   def running_interpreter(): Interpreter = {
-    val self = Thread.currentThread()
+    val self = Isabelle_Thread.current
     Scala.Interpreter.get { case int: Interpreter if int.running_thread(self) => int }
       .getOrElse(error("Bad Scala interpreter thread"))
   }
@@ -184,7 +184,7 @@ class Scala_Console extends Shell("Scala") {
             val color = if (message.is_error) console.getErrorColor else null
             diag.print(color, message.text)
           }
-          Option(err).foreach(_.commandDone())
+          proper_value(err).foreach(_.commandDone())
           out.commandDone()
         }
         result.state

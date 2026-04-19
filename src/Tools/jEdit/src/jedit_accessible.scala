@@ -304,7 +304,7 @@ object JEdit_Accessible {
         JEdit_Lib.get_text(buffer, Text.Range(start, end + 1)).orNull
 
       override def getCharacterAttribute(i: Int): AttributeSet =
-        PIDE.maybe_rendering(view) match {
+        PIDE.maybe_rendering(view = Some(view)) match {
           case Some(rendering) if !rendering.snapshot.is_outdated &&
             rendering.hyperlink(Text.Range(i, i + 1)).isDefined => attributes(underline = true)
           case _ => attributes()

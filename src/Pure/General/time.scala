@@ -29,7 +29,7 @@ object Time {
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
 
   def guard_property(prop: String): Time =
-    System.getProperty(prop, "") match {
+    Isabelle_System.get_property(prop) match {
       case Value.Seconds(t) => t
       case "true" => Time.min
       case "false" | "" => Time.max

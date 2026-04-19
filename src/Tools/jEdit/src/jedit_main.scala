@@ -88,8 +88,8 @@ object JEdit_Main {
             "-settings=" + File.platform_path(Path.explode("$JEDIT_SETTINGS"))
 
           val jedit_server =
-            System.getProperty("isabelle.jedit_server") match {
-              case null | "" => "-noserver"
+            Isabelle_System.get_property("isabelle.jedit_server") match {
+              case "" => "-noserver"
               case name => "-server=" + name
             }
 
@@ -128,7 +128,7 @@ object JEdit_Main {
         catch {
           case exn: Throwable =>
             try { GUI.init_laf() } catch { case _: Throwable => }
-            GUI.dialog(null, "Isabelle main", GUI.scrollable_text(Exn.print(exn)))
+            GUI.dialog(title = "Isabelle main", message = Seq(GUI.scrollable_text(Exn.print(exn))))
             sys.exit(Process_Result.RC.failure)
         }
       }

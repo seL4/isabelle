@@ -10,8 +10,8 @@ package object isabelle {
   val error = Exn.error _
   def cat_error(msgs: String*): Nothing = Exn.cat_error(msgs:_*)
 
-  def using[A <: AutoCloseable, B](a: A)(f: A => B): B =
-    Library.using(a)(f)
+  def using[A <: AutoCloseable, B](x: A | Null)(f: A => B): B =
+    Library.using(x)(f)
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     Library.using_option(opt)(f)
   def using_optional[A <: AutoCloseable, B](opt: Option[A])(f: Option[A] => B): B =
@@ -24,9 +24,10 @@ package object isabelle {
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
+  def proper_value[A](x: A | Null): Option[A] = Library.proper_value(x)
   val proper_bool = Library.proper_bool _
   val proper_string = Library.proper_string _
-  def proper_list[A](list: List[A]): Option[List[A]] = Library.proper_list(list)
-  def if_proper[A](x: Iterable[A], body: => String): String = Library.if_proper(x, body)
+  def proper_list[A](list: List[A] | Null): Option[List[A]] = Library.proper_list(list)
+  def if_proper[A](x: Iterable[A] | Null, body: => String): String = Library.if_proper(x, body)
   def if_proper(b: Boolean, body: => String): String = Library.if_proper(b, body)
 }

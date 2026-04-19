@@ -130,7 +130,7 @@ class Prover(
         }
         Time.seconds(0.05).sleep()
       }
-      (finished.isEmpty || !finished.get, result.toString.trim)
+      (finished.isEmpty || !finished.get, Library.trim_string(result.toString))
     }
     if (startup_errors != "") system_output(startup_errors)
 

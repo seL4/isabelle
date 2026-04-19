@@ -336,7 +336,7 @@ object Mailman {
 
     def make_name(str: String): String = {
       val s =
-        str.trim.replaceAll("""\s+""", " ").replaceAll(" at ", "@")
+        Library.trim_string(str).replaceAll("""\s+""", " ").replaceAll(" at ", "@")
           .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de")
           .replace("informatik.tu-muenchen.de", "in.tum.de")
       if (s.startsWith("=") && s.endsWith("=")) "" else s

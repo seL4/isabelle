@@ -282,7 +282,7 @@ directory individually.
 
   def read_isabelle_options(platform: Platform.Family, dir: Path, name: String): List[String] =
     Library.trim_split_lines(File.read(isabelle_options_path(platform, dir, name)))
-      .filterNot(line => line.startsWith("#") || line.trim.isEmpty)
+      .filterNot(line => line.startsWith("#") || Library.trim_string(line).isEmpty)
 
   def make_isabelle_options(
     platform: Platform.Family, dir: Path, name: String, options: List[String]

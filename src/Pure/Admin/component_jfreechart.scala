@@ -61,21 +61,6 @@ classpath "$ISABELLE_JFREECHART_HOME/lib/""" + jar_name + """"
 """)
 
 
-    /* build.props */
-
-    val java_sources =
-      (for {
-        file <-
-          File.find_files((component_dir.src + Path.explode("main")).file,
-            file => File.is_java(file.getName))
-      } yield File.path(component_dir.path.java_path.relativize(file.toPath).toFile).implode).sorted
-
-    File.write(component_dir.build_props,
-      "module = lib/" + jar_name + "\n" +
-      "no_build = true\n" +
-      ("sources =" :: java_sources.map("  " + _)).mkString("", " \\\n", "\n"))
-
-
     /* README */
 
     File.write(component_dir.README,

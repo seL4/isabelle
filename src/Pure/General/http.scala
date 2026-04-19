@@ -28,7 +28,7 @@ object HTTP {
     val default_encoding: String = UTF8.charset.name
 
     def file_mime_type(file: JFile): String =
-      Option(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
+      proper_value(Files.probeContentType(file.toPath)).getOrElse(default_mime_type)
 
     def bytes_mime_type(bytes: Bytes, ext: String = ""): String =
       if (ext.isEmpty) default_mime_type
@@ -105,7 +105,7 @@ object HTTP {
         val stop = Time.now()
 
         val file_name = Url.file_name(Url(connection.getURL.toURI))
-        val mime_type = Option(connection.getContentType).getOrElse(Content.default_mime_type)
+        val mime_type = proper_value(connection.getContentType).getOrElse(Content.default_mime_type)
         val encoding =
           (connection.getContentEncoding, mime_type) match {
             case (enc, _) if enc != null => enc
@@ -199,7 +199,7 @@ object HTTP {
 
     def uri_path: Option[Path] =
       for {
-        s <- Option(uri.getPath).flatMap(Library.try_unprefix(root, _))
+        s <- proper_value(uri.getPath).flatMap(Library.try_unprefix(root, _))
         if Path.is_wellformed(s)
         p = Path.explode(s) if p.all_basic
       } yield p

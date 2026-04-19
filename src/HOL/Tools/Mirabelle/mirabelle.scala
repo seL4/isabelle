@@ -73,7 +73,7 @@ object Mirabelle {
                     "Mirabelle export " + quote(args.compound_name) + " (in " + session_name + ")",
                     verbose = true)
                   val yxml = YXML.parse_body(msg.chunk, cache = build_results0.cache)
-                  val lines = Pretty.string_of(yxml).trim()
+                  val lines = Library.trim_string(Pretty.string_of(yxml))
                   val prefix =
                     Export.explode_name(args.name) match {
                       case List("mirabelle", action, "initialize") => action + " initialize "

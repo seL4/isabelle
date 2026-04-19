@@ -826,7 +826,7 @@ object Bibtex {
       val location =
         if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
         else loc
-      val citations = space_explode(',', m.group(3)).map(_.trim)
+      val citations = space_explode(',', m.group(3)).map(Library.trim_string)
       Regex.quoteReplacement(cite_antiquotation(name, location, citations))
     })
 
@@ -835,7 +835,7 @@ object Bibtex {
       for {
         str1 <- Library.try_unprefix("@{cite", str)
         str2 <- Library.try_unsuffix("}", str1)
-      } yield str2.trim
+      } yield Library.trim_string(str2)
 
     opt_body match {
       case None => str

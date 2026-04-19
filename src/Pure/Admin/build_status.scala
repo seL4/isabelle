@@ -307,8 +307,8 @@ object Build_Status {
               val entry =
                 Entry(
                   chapter = chapter,
-                  build_start = res.date(Build_Log.Prop.build_start),
-                  pull_date = res.date(Build_Log.Column.pull_date(afp = false)),
+                  build_start = res.the_date(Build_Log.Prop.build_start),
+                  pull_date = res.the_date(Build_Log.Column.pull_date(afp = false)),
                   afp_pull_date =
                     if (afp) res.get_date(Build_Log.Column.pull_date(afp = true)) else None,
                   isabelle_version = isabelle_version,

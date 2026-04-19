@@ -15,10 +15,13 @@ import scala.util.matching.Regex
 object Library {
   /* resource management */
 
-  def using[A <: AutoCloseable, B](a: A)(f: A => B): B = {
-    try { f(a) }
-    finally { if (a != null) a.close() }
-  }
+  def using[A <: AutoCloseable, B](x: A | Null)(f: A => B): B =
+    x match {
+      case null => throw new NullPointerException
+      case a =>
+        try { f(a.asInstanceOf[A]) }
+        finally { a.asInstanceOf[AutoCloseable].close() }
+    }
 
   def using_option[A <: AutoCloseable, B](opt: Option[A])(f: A => B): Option[B] =
     opt.map(a => using(a)(f))
@@ -27,7 +30,7 @@ object Library {
     try { f(opt) }
     finally {
       opt match {
-        case Some(a) if a != null => a.close()
+        case Some(a) => a.close()
         case _ =>
       }
     }
@@ -174,6 +177,8 @@ object Library {
 
 
   /* strings */
+
+  def trim_string(s: String): String = s.trim.nn
 
   def string_builder(hint: Int = 0)(body: StringBuilder => Unit): String = {
     val builder = new StringBuilder(if (hint <= 0) 16 else hint)
@@ -334,17 +339,21 @@ object Library {
 
   /* proper values */
 
+  def proper_value[A](x: A | Null): Option[A] =
+    if (x.asInstanceOf[Any] == null) None else Some(x.asInstanceOf[A])
+
   def proper_bool(b: Boolean): Option[Boolean] =
     if (!b) None else Some(b)
 
-  def proper_string(s: String): Option[String] =
-    if (s == null || s == "") None else Some(s)
+  def proper_string(s: String | Null): Option[String] =
+    if (s.asInstanceOf[Any] == null || s == "") None else Some(s.asInstanceOf[String])
 
-  def proper_list[A](list: List[A]): Option[List[A]] =
-    if (list == null || list.isEmpty) None else Some(list)
+  def proper_list[A](list: List[A] | Null): Option[List[A]] =
+    if (list.asInstanceOf[Any] == null || list.asInstanceOf[List[A]].isEmpty) None
+    else Some(list.asInstanceOf[List[A]])
 
-  def if_proper[A](x: Iterable[A], body: => String): String =
-    if (x == null || x.isEmpty) "" else body
+  def if_proper[A](x: Iterable[A] | Null, body: => String): String =
+    if (x.asInstanceOf[Any] == null || x.asInstanceOf[Iterable[A]].isEmpty) "" else body
 
   def if_proper(b: Boolean, body: => String): String =
     if (!b) "" else body

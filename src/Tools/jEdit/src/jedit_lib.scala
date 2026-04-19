@@ -33,7 +33,7 @@ object JEdit_Lib {
   /* jEdit directories */
 
   def directories: List[JFile] =
-    (Option(jEdit.getSettingsDirectory).toList ::: List(jEdit.getJEditHome)).map(new JFile(_))
+    (proper_value(jEdit.getSettingsDirectory).toList ::: List(jEdit.getJEditHome)).map(new JFile(_))
 
 
   /* window geometry measurement */
@@ -122,8 +122,8 @@ object JEdit_Lib {
   def jedit_views(): Iterator[View] =
     jEdit.getViewManager().getViews().asScala.iterator
 
-  def jedit_view(view: View = null): View =
-    if (view == null) jEdit.getActiveView else view
+  def jedit_view(view: Option[View] = None): Option[View] =
+    proper_value(view getOrElse jEdit.getActiveView)
 
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
     if (view == null) Iterator.empty

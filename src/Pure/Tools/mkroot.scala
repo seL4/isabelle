@@ -111,7 +111,8 @@ object Mkroot {
 \begin{document}
 
 \title{""" + (proper_string(title) getOrElse latex_name(name)) + """}
-\author{""" + (proper_string(author) getOrElse latex_name(System.getProperty("user.name"))) + """}
+\author{""" +
+  (proper_string(author) getOrElse latex_name(Isabelle_System.get_property("user.name"))) + """}
 \maketitle
 
 \tableofcontents

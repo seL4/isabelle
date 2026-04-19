@@ -75,10 +75,10 @@ object Spell_Checker {
       if (include) name else "-" + name
 
     def unapply(decl: String): Option[(String, Boolean)] = {
-      val decl1 = decl.trim
+      val decl1 = Library.trim_string(decl)
       if (decl1 == "" || decl1.startsWith("#")) None
       else
-        Library.try_unprefix("-", decl1.trim) match {
+        Library.try_unprefix("-", decl1) match {
           case None => Some((decl1, true))
           case Some(decl2) => Some((decl2, false))
         }

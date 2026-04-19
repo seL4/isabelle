@@ -190,10 +190,10 @@ extends Rendering(snapshot, options, PIDE.session) {
   val search_color = color("search_color")
 
   lazy val tooltip_foreground_color: Color =
-    Option(UIManager.getColor("ToolTip.foreground")).getOrElse(GUI.default_foreground_color())
+    proper_value(UIManager.getColor("ToolTip.foreground")).getOrElse(GUI.default_foreground_color())
 
   lazy val tooltip_background_color: Color =
-    Option(UIManager.getColor("ToolTip.background")).getOrElse(GUI.default_background_color())
+    proper_value(UIManager.getColor("ToolTip.background")).getOrElse(GUI.default_background_color())
 
 
   /* indentation */

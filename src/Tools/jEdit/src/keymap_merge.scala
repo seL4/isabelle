@@ -235,16 +235,20 @@ object Keymap_Merge {
 
     val table_model = new Table_Model(table_entries)
 
-    if (table_entries.nonEmpty &&
-        GUI.confirm_dialog(view,
-          "Pending Isabelle/jEdit keymap changes",
-          JOptionPane.OK_CANCEL_OPTION,
-          "The following Isabelle keymap changes are in conflict with the current",
-          "jEdit keymap " + quote(keymap_name) + ":",
-          new Table(table_model),
-          "Selected shortcuts will be applied, unselected changes will be ignored.",
-          "Results are stored in $JEDIT_SETTINGS/properties and $JEDIT_SETTINGS/keymaps/.") == 0) {
-      table_model.apply(keymap_name, keymap)
+    if (table_entries.nonEmpty) {
+      val answer =
+        GUI.confirm_dialog(
+          option_type = JOptionPane.OK_CANCEL_OPTION,
+          title = "Pending Isabelle/jEdit keymap changes",
+          message =
+            Seq(
+              "The following Isabelle keymap changes are in conflict with the current",
+              "jEdit keymap " + quote(keymap_name) + ":",
+              new Table(table_model),
+              "Selected shortcuts will be applied, unselected changes will be ignored.",
+              "Results are stored in $JEDIT_SETTINGS/properties and $JEDIT_SETTINGS/keymaps/."),
+          parent = Some(view))
+      if (answer == 0) table_model.apply(keymap_name, keymap)
     }
 
     no_shortcut_conflicts.foreach(_.set(keymap))

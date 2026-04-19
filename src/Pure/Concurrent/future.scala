@@ -19,7 +19,7 @@ object Future {
 
   def thread[A](
     name: String = "",
-    group: ThreadGroup = Isabelle_Thread.current_thread_group,
+    group: Option[ThreadGroup] = Isabelle_Thread.current_thread_group,
     pri: Int = Thread.NORM_PRIORITY,
     daemon: Boolean = false,
     inherit_locals: Boolean = false,
@@ -83,7 +83,7 @@ private class Task_Future[A](body: => A) extends Future[A] {
   private def try_run(): Unit = {
     val do_run =
       status.change_result {
-        case Status.Ready => (true, Status.Running(Thread.currentThread))
+        case Status.Ready => (true, Status.Running(Isabelle_Thread.current))
         case st => (false, st)
       }
     if (do_run) {
@@ -136,7 +136,7 @@ private class Promise_Future[A] extends Promise[A] {
 
 private class Thread_Future[A](
   name: String,
-  group: ThreadGroup,
+  group: Option[ThreadGroup],
   pri: Int,
   daemon: Boolean,
   inherit_locals: Boolean,

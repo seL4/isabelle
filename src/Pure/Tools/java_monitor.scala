@@ -56,11 +56,12 @@ object Java_Monitor {
       }
 
       Desktop_App.about_handler {
-        GUI.dialog(null, "Java Monitor",
-          Untyped.the_method(ClassOf.Resources, "format").
-            invoke(null,
-              Untyped.get_static(ClassOf.Messages, "JCONSOLE_VERSION"),
-                System.getProperty("java.runtime.version")))
+        GUI.dialog(title = "Java Monitor",
+          message = Seq(
+            Untyped.the_method(ClassOf.Resources, "format").
+              invoke(null,
+                Untyped.get_static(ClassOf.Messages, "JCONSOLE_VERSION"),
+                  Isabelle_System.get_property("java.runtime.version"))))
       }
 
       val jconsole =
@@ -104,13 +105,15 @@ object Java_Monitor {
             }
             catch {
               case exn: Throwable =>
-                GUI.error_dialog(jconsole, "Error", GUI.scrollable_text(Exn.message(exn)))
+                GUI.error_dialog(
+                  message = Seq(GUI.scrollable_text(Exn.message(exn))), parent = Some(jconsole))
             }
           }
         }
         catch {
           case exn: Throwable =>
-            GUI.error_dialog(jconsole, "Error", GUI.scrollable_text(Exn.message(exn)))
+            GUI.error_dialog(
+              message = Seq(GUI.scrollable_text(Exn.message(exn))), parent = Some(jconsole))
         }
       }
     }
@@ -120,7 +123,7 @@ object Java_Monitor {
   /* java monitor on new JVM: asynchronous process */
 
   def java_monitor_external(
-    parent: Component,
+    parent: Option[Component] = None,
     pid: Long = default_pid,
     look_and_feel: String = "",
     update_interval: Time = default_update_interval
@@ -136,7 +139,10 @@ object Java_Monitor {
       catch {
         case exn: Throwable =>
           GUI_Thread.later {
-            GUI.error_dialog(parent, "System error", GUI.scrollable_text(Exn.message(exn)))
+            GUI.error_dialog(
+              title = "System error",
+              message = Seq(GUI.scrollable_text(Exn.message(exn))),
+              parent = parent)
           }
       }
     }

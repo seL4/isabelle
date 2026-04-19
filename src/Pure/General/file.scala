@@ -233,7 +233,7 @@ object File {
     val line =
       try { reader.readLine}
       catch { case _: IOException => null }
-    Option(line).map(Library.trim_line)
+    proper_value(line).map(Library.trim_line)
   }
 
   def read_lines(reader: BufferedReader, progress: String => Unit): List[String] = {

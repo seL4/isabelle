@@ -222,7 +222,7 @@ object Component_VSCodium {
           val common_dir = dir + Path.explode("src/vs/workbench/services/textfile/common")
           val header =
             split_lines(File.read(common_dir + Path.explode("encoding.ts")))
-              .takeWhile(_.trim.nonEmpty)
+              .takeWhile(s => Library.trim_string(s).nonEmpty)
           make_isabelle_encoding(cat_lines(header)).write(common_dir)
         }
 
