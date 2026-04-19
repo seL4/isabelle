@@ -26,7 +26,7 @@ object Properties {
       unapply(s) getOrElse error("Bad property entry: " + quote(s))
   }
 
-  def defined(props: T, name: java.lang.String): java.lang.Boolean =
+  def defined(props: T, name: java.lang.String): scala.Boolean =
     props.exists({ case (x, _) => x == name })
 
   def get(props: T, name: java.lang.String): Option[java.lang.String] =
