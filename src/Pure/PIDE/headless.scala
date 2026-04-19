@@ -368,7 +368,7 @@ object Headless {
             }
           }
 
-        isabelle.Session.Consumer[isabelle.Session.Commands_Changed](getClass.getName) { changed =>
+        isabelle.Session.Consumer[isabelle.Session.Commands_Changed](this.class_name) { changed =>
           val state = session.get_state()
 
           def apply_changed(st: Use_Theories_State): Use_Theories_State =

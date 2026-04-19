@@ -189,7 +189,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   /* main */
 
   private val main =
-    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+    Session.Consumer[Session.Commands_Changed](this.class_name) {
       case changed =>
         GUI_Thread.later { handle_update(Some(changed.nodes)) }
     }

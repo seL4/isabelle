@@ -34,7 +34,7 @@ class Dynamic_Output private(server: Language_Server) {
   /* main */
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
+    Session.Consumer[Any](this.class_name) {
       case changed: Session.Commands_Changed =>
         handle_update(restriction = if (changed.assignment) None else Some(changed.commands))
 

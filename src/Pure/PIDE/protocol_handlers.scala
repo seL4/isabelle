@@ -19,7 +19,7 @@ object Protocol_Handlers {
     def get(name: String): Option[Session.Protocol_Handler] = handlers.get(name)
 
     def init(handler: Session.Protocol_Handler): State = {
-      val name = handler.getClass.getName
+      val name = handler.class_name
       try {
         if (handlers.isDefinedAt(name)) error("Duplicate protocol handler: " + name)
         else {

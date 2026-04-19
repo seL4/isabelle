@@ -53,7 +53,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   set_content(new ScrollPane(theories.gui))
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
+    Session.Consumer[Any](this.class_name) {
       case phase: Session.Phase =>
         GUI_Thread.later { handle_phase(phase) }
 

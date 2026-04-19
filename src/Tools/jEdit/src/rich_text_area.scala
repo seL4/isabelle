@@ -62,7 +62,7 @@ class Rich_Text_Area(
   /* original painters */
 
   private def pick_extension(name: String): TextAreaExtension = {
-    text_area.getPainter.getExtensions.iterator.filter(x => x.getClass.getName == name).toList
+    text_area.getPainter.getExtensions.iterator.filter(x => x.class_name == name).toList
     match {
       case List(x) => x
       case _ => error("Expected exactly one " + name)

@@ -26,7 +26,7 @@ import com.formdev.flatlaf.FlatLaf
 object GUI {
   /* Swing look-and-feel */
 
-  def current_laf(): String = UIManager.getLookAndFeel.getClass.getName()
+  def current_laf(): String = UIManager.getLookAndFeel.class_name
 
   def is_macos_laf(): Boolean =
     Platform.is_macos && UIManager.getSystemLookAndFeelClassName() == current_laf()
@@ -39,7 +39,7 @@ object GUI {
 
   class Look_And_Feel(lafs: LookAndFeel*) extends Isabelle_System.Service {
     def infos: List[UIManager.LookAndFeelInfo] =
-      lafs.toList.map(laf => new UIManager.LookAndFeelInfo(laf.getName, laf.getClass.getName))
+      lafs.toList.map(laf => new UIManager.LookAndFeelInfo(laf.getName, laf.class_name))
   }
 
   lazy val look_and_feels: List[Look_And_Feel] =

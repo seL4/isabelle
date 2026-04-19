@@ -74,7 +74,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   /* main */
 
   private val main =
-    Session.Consumer[Session.Global_Options](getClass.getName) {
+    Session.Consumer[Session.Global_Options](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later {
           output.handle_resize()

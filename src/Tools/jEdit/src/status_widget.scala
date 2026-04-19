@@ -179,7 +179,7 @@ object Status_Widget {
     /* main */
 
     private val main =
-      Session.Consumer[Session.Runtime_Statistics](getClass.getName) {
+      Session.Consumer[Session.Runtime_Statistics](this.class_name) {
         case stats =>
           val status = ML_Statistics.memory_status(stats.props)
           GUI_Thread.later { update_status(status) }

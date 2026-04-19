@@ -272,13 +272,13 @@ class Language_Server(
   }
 
   private val prover_output =
-    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+    Session.Consumer[Session.Commands_Changed](this.class_name) {
       case changed =>
         update_output(changed.nodes.toList.map(resources.node_file(_)))
     }
 
   private val syslog_messages =
-    Session.Consumer[Prover.Output](getClass.getName) {
+    Session.Consumer[Prover.Output](this.class_name) {
       case output => channel.log_writeln(resources.output_text(XML.content(output.message)))
     }
 

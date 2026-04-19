@@ -236,7 +236,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   /* main */
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
+    Session.Consumer[Any](this.class_name) {
       case _: Session.Raw_Edits =>
         text_overview.foreach(_.invoke())
 

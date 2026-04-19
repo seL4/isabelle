@@ -210,7 +210,7 @@ class Query_Operation(
   /* main */
 
   private val main =
-    Session.Consumer[Session.Commands_Changed](getClass.getName) {
+    Session.Consumer[Session.Commands_Changed](this.class_name) {
       case changed =>
         val state = current_state.value
         state.location match {

@@ -184,7 +184,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     (_: EBMessage) => abbrevs_refresh_delay.invoke()
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
+    Session.Consumer[Any](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later {
           val comp = group_tabs.peer

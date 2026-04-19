@@ -98,7 +98,7 @@ class State_Dockable(view: View, position: String) extends Dockable(view, positi
   /* main */
 
   private val main =
-    Session.Consumer[Any](getClass.getName) {
+    Session.Consumer[Any](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later {
           output.handle_resize()

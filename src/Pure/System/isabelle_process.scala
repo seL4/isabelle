@@ -48,7 +48,7 @@ class Isabelle_Process private(session: Session, process: Bash.Process, val opti
   private val terminated = Future.promise[Process_Result]
 
   session.phase_changed +=
-    Session.Consumer(getClass.getName) {
+    Session.Consumer(this.class_name) {
       case Session.Ready =>
         startup.fulfill("")
       case Session.Terminated(result) =>

@@ -463,11 +463,11 @@ object SQL {
 
     def the_sqlite_connection: JDBC4Connection =
       sqlite_connection getOrElse
-        error("SQLite connection expected, but found " + connection.getClass.getName)
+        error("SQLite connection expected, but found " + connection.class_name)
 
     def the_postgresql_connection: PGConnection =
       postgresql_connection getOrElse
-        error("PostgreSQL connection expected, but found " + connection.getClass.getName)
+        error("PostgreSQL connection expected, but found " + connection.class_name)
 
     def postgresql_major_version: Option[Int] =
       if (is_postgresql) {

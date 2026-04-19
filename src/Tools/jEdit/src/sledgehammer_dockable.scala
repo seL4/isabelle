@@ -125,7 +125,7 @@ class Sledgehammer_Dockable(view: View, position: String) extends Dockable(view,
   /* main */
 
   private val main =
-    Session.Consumer[Session.Global_Options](getClass.getName) {
+    Session.Consumer[Session.Global_Options](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later { update_provers(); output.handle_resize() }
     }

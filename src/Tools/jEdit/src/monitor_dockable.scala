@@ -108,7 +108,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   /* main */
 
   private val main =
-    Session.Consumer[Session.Runtime_Statistics](getClass.getName) {
+    Session.Consumer[Session.Runtime_Statistics](this.class_name) {
       stats =>
         add_statistics(stats.props)
         update_delay.invoke()
