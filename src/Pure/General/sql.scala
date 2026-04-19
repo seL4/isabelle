@@ -385,14 +385,17 @@ object SQL {
     def int(column: Column): Int = rep.getInt(column.name)
     def long(column: Column): Long = rep.getLong(column.name)
     def double(column: Column): Double = rep.getDouble(column.name)
-    def string(column: Column): String = {
-      val s = rep.getString(column.name)
-      if (s == null) "" else s.asInstanceOf[String]
-    }
-    def bytes(column: Column): Bytes = {
-      val bs = rep.getBytes(column.name)
-      if (bs == null) Bytes.empty else Bytes(bs)
-    }
+
+    def string(column: Column): String =
+      rep.getString(column.name) match {
+        case null => ""
+        case s: String => s
+      }
+    def bytes(column: Column): Bytes =
+      rep.getBytes(column.name) match {
+        case null => Bytes.empty
+        case bs: Array[Byte] => Bytes(bs)
+      }
 
     def timing(c1: Column, c2: Column, c3: Column): Timing =
       Timing.make(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
