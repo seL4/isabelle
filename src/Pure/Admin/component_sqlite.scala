@@ -21,7 +21,7 @@ object Component_SQLite {
       error("Malformed jar URL: " + quote(url))
   }
 
-  private def nop_name(s: String): String = s.replace("-api", "-nop")
+  private def nop_name(s: String): String = s.replace("-api", "-nop").nn
 
   def build_sqlite(
     main_url: String = default_main_url,
@@ -35,7 +35,7 @@ object Component_SQLite {
 
     /* component */
 
-    val component_name = main_name.replace("-jdbc", "")
+    val component_name = main_name.replace("-jdbc", "").nn
     val component_dir =
       Components.Directory(target_dir + Path.basic(component_name)).create(progress = progress)
 

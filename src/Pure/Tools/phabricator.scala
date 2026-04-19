@@ -486,7 +486,7 @@ local_infile = 0
     val mysql_root_user = mysql_conf("""^user\s*=\s*(\S*)\s*$""".r, "superuser name")
     val mysql_root_password = mysql_conf("""^password\s*=\s*(\S*)\s*$""".r, "superuser password")
 
-    val mysql_name = phabricator_name(name = name).replace("-", "_")
+    val mysql_name = phabricator_name(name = name).replace("-", "_").nn
     val mysql_user_string = SQL.string(mysql_name) + "@'localhost'"
     val mysql_password = Linux.generate_password()
 
@@ -496,7 +496,7 @@ local_infile = 0
         """DROP USER IF EXISTS """ + mysql_user_string + "; " +
         """CREATE USER """ + mysql_user_string +
         """ IDENTIFIED BY """ + SQL.string(mysql_password) + """ PASSWORD EXPIRE NEVER; """ +
-        """GRANT ALL ON `""" + (mysql_name + "_%").replace("_", "\\_") +
+        """GRANT ALL ON `""" + (mysql_name + "_%").replace("_", "\\_").nn +
         """`.* TO """ + mysql_user_string + "; " +
         """GRANT PROCESS ON *.* TO """ + mysql_user_string + ";")).check
 

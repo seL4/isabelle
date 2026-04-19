@@ -19,7 +19,7 @@ object Build_History {
   /* augment settings */
 
   def make_64_32(platform: String): String =
-    platform.replace("x86_64-", "x86_64_32-").replace("arm64-", "arm64_32-")
+    platform.replace("x86_64-", "x86_64_32-").nn.replace("arm64-", "arm64_32-").nn
 
   def augment_settings(
     other_isabelle: Other_Isabelle,

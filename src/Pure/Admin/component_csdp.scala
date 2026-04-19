@@ -26,7 +26,7 @@ object Component_CSDP {
 
     def change(path: Path): Unit = {
       def change_line(line: String, p: (String, String)): String =
-        line.replaceAll(p._1 + "=.*", Properties.Eq(p))
+        line.replaceAll(p._1 + "=.*", Properties.Eq(p)).nn
       File.change_lines(path) { _.map(line => changed.foldLeft(line)(change_line)) }
     }
   }

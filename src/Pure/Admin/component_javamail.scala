@@ -27,7 +27,7 @@ object Component_Javamail {
     override def toString: String = group_id + ":" + artifact_id
 
     def file_name: String = artifact_id + "-" + version + ".jar"
-    def maven_dir: String = group_id.replace('.', '/') + "/" + artifact_id + "/" + version
+    def maven_dir: String = group_id.replace('.', '/').nn + "/" + artifact_id + "/" + version
     def url(repo_url: String): String = repo_url + "/" + maven_dir + "/" + file_name
   }
 

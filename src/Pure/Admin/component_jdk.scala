@@ -18,7 +18,7 @@ object Component_JDK {
     override def toString: String = name
 
     def url(base_url: String, jdk_version: String, zulu_version: String): String =
-      base_url + "/" + url_template.replace("{V}", jdk_version).replace("{Z}", zulu_version)
+      base_url + "/" + url_template.replace("{V}", jdk_version).nn.replace("{Z}", zulu_version).nn
   }
 
   val platforms: List[Download_Platform] =

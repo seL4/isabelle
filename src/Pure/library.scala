@@ -172,8 +172,8 @@ object Library {
   def trim_split_lines(s: String): List[String] =
     split_lines(trim_line(s)).map(trim_line)
 
-  def encode_lines(s: String): String = s.replace('\n', '\u000b')
-  def decode_lines(s: String): String = s.replace('\u000b', '\n')
+  def encode_lines(s: String): String = s.replace('\n', '\u000b').nn
+  def decode_lines(s: String): String = s.replace('\u000b', '\n').nn
 
 
   /* strings */
@@ -198,7 +198,7 @@ object Library {
   def isolate_substring(s: String): String = new String(s.toCharArray)
 
   def strip_ansi_color(s: String): String =
-    s.replaceAll("\u001b\\[\\d+m", "")
+    s.replaceAll("\u001b\\[\\d+m", "").nn
 
 
   /* quote */

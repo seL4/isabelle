@@ -14,7 +14,7 @@ object Line {
   /* logical lines */
 
   def normalize(text: String): String =
-    if (text.contains('\r')) text.replace("\r\n", "\n") else text
+    if (text.contains('\r')) text.replace("\r\n", "\n").nn else text
 
   def logical_lines(text: String): List[String] =
     split_lines(normalize(text))

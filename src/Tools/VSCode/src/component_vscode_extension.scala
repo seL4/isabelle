@@ -229,7 +229,7 @@ object Component_VSCode {
 
         val opt_json = options_json(options)
         val package_path = build_dir + Path.basic("package.json")
-        val package_body = File.read(package_path).replace("\"ISABELLE_OPTIONS\": {},", opt_json)
+        val package_body = File.read(package_path).replace("\"ISABELLE_OPTIONS\": {},", opt_json).nn
         File.write(package_path, package_body)
 
 

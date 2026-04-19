@@ -12,7 +12,7 @@ object Component_FlatLaf {
 
   sealed case class Lib(template: String, exe: Boolean = false, build: Boolean = false) {
     def path(version: String): Path =
-      Path.explode(template.replace("{V}", version))
+      Path.explode(template.replace("{V}", version).nn)
 
     def jar_name(version: String): Option[String] =
       if (File.is_jar(template)) Some(path(version).file_name) else None
@@ -76,7 +76,7 @@ diff -Nru FlatLaf-3.7/flatlaf-core/src/main/java/com/formdev/flatlaf/ui/FlatMenu
 
     Isabelle_System.make_directory(component_dir.lib)
 
-    val archive_url = source_url.replace("{V}", version)
+    val archive_url = source_url.replace("{V}", version).nn
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       val archive_name =

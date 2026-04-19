@@ -675,7 +675,7 @@ object SQLite {
     init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
-    val s1 = if (Platform.is_windows) s0.replace('\\', '/') else s0
+    val s1 = if (Platform.is_windows) s0.replace('\\', '/').nn else s0
 
     val config = new SQLiteConfig()
     config.setEncoding(SQLiteConfig.Encoding.UTF8)

@@ -18,7 +18,7 @@ object Component_Scala {
     base_version: String = "3"
   ) {
     def make_url(template: String): String =
-      template.replace("{V}", version).replace("{B}", base_version)
+      template.replace("{V}", version).nn.replace("{B}", base_version).nn
 
     def proper_url: String = make_url(proper_string(physical_url).getOrElse(url))
 
@@ -90,7 +90,7 @@ object Component_Scala {
           no_function("tput"),
           "PROG_HOME=" + File.bash_path(component_dir.path),
           File.read(component_dir.path + Path.explode("bin/common"))
-            .replace("scala_exit_status=127", "scala_exit_status=0"),
+            .replace("scala_exit_status=127", "scala_exit_status=0").nn,
           "compilerJavaClasspathArgs",
           "echo \"$jvm_cp_args\""))
 
@@ -118,7 +118,7 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
     val patched_scripts = List("bin/scala", "bin/scalac")
     for (name <- patched_scripts) {
       File.change(component_dir.path + Path.explode(name)) {
-        _.replace(""""-Dscala.home=$PROG_HOME"""", """"-Dscala.home=\"$PROG_HOME\""""")
+        _.replace(""""-Dscala.home=$PROG_HOME"""", """"-Dscala.home=\"$PROG_HOME\""""").nn
       }
     }
 

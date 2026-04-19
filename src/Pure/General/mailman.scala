@@ -204,10 +204,10 @@ object Mailman {
     )
 
   private def tune(s: String): String =
-    s.replace(64.toChar, 58.toChar).replace(46.toChar, 47.toChar)
+    s.replace(64.toChar, 58.toChar).nn.replace(46.toChar, 47.toChar).nn
 
   private def untune(s: String): String =
-    s.replace(58.toChar, 64.toChar).replace(47.toChar, 46.toChar)
+    s.replace(58.toChar, 64.toChar).nn.replace(47.toChar, 46.toChar).nn
 
   def standard_author_info(author_info: List[String]): List[String] =
     author_info.flatMap(s =>
@@ -265,7 +265,7 @@ object Mailman {
       val name: String =
         names.headOption getOrElse {
           addresses match {
-            case a :: _ => a.substring(0, a.indexOf('@')).nn.replace('.', ' ')
+            case a :: _ => a.substring(0, a.indexOf('@')).nn.replace('.', ' ').nn
             case Nil => error("Empty cluster")
           }
         }
@@ -336,9 +336,9 @@ object Mailman {
 
     def make_name(str: String): String = {
       val s =
-        Library.trim_string(str).replaceAll("""\s+""", " ").replaceAll(" at ", "@")
-          .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de")
-          .replace("informatik.tu-muenchen.de", "in.tum.de")
+        Library.trim_string(str).replaceAll("""\s+""", " ").nn.replaceAll(" at ", "@").nn
+          .replace("mailbroy.informatik.tu-muenchen.de", "in.tum.de").nn
+          .replace("informatik.tu-muenchen.de", "in.tum.de").nn
       if (s.startsWith("=") && s.endsWith("=")) "" else s
     }
 
@@ -485,7 +485,7 @@ object Mailman {
           "d MMM yy H:m:s Z",
           "d MMM yy H:m:s z")
       def unapply(s: String): Option[Date] = {
-        val s0 = s.replaceAll("""\s+""", " ")
+        val s0 = s.replaceAll("""\s+""", " ").nn
         val s1 =
           s0 match {
             case Trim1(s1) => s1
@@ -593,7 +593,7 @@ object Mailman {
 
     private object Date_Format {
       val Format = Date.Format("E MMM d H:m:s z uuuu")
-      def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " "))
+      def unapply(s: String): Option[Date] = Format.unapply(s.replaceAll("""\s+""", " ").nn)
     }
 
     override def message_content(name: String, lines: List[String]): Message = {

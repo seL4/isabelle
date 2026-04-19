@@ -108,7 +108,7 @@ object Component_VSCodium {
     val path = Path.explode("isabelle_encoding.ts")
     val body =
       File.read(Path.explode("$ISABELLE_VSCODE_HOME/patches") + path)
-        .replace("[/*symbols*/]", symbols_js)
+        .replace("[/*symbols*/]", symbols_js).nn
     File.content(path, header + "\n" + body)
   }
 
@@ -242,8 +242,8 @@ object Component_VSCodium {
           File.change(
             dir + Path.explode("app/extensions/theme-seti/icons/vs-seti-icon-theme.json"),
             strict = true) { s =>
-              s.replace(""""ml":"_ocaml","mli":"_ocaml",""", "")
-               .replace(""""ml":"_ocaml_light","mli":"_ocaml_light",""", "")
+              s.replace(""""ml":"_ocaml","mli":"_ocaml",""", "").nn
+               .replace(""""ml":"_ocaml_light","mli":"_ocaml_light",""", "").nn
           }
 
           val fonts_dir = dir + Path.explode("app/out/vs/base/browser/ui/fonts")
@@ -258,7 +258,7 @@ object Component_VSCodium {
           val file_name = workbench_css.file_name
           File.change_lines(dir + Path.explode("app/product.json")) { _.map(line =>
             if (line.containsSlice(file_name) && line.contains(checksum1)) {
-              line.replace(checksum1, checksum2)
+              line.replace(checksum1, checksum2).nn
             }
             else line)
           }
@@ -313,7 +313,7 @@ object Component_VSCodium {
     val digest = MessageDigest.getInstance("SHA-256")
     digest.update(Bytes.read(path).make_array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
-      .text.replaceAll("=", "")
+      .text.replaceAll("=", "").nn
   }
 
 

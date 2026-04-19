@@ -12,7 +12,7 @@ object Component_Zstd {
 
   sealed case class Platform_Info(name: String, template: String, exe: Boolean = false) {
     def install(jar_dir: Path, component_dir: Path, version: String): Unit = {
-      val source = jar_dir + Path.explode(template.replace("{V}", version))
+      val source = jar_dir + Path.explode(template.replace("{V}", version).nn)
       val target = Isabelle_System.make_directory(component_dir + Path.basic(name))
       Isabelle_System.copy_file(source, target)
       if (exe) File.set_executable(target + source.base)

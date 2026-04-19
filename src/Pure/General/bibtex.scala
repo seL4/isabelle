@@ -102,7 +102,7 @@ object Bibtex {
         chunk_pos += (name -> make_pos(chunk.heading_length))
       }
       for (tok <- chunk.tokens) {
-        tokens += (tok.copy(source = tok.source.replace("\n", " ")) -> make_pos(tok.source.length))
+        tokens += (tok.copy(source = tok.source.replace("\n", " ").nn) -> make_pos(tok.source.length))
         advance_pos(tok)
       }
     }
@@ -845,7 +845,7 @@ object Bibtex {
             case None => (CITE, body0)
             case Some(m) => (m.group(1), Cite_Macro.replaceAllIn(body0, ""))
           }
-        val body2 = body1.replace("""\<close>""", """\<close> in""")
+        val body2 = body1.replace("""\<close>""", """\<close> in""").nn
         if (cite_commands.contains(name)) cite_antiquotation(name, body2)
         else cite_antiquotation(CITE, body2 + " using " + quote(name))
     }

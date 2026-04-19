@@ -49,7 +49,7 @@ object Solr {
   def enclose(s: Source): Source = "(" + s + ")"
 
   def escape(s: String, seqs: Set[String]): Source =
-    seqs.foldLeft(s.replace("\\", "\\\\"))((s, seq) => s.replace(seq, "\\" + seq))
+    seqs.foldLeft(s.replace("\\", "\\\\").nn)((s, seq) => s.replace(seq, "\\" + seq).nn)
 
   def term(b: Boolean): Source = b.toString
   def term(i: Int): Source = i.toString

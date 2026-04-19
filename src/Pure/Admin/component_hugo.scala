@@ -19,7 +19,7 @@ object Component_Hugo {
     def is_windows: Boolean = url_template.contains("windows")
 
     def download(base_url: String, version: String): String =
-      base_url + "/v" + version + "/" + url_template.replace("{V}", version)
+      base_url + "/v" + version + "/" + url_template.replace("{V}", version).nn
   }
 
   val platforms: List[Download_Platform] =

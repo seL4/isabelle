@@ -394,8 +394,8 @@ object Web_App {
 }).call(this)"""
 
         val set_src = """
-const base = '""" + paths.frontend.toString.replace("/", "\\/") + """'
-document.getElementById('iframe').src = base + '""" + paths.api_route(path).replace("/", "\\/") + """' + window.location.search"""
+const base = '""" + paths.frontend.toString.replace("/", "\\/").nn + """'
+document.getElementById('iframe').src = base + '""" + paths.api_route(path).replace("/", "\\/").nn + """' + window.location.search"""
 
         html(
           XML.elem("head", HTML.head_meta :: head),
