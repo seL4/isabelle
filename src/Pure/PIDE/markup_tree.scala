@@ -232,7 +232,7 @@ final class Markup_Tree private(val branches: Markup_Tree.Branches.T) {
   def to_XML(root_range: Text.Range, text: CharSequence, elements: Markup.Elements): XML.Body = {
     def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
       if (start == stop) Nil
-      else List(XML.Text(text.subSequence(start, stop).toString))
+      else List(XML.Text(text.subSequence(start, stop).nn.toString))
 
     def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
       rev_markups.foldLeft(body) {

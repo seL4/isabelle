@@ -99,7 +99,7 @@ object Library {
 
       def next(): CharSequence =
         if (hasNext) {
-          val chunk = source.subSequence(start, stop)
+          val chunk = source.subSequence(start, stop).nn
           if (stop < length) { start = stop + 1; stop = end(start) }
           else { start = -1; stop = -1 }
           chunk
@@ -239,8 +239,8 @@ object Library {
     def length: Int = text.length + 1
     def charAt(i: Int): Char = if (i == text.length) '\n' else text.charAt(i)
     def subSequence(i: Int, j: Int): CharSequence =
-      if (j == text.length + 1) new Line_Termination(text.subSequence(i, j - 1))
-      else text.subSequence(i, j)
+      if (j == text.length + 1) new Line_Termination(text.subSequence(i, j - 1).nn)
+      else text.subSequence(i, j).nn
     override def toString: String = text.toString + "\n"
   }
 

@@ -103,7 +103,7 @@ object JEdit_Bibtex {
       val line = if (raw_line == null) new Segment else raw_line
 
       def no_markup = {
-        val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).toString)
+        val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).nn.toString)
         (List(styled_token), new Line_Context(None))
       }
 

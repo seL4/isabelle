@@ -407,7 +407,7 @@ final class Completion private(
     val length = text.length
 
     val abbrevs_result = {
-      val reverse_in = new Library.Reverse(text.subSequence(0, caret))
+      val reverse_in = new Library.Reverse(text.subSequence(0, caret).nn)
       Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), reverse_in) match {
         case Scan.Parsers.Success(reverse_abbr, _) =>
           val abbrevs = abbrevs_map.get_list(reverse_abbr)
@@ -430,9 +430,9 @@ final class Completion private(
         val word_context =
           caret < length && Completion.Word_Parsers.is_word_char(text.charAt(caret))
         val result =
-          Completion.Word_Parsers.read_symbol(text.subSequence(0, caret)) match {
+          Completion.Word_Parsers.read_symbol(text.subSequence(0, caret).nn) match {
             case Some(symbol) => Some((symbol, ""))
-            case None => Completion.Word_Parsers.read_word(text.subSequence(0, caret))
+            case None => Completion.Word_Parsers.read_word(text.subSequence(0, caret).nn)
           }
         result.map(
           {
