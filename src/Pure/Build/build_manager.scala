@@ -364,7 +364,7 @@ object Build_Manager {
           val timeout = Time.ms(res.long(Pending.timeout))
           val other_settings = split_lines(res.string(Pending.other_settings))
           val uuid = res.string(Pending.uuid)
-          val submit_date = res.date(Pending.submit_date)
+          val submit_date = res.the_date(Pending.submit_date)
           val priority = Priority.valueOf(res.string(Pending.priority))
           val isabelle_rev = res.string(Pending.isabelle_rev)
           val extra_components =
@@ -487,7 +487,7 @@ object Build_Manager {
           val components = space_explode(',', res.string(Running.components)).map(Component.parse)
           val timeout = Time.ms(res.long(Running.timeout))
           val user = res.get_string(Running.user)
-          val start_date = res.date(Running.start_date)
+          val start_date = res.the_date(Running.start_date)
           val cancelled = res.bool(Running.cancelled)
 
           val job = Job(UUID.make(uuid), kind, id, build_cluster, hostnames, components, timeout,
@@ -570,7 +570,7 @@ object Build_Manager {
           val status = Status.valueOf(res.string(Finished.status))
           val uuid = res.get_string(Finished.uuid).map(UUID.make)
           val build_host = res.string(Finished.build_host)
-          val start_date = res.date(Finished.start_date)
+          val start_date = res.the_date(Finished.start_date)
           val end_date = res.get_date(Finished.end_date)
           val isabelle_version = res.get_string(Finished.isabelle_version)
           val afp_version = res.get_string(Finished.afp_version)

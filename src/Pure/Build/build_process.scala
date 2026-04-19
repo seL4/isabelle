@@ -457,7 +457,7 @@ object Build_Process {
             val build_id = res.long(Base.build_id)
             val ml_platform = res.string(Base.ml_platform)
             val options = res.string(Base.options)
-            val start = res.date(Base.start)
+            val start = res.the_date(Base.start)
             val stop = res.get_date(Base.stop)
             Build(build_uuid, build_id, ml_platform, options, start, stop, Nil)
           })
@@ -626,8 +626,8 @@ object Build_Process {
             Worker(
               worker_uuid = res.string(Workers.worker_uuid),
               build_uuid = res.string(Workers.build_uuid),
-              start = res.date(Workers.start),
-              stamp = res.date(Workers.stamp),
+              start = res.the_date(Workers.start),
+              stamp = res.the_date(Workers.stamp),
               stop = res.get_date(Workers.stop),
               serial = res.long(Workers.serial))
           })
@@ -766,7 +766,7 @@ object Build_Process {
             val hostname = res.string(Running.hostname)
             val numa_node = res.get_int(Running.numa_node)
             val rel_cpus = res.string(Running.rel_cpus)
-            val start_date = res.date(Running.start_date)
+            val start_date = res.the_date(Running.start_date)
             val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
 
             Job(name, worker_uuid, build_uuid, node_info, start_date, None)
@@ -843,7 +843,7 @@ object Build_Process {
             val rel_cpus = res.string(Results.rel_cpus)
             val node_info = Host.Node_Info(hostname, numa_node, Host.Range.from(rel_cpus))
 
-            val start_date = res.date(Results.start_date)
+            val start_date = res.the_date(Results.start_date)
 
             val rc = res.int(Results.rc)
             val out = res.string(Results.out)

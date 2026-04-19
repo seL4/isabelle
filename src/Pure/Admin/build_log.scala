@@ -1332,7 +1332,7 @@ object Build_Log {
             val known = res.bool(Column.known)
             val isabelle_version = res.string(Prop.isabelle_version)
             val afp_version = if (afp) proper_string(res.string(Prop.afp_version)) else None
-            val pull_date = res.date(Column.pull_date(afp))
+            val pull_date = res.the_date(Column.pull_date(afp))
             Entry(known, isabelle_version, afp_version, pull_date)
           })
       }

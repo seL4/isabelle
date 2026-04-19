@@ -1281,7 +1281,7 @@ object Build_Schedule {
           { res =>
             val build_uuid = res.string(Schedules.build_uuid)
             val generator = res.string(Schedules.generator)
-            val start = res.date(Schedules.start)
+            val start = res.the_date(Schedules.start)
             val serial = res.long(Schedules.serial)
             Schedule(build_uuid, generator, start, Graph.empty, serial)
           })
@@ -1336,7 +1336,7 @@ object Build_Schedule {
           val hostname = res.string(Nodes.hostname)
           val numa_node = res.get_int(Nodes.numa_node)
           val rel_cpus = res.string(Nodes.rel_cpus)
-          val start = res.date(Nodes.start)
+          val start = res.the_date(Nodes.start)
           val duration = Time.ms(res.long(Nodes.duration))
 
           val node_info = Node_Info(hostname, numa_node, isabelle.Host.Range.from(rel_cpus))

@@ -325,22 +325,28 @@ object SQL {
       }
     }
     object string {
-      def update(i: Int, x: String | Null): Unit = rep.setString(i, x)
-      def update(i: Int, x: Option[String]): Unit = update(i, x.orNull)
+      def update(i: Int, x: String): Unit = {
+        require(x.asInstanceOf[Any] != null)
+        rep.setString(i, x)
+      }
+      def update(i: Int, x: Option[String]): Unit = rep.setString(i, x.orNull)
     }
     object bytes {
-      def update(i: Int, bytes: Bytes | Null): Unit =
+      def update(i: Int, bytes: Bytes): Unit = {
+        require(bytes.asInstanceOf[Any] != null)
+        val n = bytes.size
+        if (n > Int.MaxValue) throw new IllegalArgumentException
+        else rep.setBinaryStream(i, bytes.stream(), n.toInt)
+      }
+      def update(i: Int, bytes: Option[Bytes]): Unit =
         bytes match {
-          case null => rep.setBytes(i, null)
-          case bs: Bytes =>
-            if (bs.size > Int.MaxValue) throw new IllegalArgumentException
-            else rep.setBinaryStream(i, bs.stream(), bs.size.toInt)
+          case None => rep.setBytes(i, null)
+          case Some(bs) => update(i, bs)
         }
-      def update(i: Int, bytes: Option[Bytes]): Unit = update(i, bytes.orNull)
     }
     object date {
-      def update(i: Int, date: Date | Null): Unit = db.update_date(stmt, i, date)
-      def update(i: Int, date: Option[Date]): Unit = update(i, date.orNull)
+      def update(i: Int, date: Date): Unit = db.update_date(stmt, i, Some(date))
+      def update(i: Int, date: Option[Date]): Unit = db.update_date(stmt, i, date)
     }
 
     def execute(): Boolean = rep.execute()
@@ -387,14 +393,13 @@ object SQL {
       val bs = rep.getBytes(column.name)
       if (bs == null) Bytes.empty else Bytes(bs)
     }
-    def date(column: Column): Date = stmt.db.date(res, column)
 
     def timing(c1: Column, c2: Column, c3: Column): Timing =
       Timing.make(Time.ms(long(c1)), Time.ms(long(c2)), Time.ms(long(c3)))
 
     def get[A](column: Column, f: Column => A): Option[A] = {
       val x = f(column)
-      if (rep.wasNull || x == null) None else Some(x.asInstanceOf[A])
+      if (rep.wasNull) None else Some(x.asInstanceOf[A])
     }
     def get_bool(column: Column): Option[Boolean] = get(column, bool)
     def get_int(column: Column): Option[Int] = get(column, int)
@@ -402,7 +407,10 @@ object SQL {
     def get_double(column: Column): Option[Double] = get(column, double)
     def get_string(column: Column): Option[String] = get(column, string)
     def get_bytes(column: Column): Option[Bytes] = get(column, bytes)
-    def get_date(column: Column): Option[Date] = get(column, date)
+
+    def get_date(column: Column): Option[Date] = stmt.db.get_date(res, column)
+    def the_date(column: Column): Date =
+      get_date(column).getOrElse(error("Undefined date from database column " + quote(column.name)))
 
     override def close(): Unit = rep.close()
   }
@@ -563,8 +571,8 @@ object SQL {
     def execute_query_statementB(sql: Source): Boolean =
       using_statement(sql)(stmt => using(stmt.execute_query())(_.next()))
 
-    def update_date(stmt: Statement, i: Int, date: Date | Null): Unit
-    def date(res: Result, column: Column): Date
+    def update_date(stmt: Statement, i: Int, date: Option[Date]): Unit
+    def get_date(res: Result, column: Column): Option[Date]
 
     def insert_permissive(table: Table, sql: Source = ""): Source
 
@@ -685,15 +693,11 @@ object SQLite {
 
     def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_sqlite(T)
 
-    def update_date(stmt: SQL.Statement, i: Int, date: Date | Null): Unit =
-      if (date.asInstanceOf[Any] == null) stmt.string(i) = (null: String | Null)
-      else stmt.string(i) = date_format(date.asInstanceOf[Date])
+    def update_date(stmt: SQL.Statement, i: Int, date: Option[Date]): Unit =
+      stmt.string(i) = date.map(date_format.apply)
 
-    def date(res: SQL.Result, column: SQL.Column): Date | Null =
-      proper_string(res.string(column)) match {
-        case None => null
-        case Some(s) => date_format.parse(s)
-      }
+    def get_date(res: SQL.Result, column: SQL.Column): Option[Date] =
+      proper_string(res.string(column)).map(date_format.parse)
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
       table.insert_cmd(cmd = "INSERT OR IGNORE", sql = sql)
@@ -799,20 +803,25 @@ object PostgreSQL {
 
     override def now(): Date = {
       val now = SQL.Column.date("now")
-      execute_query_statementO[Date]("SELECT NOW() as " + now.ident, res => res.date(now))
+      execute_query_statementO[Date]("SELECT NOW() as " + now.ident, res => res.the_date(now))
         .getOrElse(error("Failed to get current date/time from database server " + toString))
     }
 
     def sql_type(T: SQL.Type): SQL.Source = SQL.sql_type_postgresql(T)
 
-    // see https://jdbc.postgresql.org/documentation/head/8-date-time.html
-    def update_date(stmt: SQL.Statement, i: Int, date: Date | Null): Unit =
-      if (date.asInstanceOf[Any] == null) stmt.rep.setObject(i, null)
-      else stmt.rep.setObject(i, OffsetDateTime.from(date.asInstanceOf[Date].to(Date.timezone_utc).rep))
+    // see https://www.postgresql.org/docs/14/datatype-datetime.html
+    def update_date(stmt: SQL.Statement, i: Int, date: Option[Date]): Unit = {
+      val obj =
+        date match {
+          case None => null
+          case Some(d) => OffsetDateTime.from(d.to(Date.timezone_utc).rep)
+        }
+      stmt.rep.setObject(i, obj)
+    }
 
-    def date(res: SQL.Result, column: SQL.Column): Date | Null = {
+    def get_date(res: SQL.Result, column: SQL.Column): Option[Date] = {
       val obj = res.rep.getObject(column.name, classOf[OffsetDateTime])
-      if (obj == null) null else Date.instant(obj.nn.toInstant.nn)
+      if (obj == null) None else Some(Date.instant(obj.nn.toInstant.nn))
     }
 
     def insert_permissive(table: SQL.Table, sql: SQL.Source = ""): SQL.Source =
