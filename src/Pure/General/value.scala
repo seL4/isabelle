@@ -18,6 +18,7 @@ object Value {
       }
     def parse(s: java.lang.String): scala.Boolean =
       unapply(s) getOrElse error("Bad boolean: " + quote(s))
+    def obj(x: scala.Boolean): java.lang.Boolean = java.lang.Boolean.valueOf(x).nn
   }
 
   object Nat {
@@ -40,6 +41,7 @@ object Value {
       catch { case _: NumberFormatException => None }
     def parse(s: java.lang.String): scala.Int =
       unapply(s) getOrElse error("Bad integer: " + quote(s))
+    def obj(x: scala.Int): java.lang.Integer = java.lang.Integer.valueOf(x).nn
   }
 
   object Long {
@@ -49,6 +51,7 @@ object Value {
       catch { case _: NumberFormatException => None }
     def parse(s: java.lang.String): scala.Long =
       unapply(s) getOrElse error("Bad long integer: " + quote(s))
+    def obj(x: scala.Long): java.lang.Long = java.lang.Long.valueOf(x).nn
   }
 
   object Double {
@@ -61,6 +64,7 @@ object Value {
       catch { case _: NumberFormatException => None }
     def parse(s: java.lang.String): scala.Double =
       unapply(s) getOrElse error("Bad real: " + quote(s))
+    def obj(x: scala.Double): java.lang.Double = java.lang.Double.valueOf(x).nn
   }
 
   object Seconds {

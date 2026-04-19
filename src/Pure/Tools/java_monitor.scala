@@ -90,7 +90,7 @@ object Java_Monitor {
             try {
               val vm_panel =
                 Untyped.constructor(ClassOf.VMPanel, ClassOf.ProxyClient, Integer.TYPE)
-                  .newInstance(proxy_client, java.lang.Integer.valueOf(update_interval.ms.toInt))
+                  .newInstance(proxy_client, Value.Int.obj(update_interval.ms.toInt))
 
               Untyped.field(vm_panel, "shouldUseSSL").setBoolean(vm_panel, false)
 

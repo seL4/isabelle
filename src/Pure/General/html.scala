@@ -122,7 +122,7 @@ object HTML {
       case 255 => String.format(Locale.ROOT, "rgb(%d,%d,%d)", r, g, b)
       case a =>
         String.format(Locale.ROOT, "rgba(%d,%d,%d,%.2f)", r, g, b,
-          java.lang.Double.valueOf(a.toDouble / 255))
+          Value.Double.obj(a.toDouble / 255))
     }
   }
 

@@ -41,7 +41,7 @@ object Syntax_Style {
 
   private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle = {
     font_style(style, { font0 =>
-      val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, java.lang.Integer.valueOf(i)))
+      val font1 = font0.deriveFont(JMap.of(TextAttribute.SUPERSCRIPT, Value.Int.obj(i)))
 
       def shift(y: Float): Font =
         GUI.transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))

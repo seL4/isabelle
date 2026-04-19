@@ -155,7 +155,7 @@ object Keymap_Merge {
 
     override def getValueAt(row: Int, column: Int): AnyRef = {
       get_entry(row) match {
-        case Some(entry) if column == 0 => java.lang.Boolean.valueOf(is_selected(row))
+        case Some(entry) if column == 0 => Value.Boolean.obj(is_selected(row))
         case Some(entry) if column == 1 => entry
         case _ => null
       }
