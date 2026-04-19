@@ -88,7 +88,7 @@ object Scan {
 
     private def quoted_body(quote: Symbol.Symbol): Parser[String] = {
       rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
-        ("""\\\d\d\d""".r ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
+        ("""\\\d\d\d""".r ^? { case x if x.substring(1, 4).nn.toInt <= 255 => x })) ^^ (_.mkString)
     }
 
     def quoted(quote: Symbol.Symbol): Parser[String] = {
@@ -97,7 +97,7 @@ object Scan {
 
     def quoted_content(quote: Symbol.Symbol, source: String): String = {
       require(parseAll(quoted(quote), source).successful, "no quoted text")
-      val body = source.substring(1, source.length - 1)
+      val body = source.substring(1, source.length - 1).nn
       if (body.exists(_ == '\\')) {
         val content =
           rep(many1(sym => sym != quote && sym != "\\") |
@@ -231,7 +231,7 @@ object Scan {
 
     def comment_content(source: String): String = {
       require(parseAll(comment, source).successful, "no comment")
-      source.substring(2, source.length - 2)
+      source.substring(2, source.length - 2).nn
     }
 
 

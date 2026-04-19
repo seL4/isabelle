@@ -328,7 +328,7 @@ object Components {
           if (arg.startsWith("+")) true
           else if (arg.startsWith("-")) false
           else error("Bad argument: " + quote(arg))
-        val path = Path.explode(arg.substring(1))
+        val path = Path.explode(arg.substring(1).nn)
         update_components(add, path, progress = new Console_Progress())
       }
     }

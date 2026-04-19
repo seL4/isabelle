@@ -101,7 +101,7 @@ object Path {
         if (s == "..") Parent
         else if (s == "~") Variable("USER_HOME")
         else if (s == "~~") Variable("ISABELLE_HOME")
-        else if (s.startsWith("$")) variable_elem(s.substring(1))
+        else if (s.startsWith("$")) variable_elem(s.substring(1).nn)
         else basic_elem(s)
       }
       catch { case ERROR(msg) => cat_error(msg, "The error(s) above occurred in " + quote(str)) }

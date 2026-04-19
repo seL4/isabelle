@@ -33,7 +33,7 @@ object Server {
 
     def split(msg: String): (String, String) = {
       val name = msg.takeWhile(is_name_char)
-      val argument = msg.substring(name.length).dropWhile(Symbol.is_ascii_blank)
+      val argument = msg.substring(name.length).nn.dropWhile(Symbol.is_ascii_blank)
       (name, argument)
     }
 

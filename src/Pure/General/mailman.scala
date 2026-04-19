@@ -265,7 +265,7 @@ object Mailman {
       val name: String =
         names.headOption getOrElse {
           addresses match {
-            case a :: _ => a.substring(0, a.indexOf('@')).replace('.', ' ')
+            case a :: _ => a.substring(0, a.indexOf('@')).nn.replace('.', ' ')
             case Nil => error("Empty cluster")
           }
         }

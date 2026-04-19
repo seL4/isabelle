@@ -14,7 +14,7 @@ object ML_Syntax {
   /* numbers */
 
   private def signed(s: String): Source =
-    if (s(0) == '-') "~" + s.substring(1) else s
+    if (s(0) == '-') "~" + s.substring(1).nn else s
 
   def print_int(x: Int): Source = signed(Value.Int(x))
   def print_long(x: Long): Source = signed(Value.Long(x))

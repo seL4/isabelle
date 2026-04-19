@@ -121,21 +121,21 @@ object Url {
 
   def get_base_name(s: String, suffix: String = ""): Option[String] = {
     val i = s.lastIndexWhere(separators2.contains)
-    if (i + 1 >= s.length) None else Library.try_unsuffix(suffix, s.substring(i + 1))
+    if (i + 1 >= s.length) None else Library.try_unsuffix(suffix, s.substring(i + 1).nn)
   }
 
   def strip_base_name(s: String, suffix: String = ""): Option[String] = {
     val i = s.lastIndexWhere(separators2.contains)
     val j = s.lastIndexWhere(c => !separators1.contains(c), end = i)
     if (i + 1 >= s.length || !s.endsWith(suffix)) None
-    else if (j < 0) Some(s.substring(0, i + 1))
-    else Some(s.substring(0, j + 1))
+    else if (j < 0) Some(s.substring(0, i + 1).nn)
+    else Some(s.substring(0, j + 1).nn)
   }
 
   def get_ext(str: String): String = {
     val s = get_base_name(str).getOrElse("")
     val i = s.lastIndexOf('.')
-    if (i < 0 || i + 1 >= s.length) "" else s.substring(i + 1)
+    if (i < 0 || i + 1 >= s.length) "" else s.substring(i + 1).nn
   }
 
   def append_path(prefix: String, suffix: String): String =
@@ -143,7 +143,7 @@ object Url {
       prefix + suffix
     }
     else if (prefix.endsWith(":.") || prefix.endsWith("/.") || prefix.endsWith("\\.") || prefix == ".") {
-      prefix.substring(0, prefix.length - 1) + suffix
+      prefix.substring(0, prefix.length - 1).nn + suffix
     }
     else if (prefix.contains('\\') || suffix.contains('\\')) {
       prefix + "\\" + suffix

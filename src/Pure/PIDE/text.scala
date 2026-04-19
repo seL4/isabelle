@@ -69,7 +69,7 @@ object Text {
       if (this apart that) None
       else Some(Range(this.start min that.start, this.stop max that.stop))
 
-    def substring(text: String): String = text.substring(start, stop)
+    def substring(text: String): String = text.substring(start, stop).nn
 
     def try_substring(text: String): Option[String] =
       try { Some(substring(text)) }
@@ -169,10 +169,10 @@ object Text {
     /* edit strings */
 
     private def insert(i: Offset, string: String): String =
-      string.substring(0, i) + text + string.substring(i)
+      string.substring(0, i).nn + text + string.substring(i).nn
 
     private def remove(i: Offset, count: Offset, string: String): String =
-      string.substring(0, i) + string.substring(i + count)
+      string.substring(0, i).nn + string.substring(i + count).nn
 
     def can_edit(string: String, shift: Offset): Boolean =
       shift <= start && start < shift + string.length

@@ -787,7 +787,7 @@ object Bibtex {
                   head <- Symbol.iterator(source).nextOption
                   kind <- Symbol.control_name(Symbol.encode(head))
                 } {
-                  val rest = source.substring(head.length)
+                  val rest = source.substring(head.length).nn
                   val (body, pos1) =
                     if (rest.isEmpty) (rest, pos)
                     else (Scan.Parsers.cartouche_content(rest), pos.advance(Symbol.open))
@@ -824,7 +824,7 @@ object Bibtex {
       val name = m.group(1)
       val loc = m.group(2)
       val location =
-        if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1)
+        if (loc.startsWith("[") && loc.endsWith("]")) loc.substring(1, loc.length - 1).nn
         else loc
       val citations = space_explode(',', m.group(3)).map(Library.trim_string)
       Regex.quoteReplacement(cite_antiquotation(name, location, citations))

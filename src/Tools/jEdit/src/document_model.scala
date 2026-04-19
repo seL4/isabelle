@@ -431,7 +431,7 @@ case class File_Model(
 
   def node_position(offset: Text.Offset): Line.Node_Position =
     Line.Node_Position(node_name.node,
-      Line.Position.zero.advance(content.text.substring(0, offset)))
+      Line.Position.zero.advance(content.text.substring(0, offset).nn))
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None

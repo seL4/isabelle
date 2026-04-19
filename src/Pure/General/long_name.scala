@@ -32,7 +32,7 @@ object Long_Name {
     val m = qual.length
     val n = name.length
     if (0 < m && m < n && name.startsWith(qual) && name(m) == separator_char)
-      Some(name.substring(m + 1))
+      Some(name.substring(m + 1).nn)
     else None
   }
 }

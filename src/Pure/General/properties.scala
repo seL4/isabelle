@@ -19,7 +19,7 @@ object Properties {
 
     def unapply(str: java.lang.String): Option[Entry] = {
       val i = str.indexOf('=')
-      if (i <= 0) None else Some((str.substring(0, i), str.substring(i + 1)))
+      if (i <= 0) None else Some((str.substring(0, i).nn, str.substring(i + 1).nn))
     }
 
     def parse(s: java.lang.String): Entry =

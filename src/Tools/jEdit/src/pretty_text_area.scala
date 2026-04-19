@@ -61,15 +61,15 @@ object Pretty_Text_Area {
       var last = plain_start
       for (range <- JEdit_Lib.search_text(buffer, search_range, regex)) {
         val next = range.start - line_start
-        if (last < next) s ++= style.make_text(line_text.substring(last, next))
+        if (last < next) s ++= style.make_text(line_text.substring(last, next).nn)
         s ++= "<span style=\""
         s ++= highlight_style
         s ++= "\">"
-        s ++= style.make_text(line_text.substring(next, next + range.length))
+        s ++= style.make_text(line_text.substring(next, next + range.length).nn)
         s ++= "</span>"
         last = range.stop - line_start
       }
-      if (last < plain_stop) s ++= style.make_text(line_text.substring(last))
+      if (last < plain_stop) s ++= style.make_text(line_text.substring(last).nn)
       s ++= "</html>"
     }
     override def toString: String = gui_text

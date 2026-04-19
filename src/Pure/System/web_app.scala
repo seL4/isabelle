@@ -122,7 +122,7 @@ object Web_App {
           val text_i = text.indexOf(sep)
           if (text_i >= 0 && sep.nonEmpty) {
             val (before_text, at_text) = text.splitAt(text_i)
-            val after_text = at_text.substring(sep.length)
+            val after_text = at_text.substring(sep.length).nn
 
             // text might be shorter than bytes because of misinterpreted characters
             var found = false
