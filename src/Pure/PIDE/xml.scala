@@ -21,7 +21,9 @@ object XML {
   case class End(name: String) extends Trav
 
   sealed abstract class Tree extends Trav {
-    override def toString: String = string_of_tree(this)
+    override def toString: String =
+      try { string_of_tree(this) }
+      catch { case ERROR(_) => "<malformed>" }
   }
   type Body = List[Tree]
   case class Elem(markup: Markup, body: Body) extends Tree with Trav {
@@ -192,16 +194,13 @@ object XML {
 
   class Output(builder: StringBuilder) extends Traversal {
     def string(str: String, permissive: Boolean = false): Unit = {
-      if (str == null) { builder ++= str }
-      else {
-        str foreach {
-          case '<' => builder ++= "&lt;"
-          case '>' => builder ++= "&gt;"
-          case '&' => builder ++= "&amp;"
-          case '"' if !permissive => builder ++= "&quot;"
-          case '\'' if !permissive => builder ++= "&apos;"
-          case c => builder += c
-        }
+      str foreach {
+        case '<' => builder ++= "&lt;"
+        case '>' => builder ++= "&gt;"
+        case '&' => builder ++= "&amp;"
+        case '"' if !permissive => builder ++= "&quot;"
+        case '\'' if !permissive => builder ++= "&apos;"
+        case c => builder += c
       }
     }
 
