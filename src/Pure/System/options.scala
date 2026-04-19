@@ -487,12 +487,16 @@ final class Options private(
   def + (spec: Options.Spec): Options = {
     val name = spec.name
     val value = spec_value(spec)
+    val unknown = spec_unknown(spec)
+
     val opt =
-      if (spec_unknown(spec)) {
+      if (unknown) {
         Options.Entry(false, Position.none, name, Options.Unknown, value, value, None, Nil, "", "")
       }
       else check_name(name).copy(value = value)
-    (new Options(options + (name -> opt), section)).check_value(name)
+
+    val result = new Options(options + (name -> opt), section)
+    if (unknown) result else result.check_value(name)
   }
 
   def + (s: String): Options = this + Options.Spec.make(s)
