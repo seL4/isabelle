@@ -26,32 +26,36 @@ object Cache {
 class Cache(max_string: Int, initial_size: Int) {
   val no_cache: Boolean = max_string == 0
 
-  protected val table: JMap[Any, WeakReference[Any]] =
+  private type Table = JMap[Any, WeakReference[Any]]
+  protected val table: Table | Null =
     if (max_string == 0) null
     else Collections.synchronizedMap(new WeakHashMap[Any, WeakReference[Any]](initial_size))
 
   override def toString: String =
-    if (no_cache) "Cache.none" else "Cache(size = " + table.size + ")"
+    proper_value(table) match {
+      case None => "Cache.none"
+      case Some(t) => "Cache(size = " + t.size + ")"
+    }
 
   protected def lookup[A](x: A): Option[A] = {
     if (table == null) None
     else {
-      val ref = table.get(x)
+      val ref = table.asInstanceOf[Table].get(x)
       if (ref == null) None
       else proper_value(ref.asInstanceOf[WeakReference[A]].get)
     }
   }
 
   protected def store[A](x: A): A = {
-    if (table == null || x == null) x
+    if (table == null || x.asInstanceOf[Any] == null) x
     else {
-      table.put(x, new WeakReference[Any](x))
+      table.asInstanceOf[Table].put(x, new WeakReference[Any](x))
       x
     }
   }
 
   protected def cache_string(x: String): String = {
-    if (x == null) null
+    if (x.asInstanceOf[Any] == null) x
     else if (x == "") ""
     else if (x == "true") "true"
     else if (x == "false") "false"
