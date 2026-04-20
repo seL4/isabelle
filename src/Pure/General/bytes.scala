@@ -90,7 +90,7 @@ object Bytes {
         using(FileChannel.open(path.java_path, StandardOpenOption.READ)) { channel =>
           channel.position(start)
           val buf_size = block_size
-          val buf = ByteBuffer.allocate(buf_size)
+          val buf = ByteBuffer.allocate(buf_size).nn
           var m = 0
           var n = 0L
           while ({
@@ -98,7 +98,7 @@ object Bytes {
             buf.limit(l)
             m = channel.read(buf)
             if (m > 0) {
-              builder += (buf.array(), 0, m)
+              builder += (buf.array().nn, 0, m)
               buf.clear()
               n += m
             }
@@ -161,17 +161,17 @@ object Bytes {
     private var chunks =
       new ArrayBuffer[Array[Byte]](if (hint <= 0) 16 else (hint / chunk_size).toInt)
 
-    private var buffer_list: mutable.ListBuffer[Array[Byte]] = null
+    private var buffer_list: Option[mutable.ListBuffer[Array[Byte]]] = None
     private var buffer =
       new Array[Byte](if (hint <= 0) 1024 else (hint min chunk_size min array_size).toInt)
     private var buffer_index = 0
     private var buffer_total = 0
 
     private def buffer_content(): Array[Byte] =
-      if (buffer_list != null) {
+      if (buffer_list.isDefined) {
         val array = new Array[Byte](buffer_total)
         var i = 0
-        for (b <- buffer_list) {
+        for (b <- buffer_list.get) {
           val n = b.length
           System.arraycopy(b, 0, array, i, n)
           i += n
@@ -179,20 +179,20 @@ object Bytes {
         System.arraycopy(buffer, 0, array, i, buffer_index)
         array
       }
-      else if (buffer_index == buffer.length) buffer else Arrays.copyOf(buffer, buffer_index)
+      else if (buffer_index == buffer.length) buffer else Arrays.copyOf(buffer, buffer_index).nn
 
     private def buffer_check(request: Int = 0): Unit =
       if (buffer_index == buffer.length) {
         if (buffer_total == chunk_size) {
           chunks += buffer_content()
-          buffer_list = null
+          buffer_list = None
           buffer = new Array[Byte](chunk_size.toInt)
           buffer_total = 0
           buffer_index = 0
         }
         else {
-          if (buffer_list == null) { buffer_list = new mutable.ListBuffer }
-          buffer_list += buffer
+          if (buffer_list.isEmpty) { buffer_list = Some(new mutable.ListBuffer) }
+          buffer_list.get += buffer
           buffer_index = 0
           val limit = (chunk_size - buffer_total).toInt
           buffer = new Array[Byte]((buffer_total max request) min limit)
@@ -233,12 +233,12 @@ object Bytes {
     def += (a: Subarray): Unit = { builder += (a.array, a.offset, a.length) }
 
     def done(): Bytes = {
-      val cs = chunks.toArray
+      val cs = chunks.toArray.nn
       val b = buffer_content()
       val size = cs.foldLeft(b.length.toLong)({ case (n, a) => n + a.length })
-      chunks = null
-      buffer_list = null
-      buffer = null
+      chunks = new ArrayBuffer(0)
+      buffer_list = None
+      buffer = new Array(0)
       if (size == 0) empty
       else new Bytes(if (cs.isEmpty) None else Some(cs), b, 0L, size)
     }
@@ -475,7 +475,7 @@ final class Bytes private(
       else throw new Bytes.Too_Large(size, Bytes.array_size)
     val buf = new ByteArrayOutputStream(n)
     for (a <- subarray_iterator) { buf.write(a.array, a.offset, a.length) }
-    buf.toByteArray
+    buf.toByteArray.nn
   }
 
   def text: String =
