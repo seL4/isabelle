@@ -46,7 +46,7 @@ AutoInstall="\"%%T\{ISABELLE_NAME}\{ISABELLE_NAME}.exe\" -init"
   /* 7zip platform downloads */
 
   sealed case class Seven_Zip_Platform(name: String, url_template: String) {
-    def url(version: String): String = url_template.replace("{V}", version).nn
+    def url(version: String): String = url_template.replacing("{V}" -> version)
   }
 
   private val seven_zip_platforms: List[Seven_Zip_Platform] =

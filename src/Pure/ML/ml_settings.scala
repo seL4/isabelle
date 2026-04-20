@@ -21,7 +21,7 @@ object ML_Settings {
             Isabelle_Platform.make(env = env)
               .ISABELLE_PLATFORM(windows = true, apple = options.bool("ML_system_apple"))
           if (options.bool("ML_system_64")) platform_64
-          else platform_64.replace("64", "64_32").nn
+          else platform_64.replacing("64" -> "64_32")
         }
       }
       override def ml_options: String =

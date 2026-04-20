@@ -96,7 +96,7 @@ object Build_App {
               b <- Bytes.read(dist_dir + exe).space_explode(0)
               s <- b.wellformed_text
               if s.containsSlice(".jar")
-            } yield s.replace("\\", "/").nn.replace("%EXEDIR%", "$ISABELLE_HOME").nn
+            } yield s.replacing("\\" -> "/", "%EXEDIR%" -> "$ISABELLE_HOME")
           list match {
             case List(s) => space_explode(';', s)
             case _ => error("Failed to retrieve classpath from " + exe)
@@ -192,9 +192,9 @@ mac.CFBundleTypeRole=Editor
       if (platform.is_macos) {
         File.change_lines(isabelle_home + Path.explode("etc/settings")) { lines =>
           lines.map(line =>
-            line.replace(
-              "$USER_HOME/.isabelle",
-              "$USER_HOME/Library/Application Support/Isabelle").nn)
+            line.replacing(
+              "$USER_HOME/.isabelle" ->
+              "$USER_HOME/Library/Application Support/Isabelle"))
         }
         Isabelle_System.rm_tree(isabelle_home + Path.explode("Contents"))
         Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS, app_resources)
@@ -282,7 +282,7 @@ mac.CFBundleTypeRole=Editor
             "app.splash=$ROOTDIR" + platform_suffix + "/lib/logo/isabelle.gif",
             "app.runtime=$ROOTDIR" + platform_suffix + "/" + jdk_relative_path.implode) :::
           java_classpath.map(s =>
-            "app.classpath=" + s.replace("ISABELLE_HOME", "ROOTDIR" + platform_suffix).nn) :::
+            "app.classpath=" + s.replacing("ISABELLE_HOME" -> ("ROOTDIR" + platform_suffix))) :::
           List("app.mainclass=isabelle.jedit.JEdit_Main",
             "",
             "[JavaOptions]",

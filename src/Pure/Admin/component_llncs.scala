@@ -59,7 +59,7 @@ ISABELLE_LLNCS_HOME="$COMPONENT"
 
         /* README */
 
-        File.change(component_dir.path + README_md)(_.replace("&nbsp;", HTML.space).nn)
+        File.change(component_dir.path + README_md)(_.replacing("&nbsp;" -> HTML.space))
 
         File.write(component_dir.README,
           """This is the Springer LaTeX LNCS style for authors from

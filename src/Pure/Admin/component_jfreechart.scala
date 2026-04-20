@@ -30,9 +30,9 @@ object Component_JFreeChart {
 
     Isabelle_System.make_directory(component_dir.lib)
 
-    val archive_url = source_url.replace("{V}", version).nn
+    val archive_url = source_url.replacing("{V}" -> version)
     val build_script = "mvn clean verify"
-    val jar_name = "jfreechart-{V}.jar".replace("{V}", version).nn
+    val jar_name = "jfreechart-{V}.jar".replacing("{V}" -> version)
 
     Isabelle_System.with_tmp_dir("build") { build_dir =>
       val archive_name =

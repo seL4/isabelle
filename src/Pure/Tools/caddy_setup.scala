@@ -13,7 +13,7 @@ object Caddy_Setup {
   sealed case class Platform_Info(platform: String, xcaddy_template: String)
   extends Platform.Info {
     def xcaddy_download(url: String, version: String): String =
-      Url.append_path(url, xcaddy_template.replace("{V}", version).nn)
+      Url.append_path(url, xcaddy_template.replacing("{V}" -> version))
   }
 
   val all_platforms: List[Platform_Info] =

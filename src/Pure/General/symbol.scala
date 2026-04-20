@@ -410,7 +410,7 @@ object Symbol {
           props match {
             case Nil => Nil
             case _ :: Nil => err()
-            case Key(x) :: y :: rest => (x -> y.replace('\u2423', ' ').nn) :: read_props(rest)
+            case Key(x) :: y :: rest => (x -> y.replacing("\u2423" -> " ")) :: read_props(rest)
             case _ => err()
           }
         }

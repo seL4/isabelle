@@ -529,7 +529,7 @@ object Find_Facts {
       def get_content(range: Text.Range): String =
         Symbol.decode(Line.normalize(range.substring(content)))
 
-      val document = Line.Document(content.replace('\r', '\u001a').nn)
+      val document = Line.Document(content.replacing("\r" -> "\u001a"))
       val num_lines = document.lines.length
       def content_range(start: Line.Position, stop: Line.Position): Text.Range =
         Text.Range(document.offset(start).get, document.offset(stop).get)

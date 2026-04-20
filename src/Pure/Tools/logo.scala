@@ -18,7 +18,7 @@ object Logo {
   def create_logo(logo_name: String, output_file: Path, quiet: Boolean = false): Unit = {
     Isabelle_System.with_tmp_file("logo", ext = "eps") { tmp_file =>
       val template = File.read(Path.explode("$ISABELLE_HOME/lib/logo/isabelle_any.eps"))
-      File.write(tmp_file, template.replace("<any>", logo_name).nn)
+      File.write(tmp_file, template.replacing("<any>" -> logo_name))
 
       Isabelle_System.bash(
         "\"$ISABELLE_EPSTOPDF\" --filter < " + File.bash_path(tmp_file) +

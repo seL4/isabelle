@@ -42,7 +42,7 @@ object SQL {
     }
 
   def ident(s: String): Source =
-    Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replace("\"", "\"\"").nn)))
+    Long_Name.implode(Long_Name.explode(s).map(a => quote(a.replacing("\"" -> "\"\""))))
 
   def enclose(s: Source): Source = "(" + s + ")"
   def enclosure(ss: Iterable[Source]): Source = ss.mkString("(", ", ", ")")
@@ -675,7 +675,7 @@ object SQLite {
     init_jdbc
     val path0 = path.expand
     val s0 = File.platform_path(path0)
-    val s1 = if (Platform.is_windows) s0.replace('\\', '/').nn else s0
+    val s1 = if (Platform.is_windows) s0.replacing("\\" -> "/") else s0
 
     val config = new SQLiteConfig()
     config.setEncoding(SQLiteConfig.Encoding.UTF8)

@@ -708,9 +708,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           case Platform.Family.macos =>
             File.change(isabelle_target + jedit_props) {
-              _.replaceAll("lookAndFeel=.*", "lookAndFeel=com.formdev.flatlaf.themes.FlatMacLightLaf").nn
-               .replaceAll("delete-line.shortcut=.*", "delete-line.shortcut=C+d").nn
-               .replaceAll("delete.shortcut2=.*", "delete.shortcut2=A+d").nn
+              _.replacing(
+                "lookAndFeel=.*".r -> "lookAndFeel=com.formdev.flatlaf.themes.FlatMacLightLaf",
+                "delete-line.shortcut=.*".r -> "delete-line.shortcut=C+d",
+                "delete.shortcut2=.*".r -> "delete.shortcut2=A+d")
             }
 
 
@@ -748,7 +749,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           case Platform.Family.windows =>
             File.change(isabelle_target + jedit_props) {
-              _.replaceAll("foldPainter=.*", "foldPainter=Square").nn
+              _.replacing("foldPainter=.*".r -> "foldPainter=Square")
             }
 
 
@@ -764,17 +765,15 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             val isabelle_exe = bundle_info.path
 
             File.write(tmp_dir + isabelle_xml,
-              File.read(app_template + isabelle_xml)
-                .replace("{ISABELLE_NAME}", isabelle_name).nn
-                .replace("{OUTFILE}", File.platform_path(isabelle_target + isabelle_exe)).nn
-                .replace("{ICON}",
-                  File.platform_path(app_template + Path.explode("isabelle_transparent.ico"))).nn
-                .replace("{SPLASH}",
-                  File.platform_path(app_template + Path.explode("isabelle.bmp"))).nn
-                .replace("{CLASSPATH}",
+              File.read(app_template + isabelle_xml).replacing(
+                "{ISABELLE_NAME}" -> isabelle_name,
+                "{OUTFILE}" -> File.platform_path(isabelle_target + isabelle_exe),
+                "{ICON}" -> File.platform_path(app_template + Path.explode("isabelle_transparent.ico")),
+                "{SPLASH}" -> File.platform_path(app_template + Path.explode("isabelle.bmp")),
+                "{CLASSPATH}" ->
                   cat_lines(classpath.map(cp =>
-                    "    <cp>%EXEDIR%\\" + File.platform_path(cp).replace('/', '\\') + "</cp>"))).nn
-                .replace("\\jdk\\", "\\" + jdk_component + "\\").nn)
+                    "    <cp>%EXEDIR%\\" + File.platform_path(cp).replacing("/" -> "\\") + "</cp>")),
+                "\\jdk\\" -> ("\\" + jdk_component + "\\")))
 
             val java_opts =
               bash_java_opens(
@@ -807,7 +806,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
             val cygwin_bat = Path.explode("Cygwin-Setup.bat")
             File.write(isabelle_target + cygwin_bat,
-              File.read(cygwin_template + cygwin_bat).replace("{MIRROR}", cygwin_mirror).nn)
+              File.read(cygwin_template + cygwin_bat).replacing("{MIRROR}" -> cygwin_mirror))
             File.set_executable(isabelle_target + cygwin_bat)
 
             for (name <- List("isabelle/postinstall", "isabelle/rebaseall")) {
@@ -850,7 +849,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
             val sfx_exe = tmp_dir + Component_Windows_App.sfx_path
             val sfx_txt =
               Library.trim_split_lines(
-                Component_Windows_App.sfx_txt.replace("{ISABELLE_NAME}", isabelle_name).nn
+                Component_Windows_App.sfx_txt.replacing("{ISABELLE_NAME}" -> isabelle_name)
               ).map(_ + "\r\n").mkString
 
             Bytes.write(context.dist_dir + isabelle_exe,

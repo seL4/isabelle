@@ -76,8 +76,8 @@ object Component_SPASS {
 
       if (Platform.is_windows) {
         File.change(source_dir + Path.basic("misc.c")) {
-          _.replace("""#include "execinfo.h" """, "").nn
-           .replaceAll("""void misc_DumpCore\(void\)[^}]+}""", "void misc_DumpCore(void) { abort(); }").nn
+          _.replacing("""#include "execinfo.h" """ -> "",
+            """void misc_DumpCore\(void\)[^}]+}""".r -> "void misc_DumpCore(void) { abort(); }")
         }
       }
 

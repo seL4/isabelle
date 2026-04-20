@@ -8,6 +8,8 @@ Root of isabelle package.
 import java.io.{File => JFile}
 import java.nio.file.{Path => JPath}
 
+import scala.util.matching.Regex
+
 
 package object isabelle {
   val ERROR = Exn.ERROR
@@ -34,6 +36,11 @@ package object isabelle {
   def proper_list[A](list: List[A] | Null): Option[List[A]] = Library.proper_list(list)
   def if_proper[A](x: Iterable[A] | Null, body: => String): String = Library.if_proper(x, body)
   def if_proper(b: Boolean, body: => String): String = Library.if_proper(b, body)
+
+  extension (str: String) {
+    def replacing(args: ((String | Regex), String)*): String =
+      Library.replacing(str, args:_*)
+  }
 
   extension (file: JFile) {
     def file_name: String = file.getName.nn

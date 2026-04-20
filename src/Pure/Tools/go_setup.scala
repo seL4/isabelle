@@ -16,7 +16,7 @@ object Go_Setup {
 
     def download(base_url: String, version: String): String = {
       val ext = if (is_windows) ".zip" else ".tar.gz"
-      Url.append_path(base_url, "go" + version + "." + go_platform.replace("_", "-").nn + ext)
+      Url.append_path(base_url, "go" + version + "." + go_platform.replacing("_" -> "-") + ext)
     }
   }
 

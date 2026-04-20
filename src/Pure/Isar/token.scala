@@ -172,7 +172,7 @@ object Token {
 
   def quote_name(keywords: Keyword.Keywords, name: String): String =
     if (read_name(keywords, name).isDefined) name
-    else quote(name.replace("\"", "\\\"").nn)
+    else quote(name.replacing("\"" -> "\\\""))
 
 
   /* plain antiquotation (0 or 1 args) */
