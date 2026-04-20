@@ -78,8 +78,8 @@ object Build_Log {
 
   def log_date(date: Date): String =
     String.format(Locale.ROOT, "%s.%05d",
-      DateTimeFormatter.ofPattern("yyyy-MM-dd").format(date.rep),
-      Value.Long.obj((date - date.midnight).ms / 1000))
+      DateTimeFormatter.ofPattern("yyyy-MM-dd").nn.format(date.rep),
+      Value.Long.obj((date - date.midnight).ms / 1000)).nn
 
   def log_subdir(date: Date): Path =
     Path.explode("log") + Path.explode(date.rep.getYear.toString)
@@ -151,10 +151,10 @@ object Build_Log {
       val fmts =
         Date.Formatter.variants(
           List("EEE MMM d HH:mm:ss O yyyy", "EEE MMM d HH:mm:ss VV yyyy"),
-          List(Locale.ENGLISH, Locale.GERMAN)) :::
+          List(Locale.ENGLISH.nn, Locale.GERMAN.nn)) :::
         List(
-          DateTimeFormatter.RFC_1123_DATE_TIME,
-          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").withZone(Date.timezone_berlin))
+          DateTimeFormatter.RFC_1123_DATE_TIME.nn,
+          Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").nn.withZone(Date.timezone_berlin).nn)
 
       def tune_timezone(s: String): String =
         s match {
