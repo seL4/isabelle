@@ -131,8 +131,10 @@ object Exn {
       Some(proper_string(exn.getMessage) getOrElse "SQL error")
     }
     else if (exn.isInstanceOf[java.io.IOException]) {
-      val msg = exn.getMessage
-      Some(if (msg == null || msg == "") "I/O error" else "I/O error: " + msg)
+      proper_string(exn.getMessage) match {
+        case None => Some("I/O error")
+        case Some(msg) => Some("I/O error: " + msg)
+      }
     }
     else if (exn.isInstanceOf[RuntimeException]) Some(exn.toString)
     else None
