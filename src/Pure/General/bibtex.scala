@@ -472,7 +472,7 @@ object Bibtex {
           }
           if (i == start) Failure("bad input", in)
           else {
-            val s = in.source.subSequence(start, i).nn.toString
+            val s = Library.make_string(in.source, start, i)
             Success((s, Delimited(q, d)), in.drop(i - start))
           }
         }

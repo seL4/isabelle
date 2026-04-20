@@ -225,6 +225,9 @@ object Library {
 
   /* CharSequence */
 
+  def make_string(text: CharSequence, start: Int, end: Int): String =
+    text.subSequence(start, end).nn.toString
+
   class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence {
     require(0 <= start && start <= end && end <= text.length, "bad reverse range")
 

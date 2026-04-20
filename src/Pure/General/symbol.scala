@@ -123,7 +123,7 @@ object Symbol {
       match_length(i) match {
         case 0 => ""
         case 1 => char_symbol(text.charAt(i))
-        case n => text.subSequence(i, i + n).nn.toString
+        case n => Library.make_string(text, i, i + n)
       }
   }
 

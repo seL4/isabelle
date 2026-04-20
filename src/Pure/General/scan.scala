@@ -61,7 +61,7 @@ object Scan {
             else finished = true
           }
           if (count < min_count) Failure("bad input", in)
-          else Success(in.source.subSequence(start, i).nn.toString, in.drop(i - start))
+          else Success(Library.make_string(in.source, start, i), in.drop(i - start))
         }
       }.named("repeated")
 
@@ -147,7 +147,7 @@ object Scan {
           else finished = true
         }
         if (i == start) Failure("bad input", in)
-        else Success((in.source.subSequence(start, i).nn.toString, d), in.drop(i - start))
+        else Success((Library.make_string(in.source, start, i), d), in.drop(i - start))
       }
     }.named("cartouche_depth")
 
@@ -204,7 +204,7 @@ object Scan {
           else if (d == 0 || !try_parse(comment_text)) finished = true
         }
         if (in.offset < rest.offset)
-          Success((in.source.subSequence(in.offset, rest.offset).nn.toString, d), rest)
+          Success((Library.make_string(in.source, in.offset, rest.offset), d), rest)
         else Failure("comment expected", in)
       }
     }.named("comment_depth")

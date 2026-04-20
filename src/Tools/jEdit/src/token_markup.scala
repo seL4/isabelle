@@ -271,7 +271,7 @@ object Token_Markup {
               (styled_tokens, new Line_Context(line_context.mode, Some(ctxt1), structure1))
 
             case _ =>
-              val styled_token = (JEditToken.NULL, line.subSequence(0, line.count).nn.toString)
+              val styled_token = (JEditToken.NULL, Library.make_string(line, 0, line.count))
               (List(styled_token), new Line_Context(line_context.mode, None, structure))
           }
 
