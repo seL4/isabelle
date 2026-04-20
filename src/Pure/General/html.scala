@@ -24,7 +24,7 @@ object HTML {
   def spaces(n: Int): String = {
     require(n >= 0, "negative spaces")
     if (n == 0) ""
-    else if (n < static_spaces.length) static_spaces.substring(0, n).nn
+    else if (n < static_spaces.length) static_spaces.slice(0, n)
     else space * n
   }
 

@@ -425,9 +425,9 @@ object Completion_Popup {
         range.try_substring(content) match {
           case Some(text) if text == item.original =>
             text_field.setText(
-              content.substring(0, range.start).nn +
+              content.slice(0, range.start) +
               item.replacement +
-              content.substring(range.stop).nn)
+              content.drop(range.stop))
             text_field.getCaret.setDot(range.start + item.replacement.length + item.move)
           case _ =>
         }

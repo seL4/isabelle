@@ -44,9 +44,9 @@ object Isabelle_Sidekick {
       val s =
         _name.indexOf(keyword) match {
           case i if i >= 0 && n > 0 =>
-            style.make_text(_name.substring(0, i).nn) +
+            style.make_text(_name.slice(0, i)) +
             style.make_bold(keyword) +
-            style.make_text(_name.substring(i + n).nn)
+            style.make_text(_name.drop(i + n))
           case _ => style.make_text(_name)
         }
       style.enclose_style(css, s)

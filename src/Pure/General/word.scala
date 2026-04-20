@@ -29,7 +29,7 @@ object Word {
     if (str.isEmpty) str
     else {
       val n = Character.charCount(str.codePointAt(0))
-      uppercase(str.substring(0, n).nn) + lowercase(str.substring(n).nn)
+      uppercase(str.slice(0, n)) + lowercase(str.drop(n))
     }
 
   def perhaps_capitalized(str: String): String =

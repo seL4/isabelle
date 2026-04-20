@@ -18,7 +18,7 @@ object ML_Heap {
       val bs = Bytes.read_file(heap, offset = File.size(heap) - sha1_length)
       if (bs.size == sha1_length) {
         val s = bs.text
-        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.substring(sha1_prefix.length).nn))
+        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.drop(sha1_prefix.length)))
         else None
       }
       else None

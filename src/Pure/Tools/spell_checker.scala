@@ -46,7 +46,7 @@ object Spell_Checker {
       scan(c => Character.isLetterOrDigit(c) || apostrophe(c))
       val stop = offset
       if (stop - start >= 2) {
-        val info = Text.Info(Text.Range(base + start, base + stop), text.substring(start, stop).nn)
+        val info = Text.Info(Text.Range(base + start, base + stop), text.slice(start, stop))
         if (mark(info)) result += info
       }
     }

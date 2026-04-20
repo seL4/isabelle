@@ -116,7 +116,7 @@ object Command_Span {
       var i = 0
       for (Token(kind, s) <- content) {
         val n = s.length
-        val s1 = source.substring(i, i + n).nn
+        val s1 = source.slice(i, i + n)
         content1 += Token(kind, s1)
         i += n
       }

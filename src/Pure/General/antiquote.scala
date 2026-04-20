@@ -60,7 +60,7 @@ object Antiquote {
 
   def read_antiq_body(input: CharSequence): Option[String] = {
     read(input) match {
-      case List(Antiq(source)) => Some(source.substring(2, source.length - 1).nn)
+      case List(Antiq(source)) => Some(source.slice(2, source.length - 1))
       case _ => None
     }
   }

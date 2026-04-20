@@ -35,7 +35,7 @@ object Symbol {
   def spaces(n: Int): String = {
     require(n >= 0, "negative spaces")
     if (n == 0) ""
-    else if (n < static_spaces.length) static_spaces.substring(0, n).nn
+    else if (n < static_spaces.length) static_spaces.slice(0, n)
     else space * n
   }
 
@@ -672,7 +672,7 @@ object Symbol {
 
   def control_name(sym: Symbol): Option[String] =
     if (is_control_encoded(sym))
-      Some(sym.substring(control_prefix.length, sym.length - control_suffix.length).nn)
+      Some(sym.slice(control_prefix.length, sym.length - control_suffix.length))
     else None
 
   def is_control_encoded(sym: Symbol): Boolean =

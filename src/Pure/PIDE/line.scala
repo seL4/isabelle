@@ -150,7 +150,7 @@ object Line {
           case line :: ls =>
             val n = line.text.length
             if (ls.isEmpty || i <= n) {
-              Position(line = lines_count).advance(line.text.substring(n - i).nn)
+              Position(line = lines_count).advance(line.text.drop(n - i))
             }
             else move(i - (n + 1), lines_count + 1, ls)
         }
@@ -202,8 +202,8 @@ object Line {
               Some(
                 if (lines1.isEmpty) ("", prefix ::: Document.split(insert))
                 else {
-                  val removed_text = s1.substring(c1, c2).nn
-                  val changed_text = s1.substring(0, c1).nn + insert + s1.substring(c2).nn
+                  val removed_text = s1.slice(c1, c2)
+                  val changed_text = s1.slice(0, c1) + insert + s1.drop(c2)
                   (removed_text, prefix ::: Document.split(changed_text) ::: rest1)
                 })
             }
@@ -216,12 +216,12 @@ object Line {
               Some(
                 if (lines1.isEmpty) ("", prefix ::: Document.split(insert))
                 else {
-                  val r1 = s1.substring(c1).nn
-                  val r2 = s2.substring(0, c2).nn
+                  val r1 = s1.drop(c1)
+                  val r2 = s2.slice(0, c2)
                   val removed_text =
                     if (lines2.isEmpty) Document.text(Line(r1) :: middle)
                     else Document.text(Line(r1) :: middle ::: List(Line(r2)))
-                  val changed_text = s1.substring(0, c1).nn + insert + s2.substring(c2).nn
+                  val changed_text = s1.slice(0, c1) + insert + s2.drop(c2)
                   (removed_text, prefix ::: Document.split(changed_text) ::: rest2)
                 })
             }

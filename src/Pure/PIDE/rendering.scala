@@ -426,7 +426,7 @@ abstract class Rendering(
       s1 <- get_text(r1)
       (r2, s2) <-
         if (is_wrapped(s1)) {
-          Some((Text.Range(r1.start + 1, r1.stop - 1), s1.substring(1, s1.length - 1).nn))
+          Some((Text.Range(r1.start + 1, r1.stop - 1), s1.slice(1, s1.length - 1)))
         }
         else if (delimited) Some((r1, s1))
         else None

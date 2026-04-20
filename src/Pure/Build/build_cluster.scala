@@ -72,7 +72,7 @@ object Build_Cluster {
             if (m == n) n
             else if (str(m) == ':') m + 1
             else error("Missing \":\" after host name")
-          Options.Spec.parse(str.substring(l).nn)
+          Options.Spec.parse(str.drop(l))
         }
         catch { case ERROR(msg) => err(msg) }
 

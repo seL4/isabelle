@@ -126,7 +126,7 @@ object Library {
 
       def next(): String =
         if (hasNext) {
-          val chunk = source.substring(start, stop).nn
+          val chunk = source.slice(start, stop)
           if (stop < source.length) { start = stop + 1; stop = end(start) }
           else { start = -1; stop = -1 }
           chunk
@@ -187,10 +187,10 @@ object Library {
   }
 
   def try_unprefix(prfx: String, s: String): Option[String] =
-    if (s.startsWith(prfx)) Some(s.substring(prfx.length).nn) else None
+    if (s.startsWith(prfx)) Some(s.drop(prfx.length)) else None
 
   def try_unsuffix(sffx: String, s: String): Option[String] =
-    if (s.endsWith(sffx)) Some(s.substring(0, s.length - sffx.length).nn) else None
+    if (s.endsWith(sffx)) Some(s.slice(0, s.length - sffx.length)) else None
 
   def perhaps_unprefix(prfx: String, s: String): String = try_unprefix(prfx, s) getOrElse s
   def perhaps_unsuffix(sffx: String, s: String): String = try_unsuffix(sffx, s) getOrElse s
@@ -214,7 +214,7 @@ object Library {
   def quote(s: String): String = "\"" + s + "\""
 
   def try_unquote(s: String): Option[String] =
-    if (s.startsWith("\"") && s.endsWith("\"")) Some(s.substring(1, s.length - 1).nn)
+    if (s.startsWith("\"") && s.endsWith("\"")) Some(s.slice(1, s.length - 1))
     else None
 
   def perhaps_unquote(s: String): String = try_unquote(s) getOrElse s
