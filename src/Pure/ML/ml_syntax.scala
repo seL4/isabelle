@@ -13,8 +13,7 @@ object ML_Syntax {
 
   /* numbers */
 
-  private def signed(s: String): Source =
-    if (s(0) == '-') "~" + s.drop(1) else s
+  private def signed(s: String): Source = s.replacing("-" -> "~")
 
   def print_int(x: Int): Source = signed(Value.Int(x))
   def print_long(x: Long): Source = signed(Value.Long(x))
