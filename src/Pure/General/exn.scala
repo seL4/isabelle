@@ -12,10 +12,10 @@ import sun.misc.{Signal, SignalHandler}
 object Exn {
   /* user errors */
 
-  class User_Error(message: String) extends RuntimeException(message) {
+  class User_Error(protected val message: String) extends RuntimeException(message) {
     override def equals(that: Any): Boolean =
       that match {
-        case other: User_Error => message == other.getMessage
+        case other: User_Error => message == other.message
         case _ => false
       }
     override def hashCode: Int = message.hashCode
