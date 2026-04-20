@@ -73,7 +73,7 @@ object Component_JDK {
     for (file <- File.find_files(component_dir.path.file, include_dirs = true)) {
       val name = file.file_name
       val path = file.java_path
-      val perms = Files.getPosixFilePermissions(path)
+      val perms = Files.getPosixFilePermissions(path).nn
       perms.add(PosixFilePermission.OWNER_READ)
       perms.add(PosixFilePermission.GROUP_READ)
       perms.add(PosixFilePermission.OTHERS_READ)

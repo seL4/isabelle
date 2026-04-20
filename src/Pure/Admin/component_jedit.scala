@@ -213,7 +213,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           file <- File.find_files(source_org_dir.file, file => File.is_java(file.file_name))
           package_name <- Scala_Project.package_name(File.path(file))
           if !exclude_package(package_name)
-        } yield File.path(component_path.java_path.relativize(file.java_path).toFile).implode).sorted
+        } yield File.path(component_path.java_path.relativize(file.java_path).nn.toFile.nn).implode)
+        .sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +
@@ -248,7 +249,8 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
     val keep_encodings = List("ISO-8859-1", "ISO-8859-15", "US-ASCII", "UTF-8", "windows-1252")
     val drop_encodings =
-      Charset.availableCharsets().keySet().asScala.toList.sorted.filterNot(keep_encodings.contains)
+      Charset.availableCharsets().nn.keySet().nn.asScala.toList
+        .sorted.filterNot(keep_encodings.contains)
 
     File.write(source_dir + Path.explode("properties/jEdit.props"),
 """#jEdit properties
