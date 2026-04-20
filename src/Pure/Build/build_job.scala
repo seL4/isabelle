@@ -436,7 +436,7 @@ object Build_Job {
               }
           }
 
-          session.all_messages += Session.Consumer[Any]("build_session_output") {
+          session.all_messages += Session.Consumer[Prover.Message]("build_session_output") {
             case msg: Prover.Output =>
               val message = msg.message
               if (msg.is_system) session.resources.log(Protocol.message_text(message))

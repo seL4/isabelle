@@ -92,7 +92,8 @@ class Simplifier_Trace_Dockable(view: View, position: String) extends Dockable(v
   /* main */
 
   private val main =
-    Session.Consumer[Any](this.class_name) {
+    Session.Consumer[Session.Global_Options | Session.Commands_Changed |
+        Session.Caret_Focus.type | Simplifier_Trace.Event.type](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later { output.handle_resize() }
 

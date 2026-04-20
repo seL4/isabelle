@@ -272,7 +272,7 @@ class Debugger_Dockable(view: View, position: String) extends Dockable(view, pos
   /* main */
 
   private val main =
-    Session.Consumer[Any](this.class_name) {
+    Session.Consumer[Session.Global_Options | Debugger.Update.type](this.class_name) {
       case _: Session.Global_Options =>
         GUI_Thread.later { output.handle_resize() }
 
