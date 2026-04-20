@@ -272,7 +272,8 @@ object Document_Model {
         (for {
           (_, model) <- st1.file_models_iterator
           file <- model.file
-        } yield file.getParentFile).toSet)
+          dir <- proper_value(file.getParentFile)
+        } yield dir).toSet)
 
       ((doc_blobs, model_edits ::: purge_edits), st1)
     })

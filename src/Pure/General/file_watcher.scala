@@ -60,8 +60,10 @@ object File_Watcher {
         })
 
     override def register_parent(file: JFile): Unit = {
-      val dir = file.getParentFile
-      if (dir != null && dir.isDirectory) register(dir)
+      proper_value(file.getParentFile) match {
+        case Some(dir) if dir.isDirectory => register(dir)
+        case _ =>
+      }
     }
 
     override def deregister(dir: JFile): Unit =
