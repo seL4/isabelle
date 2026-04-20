@@ -338,7 +338,7 @@ object Mailman {
       val s =
         Library.trim_string(str).replacing(
           """\s+""".r -> " ",
-          " at ".r -> "@",
+          " at " -> "@",
           "mailbroy.informatik.tu-muenchen.de" -> "in.tum.de",
           "informatik.tu-muenchen.de" -> "in.tum.de")
       if (s.startsWith("=") && s.endsWith("=")) "" else s

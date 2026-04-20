@@ -314,7 +314,7 @@ object Component_VSCodium {
     val digest = MessageDigest.getInstance("SHA-256")
     digest.update(Bytes.read(path).make_array)
     Bytes(Base64.getEncoder.encode(digest.digest()))
-      .text.replacing("=".r -> "")
+      .text.replacing("=" -> "")
   }
 
 

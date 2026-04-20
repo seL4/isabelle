@@ -338,7 +338,7 @@ object TOML {
     private def sep_surrounded(s: Str): Bool =
       !s.startsWith("_") && !s.endsWith("_") && s.split('_').forall(_.nonEmpty)
     private def no_leading_zero(s: Str): Bool = {
-      val t = s.replacing("_".r -> "").takeWhile(_.isDigit)
+      val t = s.replacing("_" -> "").takeWhile(_.isDigit)
       t == "0" || !t.startsWith("0")
     }
 
