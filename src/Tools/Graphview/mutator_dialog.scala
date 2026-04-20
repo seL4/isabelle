@@ -7,6 +7,7 @@ Mutator selection and configuration dialog.
 
 package isabelle.graphview
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

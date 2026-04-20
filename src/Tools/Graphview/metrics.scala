@@ -6,6 +6,7 @@ Physical metrics for layout and painting.
 
 package isabelle.graphview
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

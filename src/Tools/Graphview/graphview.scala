@@ -7,6 +7,7 @@ Graphview visualization parameters and GUI state.
 
 package isabelle.graphview
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

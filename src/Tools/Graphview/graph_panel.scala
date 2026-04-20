@@ -7,6 +7,7 @@ GUI panel for graph layout.
 
 package isabelle.graphview
 
+import scala.language.unsafeNulls
 
 import isabelle._
 
