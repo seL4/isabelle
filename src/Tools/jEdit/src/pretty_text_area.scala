@@ -43,7 +43,7 @@ object Pretty_Text_Area {
   ) {
     lazy val line_text: String =
       Library.trim_line(JEdit_Lib.get_text(buffer, line_range).getOrElse(""))
-        .replacing("\t" -> " ").nn
+        .replacing("\t" -> " ")
 
     lazy val gui_text: String = Library.string_builder(line_range.length * 2) { s =>
       val style = GUI.Style_HTML
