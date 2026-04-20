@@ -109,7 +109,7 @@ class Prover(
   private def terminate_process(): Unit = {
     try { process.terminate() }
     catch {
-      case exn @ ERROR(_) => system_output("Failed to terminate prover process: " + exn.getMessage)
+      case exn @ ERROR(msg) => system_output("Failed to terminate prover process: " + msg)
     }
   }
 
@@ -199,7 +199,7 @@ class Prover(
                   stream.flush
                   true
                 }
-                catch { case e: IOException => system_output(name + ": " + e.getMessage); false }
+                catch { case e: IOException => system_output(name + ": " + Exn.message(e)); false }
             },
           finish = { case () => stream.close(); system_output(name + " terminated") }
         )
@@ -238,7 +238,7 @@ class Prover(
           //}}}
         }
       }
-      catch { case e: IOException => system_output(name + ": " + e.getMessage) }
+      catch { case e: IOException => system_output(name + ": " + Exn.message(e)) }
       system_output(name + " terminated")
     }
   }
@@ -273,8 +273,8 @@ class Prover(
         }
       }
       catch {
-        case e: IOException => system_output("Cannot read message:\n" + e.getMessage)
-        case e: Prover.Malformed => system_output(e.getMessage)
+        case e: IOException => system_output("Cannot read message:\n" + Exn.message(e))
+        case e: Prover.Malformed => system_output(Exn.message(e))
       }
       stream.close()
 
