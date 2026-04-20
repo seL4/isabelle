@@ -25,7 +25,7 @@ object HTTP {
     val mime_type_js: String = "text/javascript; charset=utf-8"
 
     val default_mime_type: String = mime_type_bytes
-    val default_encoding: String = UTF8.charset.name
+    val default_encoding: String = UTF8.charset_name
 
     def file_mime_type(file: JFile): String =
       proper_value(Files.probeContentType(file.java_path)).getOrElse(default_mime_type)

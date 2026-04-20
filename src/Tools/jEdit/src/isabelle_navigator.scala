@@ -62,7 +62,7 @@ object Isabelle_Navigator {
         val text1 = Symbol.output(unicode_symbols, text0)
 
         val encoding0 = buffer.getStringProperty(JEditBuffer.ENCODING)
-        val encoding1 = if (unicode_symbols) Isabelle_Encoding.NAME else UTF8.charset.name
+        val encoding1 = if (unicode_symbols) Isabelle_Encoding.NAME else UTF8.charset_name
 
         if (text0 != text1 || encoding0 != encoding1) {
           passive {
