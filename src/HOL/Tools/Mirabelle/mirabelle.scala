@@ -79,11 +79,13 @@ object Mirabelle {
                       case List("mirabelle", action, "initialize") => action + " initialize "
                       case List("mirabelle", action, "finalize") => action + " finalize   "
                       case List("mirabelle", action, "goal", goal_name, line, offset, cpu_ms) =>
-                        action + " goal." + String.format("%-9s", goal_name) + " " + String.format("%5sms", cpu_ms) + " " +
+                        action + " goal." + String.format("%-9s", goal_name) + " " +
+                          String.format("%5sms", cpu_ms) + " " +
                           args.theory_name + " " + line + ":" + offset + "  "
                       case _ => ""
                     }
-                  val body = (if (lines == "") prefix else Library.prefix_lines(prefix, lines)) + "\n"
+                  val body =
+                    (if (lines == "") prefix else Library.prefix_lines(prefix, lines)) + "\n"
                   val log_file = output_dir + Path.basic("mirabelle.log")
                   File.append(log_file, body)
                 case _ =>
@@ -137,23 +139,31 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -B NAME      include session NAME and all descendants
     -D DIR       include session directory and select its sessions
     -N           cyclic shuffling of NUMA CPU nodes (performance tuning)
-    -O DIR       """ + mirabelle_output_dir.description + " (default: " + mirabelle_output_dir.default_value + """)
-    -S SUBGOAL   """ + mirabelle_subgoals.description + " (default: " + mirabelle_subgoals.default_value + """)
+    -O DIR       """ + mirabelle_output_dir.description +
+        " (default: " + mirabelle_output_dir.default_value + """)
+    -S SUBGOAL   """ + mirabelle_subgoals.description +
+        " (default: " + mirabelle_subgoals.default_value + """)
     -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
-    -m INT       """ + mirabelle_max_calls.description + " (default " + mirabelle_max_calls.default_value + """)
+    -m INT       """ + mirabelle_max_calls.description +
+        " (default " + mirabelle_max_calls.default_value + """)
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -p INT       """ + mirabelle_parallel_group_size.description + " (default " + mirabelle_parallel_group_size.default_value + """)
-    -r INT       """ + mirabelle_randomize.description + " (default " + mirabelle_randomize.default_value + """)
-    -s INT       """ + mirabelle_stride.description + " (default " + mirabelle_stride.default_value + """)
-    -t SECONDS   """ + mirabelle_timeout.description + " (default " + mirabelle_timeout.default_value + """)
+    -p INT       """ + mirabelle_parallel_group_size.description +
+        " (default " + mirabelle_parallel_group_size.default_value + """)
+    -r INT       """ + mirabelle_randomize.description +
+        " (default " + mirabelle_randomize.default_value + """)
+    -s INT       """ + mirabelle_stride.description +
+        " (default " + mirabelle_stride.default_value + """)
+    -t SECONDS   """ + mirabelle_timeout.description +
+        " (default " + mirabelle_timeout.default_value + """)
     -v           verbose
     -x NAME      exclude session NAME and all descendants
-    -y           """ + mirabelle_dry_run.description + " (default " + mirabelle_dry_run.default_value + """)
+    -y           """ + mirabelle_dry_run.description +
+        " (default " + mirabelle_dry_run.default_value + """)
 
   Apply the given ACTIONs at all theories and proof steps of the
   specified sessions.
@@ -166,7 +176,8 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
 
   Available actions are:""" + action_names().mkString("\n    ", "\n    ", "") + """
 
-  For the ACTION "sledgehammer", the usual sledgehammer as well as the following mirabelle-specific OPTIONs are available:""" +
+  For the ACTION "sledgehammer", the usual sledgehammer as well as the following
+  mirabelle-specific OPTIONs are available:""" +
         sledgehammer_options().mkString("\n    ", "\n    ", "\n"),
         "A:" -> (arg => actions = actions ::: List(arg)),
         "B:" -> (arg => base_sessions = base_sessions ::: List(arg)),
