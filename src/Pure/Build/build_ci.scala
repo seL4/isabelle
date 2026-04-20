@@ -165,7 +165,7 @@ object Build_CI {
       Exn.capture(f) match {
         case Exn.Res(_) => Process_Result.RC.ok
         case Exn.Exn(e) =>
-          progress.echo_error_message(e.getMessage)
+          progress.echo_error_message(Exn.message(e))
           Process_Result.RC.error
       }
 

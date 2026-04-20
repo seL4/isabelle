@@ -794,7 +794,8 @@ object Build_Manager {
           Future.fork(
             process_future.join_result match {
               case Exn.Res(process) => process.run()
-              case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
+              case Exn.Exn(exn) =>
+                Process_Result(Process_Result.RC.interrupt).error(Exn.message(exn))
             })
 
         copy(
@@ -808,7 +809,8 @@ object Build_Manager {
         for (future <- result_futures.get(name) if future.is_finished) yield
           future.join_result match {
             case Exn.Res(result) => result
-            case Exn.Exn(exn) => Process_Result(Process_Result.RC.interrupt).error(exn.getMessage)
+            case Exn.Exn(exn) =>
+              Process_Result(Process_Result.RC.interrupt).error(Exn.message(exn))
           }
 
       private def do_terminate(name: String): Boolean = {
@@ -873,7 +875,7 @@ object Build_Manager {
     private def sync(repository: Mercurial.Repository, rev: String, target: Path): String = {
       val pull_result = Exn.capture(repository.pull())
       if (Exn.is_exn(pull_result)) {
-        echo_error_message("Could not read from repository: " + Exn.the_exn(pull_result).getMessage)
+        echo_error_message("Could not read from repository: " + Exn.message(Exn.the_exn(pull_result)))
       }
 
       if (rev.nonEmpty) repository.sync(rsync_context, target, rev = rev)
@@ -968,8 +970,8 @@ object Build_Manager {
 
               Some(context)
             case Exn.Exn(exn) =>
-              context.report.progress.echo_error_message("Failed to start job: " + exn.getMessage)
-              echo_error_message("Failed to start " + task.uuid + ": " + exn.getMessage)
+              context.report.progress.echo_error_message("Failed to start job: " + Exn.message(exn))
+              echo_error_message("Failed to start " + task.uuid + ": " + Exn.message(exn))
 
               Isabelle_System.rm_tree(context.task_dir)
 
@@ -1115,7 +1117,7 @@ object Build_Manager {
       else {
         state.next.join_result match {
           case Exn.Exn(exn) =>
-            echo_error_message("Could not reach repository: " + exn.getMessage)
+            echo_error_message("Could not reach repository: " + Exn.message(exn))
             Poller.State(state.current, poll)
           case Exn.Res(next) =>
             if (state.current != next) {

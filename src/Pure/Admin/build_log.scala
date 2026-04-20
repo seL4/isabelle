@@ -207,7 +207,7 @@ object Build_Log {
     object Strict_Date {
       def unapply(s: String): Some[Date] =
         try { Some(Log_File.Date_Format.parse(s)) }
-        catch { case exn: DateTimeParseException => log_file.err(exn.getMessage) }
+        catch { case exn: DateTimeParseException => log_file.err(Exn.message(exn)) }
     }
 
 

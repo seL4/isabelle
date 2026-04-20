@@ -123,8 +123,7 @@ object Kodkod {
     catch {
       case _: Exit =>
       case exn: Throwable =>
-        val message = exn.getMessage
-        context.error(if (message.isEmpty) exn.toString else "Error: " + message)
+        context.error(Exn.message(exn))
         context.return_code(1)
     }
 

@@ -77,7 +77,7 @@ object Mail {
         transport.close()
       }
       catch {
-        case exn: Throwable => error("Could not connect to SMTP server: " + exn.getMessage)
+        case exn: Throwable => error("Could not connect to SMTP server: " + Exn.message(exn))
       }
     }
 
@@ -99,7 +99,7 @@ object Mail {
       }
 
       try { JTransport.send(message) }
-      catch { case exn: Throwable => error("Sending mail failed: " + exn.getMessage) }
+      catch { case exn: Throwable => error("Sending mail failed: " + Exn.message(exn)) }
     }
   }
 }
