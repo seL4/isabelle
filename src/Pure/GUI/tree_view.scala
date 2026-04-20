@@ -6,6 +6,8 @@ Tree view with sensible defaults.
 
 package isabelle
 
+import scala.language.unsafeNulls
+
 import isabelle.graphview.Tree_Panel
 
 import java.awt.event.{KeyEvent, KeyAdapter, MouseEvent, MouseAdapter}

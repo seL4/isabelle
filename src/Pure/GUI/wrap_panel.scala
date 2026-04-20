@@ -9,6 +9,7 @@ scala.swing.FlowPanel.
 
 package isabelle
 
+import scala.language.unsafeNulls
 
 import java.awt.{FlowLayout, Container, Dimension}
 import javax.swing.{JComponent, JPanel, JScrollPane}

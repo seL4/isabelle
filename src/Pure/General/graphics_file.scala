@@ -6,6 +6,7 @@ File system operations for Graphics2D output.
 
 package isabelle
 
+import scala.language.unsafeNulls
 
 import java.io.{FileOutputStream, BufferedOutputStream, File => JFile}
 import java.awt.Graphics2D

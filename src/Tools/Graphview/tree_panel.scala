@@ -6,6 +6,7 @@ Tree view on graph nodes.
 
 package isabelle.graphview
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

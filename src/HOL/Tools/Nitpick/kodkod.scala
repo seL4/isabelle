@@ -6,6 +6,8 @@ Scala interface for Kodkod.
 
 package isabelle.nitpick
 
+import scala.language.unsafeNulls
+
 import isabelle._
 
 import java.util.concurrent.{TimeUnit, LinkedBlockingQueue, ThreadPoolExecutor}

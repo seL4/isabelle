@@ -6,6 +6,8 @@ Basic GUI tools (for AWT/Swing).
 
 package isabelle
 
+import scala.language.unsafeNulls
+
 import java.util.{Map => JMap}
 import java.awt.{Color, Component, Container, Font, Image, Insets, KeyboardFocusManager, Window,
   Point, Rectangle, Dimension, GraphicsEnvironment, MouseInfo, Toolkit}
