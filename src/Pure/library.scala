@@ -241,15 +241,6 @@ object Library {
       string_builder(hint = length) { buf => for (i <- 0 until length) buf.append(charAt(i)) }
   }
 
-  class Line_Termination(text: CharSequence) extends CharSequence {
-    def length: Int = text.length + 1
-    def charAt(i: Int): Char = if (i == text.length) '\n' else text.charAt(i)
-    def subSequence(i: Int, j: Int): CharSequence =
-      if (j == text.length + 1) new Line_Termination(text.subSequence(i, j - 1).nn)
-      else text.subSequence(i, j).nn
-    override def toString: String = text.toString + "\n"
-  }
-
 
   /* regular expressions */
 
