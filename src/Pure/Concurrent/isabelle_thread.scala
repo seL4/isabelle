@@ -108,7 +108,7 @@ object Isabelle_Thread {
   }
 
   def interrupt_handler[A](handler: Interrupt_Handler, permissive: Boolean = false)(body: => A): A =
-    if (handler == null || permissive && !check_self) body
+    if (permissive && !check_self) body
     else self.interrupt_handler(handler)(body)
 
   def interrupt_handle[A](handle: => Unit, permissive: Boolean = false)(body: => A): A =
@@ -168,24 +168,23 @@ class Isabelle_Thread private(
   /* interrupt handler */
 
   // non-synchronized, only changed on self-thread
-  @volatile private var handler = Isabelle_Thread.Interrupt_Handler.interruptible
+  @volatile private var handler: Isabelle_Thread.Interrupt_Handler =
+    Isabelle_Thread.Interrupt_Handler.interruptible
 
   override def interrupt(): Unit = handler(thread)
 
-  def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A =
-    if (new_handler == null) body
-    else {
-      require(is_self, "interrupt handler on other thread")
+  def interrupt_handler[A](new_handler: Isabelle_Thread.Interrupt_Handler)(body: => A): A = {
+    require(is_self, "interrupt handler on other thread")
 
-      val old_handler = handler
-      handler = new_handler
-      try {
-        if (clear_interrupt()) interrupt()
-        body
-      }
-      finally {
-        handler = old_handler
-        if (clear_interrupt()) interrupt()
-      }
+    val old_handler = handler
+    handler = new_handler
+    try {
+      if (clear_interrupt()) interrupt()
+      body
     }
+    finally {
+      handler = old_handler
+      if (clear_interrupt()) interrupt()
+    }
+  }
 }
