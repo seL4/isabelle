@@ -41,7 +41,7 @@ object Multithreading {
       }
 
       def logical_cores(): Int =
-        if (ssh.is_local) Runtime.getRuntime.availableProcessors()
+        if (ssh.is_local) Runtime.getRuntime.nn.availableProcessors.nn
         else {
           Library.trim_line(ssh.execute("nproc").check.out) match {
             case Value.Nat(n) => n

@@ -7,7 +7,7 @@ Isabelle-specific thread management.
 package isabelle
 
 
-import java.util.concurrent.{ThreadPoolExecutor, TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{ThreadPoolExecutor, ThreadFactory, TimeUnit, LinkedBlockingQueue}
 
 
 object Isabelle_Thread {
@@ -80,7 +80,10 @@ object Isabelle_Thread {
     val executor =
       new ThreadPoolExecutor(n, n, 2500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
     executor.setThreadFactory(
-      create(_, name = make_name(base = "worker"), group = Some(worker_thread_group)))
+      new ThreadFactory {
+        override def newThread(main: Runnable | Null): Thread =
+          create(main.nn, name = make_name(base = "worker"), group = Some(worker_thread_group))
+      })
     executor
   }
 
