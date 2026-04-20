@@ -19,7 +19,7 @@ object Url {
 
   def escape_special(c: Char): String =
     if ("!#$&'()*+,/:;=?@[]".contains(c)) {
-      Library.format("%%%02X", Integer.valueOf(c.toInt))
+      Library.format("%%%02X", Value.Int.obj(c))
     }
     else c.toString
 

@@ -142,7 +142,7 @@ object Profiling {
       if (theories == 0) "0"
       else {
         val x = (theories + garbage_theories).toDouble / theories
-        Library.format("%.1f", x.asInstanceOf[AnyRef])
+        Library.format("%.1f", Value.Double.obj(x))
       }
 
     private def size_percentage(space: Space): Percentage =

@@ -114,9 +114,9 @@ object HTML {
   def script_file(path: Path): XML.Elem = script_file(Url.print_file(path.file))
 
   def color(c: Color): String = {
-    val r = Integer.valueOf(c.getRed)
-    val g = Integer.valueOf(c.getGreen)
-    val b = Integer.valueOf(c.getBlue)
+    val r = Value.Int.obj(c.getRed)
+    val g = Value.Int.obj(c.getGreen)
+    val b = Value.Int.obj(c.getBlue)
     c.getAlpha match {
       case 255 => Library.format("rgb(%d,%d,%d)", r, g, b)
       case a => Library.format("rgba(%d,%d,%d,%.2f)", r, g, b, Value.Double.obj(a.toDouble / 255))

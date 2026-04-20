@@ -23,7 +23,7 @@ object Time {
   val max: Time = ms(Long.MaxValue)
 
   def print_seconds(s: Double): String =
-    Library.format("%.3f", s.asInstanceOf[AnyRef])
+    Library.format("%.3f", Value.Double.obj(s))
 
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
 

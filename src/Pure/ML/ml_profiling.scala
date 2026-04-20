@@ -15,7 +15,7 @@ object ML_Profiling {
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
     def print: String =
-      Library.format("%12d %s", count.asInstanceOf[AnyRef], name.asInstanceOf[AnyRef])
+      Library.format("%12d %s", Value.Long.obj(count), name)
   }
 
   sealed case class Report(kind: String, entries: List[Entry]) {
