@@ -24,9 +24,9 @@ object Date {
       require(fmts.nonEmpty, "no date formats")
 
       new Format {
-        def apply(date: Date): String = fmts.head.format(date.rep)
+        def apply(date: Date): String = fmts.head.format(date.rep).nn
         def parse(str: String): Date =
-          new Date(ZonedDateTime.from(Formatter.try_variants(fmts, tune(str))))
+          new Date(ZonedDateTime.from(Formatter.try_variants(fmts, tune(str))).nn)
       }
     }
 
@@ -48,12 +48,12 @@ object Date {
   }
 
   object Formatter {
-    def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat)
+    def pattern(pat: String): DateTimeFormatter = DateTimeFormatter.ofPattern(pat).nn
 
     def variants(pats: List[String], locs: List[Locale] = Nil): List[DateTimeFormatter] =
       pats.flatMap { pat =>
         val fmt = pattern(pat)
-        if (locs.isEmpty) List(fmt) else locs.map(fmt.withLocale)
+        if (locs.isEmpty) List(fmt) else locs.map(loc => fmt.withLocale(loc).nn)
       }
 
     @tailrec def try_variants(
@@ -65,7 +65,7 @@ object Date {
         case Nil =>
           throw last_exn.getOrElse(new DateTimeParseException("Failed to parse date", str, 0))
         case fmt :: rest =>
-          try { ZonedDateTime.from(fmt.parse(str)) }
+          try { ZonedDateTime.from(fmt.parse(str).nn).nn }
           catch { case exn: DateTimeParseException => try_variants(rest, str, Some(exn)) }
       }
     }
@@ -87,16 +87,16 @@ object Date {
 
   /* date operations */
 
-  def timezone_utc: ZoneId = ZoneId.of("UTC")
-  def timezone_berlin: ZoneId = ZoneId.of("Europe/Berlin")
+  def timezone_utc: ZoneId = ZoneId.of("UTC").nn
+  def timezone_berlin: ZoneId = ZoneId.of("Europe/Berlin").nn
 
-  def timezone(): ZoneId = ZoneId.systemDefault
+  def timezone(): ZoneId = ZoneId.systemDefault.nn
 
   def now(timezone: ZoneId = Date.timezone()): Date =
-    new Date(ZonedDateTime.now(timezone))
+    new Date(ZonedDateTime.now(timezone).nn)
 
   def instant(t: Instant, timezone: ZoneId = Date.timezone()): Date =
-    new Date(ZonedDateTime.ofInstant(t, timezone))
+    new Date(ZonedDateTime.ofInstant(t, timezone).nn)
 
   def apply(t: Time, timezone: ZoneId = Date.timezone()): Date =
     instant(t.instant, timezone)
@@ -125,34 +125,34 @@ object Date {
   }
 
   case class Weekly(on: Day = Day.mon, step: Daily = Daily()) extends Cycle {
-    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfWeek.getValue).midnight
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfWeek.nn.getValue.nn).midnight
     def next(date: Date): Date = {
       val next = step.next(zero(date).shift(on.ordinal) - Time.ms(1))
-      if (date.time < next.time) next else Date(next.rep.plus(1, ChronoUnit.WEEKS))
+      if (date.time < next.time) next else Date(next.rep.plus(1, ChronoUnit.WEEKS).nn)
     }
   }
 
   case class Monthly(nth: Int = 1, step: Daily = Daily()) extends Cycle {
     require(nth > 0 && nth <= 31)
 
-    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfMonth).midnight
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfMonth.nn).midnight
     def next(date: Date): Date = {
       @tailrec def find_next(zero: Date): Date = {
         val next = step.next(zero.shift(nth - 1) - Time.ms(1))
         if (next.rep.getDayOfMonth == nth && date.time < next.time) next
-        else find_next(Date(zero.rep.plus(1, ChronoUnit.MONTHS)))
+        else find_next(Date(zero.rep.plus(1, ChronoUnit.MONTHS).nn))
       }
       find_next(zero(date))
     }
   }
 
   case class Yearly(in: Month = Month.jan, step: Monthly = Monthly()) extends Cycle {
-    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfYear).midnight
+    def zero(date: Date): Date = date.shift(1 - date.rep.getDayOfYear.nn).midnight
     def next(date: Date): Date = {
       @tailrec def find_next(zero: Date): Date = {
-        val next = step.next(Date(zero.rep.plus(in.ordinal, ChronoUnit.MONTHS)) - Time.ms(1))
+        val next = step.next(Date(zero.rep.plus(in.ordinal, ChronoUnit.MONTHS).nn) - Time.ms(1))
         if (next.rep.getMonthValue - 1 == in.ordinal && date.time < next.time) next
-        else find_next(Date(zero.rep.plus(1, ChronoUnit.YEARS)))
+        else find_next(Date(zero.rep.plus(1, ChronoUnit.YEARS).nn))
       }
       find_next(zero(date))
     }
@@ -160,17 +160,17 @@ object Date {
 }
 
 sealed case class Date(rep: ZonedDateTime) {
-  def shift(days: Int): Date = Date(rep.plus(days, ChronoUnit.DAYS))
+  def shift(days: Int): Date = Date(rep.plus(days, ChronoUnit.DAYS).nn)
   def midnight: Date =
-    new Date(ZonedDateTime.of(rep.toLocalDate, LocalTime.MIDNIGHT, rep.getZone))
+    new Date(ZonedDateTime.of(rep.toLocalDate.nn, LocalTime.MIDNIGHT.nn, rep.getZone.nn).nn)
 
-  def to(other: ZoneId): Date = new Date(rep.withZoneSameInstant(other))
+  def to(other: ZoneId): Date = new Date(rep.withZoneSameInstant(other).nn)
 
-  def unix_epoch: Long = rep.toEpochSecond
-  def unix_epoch_day: Long = rep.toLocalDate.toEpochDay
-  def instant: Instant = Instant.from(rep)
+  def unix_epoch: Long = rep.toEpochSecond.nn
+  def unix_epoch_day: Long = rep.toLocalDate.nn.toEpochDay.nn
+  def instant: Instant = Instant.from(rep).nn
   def time: Time = Time.instant(instant)
-  def timezone: ZoneId = rep.getZone
+  def timezone: ZoneId = rep.getZone.nn
 
   def + (t: Time): Date = Date(time + t, timezone = timezone)
   def - (t: Time): Date = Date(time - t, timezone = timezone)
