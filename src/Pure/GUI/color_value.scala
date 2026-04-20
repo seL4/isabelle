@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.awt.Color
-import java.util.Locale
 
 
 object Color_Value {
@@ -28,7 +27,7 @@ object Color_Value {
     val g = Value.Int.obj(c.getGreen)
     val b = Value.Int.obj(c.getBlue)
     val a = Value.Int.obj(c.getAlpha)
-    Word.uppercase(String.format(Locale.ROOT, "%02x%02x%02x%02x", r, g, b, a))
+    Word.uppercase(Library.format("%02x%02x%02x%02x", r, g, b, a))
   }
 
   def apply(s: String): Color =

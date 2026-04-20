@@ -7,8 +7,6 @@ Storage space based on bytes.
 package isabelle
 
 
-import java.util.Locale
-
 import scala.annotation.tailrec
 
 
@@ -53,7 +51,7 @@ final class Space private(val bytes: Long) extends AnyVal {
   def print: String = {
     @tailrec def print_unit(x: Double, units: List[String]): String =
       if (x.abs < 1024 || units.tail.isEmpty) {
-        val s = String.format(Locale.ROOT, "%.1f", x.asInstanceOf[AnyRef])
+        val s = Library.format("%.1f", x.asInstanceOf[AnyRef])
         Library.perhaps_unsuffix(".0", s) + " " + units.head
       }
       else print_unit(x / 1024, units.tail)

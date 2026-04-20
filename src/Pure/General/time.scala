@@ -7,7 +7,6 @@ Time based on milliseconds.
 package isabelle
 
 
-import java.util.Locale
 import java.time.Instant
 
 
@@ -24,7 +23,7 @@ object Time {
   val max: Time = ms(Long.MaxValue)
 
   def print_seconds(s: Double): String =
-    String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
+    Library.format("%.3f", s.asInstanceOf[AnyRef])
 
   def instant(t: Instant): Time = ms(t.getEpochSecond * 1000L + t.getNano / 1000000L)
 
@@ -69,7 +68,7 @@ final class Time private(val ms: Long) extends AnyVal {
 
   def message_hms: String = {
     val s = ms / 1000
-    String.format(Locale.ROOT, "%d:%02d:%02d",
+    Library.format("%d:%02d:%02d",
       Value.Long.obj(s / 3600),
       Value.Long.obj((s / 60) % 60),
       Value.Long.obj(s % 60))

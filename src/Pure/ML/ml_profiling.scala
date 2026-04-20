@@ -7,8 +7,6 @@ ML profiling (via Poly/ML run-time system).
 package isabelle
 
 
-import java.util.Locale
-
 import scala.collection.immutable.SortedMap
 
 
@@ -17,8 +15,7 @@ object ML_Profiling {
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
     def print: String =
-      String.format(Locale.ROOT, "%12d %s",
-        count.asInstanceOf[AnyRef], name.asInstanceOf[AnyRef])
+      Library.format("%12d %s", count.asInstanceOf[AnyRef], name.asInstanceOf[AnyRef])
   }
 
   sealed case class Report(kind: String, entries: List[Entry]) {

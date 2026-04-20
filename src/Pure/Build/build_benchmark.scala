@@ -92,7 +92,7 @@ object Build_Benchmark {
 
         val score = Time.seconds(1000).ms.toDouble / (1 + timing.elapsed.ms)
         progress.echo(
-          "Finished benchmark in " + timing.message + ". Score: " + String.format("%.2f", score))
+          "Finished benchmark in " + timing.message + ". Score: " + Library.format("%.2f", score))
 
         Host.write_info(db, Host.Info.init(hostname = hostname, score = Some(score)))
       }

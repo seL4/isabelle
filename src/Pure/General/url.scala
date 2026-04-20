@@ -11,7 +11,6 @@ import java.io.{File => JFile, InputStream}
 import java.nio.file.{Paths, FileSystemNotFoundException}
 import java.net.{URI, URISyntaxException, MalformedURLException, URLDecoder, URLEncoder,
   URLConnection}
-import java.util.Locale
 import java.util.zip.GZIPInputStream
 
 
@@ -20,7 +19,7 @@ object Url {
 
   def escape_special(c: Char): String =
     if ("!#$&'()*+,/:;=?@[]".contains(c)) {
-      String.format(Locale.ROOT, "%%%02X", Integer.valueOf(c.toInt))
+      Library.format("%%%02X", Integer.valueOf(c.toInt))
     }
     else c.toString
 

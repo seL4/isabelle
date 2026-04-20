@@ -77,9 +77,9 @@ object Build_Log {
   /* file names */
 
   def log_date(date: Date): String =
-    String.format(Locale.ROOT, "%s.%05d",
+    Library.format("%s.%05d",
       DateTimeFormatter.ofPattern("yyyy-MM-dd").nn.format(date.rep),
-      Value.Long.obj((date - date.midnight).ms / 1000)).nn
+      Value.Long.obj((date - date.midnight).ms / 1000))
 
   def log_subdir(date: Date): Path =
     Path.explode("log") + Path.explode(date.rep.getYear.toString)

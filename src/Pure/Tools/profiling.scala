@@ -7,9 +7,6 @@ Build sessions for profiling of ML heap content.
 package isabelle
 
 
-import java.util.Locale
-
-
 object Profiling {
   /* percentage: precision in permille */
 
@@ -145,7 +142,7 @@ object Profiling {
       if (theories == 0) "0"
       else {
         val x = (theories + garbage_theories).toDouble / theories
-        String.format(Locale.ROOT, "%.1f", x.asInstanceOf[AnyRef])
+        Library.format("%.1f", x.asInstanceOf[AnyRef])
       }
 
     private def size_percentage(space: Space): Percentage =

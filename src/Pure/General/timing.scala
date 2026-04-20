@@ -7,9 +7,6 @@ Support for time measurement.
 package isabelle
 
 
-import java.util.Locale
-
-
 object Timing {
   val zero: Timing = Timing(Time.zero, Time.zero, Time.zero)
 
@@ -35,7 +32,7 @@ object Timing {
   }
 
   def factor_format(f: Double): String =
-    String.format(Locale.ROOT, ", factor %.2f", Value.Double.obj(f))
+    Library.format(", factor %.2f", Value.Double.obj(f))
 
   def make(elapsed: Time, cpu: Time, gc: Time): Timing =
     if (elapsed.is_zero && cpu.is_zero && gc.is_zero) zero else Timing(elapsed, cpu, gc)

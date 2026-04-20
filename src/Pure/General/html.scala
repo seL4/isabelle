@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.awt.Color
-import java.util.Locale
 
 import org.jsoup.nodes.{Entities => Jsoup_Entities, Document => Jsoup_Document}
 import org.jsoup.Jsoup
@@ -119,10 +118,8 @@ object HTML {
     val g = Integer.valueOf(c.getGreen)
     val b = Integer.valueOf(c.getBlue)
     c.getAlpha match {
-      case 255 => String.format(Locale.ROOT, "rgb(%d,%d,%d)", r, g, b)
-      case a =>
-        String.format(Locale.ROOT, "rgba(%d,%d,%d,%.2f)", r, g, b,
-          Value.Double.obj(a.toDouble / 255))
+      case 255 => Library.format("rgb(%d,%d,%d)", r, g, b)
+      case a => Library.format("rgba(%d,%d,%d,%.2f)", r, g, b, Value.Double.obj(a.toDouble / 255))
     }
   }
 

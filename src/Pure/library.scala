@@ -7,6 +7,8 @@ Basic library.
 package isabelle
 
 
+import java.util.Locale
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -205,6 +207,9 @@ object Library {
 
   def strip_ansi_color(s: String): String =
     replacing(s, "\u001b\\[\\d+m".r -> "")
+
+  def format(format: String, args: Any*): String =
+    String.format(Locale.ROOT.nn, format, args:_*)
 
 
   /* quote */
