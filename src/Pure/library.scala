@@ -157,7 +157,7 @@ object Library {
   def split_lines(str: String): List[String] = space_explode('\n', str)
 
   def prefix_lines(prfx: String, str: String): String =
-    isabelle.setup.Library.prefix_lines(prfx, str)
+    isabelle.setup.Library.prefix_lines(prfx, str).nn
 
   def indent_lines(n: Int, str: String): String =
     if (n == 0) str else prefix_lines(Symbol.spaces(n), str)
@@ -169,7 +169,7 @@ object Library {
   }
 
   def trim_line(s: String): String =
-    isabelle.setup.Library.trim_line(s)
+    isabelle.setup.Library.trim_line(s).nn
 
   def trim_split_lines(s: String): List[String] =
     split_lines(trim_line(s)).map(trim_line)
@@ -202,14 +202,14 @@ object Library {
   def replacing(str: String, args: ((String | Regex), String)*): String =
     args.iterator.foldLeft(str) {
       case (acc, (x: String, y)) => acc.replace(x, y).nn
-      case (acc, (x: Regex, y)) => x.pattern.matcher(acc).replaceAll(y).nn
+      case (acc, (x: Regex, y)) => x.pattern.nn.matcher(acc).nn.replaceAll(y).nn
     }
 
   def strip_ansi_color(s: String): String =
     replacing(s, "\u001b\\[\\d+m".r -> "")
 
   def format(format: String, args: Any*): String =
-    String.format(Locale.ROOT.nn, format, args:_*)
+    String.format(Locale.ROOT.nn, format, args:_*).nn
 
 
   /* quote */
@@ -374,6 +374,6 @@ object Library {
     subclass(a)
   }
 
-  def as_subclass[C](c: Class[C])(x: AnyRef): Option[C] =
+  def as_subclass[C](c: Class[C])(x: Any): Option[C] =
     if (x == null || is_subclass(x.getClass, c)) Some(x.asInstanceOf[C]) else None
 }

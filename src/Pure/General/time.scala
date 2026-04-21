@@ -74,7 +74,7 @@ final class Time private(val ms: Long) extends AnyVal {
       Value.Long.obj(s % 60))
   }
 
-  def instant: Instant = Instant.ofEpochMilli(ms)
+  def instant: Instant = Instant.ofEpochMilli(ms).nn
 
   def sleep(): Unit = Thread.sleep(ms)
 }

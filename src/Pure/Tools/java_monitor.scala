@@ -28,7 +28,7 @@ object Java_Monitor {
 
   /* default arguments */
 
-  def default_pid: Long = ProcessHandle.current().pid
+  def default_pid: Long = ProcessHandle.current().nn.pid
   val default_update_interval: Time = Time.seconds(3)
 
 
@@ -61,7 +61,7 @@ object Java_Monitor {
             Untyped.the_method(ClassOf.Resources, "format").
               invoke(null,
                 Untyped.get_static(ClassOf.Messages, "JCONSOLE_VERSION"),
-                  Isabelle_System.get_property("java.runtime.version"))))
+                  Isabelle_System.get_property("java.runtime.version")).nn))
       }
 
       val jconsole =
@@ -90,7 +90,7 @@ object Java_Monitor {
             try {
               val vm_panel =
                 Untyped.constructor(ClassOf.VMPanel, ClassOf.ProxyClient, Integer.TYPE)
-                  .newInstance(proxy_client, Value.Int.obj(update_interval.ms.toInt))
+                  .newInstance(proxy_client, Value.Int.obj(update_interval.ms.toInt)).nn
 
               Untyped.field(vm_panel, "shouldUseSSL").setBoolean(vm_panel, false)
 

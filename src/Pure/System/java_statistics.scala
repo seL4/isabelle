@@ -36,7 +36,7 @@ object Java_Statistics {
 
   def gc_status(major: Boolean = false): GC_Status = {
     val gc_beans =
-      ManagementFactory.getPlatformMXBeans(classOf[GarbageCollectorMXBean]).asScala
+      ManagementFactory.getPlatformMXBeans(classOf[GarbageCollectorMXBean]).nn.asScala
         .find(gc_bean =>
           gc_bean.isValid && gc_bean.getLastGcInfo != null &&
             gc_bean.getName == (if (major) "ZGC Major Cycles" else "ZGC Minor Cycles"))
@@ -46,9 +46,9 @@ object Java_Statistics {
         def sum(usage: java.util.Map[String, MemoryUsage], which: MemoryUsage => Long): Space =
           Space.bytes(usage.asScala.valuesIterator.map(which).sum)
 
-        val gc_info = gc_bean.getLastGcInfo
-        val before_gc = gc_info.getMemoryUsageBeforeGc
-        val after_gc = gc_info.getMemoryUsageAfterGc
+        val gc_info = gc_bean.getLastGcInfo.nn
+        val before_gc = gc_info.getMemoryUsageBeforeGc.nn
+        val after_gc = gc_info.getMemoryUsageAfterGc.nn
         GC_Status(
           count = gc_bean.getCollectionCount,
           duration = Time.ms(gc_info.getDuration),

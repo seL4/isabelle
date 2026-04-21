@@ -308,9 +308,9 @@ object Component_VSCodium {
   // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
   // function computeChecksum(filename)
   private def file_checksum(path: Path): String = {
-    val digest = MessageDigest.getInstance("SHA-256")
+    val digest = MessageDigest.getInstance("SHA-256").nn
     digest.update(Bytes.read(path).make_array)
-    Bytes(Base64.getEncoder.encode(digest.digest()))
+    Bytes(Base64.getEncoder.nn.encode(digest.digest().nn).nn)
       .text.replacing("=" -> "")
   }
 

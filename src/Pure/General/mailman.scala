@@ -394,7 +394,7 @@ object Mailman {
           Some(path)
         }
       }
-      finally { connection.getInputStream.close() }
+      finally { connection.getInputStream.nn.close() }
     }
 
     def download_text(target_dir: Path, progress: Progress = new Progress): List[Path] =

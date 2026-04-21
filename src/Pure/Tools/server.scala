@@ -131,7 +131,7 @@ object Server {
       Isabelle_Thread.fork(name = "server_handler") {
         var finished = false
         while (!finished) {
-          Exn.capture(socket.accept) match {
+          Exn.capture(socket.accept.nn) match {
             case Exn.Res(client) =>
               Isabelle_Thread.fork(name = "client") {
                 using(Connection(client))(connection =>
@@ -316,7 +316,7 @@ object Server {
   /* server info */
 
   val localhost_name: String = "127.0.0.1"
-  def localhost: InetAddress = InetAddress.getByName(localhost_name)
+  def localhost: InetAddress = InetAddress.getByName(localhost_name).nn
 
   def print_address(port: Int): String = localhost_name + ":" + port
 

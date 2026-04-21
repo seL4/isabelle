@@ -253,7 +253,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
          catch { case ERROR(_) => None })
     }
     yield {
-      Line.Node_Range(file.getPath,
+      Line.Node_Range(file.getPath.nn,
         if (range.start > 0) {
           resources.get_file_content(resources.node_name(file)) match {
             case Some(text) =>

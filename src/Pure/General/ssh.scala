@@ -101,7 +101,7 @@ object SSH {
 
     val multiplex = options.bool("ssh_multiplexing") && !Platform.is_windows
     val (control_master, control_path) =
-      if (multiplex) (true, Isabelle_System.tmp_file("ssh", initialized = false).getPath)
+      if (multiplex) (true, Isabelle_System.tmp_file("ssh", initialized = false).getPath.nn)
       else (false, "")
     new Session(options, host, port, user, user_home, control_master, control_path)
   }

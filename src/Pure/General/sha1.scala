@@ -25,14 +25,15 @@ object SHA1 {
         case other: Digest => rep == other.toString
         case _ => false
       }
-    def base64: String = Base64.encode(HexFormat.of().parseHex(rep))
+    def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
   }
 
   def fake_digest(rep: String): Digest = new Digest(rep)
 
   def make_digest(body: MessageDigest => Unit): Digest = {
-    val digest_body = new Setup_Build.Digest_Body { def apply(sha: MessageDigest): Unit = body(sha)}
-    new Digest(Setup_Build.make_digest(digest_body))
+    val digest_body =
+      new Setup_Build.Digest_Body { def apply(sha: MessageDigest | Null): Unit = body(sha.nn) }
+    new Digest(Setup_Build.make_digest(digest_body).nn)
   }
 
   val digest_empty: Digest = make_digest(_ => ())
@@ -102,7 +103,7 @@ object SHA1 {
   def shasum(digest: Digest, name: String): Shasum =
     new Shasum(List(digest.toString + " " + name))
   def shasum_meta_info(digest: Digest): Shasum =
-    shasum(digest, isabelle.setup.Build.META_INFO)
+    shasum(digest, isabelle.setup.Build.META_INFO.nn)
   def shasum_sorted(args: List[(Digest, String)]): Shasum =
     flat_shasum(args.sortBy(_._2).map(shasum))
 }

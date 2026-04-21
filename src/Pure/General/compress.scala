@@ -35,11 +35,11 @@ object Compress {
   object Cache {
     def none: Cache = {
       Zstd.init()
-      new Cache(xz.ArrayCache.getDummyCache(), zstd.NoPool.INSTANCE)
+      new Cache(xz.ArrayCache.getDummyCache().nn, zstd.NoPool.INSTANCE.nn)
   }
     def make(): Cache = {
       Zstd.init()
-      val pool = Untyped.constructor(classOf[zstd.RecyclingBufferPool]).newInstance()
+      val pool = Untyped.constructor(classOf[zstd.RecyclingBufferPool]).newInstance().nn
       new Cache(new xz.BasicArrayCache, pool)
     }
   }

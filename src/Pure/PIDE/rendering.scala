@@ -394,7 +394,7 @@ abstract class Rendering(
 
         val ignore =
           space_explode(':', options.string("completion_path_ignore")).
-            map(s => FileSystems.getDefault.getPathMatcher("glob:" + s))
+            map(s => FileSystems.getDefault.nn.getPathMatcher("glob:" + s).nn)
 
         (for {
           name <- File.read_dir(directory)

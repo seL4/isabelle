@@ -181,10 +181,10 @@ dependencies {
 
   def here: Here = {
     val exn = new Exception
-    exn.getStackTrace.toList match {
+    exn.getStackTrace.nn.toList match {
       case _ :: caller :: _ =>
-        val name = proper_string(caller.getFileName).getOrElse("")
-        val line = caller.getLineNumber
+        val name = proper_string(caller.nn.getFileName).getOrElse("")
+        val line = caller.nn.getLineNumber
         new Here(name, line)
       case _ => new Here("", 0)
     }

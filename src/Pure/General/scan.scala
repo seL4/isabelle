@@ -426,9 +426,9 @@ object Scan {
     make_byte_reader(new FileInputStream(file), file.length.toInt)
 
   def byte_reader(url: Url): Byte_Reader = {
-    val connection = url.open_connection()
-    val stream = connection.getInputStream
-    val stream_length = connection.getContentLength
+    val connection = url.open_connection().nn
+    val stream = connection.getInputStream.nn
+    val stream_length = connection.getContentLength.nn
     make_byte_reader(stream, stream_length)
   }
 

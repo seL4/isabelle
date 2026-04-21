@@ -35,7 +35,7 @@ object Protocol_Handlers {
     def init(name: String): State = {
       val handler =
         try {
-          Class.forName(name).getDeclaredConstructor().newInstance()
+          Classpath.the_class(name).getDeclaredConstructor().nn.newInstance().nn
             .asInstanceOf[Session.Protocol_Handler]
         }
         catch { case exn: Throwable => err_handler(exn, name) }

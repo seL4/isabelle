@@ -361,7 +361,7 @@ object Symbol {
         props match {
           case Code(s) =>
             try {
-              val code = Integer.decode(s).intValue
+              val code = Integer.decode(s).nn.intValue
               if (code >= 128) Some(code) else err("Illegal ASCII code")
             }
             catch { case _: NumberFormatException => err("Bad code") }

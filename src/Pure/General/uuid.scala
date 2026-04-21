@@ -10,11 +10,11 @@ package isabelle
 object UUID {
   type T = java.util.UUID
 
-  def random(): T = java.util.UUID.randomUUID()
-  def random_string(): String = random().toString
+  def random(): T = java.util.UUID.randomUUID().nn
+  def random_string(): String = random().nn.toString
 
   def unapply(s: String): Option[T] =
-    try { Some(java.util.UUID.fromString(s)) }
+    try { Some(java.util.UUID.fromString(s).nn) }
     catch { case _: IllegalArgumentException => None }
 
   def unapply(body: XML.Body): Option[T] = unapply(XML.content(body))

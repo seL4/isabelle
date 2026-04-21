@@ -42,7 +42,7 @@ object File_Watcher {
 
   class Impl private[File_Watcher](handle: Set[JFile] => Unit, delay: Time) extends File_Watcher {
     private val state = Synchronized(File_Watcher.State())
-    private val watcher = FileSystems.getDefault.newWatchService()
+    private val watcher = FileSystems.getDefault.nn.newWatchService().nn
 
     override def toString: String =
       state.value.dirs.keySet.mkString("File_Watcher(", ", ", ")")
@@ -55,7 +55,7 @@ object File_Watcher {
         st.dirs.get(dir) match {
           case Some(key) if key.isValid => st
           case _ =>
-            val key = dir.java_path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+            val key = dir.java_path.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY).nn
             st.copy(dirs = st.dirs + (dir -> key))
         })
 
@@ -91,18 +91,18 @@ object File_Watcher {
     private val watcher_thread = Isabelle_Thread.fork(name = "file_watcher", daemon = true) {
       try {
         while (true) {
-          val key = watcher.take
+          val key = watcher.take.nn
           val has_changed =
             state.change_result { st =>
               val (remove, changed) =
                 st.dirs.collectFirst({ case (dir, key1) if key == key1 => dir }) match {
                   case Some(dir) =>
                     val events: Iterable[WatchEvent[JPath]] =
-                      key.pollEvents.asInstanceOf[JList[WatchEvent[JPath]]].asScala
+                      key.pollEvents.nn.asInstanceOf[JList[WatchEvent[JPath]]].asScala
                     val remove = if (key.reset) None else Some(dir)
                     val changed =
                       events.iterator.foldLeft(Set.empty[JFile]) {
-                        case (set, event) => set + dir.java_path.resolve(event.context).java_file
+                        case (set, event) => set + dir.java_path.resolve(event.context).nn.java_file
                       }
                     (remove, changed)
                   case None =>

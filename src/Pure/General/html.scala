@@ -300,11 +300,11 @@ object HTML {
   /* input */
 
   def input_raw(text: String): XML.Elem = raw(HTML.text(input(text)))
-  def input(text: String): String = Jsoup_Entities.unescape(text)
+  def input(text: String): String = Jsoup_Entities.unescape(text).nn
   def raw(body: XML.Body): XML.Elem = XML.elem(Markup.RAW_HTML, body)
 
-  def parse_document(html: String): Jsoup_Document = Jsoup.parse(html)
-  def get_document(url: String): Jsoup_Document = Jsoup.connect(url).get()
+  def parse_document(html: String): Jsoup_Document = Jsoup.parse(html).nn
+  def get_document(url: String): Jsoup_Document = Jsoup.connect(url).nn.get().nn
 
 
   /* messages */

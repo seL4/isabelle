@@ -38,7 +38,7 @@ final class Task_Statistics private(
     val c =
       ChartFactory.createHistogram("Task runtime distribution",
         "log10(runtime / s)", "number of tasks", data,
-        PlotOrientation.VERTICAL, true, true, true)
+        PlotOrientation.VERTICAL, true, true, true).nn
 
     val renderer = c.getPlot.asInstanceOf[XYPlot].getRenderer.asInstanceOf[XYBarRenderer]
     renderer.setMargin(0.1)

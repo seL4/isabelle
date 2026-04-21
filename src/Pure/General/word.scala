@@ -22,8 +22,8 @@ object Word {
 
   /* case */
 
-  def lowercase(str: String): String = str.toLowerCase(Locale.ROOT)
-  def uppercase(str: String): String = str.toUpperCase(Locale.ROOT)
+  def lowercase(str: String): String = str.toLowerCase(Locale.ROOT.nn).nn
+  def uppercase(str: String): String = str.toUpperCase(Locale.ROOT.nn).nn
 
   def capitalized(str: String): String =
     if (str.isEmpty) str

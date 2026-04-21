@@ -147,7 +147,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
       if !excluded(word)
     } add.invoke(factory, word)
 
-    dict = Untyped.method(factory_class, "create").invoke(factory)
+    dict = Untyped.method(factory_class, "create").invoke(factory).nn
   }
   load()
 
@@ -196,7 +196,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
   /* check known words */
 
   def contains(word: String): Boolean =
-    Untyped.method(dict.getClass.getSuperclass, "exist", classOf[String]).
+    Untyped.method(dict.getClass.getSuperclass.nn, "exist", classOf[String]).
       invoke(dict, word).asInstanceOf[java.lang.Boolean].booleanValue
 
   def check(word: String): Boolean =
@@ -215,8 +215,8 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
 
   private def suggestions(word: String): Option[List[String]] = {
     val res =
-      Untyped.method(dict.getClass.getSuperclass, "searchSuggestions", classOf[String]).
-        invoke(dict, word).asInstanceOf[JList[AnyRef]].toArray.toList.map(_.toString)
+      Untyped.method(dict.getClass.getSuperclass.nn, "searchSuggestions", classOf[String]).
+        invoke(dict, word).asInstanceOf[JList[AnyRef]].toArray.nn.toList.map(x => x.nn.toString)
     if (res.isEmpty) None else Some(res)
   }
 

@@ -29,7 +29,7 @@ object System_Channel {
 
   class Unix extends System_Channel(StandardProtocolFamily.UNIX) {
     private val socket_file = Isabelle_System.tmp_file("socket", initialized = false)
-    private val socket_file_name = socket_file.getPath
+    private val socket_file_name = socket_file.getPath.nn
 
     server.bind(UnixDomainSocketAddress.of(socket_file_name))
     server.setOption(StandardSocketOptions.SO_RCVBUF, buffer_size)
@@ -43,7 +43,7 @@ object System_Channel {
 }
 
 abstract class System_Channel private(protocol_family: ProtocolFamily) {
-  protected val server: ServerSocketChannel = ServerSocketChannel.open(protocol_family)
+  protected val server: ServerSocketChannel = ServerSocketChannel.open(protocol_family).nn
 
   def address: String
   lazy val password: String = UUID.random_string()
@@ -55,8 +55,8 @@ abstract class System_Channel private(protocol_family: ProtocolFamily) {
   def rendezvous(): (OutputStream, InputStream) = {
     val socket = server.accept
     try {
-      val out_stream = Channels.newOutputStream(socket)
-      val in_stream = Channels.newInputStream(socket)
+      val out_stream = Channels.newOutputStream(socket).nn
+      val in_stream = Channels.newInputStream(socket).nn
 
       Byte_Message.read_line(in_stream) match {
         case Some(bs) if bs.text == password => (out_stream, in_stream)

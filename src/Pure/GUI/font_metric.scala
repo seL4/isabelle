@@ -36,7 +36,7 @@ class Font_Metric(
       case _ => false
     }
 
-  def string_bounds(str: String): Rectangle2D = font.getStringBounds(str, context)
+  def string_bounds(str: String): Rectangle2D = font.getStringBounds(str, context).nn
   def string_width(str: String): Double = string_bounds(str).getWidth
 
   protected def sample: String = "mix"

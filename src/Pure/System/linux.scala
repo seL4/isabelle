@@ -64,8 +64,8 @@ object Linux {
 
   def package_installed(name: String): Boolean = {
     val result = Isabelle_System.bash("dpkg-query -s " + Bash.string(name))
-    val pattern = """^Status:.*installed.*$""".r.pattern
-    result.ok && result.out_lines.exists(line => pattern.matcher(line).matches)
+    val pattern = """^Status:.*installed.*$""".r.pattern.nn
+    result.ok && result.out_lines.exists(line => pattern.matcher(line).nn.matches)
   }
 
 

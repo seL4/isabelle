@@ -185,7 +185,7 @@ object Text {
         val count = text.length min (string.length - i)
         val rest =
           if (count == text.length) None
-          else Some(Edit.remove(start, text.substring(count)))
+          else Some(Edit.remove(start, text.substring(count).nn))
         (rest, remove(i, count, string))
       }
   }

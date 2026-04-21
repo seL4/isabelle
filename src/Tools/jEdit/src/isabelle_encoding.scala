@@ -66,6 +66,6 @@ class Isabelle_Encoding extends Encoding {
       }
       override def close(): Unit = out.close()
     }
-    new OutputStreamWriter(buffer, UTF8.charset.newEncoder())
+    new OutputStreamWriter(buffer, UTF8.charset.newEncoder().nn)
   }
 }

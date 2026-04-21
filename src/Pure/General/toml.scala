@@ -283,14 +283,14 @@ object TOML {
 
     def offset_date_time: Parser[Offset_Date_Time] =
       token("offset date-time", _.is_value,
-        s => Offset_Date_Time(OffsetDateTime.parse(s.replacing(" " -> "T"))))
+        s => Offset_Date_Time(OffsetDateTime.parse(s.replacing(" " -> "T")).nn))
     def local_date_time: Parser[Local_Date_Time] =
       token("local date-time", _.is_value,
-        s => Local_Date_Time(LocalDateTime.parse(s.replacing(" " -> "T"))))
+        s => Local_Date_Time(LocalDateTime.parse(s.replacing(" " -> "T")).nn))
     def local_date: Parser[Local_Date] =
-      token("local date", _.is_value, s => Local_Date(LocalDate.parse(s)))
+      token("local date", _.is_value, s => Local_Date(LocalDate.parse(s).nn))
     def local_time: Parser[Local_Time] =
-      token("local time", _.is_value, s => Local_Time(LocalTime.parse(s)))
+      token("local time", _.is_value, s => Local_Time(LocalTime.parse(s).nn))
 
     def array: Parser[Array] =
       positioned(

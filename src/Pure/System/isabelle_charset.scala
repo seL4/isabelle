@@ -20,16 +20,16 @@ object Isabelle_Charset {
 
 class Isabelle_Charset extends Charset(Isabelle_Charset.name, null) {
   override def contains(cs: Charset): Boolean =
-    cs.name.equalsIgnoreCase(UTF8.charset_name) || UTF8.charset.contains(cs)
+    cs.name.nn.equalsIgnoreCase(UTF8.charset_name) || UTF8.charset.contains(cs)
 
-  override def newDecoder(): CharsetDecoder = UTF8.charset.newDecoder
+  override def newDecoder(): CharsetDecoder = UTF8.charset.newDecoder.nn
 
-  override def newEncoder(): CharsetEncoder = UTF8.charset.newEncoder
+  override def newEncoder(): CharsetEncoder = UTF8.charset.newEncoder.nn
 }
 
 
 class Isabelle_Charset_Provider extends CharsetProvider {
-  override def charsetForName(name: String): Charset = {
+  override def charsetForName(name: String): Charset | Null = {
     // FIXME inactive
     // if (name.equalsIgnoreCase(Isabelle_Charset.name)) Isabelle_Charset.charset
     // else null
@@ -39,6 +39,6 @@ class Isabelle_Charset_Provider extends CharsetProvider {
   override def charsets(): java.util.Iterator[Charset] = {
     // FIXME inactive
     // Iterator(Isabelle_Charset.charset)
-    JList.of[Charset]().listIterator()
+    JList.of[Charset]().nn.listIterator().nn
   }
 }

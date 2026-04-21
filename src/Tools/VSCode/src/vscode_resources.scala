@@ -95,7 +95,7 @@ extends Resources(session_background, log = log) {
 
   def node_name(file: JFile): Document.Node.Name =
     find_theory(file) getOrElse {
-      val node = file.getPath
+      val node = file.getPath.nn
       val theory = theory_name(Sessions.DRAFT, Thy_Header.theory_name(node))
       if (loaded_theory(theory)) Document.Node.Name.loaded_theory(theory)
       else Document.Node.Name(node, theory = theory)
@@ -111,7 +111,7 @@ extends Resources(session_background, log = log) {
     else if (path.is_basic && !prefix.endsWith("/") && !prefix.endsWith(JFile.separator))
       prefix + JFile.separator + File.platform_path(path)
     else if (path.is_basic) prefix + File.platform_path(path)
-    else File.absolute(new JFile(prefix + JFile.separator + File.platform_path(path))).getPath
+    else File.absolute(new JFile(prefix + JFile.separator.nn + File.platform_path(path))).getPath.nn
   }
 
   override def read_dir(dir: String): List[String] =

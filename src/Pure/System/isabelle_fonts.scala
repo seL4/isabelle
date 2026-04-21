@@ -33,10 +33,10 @@ object Isabelle_Fonts {
 
   sealed case class Entry(path: Path, hidden: Boolean = false) {
     lazy val bytes: Bytes = Bytes.read(path)
-    lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file)
+    lazy val font: Font = Font.createFont(Font.TRUETYPE_FONT, path.file).nn
 
-    def family: String = font.getFamily
-    def name: String = font.getFontName
+    def family: String = font.getFamily.nn
+    def name: String = font.getFontName.nn
     def style: Int =
       (if (is_bold) Font.BOLD else 0) +
       (if (is_italic) Font.ITALIC else 0)
@@ -68,7 +68,7 @@ object Isabelle_Fonts {
   /* system init */
 
   def init(): Unit = {
-    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment().nn
     for (entry <- fonts()) ge.registerFont(entry.font)
   }
 }

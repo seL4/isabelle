@@ -260,7 +260,8 @@ object XML {
       else
         lookup(x) match {
           case Some(y) => y
-          case None => store(x.map(p => (Library.isolate_substring(p._1).intern, cache_string(p._2))))
+          case None =>
+            store(x.map(p => (Library.isolate_substring(p._1).intern.nn, cache_string(p._2))))
         }
     }
 

@@ -81,7 +81,7 @@ object Exn {
   /* interrupts */
 
   def cause(exn: Throwable): Throwable =
-    isabelle.setup.Exn.cause(exn)
+    isabelle.setup.Exn.cause(exn).nn
 
   def is_interrupt(exn: Throwable): Boolean =
     isabelle.setup.Exn.is_interrupt(exn)
@@ -147,7 +147,7 @@ object Exn {
 
   def debug(): Boolean = isabelle.setup.Exn.debug()
 
-  def trace(exn: Throwable): String = isabelle.setup.Exn.trace(exn)
+  def trace(exn: Throwable): String = isabelle.setup.Exn.trace(exn).nn
 
   def print(exn: Throwable): String =
     if (debug()) message(exn) + "\n" + trace(exn) else message(exn)

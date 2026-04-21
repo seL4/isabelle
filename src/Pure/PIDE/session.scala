@@ -419,7 +419,7 @@ abstract class Session extends Document.Session {
   private val protocol_handlers = Protocol_Handlers.init(session)
 
   def get_protocol_handler[C <: Session.Protocol_Handler](c: Class[C]): Option[C] =
-    protocol_handlers.get(c.getName).flatMap(Library.as_subclass(c))
+    protocol_handlers.get(c.getName.nn).flatMap(Library.as_subclass(c))
 
   def init_protocol_handler(handler: Session.Protocol_Handler): Unit =
     protocol_handlers.init(handler)
