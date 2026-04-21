@@ -139,9 +139,10 @@ object File {
 
   /* directory content */
 
-  def read_dir(dir: Path): List[String] = {
-    if (!dir.is_dir) error("No such directory: " + dir.toString)
-    proper_value(dir.file.listFiles) match {
+  def read_dir(dir: Path): List[String] = read_dir(dir.file)
+  def read_dir(dir: JFile): List[String] = {
+    if (!dir.isDirectory) error("No such directory: " + File.path(dir).toString)
+    proper_value(dir.listFiles) match {
       case None => Nil
       case Some(files) => files.toList.map(file => file.nn.file_name).sorted
     }

@@ -391,28 +391,25 @@ abstract class Rendering(
           else (path.dir, path.file_name)
 
         val directory = new JFile(session.resources.append_path(snapshot.node_name.master_dir, dir))
-        val files = directory.listFiles
-        if (files == null) Nil
-        else {
-          val ignore =
-            space_explode(':', options.string("completion_path_ignore")).
-              map(s => FileSystems.getDefault.getPathMatcher("glob:" + s))
-          (for {
-            file <- files.iterator
 
-            name = file.file_name
-            if name.startsWith(base_name)
-            path_name = new JFile(name).java_path
-            if !ignore.exists(matcher => matcher.matches(path_name))
+        val ignore =
+          space_explode(':', options.string("completion_path_ignore")).
+            map(s => FileSystems.getDefault.getPathMatcher("glob:" + s))
 
-            text1 = (dir + Path.basic(name)).implode_short
-            if text != text1
+        (for {
+          name <- File.read_dir(directory)
 
-            is_dir = new JFile(directory, name).isDirectory
-            replacement = text1 + (if (is_dir) "/" else "")
-            descr = List(text1, if (is_dir) "(directory)" else "(file)")
-          } yield (replacement, descr)).take(options.int("completion_limit")).toList
-        }
+          if name.startsWith(base_name)
+          path_name = new JFile(name).java_path
+          if !ignore.exists(matcher => matcher.matches(path_name))
+
+          text1 = (dir + Path.basic(name)).implode_short
+          if text != text1
+
+          is_dir = new JFile(directory, name).isDirectory
+          replacement = text1 + (if (is_dir) "/" else "")
+          descr = List(text1, if (is_dir) "(directory)" else "(file)")
+        } yield (replacement, descr)).take(options.int("completion_limit")).toList
       }
       catch { case ERROR(_) => Nil }
     }
