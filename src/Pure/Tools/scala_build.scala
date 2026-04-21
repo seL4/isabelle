@@ -17,25 +17,24 @@ object Scala_Build {
   class Context private[Scala_Build](java_context: isabelle.setup.Build.Context) {
     override def toString: String = java_context.toString
 
-    def is_module(path: Path): Boolean = {
-      val module_name = java_context.module_name()
-      module_name.nonEmpty && File.eq(java_context.path(module_name).java_file, path.file)
-    }
-
-    def module_result: Option[Path] = {
-      java_context.module_result() match {
-        case "" => None
-        case module => Some(File.path(java_context.path(module).java_file))
+    def is_module(path: Path): Boolean =
+      proper_string(java_context.module_name()) match {
+        case Some(module_name) => File.eq(java_context.path(module_name).nn.java_file, path.file)
+        case None => false
       }
-    }
+
+    def module_result: Option[Path] =
+      proper_string(java_context.module_result())
+        .map(module => File.path(java_context.path(module).nn.java_file))
 
     def sources: List[Path] =
-      java_context.sources().asScala.toList.map(s => File.path(java_context.path(s).java_file))
+      java_context.sources().nn.asScala.toList.map(s =>
+        File.path(java_context.path(s.nn).nn.java_file))
 
     def requirements: List[Path] =
       (for {
-        s <- java_context.requirements().asScala.iterator
-        p <- java_context.requirement_paths(s).asScala.iterator
+        s <- java_context.requirements().nn.asScala.iterator
+        p <- java_context.requirement_paths(s).nn.asScala.iterator
       } yield (File.path(p.java_file))).toList
 
     def build(
@@ -67,8 +66,8 @@ object Scala_Build {
     module: Option[Path] = None
   ): Context = {
     val props_name =
-      if (component) isabelle.setup.Build.COMPONENT_BUILD_PROPS
-      else isabelle.setup.Build.BUILD_PROPS
+      if (component) isabelle.setup.Build.COMPONENT_BUILD_PROPS.nn
+      else isabelle.setup.Build.BUILD_PROPS.nn
     val props_path = dir + Path.explode(props_name)
 
     val props = File.read_props(props_path)
@@ -116,5 +115,5 @@ object Scala_Build {
   }
 
   def component_contexts(): List[Context] =
-    isabelle.setup.Build.component_contexts().asScala.toList.map(new Context(_))
+    isabelle.setup.Build.component_contexts().nn.asScala.toList.map(c => new Context(c.nn))
 }
