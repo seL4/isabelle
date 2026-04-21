@@ -172,8 +172,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       progress.echo("Patching jEdit sources ...")
       for {
         path <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches")).sortBy(_.file_name)
-        name = path.file_name
-        if !File.is_backup(name)
+        if !File.is_backup(path)
       } {
         val patch = File.read(path)
         Isabelle_System.apply_patch(source_dir, patch, strip = 2, progress = progress)
@@ -191,7 +190,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           theme + Path.explode("32x32/apps/isabelle.gif"))
       }
 
-      for (path <- File.find_files(tango_path, pred = file => File.is_svg(file.file_name), relative = true)) {
+      for (path <- File.find_files(tango_path, pred = File.is_svg, relative = true)) {
         val dir = Isabelle_System.make_directory(jedit_tango_path + path.dir)
         Isabelle_System.copy_file(tango_path + path, dir + path.base)
       }
@@ -207,7 +206,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         (for {
-          path <- File.find_files(source_org_dir, file => File.is_java(file.file_name), relative = true)
+          path <- File.find_files(source_org_dir, pred = File.is_java, relative = true)
           package_name <- Scala_Project.package_name(source_org_dir + path)
           if !exclude_package(package_name)
         } yield path.implode).sorted

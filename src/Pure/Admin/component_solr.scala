@@ -61,7 +61,7 @@ object Component_Solr {
 
       for {
         dir <- List(webapp_lib_dir, server_lib_dir)
-        jar <- File.find_files(dir, _.file_name.endsWith(".jar"))
+        jar <- File.find_files(dir, pred = File.is_jar)
       } Isabelle_System.copy_file(jar, component_dir.lib)
 
 

@@ -772,7 +772,7 @@ object Sessions {
     lazy val bibtex_entries: Bibtex.Entries =
       (for {
         (document_dir, file) <- document_files.iterator
-        if File.is_bib(file.file_name)
+        if File.is_bib(file)
       } yield {
         val path = dir + document_dir + file
         Bibtex.Entries.parse(File.read(path), start = Token.Pos.file(File.standard_path(path)))

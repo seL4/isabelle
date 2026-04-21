@@ -71,14 +71,13 @@ object Component_JDK {
     /* permissions */
 
     for (file <- File.find_files(component_dir.path, include_dirs = true)) {
-      val name = file.file_name
       val path = file.java_path
       val perms = Files.getPosixFilePermissions(path).nn
       perms.add(PosixFilePermission.OWNER_READ)
       perms.add(PosixFilePermission.GROUP_READ)
       perms.add(PosixFilePermission.OTHERS_READ)
       perms.add(PosixFilePermission.OWNER_WRITE)
-      if (File.is_dll(name) || File.is_exe(name) || file.is_dir) {
+      if (File.is_dll(file) || File.is_exe(file) || file.is_dir) {
         perms.add(PosixFilePermission.OWNER_EXECUTE)
         perms.add(PosixFilePermission.GROUP_EXECUTE)
         perms.add(PosixFilePermission.OTHERS_EXECUTE)

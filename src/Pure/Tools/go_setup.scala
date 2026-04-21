@@ -114,7 +114,7 @@ fi
       }
     }
 
-    File.find_files(component_dir.path, pred = file => File.is_exe(file.file_name)).
+    File.find_files(component_dir.path, pred = File.is_exe).
       foreach(File.set_executable(_))
 
 

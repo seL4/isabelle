@@ -425,7 +425,7 @@ object Mailman {
       for (href <- hrefs_msg) yield message_content(href, split_lines(read_text(href)))
 
     def find_messages(dir: Path): List[Message] =
-      for (path <- File.find_files(dir, file => File.is_html(file.file_name), relative = true))
+      for (path <- File.find_files(dir, pred = File.is_html, relative = true))
       yield message_content(full_name(path.implode), split_lines(File.read(dir + path)))
   }
 

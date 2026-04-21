@@ -91,28 +91,70 @@ object File {
   /* adhoc file types */
 
   def is_ML(s: String): Boolean = s.endsWith(".ML")
+  def is_ML(p: Path): Boolean = is_ML(p.file_name)
+
   def is_bib(s: String): Boolean = s.endsWith(".bib")
+  def is_bib(p: Path): Boolean = is_bib(p.file_name)
+
   def is_dll(s: String): Boolean = s.endsWith(".dll")
+  def is_dll(p: Path): Boolean = is_dll(p.file_name)
+
   def is_exe(s: String): Boolean = s.endsWith(".exe")
+  def is_exe(p: Path): Boolean = is_exe(p.file_name)
+
   def is_gz(s: String): Boolean = s.endsWith(".gz")
+  def is_gz(p: Path): Boolean = is_gz(p.file_name)
+
   def is_html(s: String): Boolean = s.endsWith(".html")
+  def is_html(p: Path): Boolean = is_html(p.file_name)
+
   def is_jar(s: String): Boolean = s.endsWith(".jar")
+  def is_jar(p: Path): Boolean = is_jar(p.file_name)
+
   def is_java(s: String): Boolean = s.endsWith(".java")
+  def is_java(p: Path): Boolean = is_java(p.file_name)
+
   def is_node(s: String): Boolean = s.endsWith(".node")
+  def is_node(p: Path): Boolean = is_node(p.file_name)
+
   def is_pdf(s: String): Boolean = s.endsWith(".pdf")
+  def is_pdf(p: Path): Boolean = is_pdf(p.file_name)
+
   def is_png(s: String): Boolean = s.endsWith(".png")
+  def is_png(p: Path): Boolean = is_png(p.file_name)
+
   def is_scala(s: String): Boolean = s.endsWith(".scala")
+  def is_scala(p: Path): Boolean = is_scala(p.file_name)
+
   def is_svg(s: String): Boolean = s.endsWith(".svg")
+  def is_svg(p: Path): Boolean = is_svg(p.file_name)
+
   def is_tar_bz2(s: String): Boolean = s.endsWith(".tar.bz2")
+  def is_tar_bz2(p: Path): Boolean = is_tar_bz2(p.file_name)
+
   def is_tar_gz(s: String): Boolean = s.endsWith(".tar.gz")
+  def is_tar_gz(p: Path): Boolean = is_tar_gz(p.file_name)
+
   def is_tar_xz(s: String): Boolean = s.endsWith(".tar.xz")
+  def is_tar_xz(p: Path): Boolean = is_tar_xz(p.file_name)
+
   def is_tgz(s: String): Boolean = s.endsWith(".tgz")
+  def is_tgz(p: Path): Boolean = is_tgz(p.file_name)
+
   def is_thy(s: String): Boolean = s.endsWith(".thy")
+  def is_thy(p: Path): Boolean = is_thy(p.file_name)
+
   def is_xz(s: String): Boolean = s.endsWith(".xz")
+  def is_xz(p: Path): Boolean = is_xz(p.file_name)
+
   def is_zip(s: String): Boolean = s.endsWith(".zip")
+  def is_zip(p: Path): Boolean = is_zip(p.file_name)
+
   def is_zst(s: String): Boolean = s.endsWith(".zst")
+  def is_zst(p: Path): Boolean = is_zst(p.file_name)
 
   def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
+  def is_backup(p: Path): Boolean = is_backup(p.file_name)
 
 
   /* relative paths */

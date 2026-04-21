@@ -15,9 +15,7 @@ object Mirabelle {
   def action_names(): List[String] = {
     val Pattern = """Mirabelle action: "(\w+)".*""".r
     (for {
-      file <-
-        File.find_files(Path.explode("~~/src/HOL/Tools/Mirabelle"),
-          pred = file => File.is_ML(file.file_name))
+      file <- File.find_files(Path.explode("~~/src/HOL/Tools/Mirabelle"), pred = File.is_ML)
       line <- split_lines(File.read(file))
       name <- line match { case Pattern(a) => Some(a) case _ => None }
     } yield name).sorted

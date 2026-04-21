@@ -467,9 +467,8 @@ object Isabelle_System {
   }
 
   def extract(archive: Path, dir: Path, strip: Boolean = false): Unit = {
-    val name = archive.file_name
     make_directory(dir)
-    if (File.is_zip(name) || File.is_jar(name)) {
+    if (File.is_zip(archive) || File.is_jar(archive)) {
       using(new ZipFile(archive.file)) { zip_file =>
         val items =
           for (entry <- zip_file.entries().asScala.toList)
@@ -500,9 +499,9 @@ object Isabelle_System {
     }
     else {
       val extr =
-        if (File.is_tar_bz2(name)) "-xjf"
-        else if (File.is_tgz(name) || File.is_tar_gz(name)) "-xzf"
-        else if (File.is_tar_xz(name)) "--xz -xf"
+        if (File.is_tar_bz2(archive)) "-xjf"
+        else if (File.is_tgz(archive) || File.is_tar_gz(archive)) "-xzf"
+        else if (File.is_tar_xz(archive)) "--xz -xf"
         else ""
       if (extr.nonEmpty) {
         Isabelle_System.gnutar(extr + " " + File.bash_path(archive), dir = dir, strip = strip).check

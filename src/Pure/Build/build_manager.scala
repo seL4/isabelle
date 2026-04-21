@@ -639,7 +639,7 @@ object Build_Manager {
     def progress: Progress = new File_Progress(log_file)
 
     private def read_gz(file: Path, ext: String): Option[(String, String)] =
-      if (!File.is_gz(file.file_name) || file.drop_ext.get_ext != ext) None
+      if (!File.is_gz(file) || file.drop_ext.get_ext != ext) None
       else Some(file.drop_ext.drop_ext.file_name -> File.read_gzip(file))
 
     def read: Report.Data = {
