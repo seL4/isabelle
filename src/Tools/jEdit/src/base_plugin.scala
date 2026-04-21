@@ -18,7 +18,7 @@ import org.gjt.sp.util.SyntaxUtilities
 
 class Base_Plugin extends EBPlugin {
   override def start(): Unit = {
-    Locale.setDefault(Locale.ENGLISH)
+    Locale.setDefault(Library.locale_english)
 
     Isabelle_System.init()
 

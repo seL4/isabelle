@@ -8,7 +8,6 @@ package isabelle
 
 
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
-import java.util.Locale
 
 import scala.collection.mutable
 import scala.util.matching.Regex
@@ -150,7 +149,7 @@ object Build_Log {
       val fmts =
         Date.Formatter.variants(
           List("EEE MMM d HH:mm:ss O yyyy", "EEE MMM d HH:mm:ss VV yyyy"),
-          List(Locale.ENGLISH.nn, Locale.GERMAN.nn)) :::
+          List(Library.locale_english, Library.locale_german)) :::
         List(
           DateTimeFormatter.RFC_1123_DATE_TIME.nn,
           Date.Formatter.pattern("EEE MMM d HH:mm:ss yyyy").nn.withZone(Date.timezone_berlin).nn)

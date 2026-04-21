@@ -7,7 +7,6 @@ Support for words within Unicode text.
 package isabelle
 
 import java.text.Bidi
-import java.util.Locale
 
 
 object Word {
@@ -22,8 +21,8 @@ object Word {
 
   /* case */
 
-  def lowercase(str: String): String = str.toLowerCase(Locale.ROOT.nn).nn
-  def uppercase(str: String): String = str.toUpperCase(Locale.ROOT.nn).nn
+  def lowercase(str: String): String = str.toLowerCase(Library.locale_root).nn
+  def uppercase(str: String): String = str.toUpperCase(Library.locale_root).nn
 
   def capitalized(str: String): String =
     if (str.isEmpty) str

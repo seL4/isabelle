@@ -178,6 +178,13 @@ object Library {
   def decode_lines(s: String): String = s.replacing("\u000b" -> "\n")
 
 
+  /* locales */
+
+  val locale_root: Locale = Locale.ROOT.nn
+  val locale_english: Locale = Locale.ENGLISH.nn
+  val locale_german: Locale = Locale.GERMAN.nn
+
+
   /* strings */
 
   def trim_string(s: String): String = s.trim.nn
@@ -209,7 +216,7 @@ object Library {
     replacing(s, "\u001b\\[\\d+m".r -> "")
 
   def format(format: String, args: Any*): String =
-    String.format(Locale.ROOT.nn, format, args:_*).nn
+    String.format(locale_root, format, args:_*).nn
 
 
   /* quote */
