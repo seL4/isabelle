@@ -95,12 +95,12 @@ object VSCode_Main {
     def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
     if (vsix_path.is_file) {
       using(new ZipFile(vsix_path.file))(zip_file =>
-        zip_file.getEntry(name) match {
-          case null => err()
-          case entry =>
-            zip_file.getInputStream(entry) match {
-              case null => err()
-              case stream => SHA1.fake_shasum(File.read_stream(stream))
+        proper_value(zip_file.getEntry(name)) match {
+          case None => err()
+          case Some(entry) =>
+            proper_value(zip_file.getInputStream(entry)) match {
+              case None => err()
+              case Some(stream) => SHA1.fake_shasum(File.read_stream(stream))
             }
         })
     }
