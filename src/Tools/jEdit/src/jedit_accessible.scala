@@ -142,7 +142,7 @@ object JEdit_Accessible {
       }
 
       def text_changed(offset: Text.Offset): Unit =
-        firePropertyChange(AccessibleContext.ACCESSIBLE_TEXT_PROPERTY, null, Integer.valueOf(offset))
+        firePropertyChange(AccessibleContext.ACCESSIBLE_TEXT_PROPERTY, null, Value.Int.obj(offset))
 
       private var old_caret = 0
       override def caretUpdate(e: CaretEvent): Unit = {
