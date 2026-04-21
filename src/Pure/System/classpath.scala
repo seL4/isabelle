@@ -15,6 +15,14 @@ import scala.jdk.CollectionConverters._
 
 
 object Classpath {
+  /** class environment **/
+
+  def the_class(name: String): Class[_ <: AnyRef] = Class.forName(name).nn
+
+
+  /** classpath entries **/
+
+
   abstract class Service
   type Service_Class = Class[Service]
 

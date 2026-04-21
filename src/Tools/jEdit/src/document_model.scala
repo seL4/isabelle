@@ -651,7 +651,8 @@ class Buffer_Model private(
   def syntax_changed(): Unit = {
     JEdit_Lib.buffer_line_manager(buffer).setFirstInvalidLineContext(0)
     for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-      Untyped.method(Class.forName("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
+      Untyped.method(
+          Classpath.the_class("org.gjt.sp.jedit.textarea.TextArea"), "foldStructureChanged").
         invoke(text_area)
     }
     buffer.invalidateCachedFoldLevels()

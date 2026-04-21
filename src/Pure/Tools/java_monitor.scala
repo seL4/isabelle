@@ -16,13 +16,13 @@ object Java_Monitor {
   /* Java classes */
 
   object ClassOf {
-    val Component: Class[_ <: AnyRef] = Class.forName("java.awt.Component")
-    val JConsole: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.JConsole")
-    val LocalVirtualMachine: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.LocalVirtualMachine")
-    val Messages: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.Messages")
-    val ProxyClient: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.ProxyClient")
-    val Resources: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.Resources")
-    val VMPanel: Class[_ <: AnyRef] = Class.forName("sun.tools.jconsole.VMPanel")
+    val Component = Classpath.the_class("java.awt.Component")
+    val JConsole = Classpath.the_class("sun.tools.jconsole.JConsole")
+    val LocalVirtualMachine = Classpath.the_class("sun.tools.jconsole.LocalVirtualMachine")
+    val Messages = Classpath.the_class("sun.tools.jconsole.Messages")
+    val ProxyClient = Classpath.the_class("sun.tools.jconsole.ProxyClient")
+    val Resources = Classpath.the_class("sun.tools.jconsole.Resources")
+    val VMPanel = Classpath.the_class("sun.tools.jconsole.VMPanel")
   }
 
 

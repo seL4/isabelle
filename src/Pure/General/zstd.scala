@@ -24,6 +24,6 @@ object Zstd {
 
     zstd.util.Native.assumeLoaded()
     assert(zstd.util.Native.isLoaded())
-    Class.forName("com.github.luben.zstd.Zstd")
+    Classpath.the_class("com.github.luben.zstd.Zstd")
   }
 }

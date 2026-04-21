@@ -137,7 +137,7 @@ class Spell_Checker private(dictionary: Spell_Checker.Dictionary) {
       updates -- (for ((name, upd) <- updates.iterator; if upd.permanent) yield name) ++
         permanent_updates
 
-    val factory_class = Class.forName("com.inet.jortho.DictionaryFactory")
+    val factory_class = Classpath.the_class("com.inet.jortho.DictionaryFactory")
     val factory = Untyped.constructor(factory_class).newInstance()
 
     val add = Untyped.method(factory_class, "add", classOf[String])

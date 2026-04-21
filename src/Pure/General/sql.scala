@@ -668,7 +668,7 @@ object SQLite {
     System.setProperty("org.sqlite.lib.path", File.platform_path(lib_path))
     System.setProperty("org.sqlite.lib.name", lib_name)
 
-    Class.forName("org.sqlite.JDBC")
+    Classpath.the_class("org.sqlite.JDBC")
   }
 
   def open_database(path: Path, restrict: Boolean = false): Database = {
@@ -717,7 +717,7 @@ object SQLite {
 object PostgreSQL {
   type Source = SQL.Source
 
-  lazy val init_jdbc: Unit = Class.forName("org.postgresql.Driver")
+  lazy val init_jdbc: Unit = Classpath.the_class("org.postgresql.Driver")
 
   val default_server: SSH.Server = SSH.local_server(port = 5432)
 
