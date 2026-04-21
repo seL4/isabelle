@@ -7,6 +7,7 @@ applications".
 
 package isabelle.find_facts
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

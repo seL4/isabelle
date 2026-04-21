@@ -7,6 +7,7 @@ https://solr.apache.org as backend.
 
 package isabelle.find_facts
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

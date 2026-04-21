@@ -6,6 +6,7 @@ Untyped, unscoped, unchecked access to JVM objects.
 
 package isabelle
 
+import scala.language.unsafeNulls
 
 import java.lang.reflect.{Constructor, Method, Field}
 

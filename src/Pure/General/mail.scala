@@ -6,6 +6,7 @@ Support for sending text mails via SMTP.
 
 package isabelle
 
+import scala.language.unsafeNulls
 
 import java.util.{Properties => JProperties}
 import jakarta.mail.internet.{InternetAddress, MimeMessage}

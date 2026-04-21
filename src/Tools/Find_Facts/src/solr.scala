@@ -8,6 +8,7 @@ NB: This requires a separate Java process with classpath "$SOLR_JARS".
 
 package isabelle.find_facts
 
+import scala.language.unsafeNulls
 
 import isabelle._
 

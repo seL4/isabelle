@@ -6,6 +6,7 @@ Scala instance of Console plugin.
 
 package isabelle.jedit_main
 
+import scala.language.unsafeNulls
 
 import isabelle._
 import isabelle.jedit._
