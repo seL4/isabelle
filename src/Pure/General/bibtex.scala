@@ -239,10 +239,10 @@ object Bibtex {
     "oct",
     "nov",
     "dec")
-  def is_month(s: String): Boolean = months.contains(s.toLowerCase)
+  def is_month(s: String): Boolean = months.contains(Word.lowercase(s))
 
   private val commands = List("preamble", "string")
-  def is_command(s: String): Boolean = commands.contains(s.toLowerCase)
+  def is_command(s: String): Boolean = commands.contains(Word.lowercase(s))
 
   sealed case class Entry_Type(
     kind: String,
@@ -252,11 +252,11 @@ object Bibtex {
   ) {
     val optional_standard: List[String] = List("url", "doi", "ee")
 
-    def is_required(s: String): Boolean = required.contains(s.toLowerCase)
+    def is_required(s: String): Boolean = required.contains(Word.lowercase(s))
     def is_optional(s: String): Boolean =
-      optional_crossref.contains(s.toLowerCase) ||
-      optional_other.contains(s.toLowerCase) ||
-      optional_standard.contains(s.toLowerCase)
+      optional_crossref.contains(Word.lowercase(s)) ||
+      optional_other.contains(Word.lowercase(s)) ||
+      optional_standard.contains(Word.lowercase(s))
 
     def fields: List[String] =
       required ::: optional_crossref ::: optional_other ::: optional_standard
@@ -324,7 +324,7 @@ object Bibtex {
         List("author", "title", "howpublished", "month", "year", "note")))
 
   def known_entry(kind: String): Option[Entry_Type] =
-    known_entries.find(entry => entry.kind.toLowerCase == kind.toLowerCase)
+    known_entries.find(entry => Word.lowercase(entry.kind) == Word.lowercase(kind))
 
 
 
@@ -537,7 +537,7 @@ object Bibtex {
       "(" ^^ { case a => (")", keyword(a)) }
 
     private def item_name(kind: String) =
-      kind.toLowerCase match {
+      Word.lowercase(kind) match {
         case "preamble" => failure("")
         case "string" => identifier ^^ token(Token.Kind.NAME)
         case _ => name
