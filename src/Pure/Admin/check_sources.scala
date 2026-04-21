@@ -50,7 +50,7 @@ object Check_Sources {
     val hg = Mercurial.repository(root)
     for {
       file <- hg.known_files()
-      if File.is_scala(file) || File.is_thy(file) || File.is_ML(file) || file.endsWith("/ROOT")
+      if File.is_scala(file) || File.is_thy(file) || File.is_ML(file) || File.is_ROOT(file)
     } check_file(root + Path.explode(file))
   }
 

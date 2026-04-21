@@ -156,6 +156,13 @@ object File {
   def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
   def is_backup(p: Path): Boolean = is_backup(p.file_name)
 
+  def is_ROOT(s: String): Boolean =
+    Url.get_base_name(s) match {
+      case None => false
+      case Some(name) => name == "ROOT"
+    }
+  def is_ROOT(p: Path): Boolean = is_ROOT(p.file_name)
+
 
   /* relative paths */
 
