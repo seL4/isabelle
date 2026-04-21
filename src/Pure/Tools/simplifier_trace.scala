@@ -285,29 +285,30 @@ object Simplifier_Trace {
   /* protocol handler */
 
   class Handler extends Session.Protocol_Handler {
-    private var the_session: Session = null
+    private var session: Option[Session] = None
 
     override def init(session: Session): Unit = {
       try { the_manager(session) }
       catch { case ERROR(_) => managers.change(map => map + (session -> make_manager)) }
-      the_session = session
+      this.session = Some(session)
     }
 
     override def exit(exit_state: Document.State): Unit = {
-      val session = the_session
-      if (session != null) {
-        val manager = the_manager(session)
-        manager.send(Clear_Memory)
-        manager.shutdown()
-        managers.change(map => map - session)
-        the_session = null
+      this.session match {
+        case Some(session) =>
+          val manager = the_manager(session)
+          manager.send(Clear_Memory)
+          manager.shutdown()
+          managers.change(map => map - session)
+          this.session = None
+        case None =>
       }
     }
 
     private def cancel(msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case Markup.Simp_Trace_Cancel(serial) =>
-          the_manager(the_session).send(Cancel(serial))
+          the_manager(this.session.get).send(Cancel(serial))
           true
         case _ =>
           false
