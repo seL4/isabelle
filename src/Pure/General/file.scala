@@ -30,14 +30,14 @@ object File {
   def standard_path(path: Path): String = path.expand.implode
 
   def standard_path(platform_path: String): String =
-    isabelle.setup.Environment.standard_path(platform_path)
+    isabelle.setup.Environment.standard_path(platform_path).nn
 
-  def standard_path(file: JFile): String = standard_path(file.getPath)
+  def standard_path(file: JFile): String = standard_path(file.getPath.nn)
 
   def standard_url(name: String): String =
     try {
-      val url = new URI(name).toURL
-      if (url.getProtocol == "file" && Url.is_wellformed_file(name)) {
+      val url = new URI(name).toURL.nn
+      if (url.getProtocol.nn == "file" && Url.is_wellformed_file(name)) {
         standard_path(Url.parse_file(name))
       }
       else name
@@ -48,7 +48,7 @@ object File {
   /* platform path (Windows or Posix) */
 
   def platform_path(standard_path: String): String =
-    isabelle.setup.Environment.platform_path(standard_path)
+    isabelle.setup.Environment.platform_path(standard_path).nn
 
   def platform_path(path: Path): String = platform_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
@@ -75,14 +75,14 @@ object File {
 
   /* platform files */
 
-  def absolute(file: JFile): JFile = file.java_path.toAbsolutePath.normalize.toFile
-  def canonical(file: JFile): JFile = file.getCanonicalFile
+  def absolute(file: JFile): JFile = file.java_path.toAbsolutePath.nn.normalize.nn.toFile.nn
+  def canonical(file: JFile): JFile = file.getCanonicalFile.nn
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
-  def path(java_path: JPath): Path = path(java_path.toFile)
+  def path(java_path: JPath): Path = path(java_path.toFile.nn)
 
-  def uri(file: JFile): URI = file.toURI
-  def uri(path: Path): URI = path.file.toURI
+  def uri(file: JFile): URI = file.toURI.nn
+  def uri(path: Path): URI = uri(path.file)
 
   def url(file: JFile): Url = Url(uri(file))
   def url(path: Path): Url = url(path.file)
@@ -121,7 +121,7 @@ object File {
     val base_path = base.java_path
     val other_path = other.java_path
     if (other_path.startsWith(base_path))
-      Some(path(base_path.relativize(other_path).toFile))
+      Some(path(base_path.relativize(other_path).nn.toFile.nn))
     else None
   }
 
@@ -141,9 +141,10 @@ object File {
 
   def read_dir(dir: Path): List[String] = {
     if (!dir.is_dir) error("No such directory: " + dir.toString)
-    val files = dir.file.listFiles
-    if (files == null) Nil
-    else files.toList.map(_.file_name).sorted
+    proper_value(dir.file.listFiles) match {
+      case None => Nil
+      case Some(files) => files.toList.map(file => file.nn.file_name).sorted
+    }
   }
 
   def get_entry(
@@ -186,14 +187,14 @@ object File {
             path: JPath,
             attrs: BasicFileAttributes
           ): FileVisitResult = {
-            if (include_dirs) check(path.toFile)
+            if (include_dirs) check(path.toFile.nn)
             FileVisitResult.CONTINUE
           }
           override def visitFile(
             path: JPath,
             attrs: BasicFileAttributes
           ): FileVisitResult = {
-            val file = path.toFile
+            val file = path.toFile.nn
             if (include_dirs || !file.isDirectory) check(file)
             FileVisitResult.CONTINUE
           }
@@ -370,7 +371,7 @@ object File {
   def restrict(path: Path): Unit =
     if (Platform.is_windows) Isabelle_System.chmod("g-rwx,o-rwx", path)
     else {
-      val perms = Files.getPosixFilePermissions(path.java_path)
+      val perms = Files.getPosixFilePermissions(path.java_path).nn
       var perms_changed = false
       for (p <- restrict_perms if perms.contains(p)) {
         perms.remove(p)
