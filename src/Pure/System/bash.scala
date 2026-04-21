@@ -55,11 +55,12 @@ object Bash {
   def context(script: String,
     user_home: String = "",
     isabelle_identifier: String = "",
-    cwd: Path = Path.current
+    cwd: Path | Null = Path.current
   ): String = {
     if_proper(user_home, exports("USER_HOME=" + user_home)) +
     if_proper(isabelle_identifier, exports("ISABELLE_IDENTIFIER=" + isabelle_identifier)) +
-    (if (cwd == null || cwd.is_current) "" else "cd " + quote(cwd.implode) + "\n") +
+    (if (cwd.asInstanceOf[Any] == null || cwd.asInstanceOf[Path].is_current) ""
+     else "cd " + quote(cwd.asInstanceOf[Path].implode) + "\n") +
     script
   }
 
@@ -71,7 +72,7 @@ object Bash {
 
   def local_bash(): String =
     if (Platform.is_unix) "bash"
-    else isabelle.setup.Environment.cygwin_root() + "\\bin\\bash.exe"
+    else isabelle.setup.Environment.cygwin_root().nn + "\\bin\\bash.exe"
 
   def remote_bash_process(ssh: SSH.Session): String = {
     val component = Components.provide(Component_Bash_Process.home, ssh = ssh)
@@ -95,7 +96,7 @@ object Bash {
       description: String = "",
       ssh: SSH.System = SSH.Local,
       cwd: Path = Path.current,
-      env: JMap[String, String] = Isabelle_System.Settings.env(),  // ignored for remote ssh
+      env: JMap[String, String] | Null = Isabelle_System.Settings.env(),  // ignored for remote ssh
       redirect: Boolean = false,
       cleanup: () => Unit = () => ()): Process =
     new Process(script, description, ssh, cwd, env, redirect, cleanup)
@@ -105,7 +106,7 @@ object Bash {
     val description: String,
     ssh: SSH.System,
     cwd: Path,
-    env: JMap[String, String],
+    env: JMap[String, String] | Null,
     redirect: Boolean,
     cleanup: () => Unit
   ) {
@@ -157,22 +158,24 @@ object Bash {
     private val proc =
       isabelle.setup.Environment.process_builder(
         proc_command,
-        if (!ssh.is_local || cwd == null || cwd.is_current) null else cwd.file,
+        if (!ssh.is_local || cwd.asInstanceOf[Any] == null || cwd.asInstanceOf[Path].is_current)
+          null
+        else cwd.file,
         env,
         redirect
-      ).start()
+      ).nn.start().nn
 
 
     // channels
 
     val stdin: BufferedWriter =
-      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, UTF8.charset))
+      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream.nn, UTF8.charset))
 
     val stdout: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
+      new BufferedReader(new InputStreamReader(proc.getInputStream.nn, UTF8.charset))
 
     val stderr: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getErrorStream, UTF8.charset))
+      new BufferedReader(new InputStreamReader(proc.getErrorStream.nn, UTF8.charset))
 
 
     // signals
@@ -184,7 +187,7 @@ object Bash {
       ssh.is_local &&
         (for {
           p <- Value.Long.unapply(pid)
-          handle <- ProcessHandle.of(p).toScala
+          handle <- ProcessHandle.of(p).nn.toScala
         } yield handle.isAlive).getOrElse(false)
 
     private def root_process_alive(): Boolean =
@@ -441,24 +444,25 @@ object Bash {
   }
 
   class Handler extends Session.Protocol_Handler {
-    private var server: Server = null
+    private var server: Option[Server] = None
 
     override def init(session: Session): Unit = {
       exit()
-      server = Server.start(debugging = session.session_options.bool("bash_process_debugging"))
+      server =
+        Some(Server.start(debugging = session.session_options.bool("bash_process_debugging")))
     }
 
     def exit(): Unit =
-      if (server != null) {
-        server.stop()
-        server = null
+      if (server.isDefined) {
+        server.get.stop()
+        server = None
       }
 
     override def exit(exit_state: Document.State): Unit = exit()
 
     override def prover_options: Options.Update = {
-      val address = if (server == null) "" else server.address
-      val password = if (server == null) "" else server.password
+      val address = if (server.isEmpty) "" else server.get.address
+      val password = if (server.isEmpty) "" else server.get.password
       List(
         Options.Spec.eq("bash_process_address", address),
         Options.Spec.eq("bash_process_password", password))
