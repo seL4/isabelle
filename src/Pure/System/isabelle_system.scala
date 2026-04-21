@@ -38,11 +38,11 @@ object Isabelle_System {
     override def get(name: String): String = proper_value(env.get(name)).getOrElse("")
   }
 
-  object No_Env extends Env(JMap.of())
+  object No_Env extends Env(JMap.of().nn)
 
   object Settings {
     def env(putenv: List[(String, String)] = Nil): JMap[String, String] = {
-      val env0 = isabelle.setup.Environment.settings()
+      val env0 = isabelle.setup.Environment.settings().nn
       if (putenv.isEmpty) env0
       else {
         val env = new HashMap(env0)
@@ -300,7 +300,7 @@ object Isabelle_System {
     initialized: Boolean = true
   ): JFile = {
     val suffix = if_proper(ext, "." + ext)
-    val file = Files.createTempFile(base_dir.java_path, name, suffix).java_file
+    val file = Files.createTempFile(base_dir.java_path, name, suffix).nn.java_file
     if (initialized) file.deleteOnExit() else file.delete()
     file
   }
@@ -328,13 +328,13 @@ object Isabelle_System {
             FileVisitResult.CONTINUE
           }
 
-          override def postVisitDirectory(dir: JPath, e: IOException): FileVisitResult = {
+          override def postVisitDirectory(dir: JPath, e: IOException | Null): FileVisitResult = {
             if (e == null) {
               try { Files.deleteIfExists(dir) }
               catch { case _: IOException => }
               FileVisitResult.CONTINUE
             }
-            else throw e
+            else throw e.asInstanceOf[IOException]
           }
         }
       )
@@ -349,7 +349,7 @@ object Isabelle_System {
   }
 
   def tmp_dir(name: String, base_dir: JFile = isabelle_tmp_prefix()): JFile = {
-    val dir = Files.createTempDirectory(base_dir.java_path, name).java_file
+    val dir = Files.createTempDirectory(base_dir.java_path, name).nn.java_file
     dir.deleteOnExit()
     dir
   }
@@ -395,14 +395,14 @@ object Isabelle_System {
   def create_shutdown_hook(body: => Unit): Thread = {
     val shutdown_hook = Isabelle_Thread.create(new Runnable { def run(): Unit = body })
 
-    try { Runtime.getRuntime.addShutdownHook(shutdown_hook) }
+    try { Runtime.getRuntime.nn.addShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }
 
     shutdown_hook
   }
 
   def remove_shutdown_hook(shutdown_hook: Thread): Unit =
-    try { Runtime.getRuntime.removeShutdownHook(shutdown_hook) }
+    try { Runtime.getRuntime.nn.removeShutdownHook(shutdown_hook) }
     catch { case _: IllegalStateException => }
 
 
@@ -471,20 +471,20 @@ object Isabelle_System {
     if (File.is_zip(archive) || File.is_jar(archive)) {
       using(new ZipFile(archive.file)) { zip_file =>
         val items =
-          for (entry <- zip_file.entries().asScala.toList)
+          for (entry <- zip_file.entries().nn.asScala.toList)
           yield {
-            val input = JPath.of(entry.getName)
+            val input = JPath.of(entry.getName).nn
             val count = input.getNameCount
             val output =
               if (strip && count <= 1) None
-              else if (strip) Some(input.subpath(1, count))
+              else if (strip) Some(input.subpath(1, count).nn)
               else Some(input)
-            val result = output.map(dir.java_path.resolve(_))
+            val result = output.map(p => dir.java_path.resolve(p).nn)
             for (res <- result) {
               if (entry.isDirectory) Files.createDirectories(res)
               else {
                 val bytes = using(zip_file.getInputStream(entry))(Bytes.read_stream(_))
-                Files.createDirectories(res.getParent)
+                Files.createDirectories(res.getParent.nn)
                 Files.write(res, bytes.make_array)
               }
             }
