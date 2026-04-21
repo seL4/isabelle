@@ -322,7 +322,20 @@ final class Path private(
 
   def expand: Path = expand_env(Isabelle_System.Settings())
 
-  def file_name: String = expand.base.implode
+  def file_name: String =
+    elems match {
+      case Path.Basic(b) :: _ => b
+      case _ =>
+        def err(bad: Path): Nothing = error("Cannot determine file-name from " + bad)
+        val expanded = try { Some(expand) } catch { case ERROR(_) => None }
+        if (expanded.isEmpty) err(this)
+        else {
+          expanded.get.elems match {
+            case Path.Basic(b) :: _ => b
+            case _ => err(expanded.get)
+          }
+        }
+    }
 
 
   /* platform files */
