@@ -233,6 +233,28 @@ via "isabelle build" or "isabelle process_theories".
 
 *** System ***
 
+* Isabelle/Scala now uses more static type-checking by default, notably
+Explicit Nulls (as explained in
+https://docs.scala-lang.org/scala3/reference/experimental/explicit-nulls.html).
+Notable INCOMPATIBILITY: need to be careful about type T vs. T | Null.
+The following operations may help to get rid of the Null part:
+
+  proper_value: A | Null => Option[A]
+  _.nn: A | Null => A
+
+The "nn" (non-null) operation is written postfix, like regular method
+application. This partial operation will throw NullPointerException on
+null. Excessive use of "nn" may indicate a Java-centric programming
+style: it is better to use null-free operations from the libraries of
+Scala and Isabelle/Scala. As last resort, it also possible to opt-out
+from Explicit Nulls for Scala modules as follows:
+
+  import scala.language.unsafeNulls
+
+Note: This extension of Scala3 is not yet a "safe" type-system. Even
+with type-checking of Explicit Nulls enabled, the Java/VM can produce
+null values by other means, e.g. during object initialization.
+
 * The command-line tool "isabelle build_log" works again. It was broken
 in Isabelle2025-1 and Isabelle2025-2.
 
