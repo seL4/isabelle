@@ -18,8 +18,7 @@ object Logger {
     val t = guard_time
     new Logger {
       override val guard_time: Time = t
-      override def output(msg: => String): Unit =
-        if (progress != null) progress.echo(msg)
+      override def output(msg: => String): Unit = progress.echo(msg)
     }
   }
 
