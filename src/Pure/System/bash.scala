@@ -177,7 +177,8 @@ object Bash {
 
     // signals
 
-    private val group_pid = stdout.readLine
+    private val group_pid =
+      File.read_line(stdout).getOrElse(error("Failed to read bash_process group pid"))
 
     private def local_process_alive(pid: String): Boolean =
       ssh.is_local &&

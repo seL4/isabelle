@@ -46,11 +46,11 @@ class TTY_Loop(
     try {
       var finished = false
       while (!finished) {
-        console_reader.readLine() match {
-          case null =>
+        File.read_line(console_reader) match {
+          case None =>
             writer.close()
             finished = true
-          case line =>
+          case Some(line) =>
             writer_lock.synchronized {
               writer.write(line)
               writer.write("\n")
