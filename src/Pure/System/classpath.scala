@@ -30,8 +30,8 @@ object Classpath {
 
     val jar_files1 =
       jar_files.flatMap(start =>
-          File.find_files(start, file => File.is_jar(file.file_name)).sortBy(_.file_name))
-        .map(File.absolute)
+          File.find_files(File.path(start), file => File.is_jar(file.file_name)).sortBy(_.file_name))
+        .map(_.absolute_file)
 
     val tmp_jars =
       for (jar <- jar_contents) yield {

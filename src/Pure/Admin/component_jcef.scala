@@ -69,14 +69,14 @@ object Component_JCEF {
           Isabelle_System.gnutar("-xzf " + File.bash_path(archive_file), dir = platform_dir).check
 
           for {
-            file <- File.find_files(platform_dir.file).iterator
-            name = file.file_name
+            path <- File.find_files(platform_dir).iterator
+            name = path.file_name
             if File.is_dll(name) || File.is_exe(name)
-          } File.set_executable(File.path(file))
+          } File.set_executable(path)
 
           val classpath =
-            File.find_files(platform_dir.file, pred = file => File.is_jar(file.file_name))
-              .flatMap(file => File.relative_path(platform_dir, File.path(file)))
+            File.find_files(platform_dir, pred = file => File.is_jar(file.file_name))
+              .flatMap(file => File.relative_path(platform_dir, file))
               .map(_.implode).sorted.map(jar => "        " + quote("$ISABELLE_JCEF_HOME/" + jar))
               .mkString(" \\\n")
 

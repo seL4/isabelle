@@ -321,9 +321,9 @@ object Document_Build {
       val manifest =
         SHA1.shasum_sorted(
           for {
-            file <- File.find_files(doc_dir.file, follow_links = true)
-            relative_path <- File.relative_path(doc_dir, File.path(file))
-          } yield SHA1.digest(file) -> relative_path.implode)
+            path <- File.find_files(doc_dir, follow_links = true)
+            relative_path <- File.relative_path(doc_dir, path)
+          } yield SHA1.digest(path) -> relative_path.implode)
 
       val sources = meta_info ::: manifest
 

@@ -57,9 +57,9 @@ object Elm {
       for {
         src_dir <- src_dirs
         path = dir + Path.explode(src_dir)
-        file <- File.find_files(path.file, _.file_name.endsWith(".elm"))
-        rel_path <- File.relative_path(dir, File.path(file))
-      } yield rel_path
+        file <- File.find_files(path, _.file_name.endsWith(".elm"))
+        relative_path <- File.relative_path(dir, path)
+      } yield relative_path
 
     def sources_shasum: SHA1.Shasum = {
       val meta_info = SHA1.shasum_meta_info(SHA1.digest(JSON.Format(definition)))

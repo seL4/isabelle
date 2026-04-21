@@ -200,13 +200,13 @@ mac.CFBundleTypeRole=Editor
         Isabelle_System.copy_file(isabelle_home + Build_Release.THEORY_ICNS, app_resources)
 
         val bad_files =
-          File.find_files(app_root.file, pred = { file =>
+          File.find_files(app_root, pred = { file =>
             try { Files.getPosixFilePermissions(file.java_path); false }
             catch { case _: IOException => true }
           })
-        for (file <- bad_files) {
-          progress.echo_warning("Suppressing bad " + File.path(file))
-          file.delete
+        for (path <- bad_files) {
+          progress.echo_warning("Suppressing bad " + path)
+          path.file.delete
         }
 
         def rm_tree(dir: Path, msg: String): Unit = {
@@ -219,7 +219,7 @@ mac.CFBundleTypeRole=Editor
         val invalid_heaps =
           isabelle_components.flatMap(name =>
             if (name.containsSlice("polyml")) {
-              File.find_files((isabelle_home + Path.explode(name)).file,
+              File.find_files(isabelle_home + Path.explode(name),
                 pred = file => file.file_name == "poly.uuid")
             }
             else Nil).isEmpty

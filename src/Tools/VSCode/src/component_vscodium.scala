@@ -296,12 +296,10 @@ object Component_VSCodium {
       Isabelle_System.rm_tree(dir + Path.explode("bin"))
 
       if (platform.is_windows) {
-        val files =
-          File.find_files(dir.file, pred = { file =>
-            val name = file.file_name
-            File.is_dll(name) || File.is_exe(name) || File.is_node(name)
-          })
-        files.foreach(file => File.set_executable(File.path(file)))
+        File.find_files(dir, pred = { file =>
+          val name = file.file_name
+          File.is_dll(name) || File.is_exe(name) || File.is_node(name)
+        }).foreach(File.set_executable(_))
         Isabelle_System.bash("chmod -R o-w " + File.bash_path(dir)).check
       }
     }

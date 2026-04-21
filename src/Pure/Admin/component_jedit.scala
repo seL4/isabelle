@@ -171,11 +171,11 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       progress.echo("Patching jEdit sources ...")
       for {
-        file <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches").file).sortBy(_.file_name)
-        name = file.file_name
+        path <- File.find_files(Path.explode("~~/src/Tools/jEdit/patches")).sortBy(_.file_name)
+        name = path.file_name
         if !File.is_backup(name)
       } {
-        val patch = File.read(File.path(file))
+        val patch = File.read(path)
         Isabelle_System.apply_patch(source_dir, patch, strip = 2, progress = progress)
       }
 
@@ -192,11 +192,11 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
       }
 
       for {
-        svg_file <- File.find_files(tango_path.file, pred = file => File.is_svg(file.file_name))
-        rel_path <- File.relative_path(tango_path, File.path(svg_file))
+        svg_path <- File.find_files(tango_path, pred = file => File.is_svg(file.file_name))
+        relative_path <- File.relative_path(tango_path, svg_path)
       } {
-        val dir = Isabelle_System.make_directory(jedit_tango_path + rel_path.dir)
-        Isabelle_System.copy_file(File.path(svg_file), dir + rel_path.base)
+        val dir = Isabelle_System.make_directory(jedit_tango_path + relative_path.dir)
+        Isabelle_System.copy_file(svg_path, dir + relative_path.base)
       }
 
       Isabelle_System.extract(idea_path + Path.explode("jar/idea-icons.jar"), jedit_tango_path)
@@ -210,10 +210,10 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         (for {
-          file <- File.find_files(source_org_dir.file, file => File.is_java(file.file_name))
-          package_name <- Scala_Project.package_name(File.path(file))
+          path <- File.find_files(source_org_dir, file => File.is_java(file.file_name))
+          package_name <- Scala_Project.package_name(path)
           if !exclude_package(package_name)
-          relative_path <- File.relative_path(component_path, File.path(file))
+          relative_path <- File.relative_path(component_path, path)
         } yield relative_path.implode).sorted
 
       File.write(component_dir.build_props,

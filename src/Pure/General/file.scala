@@ -168,16 +168,16 @@ object File {
     get_entry(dir, pred = _.is_dir, title = title)
 
   def find_files(
-    start: JFile,
-    pred: JFile => Boolean = _ => true,
+    start: Path,
+    pred: Path => Boolean = _ => true,
     include_dirs: Boolean = false,
     follow_links: Boolean = false
-  ): List[JFile] = {
-    val result = new mutable.ListBuffer[JFile]
-    def check(file: JFile): Unit = if (pred(file)) result += file
+  ): List[Path] = {
+    val result = new mutable.ListBuffer[Path]
+    def check(path: Path): Unit = if (pred(path)) result += path
 
-    if (start.isFile) check(start)
-    else if (start.isDirectory) {
+    if (start.is_file) check(start)
+    else if (start.is_dir) {
       val options =
         if (follow_links) EnumSet.of(FileVisitOption.FOLLOW_LINKS)
         else EnumSet.noneOf(classOf[FileVisitOption])
@@ -187,7 +187,7 @@ object File {
             path: JPath,
             attrs: BasicFileAttributes
           ): FileVisitResult = {
-            if (include_dirs) check(path.java_file)
+            if (include_dirs) check(File.path(path.java_file))
             FileVisitResult.CONTINUE
           }
           override def visitFile(
@@ -195,7 +195,7 @@ object File {
             attrs: BasicFileAttributes
           ): FileVisitResult = {
             val file = path.java_file
-            if (include_dirs || !file.isDirectory) check(file)
+            if (include_dirs || !file.isDirectory) check(File.path(file))
             FileVisitResult.CONTINUE
           }
         }

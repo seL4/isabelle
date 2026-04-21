@@ -106,8 +106,8 @@ object Component_CSDP {
       build_flags.find(flags => flags.platform == platform_name) match {
         case None => error("No build flags for platform " + quote(platform_name))
         case Some(flags) =>
-          File.find_files(source_dir.file, pred = file => file.file_name == "Makefile").
-            foreach(file => flags.change(File.path(file)))
+          File.find_files(source_dir, pred = file => file.file_name == "Makefile")
+            .foreach(flags.change)
       }
 
       platform_context.bash("make", cwd = source_dir).check

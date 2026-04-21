@@ -426,12 +426,12 @@ object Mailman {
 
     def find_messages(dir: Path): List[Message] = {
       for {
-        file <- File.find_files(dir.file, file => File.is_html(file.file_name))
-        rel_path <- File.relative_path(dir, File.path(file))
+        path <- File.find_files(dir, file => File.is_html(file.file_name))
+        relative_path <- File.relative_path(dir, path)
       }
       yield {
-        val name = full_name(rel_path.implode)
-        message_content(name, split_lines(File.read(file)))
+        val name = full_name(relative_path.implode)
+        message_content(name, split_lines(File.read(path)))
       }
     }
   }

@@ -7,7 +7,6 @@ Management of build log files and database storage.
 package isabelle
 
 
-import java.io.{File => JFile}
 import java.time.format.{DateTimeFormatter, DateTimeParseException}
 import java.util.Locale
 
@@ -104,12 +103,12 @@ object Build_Log {
         case None => name
       }
     }
-    def plain_name(file: JFile): String = plain_name(file.file_name)
+    def plain_name(path: Path): String = plain_name(path.file_name)
 
     def apply(name: String, lines: List[String], cache: XML.Cache = XML.Cache.none): Log_File =
       new Log_File(plain_name(name), lines.map(s => cache.string(Library.trim_line(s))), cache)
 
-    def read(file: JFile, cache: XML.Cache = XML.Cache.none): Log_File = {
+    def read(file: Path, cache: XML.Cache = XML.Cache.none): Log_File = {
       val name = file.file_name
       val text =
         if (File.is_gz(name)) File.read_gzip(file)
@@ -127,11 +126,11 @@ object Build_Log {
 
     val log_suffixes: List[String] = List(".log", ".log.gz", ".log.xz")
 
-    def is_log(file: JFile,
+    def is_log(path: Path,
       prefixes: List[String] = log_prefixes,
       suffixes: List[String] = log_suffixes
     ): Boolean = {
-      val name = file.file_name
+      val name = path.file_name
 
       prefixes.exists(name.startsWith) &&
       suffixes.exists(name.endsWith) &&
@@ -140,7 +139,7 @@ object Build_Log {
       name != "main.log"
     }
 
-    def find_files(starts: List[JFile]): List[JFile] =
+    def find_files(starts: List[Path]): List[Path] =
       starts.flatMap(start => File.find_files(start, pred = is_log(_), follow_links = true))
         .sortBy(plain_name)
 
@@ -1171,7 +1170,7 @@ object Build_Log {
       }
     }
 
-    def write_info(db: SQL.Database, files: List[JFile],
+    def write_info(db: SQL.Database, files: List[Path],
       ml_statistics: Boolean = false,
       progress: Progress = new Progress,
       errors: Multi_Map[String, String] = Multi_Map.empty
@@ -1191,7 +1190,7 @@ object Build_Log {
         private val known =
           Synchronized(private_data.read_domain(db, table, restriction = files_domain, cache = cache))
 
-        def required(file: JFile): Boolean = !(known.value)(Log_File.plain_name(file))
+        def required(path: Path): Boolean = !(known.value)(Log_File.plain_name(path))
         def required(log_file: Log_File): Boolean = !(known.value)(log_file.name)
 
         def update_db(db: SQL.Database, log_file: Log_File): Unit
@@ -1369,7 +1368,7 @@ object Build_Log {
   ): Unit = {
     val store = Build_Log.store(options)
 
-    val log_files = Log_File.find_files(logs.map(_.file))
+    val log_files = Log_File.find_files(logs)
 
     using(store.open_database()) { db =>
       if (vacuum) db.vacuum()

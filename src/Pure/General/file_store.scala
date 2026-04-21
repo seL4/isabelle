@@ -8,14 +8,11 @@ Persistent store for file-system content, backed by SQL database
 package isabelle
 
 
-import java.io.{File => JFile}
-
-
 object File_Store {
   /* main operations */
 
   def make_database(database: Path, dir: Path,
-    pred: JFile => Boolean = _ => true,
+    pred: Path => Boolean = _ => true,
     name_prefix: String = "",
     compress_options: Compress.Options = Compress.Options(),
     compress_cache: Compress.Cache = Compress.Cache.none
@@ -23,14 +20,13 @@ object File_Store {
     database.file.delete()
     using(SQLite.open_database(database)) { db =>
       private_data.transaction_lock(db, create = true) {
-        val root = dir.canonical_file
-        val root_path = File.path(root)
+        val root_path = dir.canonical
         for {
-          file <- File.find_files(root, pred = pred)
-          rel_path <- File.relative_path(root_path, File.path(file))
+          path <- File.find_files(root_path, pred = pred)
+          relative_path <- File.relative_path(root_path, path)
         } {
           val entry =
-            Entry.read_file(rel_path, name_prefix = name_prefix, dir = root_path,
+            Entry.read_file(relative_path, name_prefix = name_prefix, dir = root_path,
               compress_options = compress_options, compress_cache = compress_cache)
           private_data.write_entry(db, entry)
         }

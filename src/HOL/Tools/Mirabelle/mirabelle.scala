@@ -16,7 +16,7 @@ object Mirabelle {
     val Pattern = """Mirabelle action: "(\w+)".*""".r
     (for {
       file <-
-        File.find_files(Path.explode("~~/src/HOL/Tools/Mirabelle").file,
+        File.find_files(Path.explode("~~/src/HOL/Tools/Mirabelle"),
           pred = file => File.is_ML(file.file_name))
       line <- split_lines(File.read(file))
       name <- line match { case Pattern(a) => Some(a) case _ => None }
