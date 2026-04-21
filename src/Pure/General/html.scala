@@ -136,11 +136,11 @@ object HTML {
           val path = location.expand
           if (path.is_absolute) Exn.error("Relative href location expected: " + path) else path
         case Some(base_dir) =>
-          val path1 = base_dir.absolute_file.java_path
-          val path2 = location.absolute_file.java_path
-          try { File.path(path1.relativize(path2).toFile) }
-          catch {
-            case _: IllegalArgumentException =>
+          val path1 = base_dir.absolute
+          val path2 = location.absolute
+          File.relative_path(path1, path2) match {
+            case Some(path) => path
+            case None =>
               Exn.error("Failed to relativize href location " + path2 + " with wrt. base " + path1)
           }
       }
