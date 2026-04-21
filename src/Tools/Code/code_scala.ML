@@ -432,7 +432,8 @@ fun serialize_scala case_insensitive ctxt { module_name, reserved_syms, identifi
 
     (* print modules *)
     fun print_module _ base _ ps = Pretty.chunks2
-      (Pretty.str ("object " ^ base ^ " {")
+      (Pretty.str "import scala.language.unsafeNulls"
+        :: Pretty.str ("object " ^ base ^ " {")
         :: ps @| Pretty.str ("} /* object " ^ base ^ " */"));
 
     (* serialization *)
