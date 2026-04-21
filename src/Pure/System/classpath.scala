@@ -35,7 +35,7 @@ object Classpath {
 
     val tmp_jars =
       for (jar <- jar_contents) yield {
-        val tmp_jar = Files.createTempFile("jar", "jar").toFile
+        val tmp_jar = Files.createTempFile("jar", "jar").java_file
         tmp_jar.deleteOnExit()
         Bytes.write(tmp_jar, jar.content)
         tmp_jar

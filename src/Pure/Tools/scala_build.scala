@@ -19,24 +19,24 @@ object Scala_Build {
 
     def is_module(path: Path): Boolean = {
       val module_name = java_context.module_name()
-      module_name.nonEmpty && File.eq(java_context.path(module_name).toFile, path.file)
+      module_name.nonEmpty && File.eq(java_context.path(module_name).java_file, path.file)
     }
 
     def module_result: Option[Path] = {
       java_context.module_result() match {
         case "" => None
-        case module => Some(File.path(java_context.path(module).toFile))
+        case module => Some(File.path(java_context.path(module).java_file))
       }
     }
 
     def sources: List[Path] =
-      java_context.sources().asScala.toList.map(s => File.path(java_context.path(s).toFile))
+      java_context.sources().asScala.toList.map(s => File.path(java_context.path(s).java_file))
 
     def requirements: List[Path] =
       (for {
         s <- java_context.requirements().asScala.iterator
         p <- java_context.requirement_paths(s).asScala.iterator
-      } yield (File.path(p.toFile))).toList
+      } yield (File.path(p.java_file))).toList
 
     def build(
       classpath: List[Path] = Path.split(Isabelle_System.getenv("ISABELLE_CLASSPATH")),

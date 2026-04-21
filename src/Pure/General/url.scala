@@ -96,7 +96,7 @@ object Url {
   def print_file(file: JFile): String = File.absolute(file).java_path.toUri.nn.toString
   def print_file_name(name: String): String = print_file(new JFile(name))
 
-  def parse_file(uri: String): JFile = Paths.get(new URI(uri)).nn.toFile.nn
+  def parse_file(uri: String): JFile = Paths.get(new URI(uri)).nn.java_file
 
   def is_wellformed_file(uri: String): Boolean =
     try { parse_file(uri); true }

@@ -75,11 +75,11 @@ object File {
 
   /* platform files */
 
-  def absolute(file: JFile): JFile = file.java_path.toAbsolutePath.nn.normalize.nn.toFile.nn
+  def absolute(file: JFile): JFile = file.java_path.toAbsolutePath.nn.normalize.nn.java_file
   def canonical(file: JFile): JFile = file.getCanonicalFile.nn
 
   def path(file: JFile): Path = Path.explode(standard_path(file))
-  def path(java_path: JPath): Path = path(java_path.toFile.nn)
+  def path(java_path: JPath): Path = path(java_path.java_file)
 
   def uri(file: JFile): URI = file.toURI.nn
   def uri(path: Path): URI = uri(path.file)
@@ -121,7 +121,7 @@ object File {
     val base_path = base.java_path
     val other_path = other.java_path
     if (other_path.startsWith(base_path))
-      Some(path(base_path.relativize(other_path).nn.toFile.nn))
+      Some(path(base_path.relativize(other_path).nn.java_file))
     else None
   }
 
@@ -187,14 +187,14 @@ object File {
             path: JPath,
             attrs: BasicFileAttributes
           ): FileVisitResult = {
-            if (include_dirs) check(path.toFile.nn)
+            if (include_dirs) check(path.java_file)
             FileVisitResult.CONTINUE
           }
           override def visitFile(
             path: JPath,
             attrs: BasicFileAttributes
           ): FileVisitResult = {
-            val file = path.toFile.nn
+            val file = path.java_file
             if (include_dirs || !file.isDirectory) check(file)
             FileVisitResult.CONTINUE
           }

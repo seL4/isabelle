@@ -47,6 +47,10 @@ package object isabelle {
     def java_path: JPath = file.toPath.nn
   }
 
+  extension (path: JPath) {
+    def java_file: JFile = path.toFile.nn
+  }
+
   extension (obj: AnyRef) {
     def class_name: String = obj.getClass.nn.getName.nn
   }

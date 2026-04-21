@@ -102,7 +102,7 @@ object File_Watcher {
                     val remove = if (key.reset) None else Some(dir)
                     val changed =
                       events.iterator.foldLeft(Set.empty[JFile]) {
-                        case (set, event) => set + dir.java_path.resolve(event.context).toFile
+                        case (set, event) => set + dir.java_path.resolve(event.context).java_file
                       }
                     (remove, changed)
                   case None =>
