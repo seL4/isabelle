@@ -424,16 +424,9 @@ object Mailman {
     def get_messages(): List[Message] =
       for (href <- hrefs_msg) yield message_content(href, split_lines(read_text(href)))
 
-    def find_messages(dir: Path): List[Message] = {
-      for {
-        path <- File.find_files(dir, file => File.is_html(file.file_name))
-        relative_path <- File.relative_path(dir, path)
-      }
-      yield {
-        val name = full_name(relative_path.implode)
-        message_content(name, split_lines(File.read(path)))
-      }
-    }
+    def find_messages(dir: Path): List[Message] =
+      for (path <- File.find_files(dir, file => File.is_html(file.file_name), relative = true))
+      yield message_content(full_name(path.implode), split_lines(File.read(dir + path)))
   }
 
   private class Message_Chunk(bg: String = "", en: String = "") {

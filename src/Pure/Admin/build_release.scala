@@ -261,12 +261,9 @@ directory individually.
         val remote_heaps = remote_dir + Path.basic("heaps")
         ssh.read_directory(remote_heaps, local_heaps, direct = true)
 
-        List.from(
-          for {
-            path <- File.find_files(local_heaps).iterator
-            rel_path <- File.relative_path(local_heaps, path)
-          } yield rel_path.implode + " " + File.space(path).print
-        ).sorted.foreach(progress.echo(_))
+        File.find_files(local_heaps, relative = true)
+          .map(path => path.implode + " " + File.space(local_heaps + path).print)
+          .sorted.foreach(progress.echo(_))
       }
     }
     finally { ssh.close() }

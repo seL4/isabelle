@@ -191,12 +191,9 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           theme + Path.explode("32x32/apps/isabelle.gif"))
       }
 
-      for {
-        svg_path <- File.find_files(tango_path, pred = file => File.is_svg(file.file_name))
-        relative_path <- File.relative_path(tango_path, svg_path)
-      } {
-        val dir = Isabelle_System.make_directory(jedit_tango_path + relative_path.dir)
-        Isabelle_System.copy_file(svg_path, dir + relative_path.base)
+      for (path <- File.find_files(tango_path, pred = file => File.is_svg(file.file_name), relative = true)) {
+        val dir = Isabelle_System.make_directory(jedit_tango_path + path.dir)
+        Isabelle_System.copy_file(tango_path + path, dir + path.base)
       }
 
       Isabelle_System.extract(idea_path + Path.explode("jar/idea-icons.jar"), jedit_tango_path)
@@ -210,11 +207,10 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         (for {
-          path <- File.find_files(source_org_dir, file => File.is_java(file.file_name))
-          package_name <- Scala_Project.package_name(path)
+          path <- File.find_files(source_org_dir, file => File.is_java(file.file_name), relative = true)
+          package_name <- Scala_Project.package_name(source_org_dir + path)
           if !exclude_package(package_name)
-          relative_path <- File.relative_path(component_path, path)
-        } yield relative_path.implode).sorted
+        } yield path.implode).sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +
