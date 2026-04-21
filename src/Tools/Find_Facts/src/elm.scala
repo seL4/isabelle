@@ -57,8 +57,7 @@ object Elm {
       for {
         src_dir <- src_dirs
         path = dir + Path.explode(src_dir)
-        file <- File.find_files(path, _.file_name.endsWith(".elm"))
-        relative_path <- File.relative_path(dir, path)
+        relative_path <- File.find_files(path, _.file_name.endsWith(".elm"), relative = true)
       } yield relative_path
 
     def sources_shasum: SHA1.Shasum = {

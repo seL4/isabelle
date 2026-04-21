@@ -170,11 +170,19 @@ object File {
   def find_files(
     start: Path,
     pred: Path => Boolean = _ => true,
+    relative: Boolean = false,
     include_dirs: Boolean = false,
     follow_links: Boolean = false
   ): List[Path] = {
     val result = new mutable.ListBuffer[Path]
-    def check(path: Path): Unit = if (pred(path)) result += path
+    def check(path: Path): Unit = {
+      val ok = pred(path)
+      val res =
+        if (!ok) None
+        else if (!relative) Some(path)
+        else File.relative_path(start, path)
+      for (p <- res) result += p
+    }
 
     if (start.is_file) check(start)
     else if (start.is_dir) {

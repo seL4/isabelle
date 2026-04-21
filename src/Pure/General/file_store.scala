@@ -21,10 +21,7 @@ object File_Store {
     using(SQLite.open_database(database)) { db =>
       private_data.transaction_lock(db, create = true) {
         val root_path = dir.canonical
-        for {
-          path <- File.find_files(root_path, pred = pred)
-          relative_path <- File.relative_path(root_path, path)
-        } {
+        for (relative_path <- File.find_files(root_path, pred = pred, relative = true)) {
           val entry =
             Entry.read_file(relative_path, name_prefix = name_prefix, dir = root_path,
               compress_options = compress_options, compress_cache = compress_cache)

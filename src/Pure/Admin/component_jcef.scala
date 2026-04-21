@@ -75,8 +75,8 @@ object Component_JCEF {
           } File.set_executable(path)
 
           val classpath =
-            File.find_files(platform_dir, pred = file => File.is_jar(file.file_name))
-              .flatMap(file => File.relative_path(platform_dir, file))
+            File.find_files(
+              platform_dir, pred = file => File.is_jar(file.file_name), relative = true)
               .map(_.implode).sorted.map(jar => "        " + quote("$ISABELLE_JCEF_HOME/" + jar))
               .mkString(" \\\n")
 
