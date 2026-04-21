@@ -186,22 +186,22 @@ object ML_Statistics {
   /* protocol handler */
 
   class Handler extends Session.Protocol_Handler {
-    private var session: Session = null
+    private var session: Option[Session] = None
     private var monitoring: Future[Unit] = Future.value(())
 
     override def init(session: Session): Unit = synchronized {
-      this.session = session
+      this.session = Some(session)
     }
 
     override def exit(exit_state: Document.State): Unit = synchronized {
-      session = null
+      session = None
       monitoring.cancel()
     }
 
     private def consume(props: Properties.T): Unit = synchronized {
-      if (session != null) {
-        val props1 = session.cache.props(props ::: jvm_statistics())
-        session.runtime_statistics.post(Session.Runtime_Statistics(props1))
+      if (session.isDefined) {
+        val props1 = session.get.cache.props(props ::: jvm_statistics())
+        session.get.runtime_statistics.post(Session.Runtime_Statistics(props1))
       }
     }
 
@@ -210,7 +210,7 @@ object ML_Statistics {
         case Markup.ML_Statistics(pid, stats_dir) =>
           monitoring =
             Future.thread("ML_statistics") {
-              monitor(session.store.ml_settings, pid, stats_dir = stats_dir, consume = consume)
+              monitor(session.get.store.ml_settings, pid, stats_dir = stats_dir, consume = consume)
             }
           true
         case _ => false
@@ -336,7 +336,7 @@ object ML_Statistics {
               (x, y) <- props.iterator ++ speeds.iterator
               if x != Now.name && domain(x)
               z = Value.Double.parse(y) if z != 0.0
-            } yield { (x.intern, z) })
+            } yield { (x.intern.nn, z) })
 
         result += ML_Statistics.Entry(time, data)
       }
@@ -422,12 +422,12 @@ final class ML_Statistics private(
 
     val chart =
       ChartFactory.createXYLineChart(title, "time", "value", data,
-        PlotOrientation.VERTICAL, true, true, true)
+        PlotOrientation.VERTICAL, true, true, true).nn
 
-    chart.getPlot.asInstanceOf[XYPlot].getRenderer.asInstanceOf[XYLineAndShapeRenderer]
-      .setLegendItemLabelGenerator((dataset: XYDataset, series: Int) =>
+    chart.getPlot.nn.asInstanceOf[XYPlot].getRenderer.nn.asInstanceOf[XYLineAndShapeRenderer]
+      .setLegendItemLabelGenerator((dataset: XYDataset | Null, series: Int) =>
         dataset match {
-          case datas: XYSeriesCollection => datas.getSeries(series).getDescription
+          case datas: XYSeriesCollection => datas.getSeries(series).nn.getDescription.nn
           case _ => "undefined"
         })
 
