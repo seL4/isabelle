@@ -40,7 +40,7 @@ class Logger {
     if (time.isEmpty || guard(time.get)) output(msg)
 
   final def timeit[A](body: => A,
-    message: Exn.Result[A] => String = null,
+    message: Timing.Message[A] = Timing.no_message,
     enabled: Boolean = true
   ): A = Timing.timeit(body, message = message, enabled = enabled, output = apply(_))
 }

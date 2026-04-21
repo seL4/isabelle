@@ -236,7 +236,7 @@ class Progress {
 
   final def timeit[A](
     body: => A,
-    message: Exn.Result[A] => String = null,
+    message: Timing.Message[A] = Timing.no_message,
     enabled: Boolean = true
   ): A = Timing.timeit(body, message = message, enabled = enabled, output = echo(_))
 
