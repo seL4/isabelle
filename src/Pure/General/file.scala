@@ -153,6 +153,10 @@ object File {
   def is_zst(s: String): Boolean = s.endsWith(".zst")
   def is_zst(p: Path): Boolean = is_zst(p.file_name)
 
+  def is_latex(s: String): Boolean =
+    s.endsWith(".tex") || s.endsWith(".sty") || s.endsWith(".cls") || s.endsWith(".clo")
+  def is_latex(p: Path): Boolean = is_latex(p.file_name)
+
   def is_backup(s: String): Boolean = s.endsWith("~") || s.endsWith(".orig")
   def is_backup(p: Path): Boolean = is_backup(p.file_name)
 

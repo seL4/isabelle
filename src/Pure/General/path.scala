@@ -228,20 +228,6 @@ final class Path private(
   def dir: Path = split_path._1
   def base: Path = new Path(List(Path.Basic(split_path._2)))
 
-  def ends_with(a: String): Boolean =
-    elems match {
-      case Path.Basic(b) :: _ => b.endsWith(a)
-      case _ => false
-    }
-  def is_java: Boolean = ends_with(".java")
-  def is_scala: Boolean = ends_with(".scala")
-  def is_pdf: Boolean = ends_with(".pdf")
-  def is_latex: Boolean =
-    ends_with(".tex") ||
-    ends_with(".sty") ||
-    ends_with(".cls") ||
-    ends_with(".clo")
-
   def ext(e: String): Path =
     if (e == "") this
     else {

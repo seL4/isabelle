@@ -164,7 +164,7 @@ object Latex {
 
   def copy_file(src: Path, dst: Path): Unit = {
     Isabelle_System.copy_file(src, dst)
-    if (src.is_latex) {
+    if (File.is_latex(src)) {
       val target = if (dst.is_dir) dst + src.base else dst
       val file_pos = File.symbolic_path(src)
       append_position(target, file_pos)
@@ -173,7 +173,7 @@ object Latex {
 
   def copy_file_base(base_dir: Path, src: Path, target_dir: Path): Unit = {
     Isabelle_System.copy_file_base(base_dir, src, target_dir)
-    if (src.is_latex) {
+    if (File.is_latex(src)) {
       val file_pos = File.symbolic_path(base_dir + src)
       append_position(target_dir + src, file_pos)
     }

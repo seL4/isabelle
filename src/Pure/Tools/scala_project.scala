@@ -31,7 +31,7 @@ object Scala_Project {
           case Some(name) => Path.explode(space_explode('.', name).mkString("/"))
           case None => error("Failed to guess package from " + source_file)
         }
-      (if (source_file.is_java) java_src_dir else scala_src_dir) + dir
+      (if (File.is_java(source_file)) java_src_dir else scala_src_dir) + dir
     }
   }
 
@@ -156,7 +156,7 @@ dependencies {
       (for {
         context <- contexts.iterator
         path <- context.sources.iterator
-        if path.is_scala || path.is_java
+        if File.is_scala(path) || File.is_java(path)
       } yield path).toList
 
     (jars, sources)
@@ -166,7 +166,7 @@ dependencies {
     Scala_Build.context(Path.ISABELLE_HOME, component = true)
       .sources.iterator.foldLeft(Map.empty[String, Path]) {
         case (map, path) =>
-          if (path.is_scala) {
+          if (File.is_scala(path)) {
           val base = path.base.implode
             map.get(base) match {
               case None => map + (base -> path)

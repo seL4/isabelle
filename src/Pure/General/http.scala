@@ -437,7 +437,7 @@ object HTTP {
     // example: .../docs/web/viewer.html?file=system.pdf
     def doc_request(request: Request): Option[Response] =
       for {
-        p <- request.uri_path if p.is_pdf
+        p <- request.uri_path if File.is_pdf(p)
         s = p.implode if s.startsWith("web/")
         name = p.base.split_ext._1.implode
         entry <- doc_contents.entries(name = _ == name, pdf = true).headOption

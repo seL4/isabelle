@@ -197,7 +197,7 @@ object JEdit_Editor extends Editor {
   }
 
   def goto_doc(editor_context: Context, path: Path, focus: Boolean = false): Unit = {
-    if (path.is_pdf) Doc.view(path)
+    if (File.is_pdf(path)) Doc.view(path)
     else goto_file(editor_context, File.platform_path(path), focus = focus)
   }
 

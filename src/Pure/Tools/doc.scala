@@ -35,7 +35,7 @@ object Doc {
     env: Isabelle_System.Settings = Isabelle_System.Settings()
   ): Option[Entry] = {
     val path1 = path0.expand_env(env)
-    if (path1.is_file && !path1.is_pdf) {
+    if (path1.is_file && !File.is_pdf(path1)) {
       val a = path0.implode
       val b = Library.try_unprefix("$ISABELLE_HOME/", a).getOrElse(a)
       Some(Entry(b, path1))
@@ -69,7 +69,7 @@ object Doc {
 
     def ++ (other: Contents): Contents = new Contents(sections ::: other.sections)
     def entries(name: String => Boolean = _ => true, pdf: Boolean = false): List[Entry] =
-      sections.flatMap(s => s.entries.filter(e => name(e.name) && (!pdf || e.path.is_pdf)))
+      sections.flatMap(s => s.entries.filter(e => name(e.name) && (!pdf || File.is_pdf(e.path))))
   }
 
   def release_notes(): Contents =
@@ -142,7 +142,7 @@ object Doc {
 
   def view(path: Path): Unit = {
     if (!path.is_file) error("Bad Isabelle documentation file: " + path)
-    else if (path.is_pdf) Isabelle_System.pdf_viewer(path)
+    else if (File.is_pdf(path)) Isabelle_System.pdf_viewer(path)
     else Output.writeln(Library.trim_line(File.read(path)), stdout = true)
   }
 
