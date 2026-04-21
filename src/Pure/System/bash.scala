@@ -55,12 +55,11 @@ object Bash {
   def context(script: String,
     user_home: String = "",
     isabelle_identifier: String = "",
-    cwd: Path | Null = Path.current
+    cwd: Path = Path.current
   ): String = {
     if_proper(user_home, exports("USER_HOME=" + user_home)) +
     if_proper(isabelle_identifier, exports("ISABELLE_IDENTIFIER=" + isabelle_identifier)) +
-    (if (cwd.asInstanceOf[Any] == null || cwd.asInstanceOf[Path].is_current) ""
-     else "cd " + quote(cwd.asInstanceOf[Path].implode) + "\n") +
+    (if (cwd.is_current) "" else "cd " + quote(cwd.implode) + "\n") +
     script
   }
 
@@ -158,9 +157,7 @@ object Bash {
     private val proc =
       isabelle.setup.Environment.process_builder(
         proc_command,
-        if (!ssh.is_local || cwd.asInstanceOf[Any] == null || cwd.asInstanceOf[Path].is_current)
-          null
-        else cwd.file,
+        if (!ssh.is_local || cwd.is_current) null else cwd.file,
         env,
         redirect
       ).nn.start().nn
