@@ -26,12 +26,12 @@ public class Environment
 {
     /** Support for Cygwin as POSIX emulation on Windows **/
 
-    public static Boolean is_windows()
+    public static boolean is_windows()
     {
         return System.getProperty("os.name", "").startsWith("Windows");
     }
-    public static Boolean is_linux() { return System.getProperty("os.name", "").equals("Linux"); }
-    public static Boolean is_macos() { return System.getProperty("os.name", "").equals("Mac OS X"); }
+    public static boolean is_linux() { return System.getProperty("os.name", "").equals("Linux"); }
+    public static boolean is_macos() { return System.getProperty("os.name", "").equals("Mac OS X"); }
 
 
 
