@@ -180,7 +180,8 @@ object JSON {
           case '\r' => "\\r"
           case '\t' => "\\t"
           case c =>
-            if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f') "\\u%04x".format(c.toInt)
+            if (c <= '\u001f' || c >= '\u007f' && c <= '\u009f')
+              Library.format("\\u%04x", isabelle.Value.Int.obj(c))
             else c
         }.mkString
       builder += ('"': Byte)

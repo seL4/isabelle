@@ -594,14 +594,14 @@ object TOML {
       "\"" + s.iterator.map {
         case '\b' => "\\b" case '\t' => "\\t" case '\n' => "\\n" case '\f' => "\\f"
         case '\r' => "\\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
-        if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
+        if (c <= '\u001f' || c == '\u007f') Library.format("\\u%04x", Value.Int.obj(c)) else c
       }.mkString + "\""
 
     private def multiline_basic_string(s: Str): Str =
       "\"\"\"\n" + s.iterator.map {
         case '\b' => "\\b" case '\t' => "\t" case '\n' => "\n" case '\f' => "\\f"
         case '\r' => "\r" case '"' => "\\\"" case '\\' => "\\\\" case c =>
-          if (c <= '\u001f' || c == '\u007f') "\\u%04x".format(c.toInt) else c
+          if (c <= '\u001f' || c == '\u007f') Library.format("\\u%04x", Value.Int.obj(c)) else c
       }.mkString.replacing("\"\"\"" -> "\"\"\\\"") + "\"\"\""
 
     private def key(k: Key): Str = {
