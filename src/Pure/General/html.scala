@@ -136,12 +136,11 @@ object HTML {
           val path = location.expand
           if (path.is_absolute) Exn.error("Relative href location expected: " + path) else path
         case Some(base_dir) =>
-          val path1 = base_dir.absolute
-          val path2 = location.absolute
-          File.relative_path(path1, path2, permissive = true) match {
+          File.relative_path(base_dir, location, permissive = true) match {
             case Some(path) => path
             case None =>
-              Exn.error("Failed to relativize href location " + path2 + " with wrt. base " + path1)
+              Exn.error("Failed to relativize href location " + base_dir.absolute +
+                " wrt. base " + location.absolute)
           }
       }
     if (path.is_current) "" else path.implode

@@ -171,8 +171,8 @@ object File {
   /* relative paths */
 
   def relative_path(base: Path, other: Path, permissive: Boolean = false): Option[Path] = {
-    val base_path = base.java_path
-    val other_path = other.java_path
+    val base_path = base.java_path.toAbsolutePath.nn
+    val other_path = other.java_path.toAbsolutePath.nn
     if (permissive || other_path.startsWith(base_path)) {
       try { Some(path(base_path.relativize(other_path).nn.java_file)) }
       catch { case _: IllegalArgumentException => None }
