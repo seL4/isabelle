@@ -112,6 +112,17 @@ fun get thys name =
     SOME thy => thy
   | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
 
+fun check_new thys name =
+  if String_Graph.defined thys name
+  then error ("Theory loader: cannot change loaded theory " ^ quote name)
+  else ();
+
+fun check_old thys (name, thy) =
+  let val (thy', _) = get thys name in
+    if Context.eq_thy (thy, thy') then ()
+    else error ("Theory loader: incoherent theory " ^ quote name)
+  end;
+
 
 (* access theory *)
 
@@ -156,13 +167,10 @@ val check_theory = Theory.check_theory {get = get_theory, all = get_names};
 fun commit_thy (res as (theory, _)) = change_thys (fn thys =>
   let
     val name = Context.theory_long_name theory;
-    val _ =
-      if String_Graph.defined thys name
-      then error ("Cannot change loaded theory " ^ quote name)
-      else ();
-    val parents = map Context.theory_long_name (Theory.parents_of theory);
-    val _ = List.app (ignore o get thys) parents;
-  in new_entry name parents res thys end);
+    val _ = check_new thys name;
+    val parents = map (`Context.theory_long_name) (Theory.parents_of theory);
+    val _ = List.app (check_old thys) parents;
+  in new_entry name (map #1 parents) res thys end);
 
 
 (* scheduling loader tasks *)
