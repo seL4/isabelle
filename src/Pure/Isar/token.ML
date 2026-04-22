@@ -18,7 +18,7 @@ sig
     Error of string | EOF
   val control_kind: kind
   val str_of_kind: kind -> string
-  type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T}
+  type file = {src_path: Path.T, lines: string list, pos: Position.T}
   type T
   type src = T list
   type name_value = {name: string, kind: string, print: Proof.context -> Markup.T list * xstring}
@@ -184,7 +184,7 @@ val delimited_kind =
   args.ML).  Note that an assignable ref designates an intermediate
   state of internalization -- it is NOT meant to persist.*)
 
-type file = {src_path: Path.T, lines: string list, digest: SHA1.digest, pos: Position.T};
+type file = {src_path: Path.T, lines: string list, pos: Position.T};
 
 type name_value = {name: string, kind: string, print: Proof.context -> Markup.T list * xstring};
 

@@ -58,14 +58,14 @@ type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string
 
 local
 
-fun blob_file src_path lines digest file_node =
+fun blob_file src_path lines file_node =
   let
     val file_pos =
       Position.file file_node |>
       (case Position.id_of (Position.thread_data ()) of
         NONE => I
       | SOME exec_id => Position.put_id exec_id);
-  in {src_path = src_path, lines = lines, digest = digest, pos = file_pos} end
+  in {src_path = src_path, lines = lines, pos = file_pos} end
 
 fun resolve_files master_dir (blobs, blobs_index) toks =
   (case Outer_Syntax.parse_spans toks of
@@ -83,7 +83,7 @@ fun resolve_files master_dir (blobs, blobs_index) toks =
                       NONE =>
                         Exn.result (fn () =>
                           Resources.read_file_node file_node master_dir (src_path, pos)) ()
-                    | SOME (digest, lines) => Exn.Res (blob_file src_path lines digest file_node)
+                    | SOME (_, lines) => Exn.Res (blob_file src_path lines file_node)
                   end
               | make_file (Exn.Exn e) = Exn.Exn e;
             val files = map make_file blobs;

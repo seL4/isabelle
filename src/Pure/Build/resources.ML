@@ -332,8 +332,7 @@ fun read_file_node file_node master_dir (src_path, pos) =
       | _ => read_remote ());
 
     val lines = split_lines text;
-    val digest = SHA1.digest text;
-  in {src_path = src_path, lines = lines, digest = digest, pos = Position.copy_id pos file_pos} end
+  in {src_path = src_path, lines = lines, pos = Position.copy_id pos file_pos} end
   handle ERROR msg => error (msg ^ Position.here pos);
 
 val read_file = read_file_node "";
