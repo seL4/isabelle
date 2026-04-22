@@ -10,16 +10,16 @@ struct
 
 fun spark_open header (files, prfx) thy =
   let
-    val ([{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
+    val [{src_path, lines = vc_lines, pos = vc_pos, ...}: Token.file,
       {lines = fdl_lines, pos = fdl_pos, ...},
-      {lines = rls_lines, pos = rls_pos, ...}], thy') = files thy;
+      {lines = rls_lines, pos = rls_pos, ...}] = files thy;
     val path = Path.drop_ext src_path;
   in
     SPARK_VCs.set_vcs
       (snd (Fdl_Parser.parse_declarations fdl_pos (cat_lines fdl_lines)))
       (Fdl_Parser.parse_rules rls_pos (cat_lines rls_lines))
       (snd (Fdl_Parser.parse_vcs header vc_pos (cat_lines vc_lines)))
-      path prfx thy'
+      path prfx thy
   end;
 
 fun add_proof_fun_cmd pf thy =
@@ -94,13 +94,13 @@ fun show_status thy (p, f) =
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>spark_open_vcg\<close>
     "open a new SPARK environment and load a SPARK-generated .vcg file"
-    (Resources.provide_parse_files (Command_Span.extensions ["vcg", "fdl", "rls"]) -- Parse.parname
+    (Resources.parse_files (Command_Span.extensions ["vcg", "fdl", "rls"]) -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.vcg_header));
 
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>spark_open\<close>
     "open a new SPARK environment and load a SPARK-generated .siv file"
-    (Resources.provide_parse_files (Command_Span.extensions ["siv", "fdl", "rls"]) -- Parse.parname
+    (Resources.parse_files (Command_Span.extensions ["siv", "fdl", "rls"]) -- Parse.parname
       >> (Toplevel.theory o spark_open Fdl_Lexer.siv_header));
 
 val pfun_type = Scan.option

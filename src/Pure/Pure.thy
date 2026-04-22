@@ -115,25 +115,25 @@ ML \<open>
 local
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>external_file\<close> "formal dependency on external file"
-      (Resources.provide_parse_file >> (fn get_file => Toplevel.theory (#2 o get_file)));
+      (Resources.parse_file >> (fn get_file => Toplevel.theory (tap get_file)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>bibtex_file\<close> "check bibtex database file in Prover IDE"
-      (Resources.provide_parse_file >> (fn get_file =>
+      (Resources.parse_file >> (fn get_file =>
         Toplevel.theory (fn thy =>
           let
-            val ({lines, pos, ...}, thy') = get_file thy;
+            val {lines, pos, ...} = get_file thy;
             val _ = Bibtex.check_database_output pos (cat_lines lines);
-          in thy' end)));
+          in thy end)));
 
   val _ =
     Outer_Syntax.command \<^command_keyword>\<open>ROOTS_file\<close> "session ROOTS file"
-      (Resources.provide_parse_file >> (fn get_file =>
+      (Resources.parse_file >> (fn get_file =>
         Toplevel.theory (fn thy =>
           let
-            val ({src_path, lines, pos = pos0, ...}, thy') = get_file thy;
-            val ctxt = Proof_Context.init_global thy';
-            val dir = Path.dir (Path.expand (Resources.master_directory thy' + src_path));
+            val {src_path, lines, pos = pos0, ...} = get_file thy;
+            val ctxt = Proof_Context.init_global thy;
+            val dir = Path.dir (Path.expand (Resources.master_directory thy + src_path));
             val _ =
               (lines, pos0) |-> fold (fn line => fn pos1 =>
                 let
@@ -148,7 +148,7 @@ local
                       (ignore (Resources.check_session_dir ctxt (SOME dir) source)
                         handle ERROR msg => Output.error_message msg);
                 in pos2 |> Position.symbol "\n" end);
-          in thy' end)));
+          in thy end)));
 
   val _ =
     Outer_Syntax.local_theory \<^command_keyword>\<open>generate_file\<close>

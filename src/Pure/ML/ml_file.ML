@@ -18,7 +18,6 @@ struct
 fun command environment catch_all debug get_file = Toplevel.generic_theory (fn gthy =>
   let
     val file = get_file (Context.theory_of gthy);
-    val provide = Resources.provide_file file;
     val source = Token.file_source file;
 
     val _ = Document_Output.check_comments (Context.proof_of gthy) (Input.source_explode source);
@@ -31,7 +30,6 @@ fun command environment catch_all debug get_file = Toplevel.generic_theory (fn g
     |> Local_Theory.touch_ml_env
     |> ML_Context.exec (fn () => ML_Context.eval_source flags source)
     |> Local_Theory.propagate_ml_env
-    |> Context.mapping provide (Local_Theory.background_theory provide)
   end);
 
 val ML = command "" false;

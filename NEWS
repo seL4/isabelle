@@ -223,6 +223,11 @@ sets. Minor INCOMPATIBILITY.
 
 *** ML ***
 
+* Operations Resources.provide_parse_file etc. have been removed:
+provided files are no longer managed inside the theory context (only in
+Isabelle/Scala). Minor INCOMPATIBILITY: use Resources.parse_file etc. to
+access files from Isar commands, without updating the theory context.
+
 * Options.update_default allows to update the thread-local default for
 system options, without affecting the underlying ML process default.
 
