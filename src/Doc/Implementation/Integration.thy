@@ -151,15 +151,11 @@ text \<open>
 text %mlref \<open>
   \begin{mldecls}
   @{define_ML Thy_Info.get_theory: "string -> theory"} \\
-  @{define_ML Thy_Info.remove_thy: "string -> unit"} \\
   \end{mldecls}
 
   \<^descr> \<^ML>\<open>Thy_Info.get_theory\<close>~\<open>A\<close> retrieves the theory value presently
   associated with name \<open>A\<close>. Note that the result might be outdated wrt.\ the
   file-system content.
-
-  \<^descr> \<^ML>\<open>Thy_Info.remove_thy\<close>~\<open>A\<close> deletes theory \<open>A\<close> and all descendants from
-  the theory database.
 \<close>
 
 end
