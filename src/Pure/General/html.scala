@@ -138,7 +138,7 @@ object HTML {
         case Some(base_dir) =>
           val path1 = base_dir.absolute
           val path2 = location.absolute
-          File.relative_path(path1, path2) match {
+          File.relative_path(path1, path2, permissive = true) match {
             case Some(path) => path
             case None =>
               Exn.error("Failed to relativize href location " + path2 + " with wrt. base " + path1)
