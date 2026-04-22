@@ -170,7 +170,7 @@ object File {
 
   /* relative paths */
 
-  def relative_path(base: Path, other: Path, permissive: Boolean = false): Option[Path] = {
+  def get_relative_path(base: Path, other: Path, permissive: Boolean = false): Option[Path] = {
     val base_path = base.java_path.toAbsolutePath.nn
     val other_path = other.java_path.toAbsolutePath.nn
     if (permissive || other_path.startsWith(base_path)) {
@@ -180,8 +180,12 @@ object File {
     else None
   }
 
-  def perhaps_relative_path(base: Path, other: Path): Path =
-    relative_path(base, other).getOrElse(other)
+  def the_relative_path(base: Path, other: Path, permissive: Boolean = false): Path =
+    get_relative_path(base, other, permissive = permissive)
+      .getOrElse(error("Failed to relativize " + base.absolute + " wrt. base " + other.absolute))
+
+  def perhaps_relative_path(base: Path, other: Path, permissive: Boolean = false): Path =
+    get_relative_path(base, other, permissive = permissive).getOrElse(other)
 
 
   /* bash path */
@@ -236,7 +240,7 @@ object File {
       val res =
         if (!ok) None
         else if (!relative) Some(path)
-        else File.relative_path(start, path)
+        else get_relative_path(start, path)
       for (p <- res) result += p
     }
 

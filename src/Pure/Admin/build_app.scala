@@ -267,9 +267,7 @@ mac.CFBundleTypeRole=Editor
           case _ => error("Failed to determine jdk component")
         }
 
-      val jdk_relative_path =
-        File.relative_path(isabelle_home, jdk_dir)
-          .getOrElse(error("Cannot determine relative path from " + jdk_dir))
+      val jdk_relative_path = File.the_relative_path(isabelle_home, jdk_dir)
 
       Isabelle_System.rm_tree(app_prefix + Path.basic("runtime"))
 

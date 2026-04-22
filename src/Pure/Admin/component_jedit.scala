@@ -209,8 +209,7 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
           path <- File.find_files(source_org_dir, pred = File.is_java)
           package_name <- Scala_Project.package_name(path)
           if !exclude_package(package_name)
-          relative_path <- File.relative_path(component_path, path)
-        } yield relative_path.implode).sorted
+        } yield File.the_relative_path(component_path, path).implode).sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +

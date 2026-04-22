@@ -667,11 +667,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
           val base = isabelle_target.absolute
           val classpath1 = Path.split(other_isabelle.getenv("ISABELLE_CLASSPATH"))
           val classpath2 = Path.split(other_isabelle.getenv("ISABELLE_SETUP_CLASSPATH"))
-          (classpath1 ::: classpath2).map { path =>
-            val abs_path = path.absolute
-            File.relative_path(base, abs_path)
-              .getOrElse(error("Bad classpath element: " + abs_path))
-          }
+          (classpath1 ::: classpath2).map(File.the_relative_path(base, _))
         }
 
         val jedit_options = Path.explode("src/Tools/jEdit/etc/options")
