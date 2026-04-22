@@ -206,10 +206,11 @@ isabelle_java java -Duser.home=""" + File.bash_platform_path(tmp_dir) +
 
       val java_sources =
         (for {
-          path <- File.find_files(source_org_dir, pred = File.is_java, relative = true)
-          package_name <- Scala_Project.package_name(source_org_dir + path)
+          path <- File.find_files(source_org_dir, pred = File.is_java)
+          package_name <- Scala_Project.package_name(path)
           if !exclude_package(package_name)
-        } yield path.implode).sorted
+          relative_path <- File.relative_path(component_path, path)
+        } yield relative_path.implode).sorted
 
       File.write(component_dir.build_props,
         "module = " + jedit_patched + "/jedit.jar\n" +
