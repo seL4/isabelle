@@ -20,7 +20,6 @@ sig
   val get_theory_segments: string -> Document_Output.segment list
   val get_theory_elements: string -> Document_Output.segment Thy_Element.element list
   val check_theory: Proof.context -> string * Position.T -> theory
-  val master_directory: string -> Path.T
   val remove_thy: string -> unit
   val use_theories: Options.T -> string -> (string * Position.T) list ->
     (theory * Document_Output.segment list) list
@@ -124,14 +123,10 @@ fun get thys name =
     SOME thy => thy
   | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
 
-fun get_thy name = get (get_thys ()) name;
-
 
 (* access deps *)
 
 val lookup_deps = Option.map #1 o lookup_thy;
-
-val master_directory = master_dir_deps o #1 o get_thy;
 
 
 (* access theory *)
