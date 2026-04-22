@@ -91,15 +91,6 @@ fun new_entry name parents entry =
 
 (* global thys *)
 
-type deps =
- {thy_path: Path.T,
-  imports: (string * Position.T) list};  (*source specification of imports (partially qualified)*)
-
-fun make_deps thy_path imports : deps = {thy_path = thy_path, imports = imports};
-
-fun master_dir_deps (d: deps option) =
-  the_default Path.current (Option.map (Path.dir o #thy_path) d);
-
 local
   type thy = theory * Document_Output.segment list;
   val global_thys = Synchronized.var "Thy_Info.thys" (String_Graph.empty: thy String_Graph.T);
@@ -318,7 +309,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy options initiators {thy_path, imports} text (name, header_pos) keywords parents =
+fun load_thy options initiators (thy_path, text) (name, header_pos) imports keywords parents =
   let
     val dir = Path.dir thy_path;
 
@@ -357,10 +348,10 @@ fun load_thy options initiators {thy_path, imports} text (name, header_pos) keyw
 
 fun check_thy_deps dir name =
   (case lookup_theory name of
-    SOME thy => (true, NONE, Position.none, Resources.imports_of thy, [])
+    SOME thy => (NONE, Position.none, Resources.imports_of thy, [])
   | NONE =>
       let val {thy_path, text, theory_pos, imports, keywords} = Resources.check_thy dir name
-      in (false, SOME (make_deps thy_path imports, text), theory_pos, imports, keywords) end);
+      in (SOME (thy_path, text), theory_pos, imports, keywords) end);
 
 fun task_finished (Task _) = false
   | task_finished (Finished _) = true;
@@ -379,28 +370,28 @@ and require_thy options initiators qualifier dir (s, require_pos) tasks =
         let
           val _ = member (op =) initiators theory_name andalso error (cycle_msg initiators);
 
-          val (current, deps, theory_pos, imports, keywords) = check_thy_deps master_dir theory_name
+          val (load, theory_pos, imports, keywords) = check_thy_deps master_dir theory_name
             handle ERROR msg =>
               cat_error msg
                 ("The error(s) above occurred for theory " ^ quote theory_name ^
                   Position.here require_pos ^ required_by "\n" initiators);
 
           val qualifier' = Resources.theory_qualifier theory_name;
-          val dir' = dir + master_dir_deps (Option.map #1 deps);
+          val dir' =
+            (case load of
+              NONE => dir
+            | SOME (thy_path, _) => dir + Path.dir thy_path);
 
           val parents = map (#theory_name o Resources.import_name qualifier' dir' o #1) imports;
           val (parents_current, tasks') =
             require_thys options (theory_name :: initiators) qualifier' dir' imports tasks;
 
-          val all_current = current andalso parents_current;
+          val all_current = is_none load andalso parents_current;
           val task =
             if all_current then Finished (get_theory theory_name)
             else
-              (case deps of
-                NONE => raise Fail "Malformed deps"
-              | SOME (dep, text) =>
-                  Task (parents,
-                    load_thy options initiators dep text (theory_name, theory_pos) keywords));
+              Task (parents,
+                load_thy options initiators (the load) (theory_name, theory_pos) imports keywords);
 
           val tasks'' = new_entry theory_name parents task tasks';
         in (all_current, tasks'') end)
