@@ -9,6 +9,7 @@ sig
   eqtype T
   val kind: T -> string
   val rep: T -> string
+  val rep_short: T -> string
   val fake: {kind: string, rep: string} -> T
 end;
 
@@ -29,6 +30,8 @@ datatype T = T of {kind: string, rep: string};
 
 fun kind (T {kind, ...}) = kind;
 fun rep (T {rep, ...}) = rep;
+fun rep_short t = String.substring (rep t, 0, 12);
+
 val fake = T;
 
 val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o rep);
