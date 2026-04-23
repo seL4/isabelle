@@ -70,7 +70,7 @@ object Elm {
     }
 
     def build_html(output_file: Path, progress: Progress = new Progress): Unit = {
-      val digest = sources_shasum.digest
+      val digest = SHA1.digest(sources_shasum)
       if (digest != Project.get_digest(output_file)) {
         progress.echo("Building web application " + output_file.absolute + " ...")
 

@@ -1008,7 +1008,7 @@ object Find_Facts {
       File.read(default_web_dir + web_html)
     }
 
-    val digest = web_project(web_sources_dir).sources_shasum.digest
+    val digest = SHA1.digest(web_project(web_sources_dir).sources_shasum)
     val html =
       if (digest != Elm.Project.get_digest(web_assets_dir + web_html)) rebuild()
       else File.read(web_assets_dir + web_html)

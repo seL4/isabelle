@@ -1092,7 +1092,7 @@ object Build_Schedule {
                 threads = Some(timing_data.host_infos.num_threads(result.node_info)),
                 start = Some(result.start_date - build_start),
                 timing = result.process_result.timing,
-                sources = Some(result.output_shasum.digest.toString),
+                sources = Some(SHA1.digest(result.output_shasum).toString),
                 status = Some(status))
             }
             else

@@ -19,7 +19,7 @@ object Shasum {
     flat(args.sortBy(_._2).map(make))
 }
 
-final class Shasum private(private val rep: List[String]) {
+final class Shasum private(val rep: List[String]) {
   override def equals(other: Any): Boolean =
     other match {
       case that: Shasum => rep.equals(that.rep)
@@ -45,12 +45,4 @@ final class Shasum private(private val rep: List[String]) {
   def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
   def filter(pred: String => Boolean): Shasum = new Shasum(rep.filter(pred))
-
-  def digest: SHA1.Digest = {
-    rep match {
-      case List(s)
-      if s.length == SHA1.digest_length && s.forall(Symbol.is_ascii_hex) => SHA1.fake_digest(s)
-      case _ => SHA1.digest(toString)
-    }
-  }
 }

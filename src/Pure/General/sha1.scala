@@ -57,6 +57,14 @@ object SHA1 {
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
 
+  def digest(shasum: Shasum): Digest = {
+    shasum.rep match {
+      case List(s)
+      if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake_digest(s)
+      case _ => digest(shasum.toString)
+    }
+  }
+
   object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
     val here = Scala_Project.here
     def apply(bytes: Bytes): Bytes = Bytes(bytes.sha1_digest.toString)
