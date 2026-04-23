@@ -6899,5 +6899,6 @@ proof (rule eventually_at_infinityI[of "Max (norm ` {x. poly p x = 0}) + 1"])
 qed
     
 no_notation cCons (infixr \<open>##\<close> 65)
+hide_const (open) Polynomial.content
 
 end
