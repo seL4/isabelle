@@ -347,7 +347,7 @@ fun new_execution version_id delay_request parallel_prints : execution =
 
 abstype state = State of
  {versions: version Inttab.table,  (*version id -> document content*)
-  blobs: (SHA1.digest * string list) Symtab.table,  (*raw digest -> digest, lines*)
+  blobs: (Message_Digest.T * string list) Symtab.table,  (*raw digest -> digest, lines*)
   commands: (string * blob_digest list * int * Token.T list lazy) Inttab.table,
     (*command id -> name, inlined files, token index of files, command span*)
   execution: execution}  (*current execution process*)

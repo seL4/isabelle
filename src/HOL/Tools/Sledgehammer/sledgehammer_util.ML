@@ -141,7 +141,7 @@ fun spying false _ = ()
       val (state, i, tool, message) = f ()
       val ctxt = Proof.context_of state
       val goal = Logic.get_goal (Thm.prop_of (#goal (Proof.goal state))) i
-      val hash = String.substring (SHA1.rep (SHA1.digest (hackish_string_of_term ctxt goal)), 0, 12)
+      val hash = String.substring (Message_Digest.rep (SHA1.digest (hackish_string_of_term ctxt goal)), 0, 12)
     in
       File.append (Path.explode "$ISABELLE_HOME_USER/spy_sledgehammer")
         (spying_version ^ " " ^ timestamp () ^ ": " ^ hash ^ ": " ^ tool ^ ": " ^ message ^ "\n")

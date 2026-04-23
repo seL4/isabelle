@@ -53,7 +53,7 @@ fun unsynchronized_init cache_path =
   in Cache {path = cache_path, table = Synchronized.var "Cache_IO" table} end
 
 fun lookup (Cache {path = cache_path, table}) str =
-  let val key = SHA1.rep (SHA1.digest str)
+  let val key = Message_Digest.rep (SHA1.digest str)
   in
     Synchronized.change_result table (fn tab =>
       (case Symtab.lookup (snd tab) key of

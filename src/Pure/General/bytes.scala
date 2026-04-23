@@ -7,6 +7,7 @@ Scalable byte strings, with incremental construction (via Builder).
 package isabelle
 
 
+import java.security.MessageDigest
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream,
   InputStreamReader, InputStream, OutputStream, File => JFile}
 import java.nio.ByteBuffer
@@ -423,15 +424,18 @@ final class Bytes private(
 
   /* hash and equality */
 
-  lazy val sha1_digest: SHA1.Digest =
-    if (is_empty) SHA1.digest_empty
-    else {
-      SHA1.make_digest { sha =>
-        for (a <- subarray_iterator if a.length > 0) {
-          sha.update(a.array, a.offset, a.length)
-        }
-      }
+  def update_digest(dig: MessageDigest): Unit =
+    for (a <- subarray_iterator if a.length > 0) {
+      dig.update(a.array, a.offset, a.length)
     }
+
+  lazy val sha1_digest: Message_Digest =
+    if (is_empty) SHA1.digest_empty
+    else SHA1.make_digest(update_digest)
+
+  lazy val sha256_digest: Message_Digest =
+    if (is_empty) SHA256.digest_empty
+    else SHA256.make_digest(update_digest)
 
   override def hashCode(): Int = sha1_digest.hashCode()
 

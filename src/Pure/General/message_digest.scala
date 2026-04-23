@@ -1,0 +1,88 @@
+/*  Title:      Pure/General/message_digest.scala
+    Author:     Makarius
+
+Support for message digests: SHA1, SHA256.
+*/
+
+package isabelle
+
+
+import java.io.{File => JFile, FileInputStream}
+import java.security.MessageDigest
+import java.util.HexFormat
+import java.math.BigInteger
+
+
+object Message_Digest {
+  /* generic operations */
+
+  class Ops(kind: String) {
+    def fake_digest(rep: String): Message_Digest = new Message_Digest(kind, rep)
+
+    def make_digest(update: MessageDigest => Unit): Message_Digest = {
+      val dig = MessageDigest.getInstance(kind).nn
+      update(dig)
+      val res = dig.digest().nn
+
+      val n = dig.getDigestLength * 2
+      new Message_Digest(kind, Library.format("%0" + n + "x", new BigInteger(1, res)))
+    }
+
+    val digest_empty: Message_Digest = make_digest(_ => ())
+    def digest_length: Int = digest_empty.rep.length
+
+    def digest(file: JFile): Message_Digest =
+      make_digest(dig => using(new FileInputStream(file)) { stream =>
+        val buf = new Array[Byte](65536)
+        var m = 0
+        while ({
+          m = stream.read(buf, 0, buf.length)
+          if (m != -1) dig.update(buf, 0, m)
+          m != -1
+        }) ()
+      })
+
+    def digest(path: Path): Message_Digest = digest(path.file)
+    def digest(bytes: Array[Byte]): Message_Digest = make_digest(_.update(bytes))
+    def digest(bytes: Array[Byte], offset: Int, length: Int): Message_Digest =
+      make_digest(_.update(bytes, offset, length))
+    def digest(string: String): Message_Digest = digest(UTF8.bytes(string))
+
+    def digest(shasum: Shasum): Message_Digest = {
+      shasum.rep match {
+        case List(s)
+        if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake_digest(s)
+        case _ => digest(shasum.toString)
+      }
+    }
+  }
+}
+
+final class Message_Digest private(val kind: String, val rep: String) {
+  override def toString: String = rep
+  override def hashCode: Int = rep.hashCode
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Message_Digest => rep == other.toString
+      case _ => false
+    }
+  def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
+}
+
+object SHA1 extends Message_Digest.Ops("SHA1") {
+  def digest(bytes: Bytes): Message_Digest = bytes.sha1_digest
+
+  object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
+    val here = Scala_Project.here
+    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha1_digest.toString)
+  }
+}
+
+object SHA256 extends Message_Digest.Ops("SHA256") {
+  def digest(bytes: Bytes): Message_Digest = bytes.sha256_digest
+
+  object Scala_Fun extends Scala.Fun_Bytes("SHA256.digest") {
+    val here = Scala_Project.here
+    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha256_digest.toString)
+  }
+}

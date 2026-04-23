@@ -18,7 +18,7 @@ object Command {
     command_offset: Symbol.Offset,
     name: Document.Node.Name,
     src_path: Path,
-    content: Option[(SHA1.Digest, Symbol.Text_Chunk)]
+    content: Option[(Message_Digest, Symbol.Text_Chunk)]
   ) {
     def chunk_file: Symbol.Text_Chunk.File =
       Symbol.Text_Chunk.File(name.node)
@@ -518,7 +518,7 @@ final class Command private(
   def blobs_undefined: List[Document.Node.Name] =
     for (case Exn.Res(blob) <- blobs if blob.content.isEmpty) yield blob.name
 
-  def blobs_defined: List[(Document.Node.Name, SHA1.Digest)] =
+  def blobs_defined: List[(Document.Node.Name, Message_Digest)] =
     for (case Exn.Res(blob) <- blobs; (digest, _) <- blob.content) yield (blob.name, digest)
 
   def blobs_changed(doc_blobs: Document.Blobs): Boolean =

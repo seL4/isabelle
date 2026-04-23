@@ -223,6 +223,9 @@ sets. Minor INCOMPATIBILITY.
 
 *** ML ***
 
+* Both SHA1 and SHA256 are supported via Isabelle/Scala. The native SHA1
+implementation has been discontinued.
+
 * Operations Resources.provide_parse_file etc. have been removed:
 provided files are no longer managed inside the theory context (only in
 Isabelle/Scala). Minor INCOMPATIBILITY: use Resources.parse_file etc. to
@@ -237,6 +240,9 @@ via "isabelle build" or "isabelle process_theories".
 
 
 *** System ***
+
+* Both SHA1 and SHA256 are supported in Isabelle/Scala. SHA1 is still
+used routinely, but will be eventually phased out.
 
 * Isabelle/Scala now uses more static type-checking by default, notably
 Explicit Nulls (as explained in

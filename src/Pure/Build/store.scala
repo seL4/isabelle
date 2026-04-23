@@ -44,7 +44,7 @@ object Store {
         error("Missing heap image for session " + quote(name) + " -- expected in:\n" +
           cat_lines(dirs.map(dir => "  " + File.standard_path(dir))))
 
-    def heap_digest(): Option[SHA1.Digest] =
+    def heap_digest(): Option[Message_Digest] =
       heap.flatMap(ML_Heap.read_file_digest)
 
     def heap_size: Space =
@@ -139,7 +139,7 @@ object Store {
 
   sealed case class Source_File(
     name: String,
-    digest: SHA1.Digest,
+    digest: Message_Digest,
     compressed: Boolean,
     body: Bytes,
     cache: Compress.Cache
@@ -462,13 +462,13 @@ class Store private(
     else Shasum.flat(ancestors)
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): Shasum = {
-    def from_database: Option[SHA1.Digest] = {
+    def from_database: Option[Message_Digest] = {
       for {
         db <- database_server
         digest <- ML_Heap.read_digests(db, List(name)).valuesIterator.nextOption()
       } yield digest
     }
-    def from_session: Option[SHA1.Digest] =
+    def from_session: Option[Message_Digest] =
       get_session(name).heap_digest()
 
     from_database orElse from_session match {

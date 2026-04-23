@@ -323,7 +323,7 @@ ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";
 ML_file "Build/resources.ML";
-ML_file "General/sha1.ML";
+ML_file "General/message_digest.ML";
 ML_file "PIDE/command.ML";
 ML_file "PIDE/query_operation.ML";
 ML_file "Thy/thy_info.ML";

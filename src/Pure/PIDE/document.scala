@@ -967,7 +967,7 @@ object Document {
     /*reachable versions*/
     versions: Map[Document_ID.Version, Version] = Map.empty,
     /*inlined auxiliary files*/
-    blobs: Set[SHA1.Digest] = Set.empty,
+    blobs: Set[Message_Digest] = Set.empty,
     /*loaded theories in batch builds*/
     theories: Map[Document_ID.Exec, Command.State] = Map.empty,
     /*static markup from define_command*/
@@ -1001,8 +1001,8 @@ object Document {
         assignments = assignments + (id -> assignment.unfinished))
     }
 
-    def define_blob(digest: SHA1.Digest): State = copy(blobs = blobs + digest)
-    def defined_blob(digest: SHA1.Digest): Boolean = blobs.contains(digest)
+    def define_blob(digest: Message_Digest): State = copy(blobs = blobs + digest)
+    def defined_blob(digest: Message_Digest): Boolean = blobs.contains(digest)
 
     def define_command(command: Command): State = {
       val id = command.id
@@ -1205,7 +1205,7 @@ object Document {
 
       val assignments1 = assignments -- removed
       var blobs1_names = Set.empty[Node.Name]
-      var blobs1 = Set.empty[SHA1.Digest]
+      var blobs1 = Set.empty[Message_Digest]
       var commands1 = Map.empty[Document_ID.Command, Command.State]
       var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {

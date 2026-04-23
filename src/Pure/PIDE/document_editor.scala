@@ -56,9 +56,9 @@ object Document_Editor {
   sealed case class Meta_Info(
     name: String,
     selection: SortedSet[String],
-    sources: SHA1.Digest,
-    log: SHA1.Digest,
-    pdf: SHA1.Digest
+    sources: Message_Digest,
+    log: Message_Digest,
+    pdf: Message_Digest
   ) {
     def check_files(): Boolean = {
       val path = document_output(name)

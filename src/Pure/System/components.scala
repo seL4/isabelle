@@ -273,7 +273,7 @@ object Components {
 
   val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
 
-  sealed case class SHA1_Entry(digest: SHA1.Digest, name: String) {
+  sealed case class SHA1_Entry(digest: Message_Digest, name: String) {
     override def toString: String = Shasum.make(digest, name).toString
   }
 
