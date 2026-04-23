@@ -274,7 +274,7 @@ object Components {
   val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
 
   sealed case class SHA1_Entry(digest: SHA1.Digest, name: String) {
-    override def toString: String = Shasum.shasum(digest, name).toString
+    override def toString: String = Shasum.make(digest, name).toString
   }
 
   def read_components_sha1(lines: List[String] = Nil): List[SHA1_Entry] =

@@ -216,11 +216,11 @@ object Component_VSCode {
         val manifest_entries2 = split_lines(manifest_text2).filter(_.nonEmpty)
 
         val manifest_shasum: Shasum = {
-          val a = Shasum.shasum_meta_info(SHA1.digest(manifest_text2))
+          val a = Shasum.make_meta_info(SHA1.digest(manifest_text2))
           val bs =
             for (name <- manifest_entries2)
-              yield Shasum.shasum(SHA1.digest(build_dir + Path.explode(name)), name)
-          Shasum.flat_shasum(a :: bs)
+              yield Shasum.make(SHA1.digest(build_dir + Path.explode(name)), name)
+          Shasum.flat(a :: bs)
         }
         File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum.toString)
 

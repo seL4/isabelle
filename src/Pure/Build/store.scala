@@ -72,7 +72,7 @@ object Store {
 
   object Build_Output {
     val none: Build_Output =
-      new Build_Output(None, Shasum.no_shasum, Shasum.no_shasum, Shasum.no_shasum)
+      new Build_Output(None, Shasum.none, Shasum.none, Shasum.none)
 
     def make(
       build: Build_Info,
@@ -90,7 +90,7 @@ object Store {
   ) {
     def stored_shasum: Shasum =
       stored match {
-        case None => Shasum.no_shasum
+        case None => Shasum.none
         case Some(build) => build.sources ::: build.input_heaps ::: build.output_heap
       }
 
@@ -270,9 +270,9 @@ object Store {
             try { proper_value(res.string(Session_Info.uuid)).getOrElse("") }
             catch { case _: SQLException => "" }
           Store.Build_Info(
-            Shasum.fake_shasum(res.string(Session_Info.sources)),
-            Shasum.fake_shasum(res.string(Session_Info.input_heaps)),
-            Shasum.fake_shasum(res.string(Session_Info.output_heap)),
+            Shasum.fake(res.string(Session_Info.sources)),
+            Shasum.fake(res.string(Session_Info.input_heaps)),
+            Shasum.fake(res.string(Session_Info.output_heap)),
             res.int(Session_Info.return_code),
             uuid)
         })
@@ -458,8 +458,8 @@ class Store private(
   /* heap shasum */
 
   def make_shasum(ancestors: List[Shasum]): Shasum =
-    if (ancestors.isEmpty) Shasum.shasum_meta_info(SHA1.digest(ml_settings.polyml_uuid))
-    else Shasum.flat_shasum(ancestors)
+    if (ancestors.isEmpty) Shasum.make_meta_info(SHA1.digest(ml_settings.polyml_uuid))
+    else Shasum.flat(ancestors)
 
   def heap_shasum(database_server: Option[SQL.Database], name: String): Shasum = {
     def from_database: Option[SHA1.Digest] = {
@@ -472,8 +472,8 @@ class Store private(
       get_session(name).heap_digest()
 
     from_database orElse from_session match {
-      case Some(digest) => Shasum.shasum(digest, name)
-      case None => Shasum.no_shasum
+      case Some(digest) => Shasum.make(digest, name)
+      case None => Shasum.none
     }
   }
 
@@ -616,8 +616,8 @@ class Store private(
   def check_output(
     name: String,
     opened_db: Option[SQL.Database] = None,
-    sources_shasum: Shasum = Shasum.no_shasum,
-    input_shasum: Shasum = Shasum.no_shasum
+    sources_shasum: Shasum = Shasum.none,
+    input_shasum: Shasum = Shasum.none
   ): Store.Build_Output = {
     def check(db: SQL.Database): Store.Build_Output =
       read_build(db, name) match {

@@ -62,10 +62,10 @@ object Elm {
       } yield relative_path
 
     def sources_shasum: Shasum = {
-      val meta_info = Shasum.shasum_meta_info(SHA1.digest(JSON.Format(definition)))
-      val head_digest = Shasum.shasum(SHA1.digest(XML.string_of_body(head)), "head")
+      val meta_info = Shasum.make_meta_info(SHA1.digest(JSON.Format(definition)))
+      val head_digest = Shasum.make(SHA1.digest(XML.string_of_body(head)), "head")
       val source_digest =
-        Shasum.shasum_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
+        Shasum.make_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
       meta_info ::: head_digest ::: source_digest
     }
 

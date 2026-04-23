@@ -7,16 +7,16 @@ Collections of message digests in canonical order.
 package isabelle
 
 object Shasum {
-  val no_shasum: Shasum = new Shasum(Nil)
-  def flat_shasum(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
-  def fake_shasum(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
+  val none: Shasum = new Shasum(Nil)
+  def flat(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
+  def fake(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
 
-  def shasum(digest: SHA1.Digest, name: String): Shasum =
+  def make(digest: SHA1.Digest, name: String): Shasum =
     new Shasum(List(digest.toString + " " + name))
-  def shasum_meta_info(digest: SHA1.Digest): Shasum =
-    shasum(digest, isabelle.setup.Build.META_INFO.nn)
-  def shasum_sorted(args: List[(SHA1.Digest, String)]): Shasum =
-    flat_shasum(args.sortBy(_._2).map(shasum))
+  def make_meta_info(digest: SHA1.Digest): Shasum =
+    make(digest, isabelle.setup.Build.META_INFO.nn)
+  def make_sorted(args: List[(SHA1.Digest, String)]): Shasum =
+    flat(args.sortBy(_._2).map(make))
 }
 
 final class Shasum private(private val rep: List[String]) {

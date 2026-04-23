@@ -87,7 +87,7 @@ object Document_Build {
           val sources = res.string(Base.sources)
           val log_xz = res.bytes(Base.log_xz)
           val pdf = res.bytes(Base.pdf)
-          Document_Output(name, Shasum.fake_shasum(sources), log_xz, pdf)
+          Document_Output(name, Shasum.fake(sources), log_xz, pdf)
         }
       )
     }
@@ -314,12 +314,12 @@ object Document_Build {
       val document_prefs = latex_output.options.make_prefs(filter = _.for_document)
 
       val meta_info =
-        Shasum.shasum_meta_info(
+        Shasum.make_meta_info(
           SHA1.digest(
             List(doc.print, document_logo.toString, document_build, document_prefs).toString))
 
       val manifest =
-        Shasum.shasum_sorted(
+        Shasum.make_sorted(
           File.find_files(doc_dir, follow_links = true, relative = true)
             .map(path => SHA1.digest(doc_dir + path) -> path.implode))
 

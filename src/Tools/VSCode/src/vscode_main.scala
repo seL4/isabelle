@@ -100,7 +100,7 @@ object VSCode_Main {
           case Some(entry) =>
             proper_value(zip_file.getInputStream(entry)) match {
               case None => err()
-              case Some(stream) => Shasum.fake_shasum(File.read_stream(stream))
+              case Some(stream) => Shasum.fake(File.read_stream(stream))
             }
         })
     }
@@ -109,7 +109,7 @@ object VSCode_Main {
 
   private def shasum_dir(dir: Path): Option[Shasum] = {
     val path = dir + MANIFEST.shasum
-    if (path.is_file) Some(Shasum.fake_shasum(File.read(path))) else None
+    if (path.is_file) Some(Shasum.fake(File.read(path))) else None
   }
 
   def locate_extension(): Option[Path] = {

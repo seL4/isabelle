@@ -19,7 +19,7 @@ trait Build_Job {
 
 object Build_Job {
   sealed case class Result(process_result: Process_Result, output_shasum: Shasum)
-  val no_result: Result = Result(Process_Result.undefined, Shasum.no_shasum)
+  val no_result: Result = Result(Process_Result.undefined, Shasum.none)
 
 
   /* build session */
@@ -580,8 +580,8 @@ object Build_Job {
 
           val output_shasum =
             store_session.heap match {
-              case Some(path) => Shasum.shasum(ML_Heap.write_file_digest(path), session_name)
-              case None => Shasum.no_shasum
+              case Some(path) => Shasum.make(ML_Heap.write_file_digest(path), session_name)
+              case None => Shasum.none
             }
 
           val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)
