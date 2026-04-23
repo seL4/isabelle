@@ -102,7 +102,6 @@ object Component_PolyML {
     platform_context: Isabelle_Platform.Bash_Context,
     root: Path,
     gmp_root: Option[Path] = None,
-    sha1_root: Option[Path] = None,
     target_dir: Path = Path.current,
     arch_64: Boolean = false,
     options: List[String] = Nil
@@ -161,19 +160,6 @@ object Component_PolyML {
         "make install"), cwd = root).check
 
 
-    /* sha1 library */
-
-    val sha1_files =
-      sha1_root match {
-        case Some(dir) =>
-          val platform_path = Path.explode(platform.ISABELLE_PLATFORM(windows = true, apple = true))
-          val platform_dir = dir + platform_path
-          platform_context.bash("./build " + File.bash_path(platform_path), cwd = dir).check
-          File.read_dir(platform_dir).map(entry => platform_dir + Path.basic(entry))
-        case None => Nil
-      }
-
-
     /* install */
 
     val platform_path = Path.explode(platform_info.polyml(arch_64))
@@ -185,8 +171,6 @@ object Component_PolyML {
     for (d <- List("target/bin", "target/lib")) {
       Isabelle_System.copy_dir(root + Path.explode(d), platform_dir, direct = true)
     }
-
-    for (file <- sha1_files) Isabelle_System.copy_file(file, platform_dir)
 
     platform_context.library_closure(
       platform_dir + Path.basic("poly").platform_exe,
@@ -223,9 +207,6 @@ object Component_PolyML {
   val default_polyml_version = "ccd3e3717f72"
   val default_polyml_name = "polyml-5.9.2"
 
-  val default_sha1_url = "https://files.sketis.net/sha1/archive"
-  val default_sha1_version = "0ce12663fe76"
-
   private def init_src_root(src_dir: Path, input: String, output: String): Unit = {
     val lines = split_lines(File.read(src_dir + Path.explode(input)))
     val ml_files =
@@ -253,8 +234,6 @@ not affect the running ML session. *)
     polyml_url: String = default_polyml_url,
     polyml_version: String = default_polyml_version,
     polyml_name: String = default_polyml_name,
-    sha1_url: String = default_sha1_url,
-    sha1_version: String = default_sha1_version,
     target_dir: Path = Path.current
   ): Unit = {
     val platform = platform_context.isabelle_platform
@@ -292,19 +271,12 @@ not affect the running ML session. *)
 
       /* Poly/ML */
 
-      val List(polyml_download, sha1_download) =
-        for {
-          (url, version, target) <-
-            List((polyml_url, polyml_version, "src"), (sha1_url, sha1_version, "sha1"))
-        } yield {
-          val remote = Url.append_path(url, version + ".tar.gz")
-          val download = build_dir + Path.basic(version)
-          Isabelle_System.download_file(remote, download.tar.gz, progress = progress)
-          Isabelle_System.extract(download.tar.gz, download, strip = true)
-          Isabelle_System.extract(
-            download.tar.gz, component_dir.path + Path.basic(target), strip = true)
-          download
-        }
+      val polyml_download = build_dir + Path.basic(polyml_version)
+
+      Isabelle_System.download_file(Url.append_path(polyml_url, polyml_version + ".tar.gz"),
+        polyml_download.tar.gz, progress = progress)
+      Isabelle_System.extract(polyml_download.tar.gz, polyml_download, strip = true)
+      Isabelle_System.extract(polyml_download.tar.gz, component_dir.src, strip = true)
 
       init_src_root(component_dir.src, "RootArm64.ML", "ROOT0.ML")
       init_src_root(component_dir.src, "RootX86.ML", "ROOT.ML")
@@ -315,7 +287,6 @@ not affect the running ML session. *)
           platform_context,
           root = polyml_download,
           gmp_root = gmp_root1,
-          sha1_root = Some(sha1_download),
           target_dir = component_dir.path,
           arch_64 = arch_64,
           options = options)
@@ -413,7 +384,6 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var gmp_root: Option[Path] = None
         var mingw_root = MinGW.default_root
         var arch_64 = false
-        var sha1_root: Option[Path] = None
         var verbose = false
 
         val getopts = Getopts("""
@@ -425,7 +395,6 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
     -g DIR       GMP library root
     -m ARCH      processor architecture (32 or 64, default: """ +
         (if (arch_64) "64" else "32") + """)
-    -s DIR       sha1 sources, see https://isabelle.sketis.net/repos/sha1
 
   Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
@@ -438,7 +407,6 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
               case "64" => arch_64 = true
               case bad => error("Bad processor architecture: " + quote(bad))
             },
-          "s:" -> (arg => sha1_root = Some(Path.explode(arg))),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -452,8 +420,8 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
 
         val platform_context =
           Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
-        make_polyml(platform_context, root,
-          gmp_root = gmp_root, sha1_root = sha1_root, arch_64 = arch_64, options = options)
+        make_polyml(platform_context, root, gmp_root = gmp_root, arch_64 = arch_64,
+          options = options)
       })
 
   val isabelle_tool3 =
@@ -464,8 +432,6 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var gmp_url = default_gmp_url
         var mingw_root = MinGW.default_root
         var component_name = ""
-        var sha1_url = default_sha1_url
-        var sha1_version = default_sha1_version
         var polyml_url = default_polyml_url
         var polyml_version = default_polyml_version
         var polyml_name = default_polyml_name
@@ -482,9 +448,6 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
     -M DIR       msys/mingw root specification for Windows
                  (default: """ + MinGW.default_root + """)
     -N NAME      component name (default: derived from Poly/ML version)
-    -S URL       SHA1 repository archive area
-                 (default: """ + quote(default_sha1_url) + """)
-    -T VERSION   SHA1 version (default: """ + quote(default_sha1_version) + """)
     -U URL       Poly/ML repository archive area
                  (default: """ + quote(default_polyml_url) + """)
     -V VERSION   Poly/ML version (default: """ + quote(default_polyml_version) + """)
@@ -517,8 +480,6 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
           "G:" -> (arg => { gmp_url = arg; gmp_root = None }),
           "M:" -> (arg => mingw_root = Path.explode(arg)),
           "N:" -> (arg => component_name = arg),
-          "S:" -> (arg => sha1_url = arg),
-          "T:" -> (arg => sha1_version = arg),
           "U:" -> (arg => polyml_url = arg),
           "V:" -> (arg => polyml_version = arg),
           "W:" -> (arg => polyml_name = arg),
@@ -533,7 +494,6 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
         build_polyml(platform_context, options = options, component_name = component_name,
           gmp_url = gmp_url, gmp_root = gmp_root, polyml_url = polyml_url,
-          polyml_version = polyml_version, polyml_name = polyml_name, sha1_url = sha1_url,
-          sha1_version = sha1_version, target_dir = target_dir)
+          polyml_version = polyml_version, polyml_name = polyml_name, target_dir = target_dir)
       })
 }
