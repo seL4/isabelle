@@ -57,6 +57,11 @@ object SHA1 {
   def digest(bytes: Bytes): Digest = bytes.sha1_digest
   def digest(string: String): Digest = digest(Bytes(string))
 
+  object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
+    val here = Scala_Project.here
+    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha1_digest.toString)
+  }
+
 
   /* shasum */
 

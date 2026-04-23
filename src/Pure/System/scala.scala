@@ -353,6 +353,7 @@ object Scala {
 }
 
 class Scala_Functions extends Scala.Functions(
+  SHA1.Scala_Fun,
   Scala.Echo,
   Scala.Sleep,
   Scala.Toplevel,
