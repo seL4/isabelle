@@ -220,6 +220,9 @@ sets. Minor INCOMPATIBILITY.
   from type "real" to any archimedian fields, renaming them arch_pow_inv 
   and arch_pow. Minor INCOMPATIBILITY.
 
+* Session "HOL-Analysis": much new material including Bounded_Variation,
+Rectifiable_Paths and Absolute_Continuity.
+
 
 *** ML ***
 

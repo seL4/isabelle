@@ -237,12 +237,12 @@ lemma absolutely_continuous_on_subset:
   unfolding absolutely_continuous_on_def absolutely_setcontinuous_on_def
   by (meson order_trans)
 
-lemma absolutely_continuous_on_const:
+lemma absolutely_continuous_on_const [continuous_intros]:
   "absolutely_continuous_on S (\<lambda>x. c)"
   unfolding absolutely_continuous_on_def absolutely_setcontinuous_on_def
   by simp
 
-lemma absolutely_continuous_on_cmul:
+lemma absolutely_continuous_on_cmul [continuous_intros]:
   assumes ac: "absolutely_continuous_on S f"
   shows "absolutely_continuous_on S (\<lambda>x. a *\<^sub>R f x)"
 proof (cases "a = 0")
@@ -278,11 +278,11 @@ next
   qed
 qed
 
-lemma absolutely_continuous_on_neg:
+lemma absolutely_continuous_on_neg [continuous_intros]:
   "absolutely_continuous_on S f \<Longrightarrow> absolutely_continuous_on S (\<lambda>x. - f x)"
   using absolutely_continuous_on_cmul[of S f "-1"] by simp
 
-lemma absolutely_continuous_on_add:
+lemma absolutely_continuous_on_add [continuous_intros]:
   assumes "absolutely_continuous_on S f" and g: "absolutely_continuous_on S g"
   shows "absolutely_continuous_on S (\<lambda>x. f x + g x)"
   unfolding absolutely_continuous_on_def absolutely_setcontinuous_on_def
@@ -313,12 +313,12 @@ proof (intro allI impI)
   qed
 qed
 
-lemma absolutely_continuous_on_sub:
+lemma absolutely_continuous_on_sub [continuous_intros]:
   "absolutely_continuous_on S f \<Longrightarrow> absolutely_continuous_on S g \<Longrightarrow>
     absolutely_continuous_on S (\<lambda>x. f x - g x)"
   using absolutely_continuous_on_add[of S f "\<lambda>x. - g x"] absolutely_continuous_on_neg by auto
 
-lemma absolutely_continuous_on_norm:
+lemma absolutely_continuous_on_norm [continuous_intros]:
   assumes ac: "absolutely_continuous_on S f"
   shows "absolutely_continuous_on S (\<lambda>x. norm (f x) *\<^sub>R e)"
 proof (cases "e = 0")
@@ -357,7 +357,7 @@ next
   qed
 qed
 
-lemma absolutely_continuous_on_compose_linear:
+lemma absolutely_continuous_on_compose_linear [continuous_intros]:
   assumes ac: "absolutely_continuous_on S f" and lin: "linear h"
   shows "absolutely_continuous_on S (h \<circ> f)"
 proof -
