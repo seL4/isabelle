@@ -126,6 +126,7 @@ sources = \
   src/Pure/General/mail.scala \
   src/Pure/General/mailman.scala \
   src/Pure/General/mercurial.scala \
+  src/Pure/General/message_digest.scala \
   src/Pure/General/multi_map.scala \
   src/Pure/General/name_space.scala \
   src/Pure/General/output.scala \
@@ -136,7 +137,7 @@ sources = \
   src/Pure/General/rdf.scala \
   src/Pure/General/rsync.scala \
   src/Pure/General/scan.scala \
-  src/Pure/General/sha1.scala \
+  src/Pure/General/shasum.scala \
   src/Pure/General/space.scala \
   src/Pure/General/sql.scala \
   src/Pure/General/ssh.scala \

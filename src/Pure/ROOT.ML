@@ -96,7 +96,6 @@ ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
 ML_file "General/seq.ML";
 ML_file "General/timing.ML";
-ML_file "General/sha1.ML";
 
 ML_file "ML/ml_process.ML";
 ML_file "ML/ml_profiling.ML";
@@ -324,6 +323,7 @@ ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";
 ML_file "Build/resources.ML";
+ML_file "General/message_digest.ML";
 ML_file "PIDE/command.ML";
 ML_file "PIDE/query_operation.ML";
 ML_file "Thy/thy_info.ML";

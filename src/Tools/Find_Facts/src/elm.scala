@@ -37,7 +37,7 @@ object Elm {
       new Project(name, dir, main, head)
     }
 
-    def get_digest(output_file: Path): SHA1.Digest =
+    def get_digest(output_file: Path): Message_Digest =
       Exn.capture {
         val html = HTML.parse_document(File.read(output_file))
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
@@ -61,16 +61,16 @@ object Elm {
         relative_path <- File.find_files(path, _.file_name.endsWith(".elm"), relative = true)
       } yield relative_path
 
-    def sources_shasum: SHA1.Shasum = {
-      val meta_info = SHA1.shasum_meta_info(SHA1.digest(JSON.Format(definition)))
-      val head_digest = SHA1.shasum(SHA1.digest(XML.string_of_body(head)), "head")
+    def sources_shasum: Shasum = {
+      val meta_info = Shasum.make_meta_info(SHA1.digest(JSON.Format(definition)))
+      val head_digest = Shasum.make(SHA1.digest(XML.string_of_body(head)), "head")
       val source_digest =
-        SHA1.shasum_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
+        Shasum.make_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
       meta_info ::: head_digest ::: source_digest
     }
 
     def build_html(output_file: Path, progress: Progress = new Progress): Unit = {
-      val digest = sources_shasum.digest
+      val digest = SHA1.digest(sources_shasum)
       if (digest != Project.get_digest(output_file)) {
         progress.echo("Building web application " + output_file.absolute + " ...")
 

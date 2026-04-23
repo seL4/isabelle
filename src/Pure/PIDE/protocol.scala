@@ -346,7 +346,7 @@ trait Protocol {
 
   /* interned items */
 
-  def define_blob(digest: SHA1.Digest, bytes: Bytes): Unit =
+  def define_blob(digest: Message_Digest, bytes: Bytes): Unit =
     protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
 
   private def encode_command(

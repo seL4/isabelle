@@ -78,9 +78,6 @@ in
 
 fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address, password) =>
   let
-    val _ = SHA1.test_samples ()
-      handle exn as Fail msg => (Output.physical_stderr (msg ^ "\n"); Exn.reraise exn);
-
     val _ = Output.physical_stderr Symbol.STX;
 
 

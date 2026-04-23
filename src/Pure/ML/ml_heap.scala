@@ -13,7 +13,7 @@ object ML_Heap {
   private val sha1_prefix = "SHA1:"
   private val sha1_length = sha1_prefix.length + SHA1.digest_length
 
-  def read_file_digest(heap: Path): Option[SHA1.Digest] = {
+  def read_file_digest(heap: Path): Option[Message_Digest] = {
     if (heap.is_file) {
       val bs = Bytes.read_file(heap, offset = File.size(heap) - sha1_length)
       if (bs.size == sha1_length) {
@@ -26,7 +26,7 @@ object ML_Heap {
     else None
   }
 
-  def write_file_digest(heap: Path): SHA1.Digest =
+  def write_file_digest(heap: Path): Message_Digest =
     read_file_digest(heap) getOrElse {
       val digest = SHA1.digest(heap)
       File.append(heap, sha1_prefix + digest.toString)
@@ -86,7 +86,7 @@ object ML_Heap {
         name = "slices_size")
     }
 
-    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
+    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest] =
       if (names.isEmpty) Map.empty
       else {
         db.execute_query_statement(
@@ -137,7 +137,7 @@ object ML_Heap {
       db: SQL.Database,
       name: String,
       heap_size: Long,
-      heap_digest: Option[SHA1.Digest],
+      heap_digest: Option[Message_Digest],
       log_db: Option[Log_DB]
     ): Unit = {
       clean_entry(db, name)
@@ -158,7 +158,7 @@ object ML_Heap {
       db: SQL.Database,
       name: String,
       heap_size: Long,
-      heap_digest: Option[SHA1.Digest],
+      heap_digest: Option[Message_Digest],
       log_db: Option[Log_DB]
     ): Unit =
       db.execute_statement(
@@ -178,7 +178,7 @@ object ML_Heap {
       private_data.clean_entry(db, session_name)
     }
 
-  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, SHA1.Digest] =
+  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest] =
     if (names.isEmpty) Map.empty
     else {
       private_data.transaction_lock(db, create = true, label = "ML_Heap.read_digests") {

@@ -18,8 +18,8 @@ trait Build_Job {
 }
 
 object Build_Job {
-  sealed case class Result(process_result: Process_Result, output_shasum: SHA1.Shasum)
-  val no_result: Result = Result(Process_Result.undefined, SHA1.no_shasum)
+  sealed case class Result(process_result: Process_Result, output_shasum: Shasum)
+  val no_result: Result = Result(Process_Result.undefined, Shasum.none)
 
 
   /* build session */
@@ -31,8 +31,8 @@ object Build_Job {
     log: Logger,
     server: SSH.Server,
     session_background: Sessions.Background,
-    sources_shasum: SHA1.Shasum,
-    input_shasum: SHA1.Shasum,
+    sources_shasum: Shasum,
+    input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
@@ -48,7 +48,7 @@ object Build_Job {
       deps: List[String],
       ancestors: List[String],
       session_prefs: String,
-      sources_shasum: SHA1.Shasum,
+      sources_shasum: Shasum,
       timeout: Time,
       store: Store,
       progress: Progress = new Progress
@@ -91,7 +91,7 @@ object Build_Job {
     deps: List[String],
     ancestors: List[String],
     session_prefs: String,
-    sources_shasum: SHA1.Shasum,
+    sources_shasum: Shasum,
     timeout: Time,
     old_time: Time,
     old_command_timings_blob: Bytes,
@@ -229,8 +229,8 @@ object Build_Job {
     log: Logger,
     server: SSH.Server,
     session_background: Sessions.Background,
-    sources_shasum: SHA1.Shasum,
-    input_shasum: SHA1.Shasum,
+    sources_shasum: Shasum,
+    input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ) extends Build_Job {
@@ -580,8 +580,8 @@ object Build_Job {
 
           val output_shasum =
             store_session.heap match {
-              case Some(path) => SHA1.shasum(ML_Heap.write_file_digest(path), session_name)
-              case None => SHA1.no_shasum
+              case Some(path) => Shasum.make(ML_Heap.write_file_digest(path), session_name)
+              case None => Shasum.none
             }
 
           val log_lines = process_result.out_lines.filterNot(Protocol_Message.Marker.test)

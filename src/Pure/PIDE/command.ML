@@ -6,7 +6,8 @@ Prover command execution: read -- eval -- print.
 
 signature COMMAND =
 sig
-  type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option}
+  type blob =
+    {file_node: string, src_path: Path.T, content: (Message_Digest.T * string list) option}
   val read_thy: Toplevel.state -> theory
   val read: Keyword.keywords -> theory -> Path.T-> (unit -> theory) ->
     blob Exn.result list * int -> Token.T list -> Toplevel.transition
@@ -54,7 +55,8 @@ fun task_context group f =
 
 (* read *)
 
-type blob = {file_node: string, src_path: Path.T, content: (SHA1.digest * string list) option};
+type blob =
+  {file_node: string, src_path: Path.T, content: (Message_Digest.T * string list) option};
 
 local
 
