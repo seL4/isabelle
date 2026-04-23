@@ -61,11 +61,11 @@ object Elm {
         relative_path <- File.find_files(path, _.file_name.endsWith(".elm"), relative = true)
       } yield relative_path
 
-    def sources_shasum: SHA1.Shasum = {
-      val meta_info = SHA1.shasum_meta_info(SHA1.digest(JSON.Format(definition)))
-      val head_digest = SHA1.shasum(SHA1.digest(XML.string_of_body(head)), "head")
+    def sources_shasum: Shasum = {
+      val meta_info = Shasum.shasum_meta_info(SHA1.digest(JSON.Format(definition)))
+      val head_digest = Shasum.shasum(SHA1.digest(XML.string_of_body(head)), "head")
       val source_digest =
-        SHA1.shasum_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
+        Shasum.shasum_sorted(for (src <- sources) yield SHA1.digest(dir + src) -> src.implode)
       meta_info ::: head_digest ::: source_digest
     }
 

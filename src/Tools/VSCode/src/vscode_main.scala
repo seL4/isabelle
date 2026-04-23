@@ -90,7 +90,7 @@ object VSCode_Main {
 
   val MANIFEST: Path = Path.explode("MANIFEST")
 
-  private def shasum_vsix(vsix_path: Path): SHA1.Shasum = {
+  private def shasum_vsix(vsix_path: Path): Shasum = {
     val name = "extension/MANIFEST.shasum"
     def err(): Nothing = error("Cannot retrieve " + quote(name) + " from " + vsix_path)
     if (vsix_path.is_file) {
@@ -100,16 +100,16 @@ object VSCode_Main {
           case Some(entry) =>
             proper_value(zip_file.getInputStream(entry)) match {
               case None => err()
-              case Some(stream) => SHA1.fake_shasum(File.read_stream(stream))
+              case Some(stream) => Shasum.fake_shasum(File.read_stream(stream))
             }
         })
     }
     else err()
   }
 
-  private def shasum_dir(dir: Path): Option[SHA1.Shasum] = {
+  private def shasum_dir(dir: Path): Option[Shasum] = {
     val path = dir + MANIFEST.shasum
-    if (path.is_file) Some(SHA1.fake_shasum(File.read(path))) else None
+    if (path.is_file) Some(Shasum.fake_shasum(File.read(path))) else None
   }
 
   def locate_extension(): Option[Path] = {

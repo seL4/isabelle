@@ -72,7 +72,7 @@ object Build_Process {
     node_info: Host.Node_Info,
     start_date: Date,
     process_result: Process_Result,
-    output_shasum: SHA1.Shasum,
+    output_shasum: Shasum,
     current: Boolean
   ) extends Name.T {
     def ok: Boolean = process_result.ok
@@ -264,7 +264,7 @@ object Build_Process {
     def make_result(
       result_name: (String, String, String),
       process_result: Process_Result,
-      output_shasum: SHA1.Shasum,
+      output_shasum: Shasum,
       start_date: Date,
       node_info: Host.Node_Info = Host.Node_Info.none,
       current: Boolean = false
@@ -549,7 +549,7 @@ object Build_Process {
             val deps = split_lines(res.string(Sessions.deps))
             val ancestors = split_lines(res.string(Sessions.ancestors))
             val options = res.string(Sessions.options)
-            val sources_shasum = SHA1.fake_shasum(res.string(Sessions.sources))
+            val sources_shasum = Shasum.fake_shasum(res.string(Sessions.sources))
             val timeout = Time.ms(res.long(Sessions.timeout))
             val old_time = Time.ms(res.long(Sessions.old_time))
             val old_command_timings_blob = res.bytes(Sessions.old_command_timings)
@@ -859,7 +859,7 @@ object Build_Process {
                 err_lines = split_lines(err),
                 timing = timing)
 
-            val output_shasum = SHA1.fake_shasum(res.string(Results.output_shasum))
+            val output_shasum = Shasum.fake_shasum(res.string(Results.output_shasum))
             val current = res.bool(Results.current)
 
             Result(name, worker_uuid, build_uuid, node_info, start_date, process_result,

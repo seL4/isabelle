@@ -486,10 +486,10 @@ object Sessions {
     def apply(name: String): Base = session_bases(name)
     def get(name: String): Option[Base] = session_bases.get(name)
 
-    def sources_shasum(name: String): SHA1.Shasum = {
+    def sources_shasum(name: String): Shasum = {
       val meta_info = sessions_structure(name).meta_info
       val sources =
-        SHA1.shasum_sorted(
+        Shasum.shasum_sorted(
           for ((path, digest) <- apply(name).all_sources)
             yield digest -> File.symbolic_path(path))
       meta_info ::: sources
@@ -667,7 +667,7 @@ object Sessions {
               entry.theories_no_position, conditions, entry.document_theories_no_position).toString)
 
         val meta_info =
-          SHA1.shasum_meta_info(meta_digest) ::: SHA1.shasum_sorted(build_prefs_digests)
+          Shasum.shasum_meta_info(meta_digest) ::: Shasum.shasum_sorted(build_prefs_digests)
 
         val chapter_groups = chapter_defs(chapter).groups
         val groups = chapter_groups ::: entry.groups.filterNot(chapter_groups.contains)
@@ -704,7 +704,7 @@ object Sessions {
     document_files: List[(Path, Path)],
     export_files: List[(Path, Int, List[String])],
     export_classpath: List[String],
-    meta_info: SHA1.Shasum
+    meta_info: Shasum
   ) {
     def deps: List[String] = parent.toList ::: imports
 

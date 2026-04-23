@@ -215,12 +215,12 @@ object Component_VSCode {
           manifest_text + cat_lines(Isabelle_Fonts.fonts().map(e => "fonts/" + e.path.file_name))
         val manifest_entries2 = split_lines(manifest_text2).filter(_.nonEmpty)
 
-        val manifest_shasum: SHA1.Shasum = {
-          val a = SHA1.shasum_meta_info(SHA1.digest(manifest_text2))
+        val manifest_shasum: Shasum = {
+          val a = Shasum.shasum_meta_info(SHA1.digest(manifest_text2))
           val bs =
             for (name <- manifest_entries2)
-              yield SHA1.shasum(SHA1.digest(build_dir + Path.explode(name)), name)
-          SHA1.flat_shasum(a :: bs)
+              yield Shasum.shasum(SHA1.digest(build_dir + Path.explode(name)), name)
+          Shasum.flat_shasum(a :: bs)
         }
         File.write(build_dir + VSCode_Main.MANIFEST.shasum, manifest_shasum.toString)
 
