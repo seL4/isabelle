@@ -306,11 +306,15 @@ not affect the running ML session. *)
 
     /* settings */
 
+    val explicit_gcsharing =
+      File.read(component_dir.src + Path.explode("libpolyml/mpoly.cpp"))
+        .containsSlice("enablegcsharing")
+
     component_dir.write_settings("""
 POLYML_HOME="$COMPONENT"
 
 ML_SYSTEM=""" + Bash.string(polyml_name) + """
-ML_OPTIONS32="--minheap 500"
+ML_OPTIONS32="--minheap 500""" + if_proper(explicit_gcsharing, " --enablegcsharing") + """"
 ML_OPTIONS64="--minheap 1000"
 ML_OPTIONS=""
 ML_PLATFORM=""
