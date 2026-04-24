@@ -104,6 +104,7 @@ object Component_PolyML {
     gmp_root: Option[Path] = None,
     target_dir: Path = Path.current,
     arch_64: Boolean = false,
+    arch_small: Boolean = false,
     options: List[String] = Nil
   ): Unit = {
     if (!((root + Path.explode("configure")).is_file && (root + Path.explode("PolyML")).is_dir))
@@ -136,7 +137,14 @@ object Component_PolyML {
           else opt
         }
 
-      val options3 = if (arch_64) Nil else List("--enable-compact32bit")
+      val options3 =
+        if (arch_64) Nil
+        else {
+          val large =
+            File.read(root + Path.explode("configure.ac"))
+              .containsSlice("compact32bit_large")
+          List("--enable-compact32bit" + if_proper(large && !arch_small, "_large"))
+        }
 
       List("--disable-shared", "--enable-intinf-as-int") :::
         options1 ::: options2 ::: options ::: options3
@@ -234,6 +242,7 @@ not affect the running ML session. *)
     polyml_url: String = default_polyml_url,
     polyml_version: String = default_polyml_version,
     polyml_name: String = default_polyml_name,
+    arch_small: Boolean = false,
     target_dir: Path = Path.current
   ): Unit = {
     val platform = platform_context.isabelle_platform
@@ -289,6 +298,7 @@ not affect the running ML session. *)
           gmp_root = gmp_root1,
           target_dir = component_dir.path,
           arch_64 = arch_64,
+          arch_small = arch_small,
           options = options)
       }
     }
@@ -384,6 +394,7 @@ Usage: isabelle make_polyml_gmp [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var gmp_root: Option[Path] = None
         var mingw_root = MinGW.default_root
         var arch_64 = false
+        var arch_small = false
         var verbose = false
 
         val getopts = Getopts("""
@@ -395,6 +406,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
     -g DIR       GMP library root
     -m ARCH      processor architecture (32 or 64, default: """ +
         (if (arch_64) "64" else "32") + """)
+    -s           small heap for -m32 (default: large, if possible)
 
   Make Poly/ML in the ROOT directory of its sources, with additional
   CONFIGURE_OPTIONS.
@@ -407,6 +419,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
               case "64" => arch_64 = true
               case bad => error("Bad processor architecture: " + quote(bad))
             },
+          "s" -> (_ => arch_small = true),
           "v" -> (_ => verbose = true))
 
         val more_args = getopts(args)
@@ -421,7 +434,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         val platform_context =
           Isabelle_Platform.Bash_Context(mingw_root = Some(mingw_root), progress = progress)
         make_polyml(platform_context, root, gmp_root = gmp_root, arch_64 = arch_64,
-          options = options)
+          arch_small = arch_small, options = options)
       })
 
   val isabelle_tool3 =
@@ -436,6 +449,7 @@ Usage: isabelle make_polyml [OPTIONS] ROOT [CONFIGURE_OPTIONS]
         var polyml_version = default_polyml_version
         var polyml_name = default_polyml_name
         var gmp_root: Option[Path] = None
+        var arch_small = false
         var verbose = false
 
         val getopts = Getopts("""
@@ -453,6 +467,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
     -V VERSION   Poly/ML version (default: """ + quote(default_polyml_version) + """)
     -W NAME      Poly/ML name (default: """ + quote(default_polyml_name) + """)
     -g DIR       use existing GMP library (overrides option -G)
+    -s           small heap for -m32 (default: large, if possible)
     -v           verbose
 
   Download and build Poly/ML component from source repositories, with additional
@@ -484,6 +499,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
           "V:" -> (arg => polyml_version = arg),
           "W:" -> (arg => polyml_name = arg),
           "g:" -> (arg => { gmp_root = Some(Path.explode(arg)); gmp_url = "" }),
+          "s" -> (_ => arch_small = true),
           "v" -> (_ => verbose = true))
 
         val options = getopts(args)
@@ -494,6 +510,7 @@ Usage: isabelle component_polyml [OPTIONS] [CONFIGURE_OPTIONS]
 
         build_polyml(platform_context, options = options, component_name = component_name,
           gmp_url = gmp_url, gmp_root = gmp_root, polyml_url = polyml_url,
-          polyml_version = polyml_version, polyml_name = polyml_name, target_dir = target_dir)
+          polyml_version = polyml_version, polyml_name = polyml_name, arch_small = arch_small,
+          target_dir = target_dir)
       })
 }
