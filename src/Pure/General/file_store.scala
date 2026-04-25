@@ -72,7 +72,7 @@ object File_Store {
       val name = Url.append_path(name_prefix, path.expand.implode)
       val bs = Bytes.read(dir + path)
       val size = bs.size
-      val digest = SHA1.digest(bs).toString
+      val digest = SHA1.digest(bs)
       val executable = File.is_executable(dir + path)
       val (compressed, body) = bs.maybe_compress(options = compress_options, cache = compress_cache)
       Entry(name, size, digest, executable, compressed, body)
@@ -82,7 +82,7 @@ object File_Store {
   sealed case class Entry(
     name: String,
     size: Long,
-    digest: String,
+    digest: Message_Digest,
     executable: Boolean,
     compressed: Boolean,
     body: Bytes
@@ -128,7 +128,11 @@ object File_Store {
         Base.table.select(Base.table.columns, sql = Base.name.where_equal(name)),
         { res =>
           val size = res.long(Base.size)
-          val digest = proper_string(res.string(Base.digest)).getOrElse(SHA1.digest_empty.toString)
+          val digest =
+            proper_string(res.string(Base.digest)) match {
+              case None => SHA1.digest_empty
+              case Some(rep) => SHA1.fake_digest(rep)
+            }
           val executable = res.bool(Base.executable)
           val compressed = res.bool(Base.compressed)
           val body = res.bytes(Base.body)
@@ -139,7 +143,7 @@ object File_Store {
       db.execute_statement(Base.table.insert(), body = { stmt =>
         stmt.string(1) = entry.name
         stmt.long(2) = entry.size
-        stmt.string(3) = if (entry.digest == SHA1.digest_empty.toString) None else Some(entry.digest)
+        stmt.string(3) = if (entry.digest == SHA1.digest_empty) None else Some(entry.digest.rep)
         stmt.bool(4) = entry.executable
         stmt.bool(5) = entry.compressed
         stmt.bytes(6) = entry.body
