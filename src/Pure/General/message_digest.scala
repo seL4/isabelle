@@ -69,7 +69,7 @@ final class Message_Digest private(val prefix: String, val rep: String) {
   override def hashCode: Int = rep.hashCode
   override def equals(that: Any): Boolean =
     that match {
-      case other: Message_Digest => rep == other.toString
+      case other: Message_Digest => rep == other.rep
       case _ => false
     }
   def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
@@ -80,7 +80,7 @@ object SHA1 extends Message_Digest.Ops("SHA1") {
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
     val here = Scala_Project.here
-    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha1_digest.toString)
+    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha1_digest.rep)
   }
 }
 
@@ -89,6 +89,6 @@ object SHA256 extends Message_Digest.Ops("SHA256") {
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA256.digest") {
     val here = Scala_Project.here
-    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha256_digest.toString)
+    def apply(bytes: Bytes): Bytes = Bytes(bytes.sha256_digest.rep)
   }
 }

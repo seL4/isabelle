@@ -142,7 +142,7 @@ object ML_Heap {
         { stmt =>
           stmt.string(1) = name
           stmt.long(2) = heap_size
-          stmt.string(3) = heap_digest.map(_.toString)
+          stmt.string(3) = heap_digest.map(_.rep)
           stmt.string(4) = log_db.map(_.uuid)
           stmt.bytes(5) = log_db.map(_.content)
         })
@@ -161,7 +161,7 @@ object ML_Heap {
         body =
           { stmt =>
             stmt.long(1) = heap_size
-            stmt.string(2) = heap_digest.map(_.toString)
+            stmt.string(2) = heap_digest.map(_.rep)
             stmt.string(3) = log_db.map(_.uuid)
             stmt.bytes(4) = log_db.map(_.content)
           })

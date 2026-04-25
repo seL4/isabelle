@@ -319,7 +319,7 @@ object Store {
         for (source_file <- source_files) yield { (stmt: SQL.Statement) =>
           stmt.string(1) = session_name
           stmt.string(2) = source_file.name
-          stmt.string(3) = source_file.digest.toString
+          stmt.string(3) = source_file.digest.rep
           stmt.bool(4) = source_file.compressed
           stmt.bytes(5) = source_file.body
         })

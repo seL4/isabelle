@@ -347,7 +347,7 @@ trait Protocol {
   /* interned items */
 
   def define_blob(digest: Message_Digest, bytes: Bytes): Unit =
-    protocol_command_raw("Document.define_blob", List(Bytes(digest.toString), bytes))
+    protocol_command_raw("Document.define_blob", List(Bytes(digest.rep), bytes))
 
   private def encode_command(
     resources: Resources,
@@ -363,7 +363,7 @@ trait Protocol {
         variant(List(
           { case Exn.Res(Command.Blob(_, a, b, c)) =>
               (Nil, triple(string, string, option(string))(
-                (a.node, b.implode, c.map(p => p._1.toString)))) },
+                (a.node, b.implode, c.map(p => p._1.rep)))) },
           { case Exn.Exn(e) => (Nil, string(Exn.message(e))) }))
 
       pair(list(encode_blob), int)(command.blobs, command.blobs_index)

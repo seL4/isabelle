@@ -85,8 +85,7 @@ object Elm {
         }
 
         val file = HTML.parse_document(File.read(output_file))
-        file.head.appendChild(
-          Element("meta").attr("name", "shasum").attr("content", digest.toString))
+        file.head.appendChild(Element("meta").attr("name", "shasum").attr("content", digest.rep))
         file.head.append(XML.string_of_body(head))
         val html = file.html
         File.write(output_file, html)

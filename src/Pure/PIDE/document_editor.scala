@@ -47,8 +47,8 @@ object Document_Editor {
         JSON.Object(
           "selection" -> selection.toList,
           "sources" -> doc.sources.toString,
-          "log" -> SHA1.digest(doc.log).toString,
-          "pdf" -> SHA1.digest(doc.pdf).toString)
+          "log" -> SHA1.digest(doc.log).rep,
+          "pdf" -> SHA1.digest(doc.pdf).rep)
       File.write(document_output(name).json, JSON.Format.pretty_print(json))
     }
   }
