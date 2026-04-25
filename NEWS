@@ -245,7 +245,9 @@ via "isabelle build" or "isabelle process_theories".
 *** System ***
 
 * Both SHA1 and SHA256 are supported in Isabelle/Scala. SHA1 is still
-used routinely, but will be eventually phased out.
+used routinely, but will be eventually phased out. Result is of type
+Message_Digest, with slightly different toString method. Subtle
+INCOMPATIBILITY: use "rep" instead (as in Isabelle/ML).
 
 * Isabelle/Scala now uses more static type-checking by default, notably
 Explicit Nulls (as explained in

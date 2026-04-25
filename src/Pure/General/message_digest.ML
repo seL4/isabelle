@@ -12,6 +12,7 @@ sig
   val rep: T -> string
   val rep_short: T -> string
   val print: T -> string
+  val print_short: T -> string
   val fake: {prefix: string, rep: string} -> T
   val fake_prefix: string -> T
 end;
@@ -41,8 +42,9 @@ fun rep (T {rep, ...}) = rep;
 fun rep_short t = String.substring (rep t, 0, 12);
 
 fun print t = prefix t ^ rep t;
+fun print_short t = prefix t ^ rep_short t;
 
-val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o rep);
+val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o print_short);
 
 
 (* particular instances *)

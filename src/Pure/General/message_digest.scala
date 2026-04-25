@@ -84,9 +84,12 @@ object Message_Digest {
 
 final class Message_Digest private(val prefix: String, val rep: String) {
   def kind: String = Library.try_unsuffix(":", prefix).get
-  def print: String = prefix + rep
+  def rep_short: String = rep.take(12)
 
-  override def toString: String = rep
+  def print: String = prefix + rep
+  def print_short: String = prefix + rep_short
+  override def toString: String = print_short
+
   override def hashCode: Int = rep.hashCode
   override def equals(that: Any): Boolean =
     that match {
