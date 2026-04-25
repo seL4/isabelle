@@ -6,7 +6,11 @@ Support for message digests: SHA1, SHA256.
 
 signature MESSAGE_DIGEST =
 sig
-  eqtype T
+  type T
+  val ord: T ord
+  val eq: T * T -> bool
+  structure Table: TABLE
+  structure Set: SET
   val prefix: T -> string
   val kind: T -> string
   val rep: T -> string
@@ -19,7 +23,7 @@ end;
 
 signature MESSAGE_DIGEST_OPS =
 sig
-  eqtype T
+  type T
   val prefix: string
   val kind: string
   val fake: string -> T
@@ -33,12 +37,22 @@ struct
 
 (* general operations *)
 
-datatype T = T of {prefix: string, rep: string};
+abstype T = T of {prefix: string, rep: string}
+with
+  fun dest (T args) = args
+  val make = T
+end;
 
-fun prefix (T {prefix, ...}) = prefix;
+val ord = string_ord o apply2 (#rep o dest);
+val eq = is_equal o ord;
+
+structure Table = Table(type key = T val ord = ord);
+structure Set = Set(Table.Key);
+
+val prefix = #prefix o dest;
 val kind = unsuffix ":" o prefix;
 
-fun rep (T {rep, ...}) = rep;
+val rep = #rep o dest;
 fun rep_short t = String.substring (rep t, 0, 12);
 
 fun print t = prefix t ^ rep t;
@@ -56,7 +70,7 @@ fun fake (arg as {prefix, rep}) =
     NONE => raise Fail ("Bad message digest prefix " ^ quote prefix)
   | SOME n =>
       let val m = size rep in
-        if m = n then T arg
+        if m = n then make arg
         else raise Fail ("Bad message digest length " ^ Value.print_int m ^ " for " ^ quote prefix)
       end);
 

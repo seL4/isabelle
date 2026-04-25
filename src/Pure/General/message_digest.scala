@@ -16,6 +16,11 @@ import java.math.BigInteger
 object Message_Digest {
   /* generic operations */
 
+  object Ordering extends scala.math.Ordering[Message_Digest] {
+    def compare(dig1: Message_Digest, dig2: Message_Digest): Int =
+      dig1.rep compare dig2.rep
+  }
+
   class Ops private[isabelle](val kind: String, val digest_length: Int) {
     val prefix: String = kind + ":"
     def print_length: Int = prefix.length + digest_length
