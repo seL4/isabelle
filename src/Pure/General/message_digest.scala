@@ -37,7 +37,7 @@ object Message_Digest {
     def compare(dig1: T, dig2: T): Int = dig1.rep compare dig2.rep
   }
 
-  class Ops private[isabelle](val kind: String, val digest_length: Int) {
+  abstract class Ops private[isabelle](val kind: String, val digest_length: Int) {
     val prefix: String = kind + ":"
     def print_length: Int = prefix.length + digest_length
 
@@ -79,6 +79,8 @@ object Message_Digest {
         case _ => digest(shasum.toString)
       }
     }
+
+    def digest(bytes: Bytes): Message_Digest.T
   }
 
   /* particular instances */
@@ -103,7 +105,7 @@ object Message_Digest {
 }
 
 object SHA1 extends Message_Digest.Ops("SHA1", 40) {
-  def digest(bytes: Bytes): Message_Digest.T = bytes.sha1_digest
+  override def digest(bytes: Bytes): Message_Digest.T = bytes.sha1_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
     val here = Scala_Project.here
@@ -112,7 +114,7 @@ object SHA1 extends Message_Digest.Ops("SHA1", 40) {
 }
 
 object SHA256 extends Message_Digest.Ops("SHA256", 64) {
-  def digest(bytes: Bytes): Message_Digest.T = bytes.sha256_digest
+  override def digest(bytes: Bytes): Message_Digest.T = bytes.sha256_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA256.digest") {
     val here = Scala_Project.here
