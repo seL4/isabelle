@@ -1,7 +1,7 @@
 (*  Title:      Tools/cache_io.ML
     Author:     Sascha Boehme, TU Muenchen
 
-Cache for output of external processes.
+Cache for output of external processes, using SHA1.
 *)
 
 signature CACHE_IO =
@@ -9,9 +9,9 @@ sig
   type cache
   val unsynchronized_init: Path.T -> cache
   val cache_path_of: cache -> Path.T
-  val lookup: cache -> string -> Process_Result.T option * string
+  val lookup: cache -> string -> Process_Result.T option * Message_Digest.T
   val run: Bash.params -> string -> Process_Result.T
-  val run_and_cache: cache -> string -> Bash.params -> string -> Process_Result.T
+  val run_and_cache: cache -> Message_Digest.T -> Bash.params -> string -> Process_Result.T
   val run_cached: cache -> Bash.params -> string -> Process_Result.T
 end
 
@@ -20,7 +20,7 @@ struct
 
 abstype cache = Cache of {
   path: Path.T,
-  table: (int * (int * int * int) Symtab.table) Synchronized.var }
+  table: (int * (int * int * int) Message_Digest.Table.table) Synchronized.var }
 with
 
 fun cache_path_of (Cache {path, ...}) = path
@@ -45,18 +45,21 @@ fun unsynchronized_init cache_path =
           fun parse line ((i, l), tab) =
             if i = l
             then
-              let val (key, l1, l2) = split line
-              in ((i+1, l+l1+l2+1), Symtab.update (key, (i+1, l1, l2)) tab) end
+              let
+                val (rep, l1, l2) = split line
+                val key = SHA1.fake rep
+              in ((i+1, l+l1+l2+1), Message_Digest.Table.update (key, (i+1, l1, l2)) tab) end
             else ((i+1, l), tab)
-        in apfst fst (fold parse (File.read_lines cache_path) ((1, 1), Symtab.empty)) end
-      else (1, Symtab.empty)
+        in
+          apfst fst (fold parse (File.read_lines cache_path) ((1, 1), Message_Digest.Table.empty))
+        end
+      else (1, Message_Digest.Table.empty)
   in Cache {path = cache_path, table = Synchronized.var "Cache_IO" table} end
 
-fun lookup (Cache {path = cache_path, table}) str =
-  let val key = Message_Digest.rep (SHA1.digest str)
-  in
+fun lookup (Cache {path = cache_path, table}) input =
+  let val key = SHA1.digest input in
     Synchronized.change_result table (fn tab =>
-      (case Symtab.lookup (snd tab) key of
+      (case Message_Digest.Table.lookup (snd tab) key of
         NONE => ((NONE, key), tab)
       | SOME (p, len1, len2) =>
           let
@@ -95,14 +98,14 @@ fun run_and_cache (Cache {path = cache_path, table}) key cmd input =
     val out_lines = Process_Result.out_lines result
     val err_lines = Process_Result.err_lines result
     val (l1, l2) = apply2 length (out_lines, err_lines)
-    val header = key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
+    val header = Message_Digest.rep key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
     val lines = map (suffix "\n") (header :: out_lines @ err_lines)
 
     val _ = Synchronized.change table (fn (p, tab) =>
-      if Symtab.defined tab key then (p, tab)
+      if Message_Digest.Table.defined tab key then (p, tab)
       else
         let val _ = File.append_list cache_path lines
-        in (p+l1+l2+1, Symtab.update (key, (p+1, l1, l2)) tab) end)
+        in (p+l1+l2+1, Message_Digest.Table.update (key, (p+1, l1, l2)) tab) end)
   in result end
 
 fun run_cached cache cmd input =
