@@ -7,15 +7,18 @@ Support for message digests: SHA1, SHA256.
 signature MESSAGE_DIGEST =
 sig
   eqtype T
+  val prefix: T -> string
   val kind: T -> string
   val rep: T -> string
   val rep_short: T -> string
-  val fake: {kind: string, rep: string} -> T
+  val print: T -> string
+  val fake: {prefix: string, rep: string} -> T
 end;
 
 signature MESSAGE_DIGEST_OPS =
 sig
   eqtype T
+  val prefix: string
   val kind: string
   val fake: string -> T
   val digest_bytes: Bytes.T -> T
@@ -26,11 +29,15 @@ end;
 structure Message_Digest: MESSAGE_DIGEST =
 struct
 
-datatype T = T of {kind: string, rep: string};
+datatype T = T of {prefix: string, rep: string};
 
-fun kind (T {kind, ...}) = kind;
+fun prefix (T {prefix, ...}) = prefix;
+val kind = unsuffix ":" o prefix;
+
 fun rep (T {rep, ...}) = rep;
 fun rep_short t = String.substring (rep t, 0, 12);
+
+fun print t = prefix t ^ rep t;
 
 val fake = T;
 
@@ -45,11 +52,12 @@ struct
 type T = Message_Digest.T;
 
 val kind = kind;
+val prefix = kind ^ ":";
 
-fun fake rep = Message_Digest.fake {kind = kind, rep = rep};
+fun fake rep = Message_Digest.fake {prefix = prefix, rep = rep};
 
 fun digest_bytes bs =
-  Message_Digest.fake {kind = kind, rep = Bytes.content (scala_fun bs)};
+  Message_Digest.fake {prefix = prefix, rep = Bytes.content (scala_fun bs)};
 
 val digest = digest_bytes o Bytes.string;
 

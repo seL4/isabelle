@@ -10,17 +10,11 @@ package isabelle
 object ML_Heap {
   /** heap file with SHA1 digest **/
 
-  private val sha1_prefix = "SHA1:"
-  private val sha1_length = sha1_prefix.length + SHA1.digest_length
-
   def read_file_digest(heap: Path): Option[Message_Digest] = {
     if (heap.is_file) {
-      val bs = Bytes.read_file(heap, offset = File.size(heap) - sha1_length)
-      if (bs.size == sha1_length) {
-        val s = bs.text
-        if (s.startsWith(sha1_prefix)) Some(SHA1.fake_digest(s.drop(sha1_prefix.length)))
-        else None
-      }
+      val n = SHA1.print_length
+      val bs = Bytes.read_file(heap, offset = File.size(heap) - n)
+      if (bs.size == n) Library.try_unprefix(SHA1.prefix, bs.text).map(SHA1.fake_digest)
       else None
     }
     else None
@@ -29,7 +23,7 @@ object ML_Heap {
   def write_file_digest(heap: Path): Message_Digest =
     read_file_digest(heap) getOrElse {
       val digest = SHA1.digest(heap)
-      File.append(heap, sha1_prefix + digest.toString)
+      File.append(heap, digest.print)
       digest
     }
 
@@ -202,7 +196,7 @@ object ML_Heap {
     val heap_digest = session.heap.map(write_file_digest)
     val heap_size =
       session.heap match {
-        case Some(heap) => File.size(heap) - sha1_length
+        case Some(heap) => File.size(heap) - SHA1.print_length
         case None => 0L
       }
 

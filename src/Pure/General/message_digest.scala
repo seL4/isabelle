@@ -17,7 +17,9 @@ object Message_Digest {
   /* generic operations */
 
   class Ops(kind: String) {
-    def fake_digest(rep: String): Message_Digest = new Message_Digest(kind, rep)
+    val prefix: String = kind + ":"
+
+    def fake_digest(rep: String): Message_Digest = new Message_Digest(prefix, rep)
 
     def make_digest(update: MessageDigest => Unit): Message_Digest = {
       val dig = MessageDigest.getInstance(kind).nn
@@ -25,11 +27,12 @@ object Message_Digest {
       val res = dig.digest().nn
 
       val n = dig.getDigestLength * 2
-      new Message_Digest(kind, Library.format("%0" + n + "x", new BigInteger(1, res)))
+      new Message_Digest(prefix, Library.format("%0" + n + "x", new BigInteger(1, res)))
     }
 
     val digest_empty: Message_Digest = make_digest(_ => ())
     def digest_length: Int = digest_empty.rep.length
+    def print_length: Int = prefix.length + digest_length
 
     def digest(file: JFile): Message_Digest =
       make_digest(dig => using(new FileInputStream(file)) { stream =>
@@ -58,7 +61,10 @@ object Message_Digest {
   }
 }
 
-final class Message_Digest private(val kind: String, val rep: String) {
+final class Message_Digest private(val prefix: String, val rep: String) {
+  def kind: String = Library.try_unsuffix(":", prefix).get
+  def print: String = prefix + rep
+
   override def toString: String = rep
   override def hashCode: Int = rep.hashCode
   override def equals(that: Any): Boolean =
