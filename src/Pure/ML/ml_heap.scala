@@ -10,7 +10,7 @@ package isabelle
 object ML_Heap {
   /** heap file with SHA1 digest **/
 
-  def read_file_digest(heap: Path): Option[Message_Digest] = {
+  def read_file_digest(heap: Path): Option[Message_Digest.T] = {
     if (heap.is_file) {
       val n = SHA1.print_length
       val bs = Bytes.read_file(heap, offset = File.size(heap) - n)
@@ -20,7 +20,7 @@ object ML_Heap {
     else None
   }
 
-  def write_file_digest(heap: Path): Message_Digest =
+  def write_file_digest(heap: Path): Message_Digest.T =
     read_file_digest(heap) getOrElse {
       val digest = SHA1.digest(heap)
       File.append(heap, digest.print)
@@ -80,7 +80,7 @@ object ML_Heap {
         name = "slices_size")
     }
 
-    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest] =
+    def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest.T] =
       if (names.isEmpty) Map.empty
       else {
         db.execute_query_statement(
@@ -131,7 +131,7 @@ object ML_Heap {
       db: SQL.Database,
       name: String,
       heap_size: Long,
-      heap_digest: Option[Message_Digest],
+      heap_digest: Option[Message_Digest.T],
       log_db: Option[Log_DB]
     ): Unit = {
       clean_entry(db, name)
@@ -152,7 +152,7 @@ object ML_Heap {
       db: SQL.Database,
       name: String,
       heap_size: Long,
-      heap_digest: Option[Message_Digest],
+      heap_digest: Option[Message_Digest.T],
       log_db: Option[Log_DB]
     ): Unit =
       db.execute_statement(
@@ -172,7 +172,7 @@ object ML_Heap {
       private_data.clean_entry(db, session_name)
     }
 
-  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest] =
+  def read_digests(db: SQL.Database, names: Iterable[String]): Map[String, Message_Digest.T] =
     if (names.isEmpty) Map.empty
     else {
       private_data.transaction_lock(db, create = true, label = "ML_Heap.read_digests") {

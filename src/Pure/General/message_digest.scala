@@ -16,31 +16,46 @@ import java.math.BigInteger
 object Message_Digest {
   /* generic operations */
 
-  object Ordering extends scala.math.Ordering[Message_Digest] {
-    def compare(dig1: Message_Digest, dig2: Message_Digest): Int =
-      dig1.rep compare dig2.rep
+  final class T private[isabelle](val prefix: String, val rep: String) {
+    def kind: String = Library.try_unsuffix(":", prefix).get
+    def rep_short: String = rep.take(12)
+
+    def print: String = prefix + rep
+    def print_short: String = prefix + rep_short
+    override def toString: String = print_short
+
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: T => rep == other.rep
+        case _ => false
+      }
+    def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
+  }
+
+  object Ordering extends scala.math.Ordering[T] {
+    def compare(dig1: T, dig2: T): Int = dig1.rep compare dig2.rep
   }
 
   class Ops private[isabelle](val kind: String, val digest_length: Int) {
     val prefix: String = kind + ":"
     def print_length: Int = prefix.length + digest_length
 
-    def fake(rep: String): Message_Digest =
-      Message_Digest.fake(prefix, rep)
+    def fake(rep: String): T = Message_Digest.fake(prefix, rep)
 
-    def make(update: MessageDigest => Unit): Message_Digest = {
+    def make(update: MessageDigest => Unit): T = {
       val dig = MessageDigest.getInstance(kind).nn
       update(dig)
       val res = dig.digest().nn
 
       val n = dig.getDigestLength * 2
       assert(n == digest_length)
-      new Message_Digest(prefix, Library.format("%0" + n + "x", new BigInteger(1, res)))
+      new T(prefix, Library.format("%0" + n + "x", new BigInteger(1, res)))
     }
 
-    val digest_empty: Message_Digest = make(_ => ())
+    val digest_empty: T = make(_ => ())
 
-    def digest(file: JFile): Message_Digest =
+    def digest(file: JFile): T =
       make(dig => using(new FileInputStream(file)) { stream =>
         val buf = new Array[Byte](65536)
         var m = 0
@@ -51,13 +66,13 @@ object Message_Digest {
         }) ()
       })
 
-    def digest(path: Path): Message_Digest = digest(path.file)
-    def digest(bytes: Array[Byte]): Message_Digest = make(_.update(bytes))
-    def digest(bytes: Array[Byte], offset: Int, length: Int): Message_Digest =
+    def digest(path: Path): T = digest(path.file)
+    def digest(bytes: Array[Byte]): T = make(_.update(bytes))
+    def digest(bytes: Array[Byte], offset: Int, length: Int): T =
       make(_.update(bytes, offset, length))
-    def digest(string: String): Message_Digest = digest(UTF8.bytes(string))
+    def digest(string: String): T = digest(UTF8.bytes(string))
 
-    def digest(shasum: Shasum): Message_Digest = {
+    def digest(shasum: Shasum): T = {
       shasum.rep match {
         case List(s)
         if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake(s)
@@ -70,42 +85,25 @@ object Message_Digest {
 
   private lazy val instances = List(SHA1, SHA256)
 
-  def fake(prefix: String, rep: String): Message_Digest =
+  def fake(prefix: String, rep: String): T =
     instances.find(dig => dig.prefix == prefix) match {
       case None => error("Bad message digest prefix " + quote(prefix))
       case Some(dig) =>
         val m = rep.length
         val n = dig.digest_length
-        if (m == n) new Message_Digest(prefix, rep)
+        if (m == n) new T(prefix, rep)
         else error("Bad message digest length " + m + " for " + quote(prefix))
     }
 
-  def fake_prefix(s: String): Message_Digest =
+  def fake_prefix(s: String): T =
     instances.find(dig => s.startsWith(dig.prefix)) match {
       case None => error("Cannot determine message digest prefix from " + quote(s))
       case Some(dig) => fake(dig.prefix, Library.try_unprefix(dig.prefix, s).get)
     }
 }
 
-final class Message_Digest private(val prefix: String, val rep: String) {
-  def kind: String = Library.try_unsuffix(":", prefix).get
-  def rep_short: String = rep.take(12)
-
-  def print: String = prefix + rep
-  def print_short: String = prefix + rep_short
-  override def toString: String = print_short
-
-  override def hashCode: Int = rep.hashCode
-  override def equals(that: Any): Boolean =
-    that match {
-      case other: Message_Digest => rep == other.rep
-      case _ => false
-    }
-  def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
-}
-
 object SHA1 extends Message_Digest.Ops("SHA1", 40) {
-  def digest(bytes: Bytes): Message_Digest = bytes.sha1_digest
+  def digest(bytes: Bytes): Message_Digest.T = bytes.sha1_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
     val here = Scala_Project.here
@@ -114,7 +112,7 @@ object SHA1 extends Message_Digest.Ops("SHA1", 40) {
 }
 
 object SHA256 extends Message_Digest.Ops("SHA256", 64) {
-  def digest(bytes: Bytes): Message_Digest = bytes.sha256_digest
+  def digest(bytes: Bytes): Message_Digest.T = bytes.sha256_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA256.digest") {
     val here = Scala_Project.here

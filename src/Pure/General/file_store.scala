@@ -82,7 +82,7 @@ object File_Store {
   sealed case class Entry(
     name: String,
     size: Long,
-    digest: Message_Digest,
+    digest: Message_Digest.T,
     executable: Boolean,
     compressed: Boolean,
     body: Bytes

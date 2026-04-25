@@ -429,11 +429,11 @@ final class Bytes private(
       dig.update(a.array, a.offset, a.length)
     }
 
-  lazy val sha1_digest: Message_Digest =
+  lazy val sha1_digest: Message_Digest.T =
     if (is_empty) SHA1.digest_empty
     else SHA1.make(update_digest)
 
-  lazy val sha256_digest: Message_Digest =
+  lazy val sha256_digest: Message_Digest.T =
     if (is_empty) SHA256.digest_empty
     else SHA256.make(update_digest)
 

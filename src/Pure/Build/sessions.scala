@@ -106,8 +106,8 @@ object Sessions {
     known_theories: Map[String, Document.Node.Entry] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
     overall_syntax: Outer_Syntax = Outer_Syntax.empty,
-    imported_sources: List[(Path, Message_Digest)] = Nil,
-    session_sources: List[(Path, Message_Digest)] = Nil,
+    imported_sources: List[(Path, Message_Digest.T)] = Nil,
+    session_sources: List[(Path, Message_Digest.T)] = Nil,
     session_graph_display: Graph_Display.Graph = Graph_Display.empty_graph,
     errors: List[String] = Nil
   ) {
@@ -119,7 +119,7 @@ object Sessions {
       ", loaded_theories = " + loaded_theories.size +
       ", used_theories = " + used_theories.length
 
-    def all_sources: List[(Path, Message_Digest)] = imported_sources ::: session_sources
+    def all_sources: List[(Path, Message_Digest.T)] = imported_sources ::: session_sources
 
     def all_document_theories: List[Document.Node.Name] =
       proper_session_theories ::: document_theories
@@ -245,8 +245,8 @@ object Sessions {
       inlined_files: Boolean = false,
       list_files: Boolean = false
     ): Deps = {
-      var cache_sources = Map.empty[JFile, Message_Digest]
-      def check_sources(paths: List[Path]): List[(Path, Message_Digest)] = {
+      var cache_sources = Map.empty[JFile, Message_Digest.T]
+      def check_sources(paths: List[Path]): List[(Path, Message_Digest.T)] = {
         for {
           path <- paths
           file = path.file

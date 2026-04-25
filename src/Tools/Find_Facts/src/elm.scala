@@ -37,7 +37,7 @@ object Elm {
       new Project(name, dir, main, head)
     }
 
-    def get_digest(output_file: Path): Message_Digest =
+    def get_digest(output_file: Path): Message_Digest.T =
       Exn.capture {
         val html = HTML.parse_document(File.read(output_file))
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")

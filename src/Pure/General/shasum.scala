@@ -11,11 +11,11 @@ object Shasum {
   def flat(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
   def fake(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
 
-  def make(digest: Message_Digest, name: String): Shasum =
+  def make(digest: Message_Digest.T, name: String): Shasum =
     new Shasum(List(digest.rep + " " + name))
-  def make_meta_info(digest: Message_Digest): Shasum =
+  def make_meta_info(digest: Message_Digest.T): Shasum =
     make(digest, isabelle.setup.Build.META_INFO.nn)
-  def make_sorted(args: List[(Message_Digest, String)]): Shasum =
+  def make_sorted(args: List[(Message_Digest.T, String)]): Shasum =
     flat(args.sortBy(_._2).map(make))
 }
 
