@@ -13,6 +13,7 @@ sig
   val rep_short: T -> string
   val print: T -> string
   val fake: {prefix: string, rep: string} -> T
+  val fake_prefix: string -> T
 end;
 
 signature MESSAGE_DIGEST_OPS =
@@ -29,6 +30,8 @@ end;
 structure Message_Digest: MESSAGE_DIGEST =
 struct
 
+(* general operations *)
+
 datatype T = T of {prefix: string, rep: string};
 
 fun prefix (T {prefix, ...}) = prefix;
@@ -39,12 +42,28 @@ fun rep_short t = String.substring (rep t, 0, 12);
 
 fun print t = prefix t ^ rep t;
 
-val fake = T;
-
 val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o rep);
 
-end;
 
+(* particular instances *)
+
+val instances = [("SHA1:", 40), ("SHA256:", 64)];
+
+fun fake (arg as {prefix, rep}) =
+  (case AList.lookup (op =) instances prefix of
+    NONE => raise Fail ("Bad message digest prefix " ^ quote prefix)
+  | SOME n =>
+      let val m = size rep in
+        if m = n then T arg
+        else raise Fail ("Bad message digest length " ^ Value.print_int m ^ " for " ^ quote prefix)
+      end);
+
+fun fake_prefix s =
+  (case get_first (fn (p, _) => if String.isPrefix p s then SOME p else NONE) instances of
+    NONE => raise Fail ("Cannot determine message digest prefix from " ^ quote s)
+  | SOME p => fake {prefix = p, rep = unprefix p s});
+
+end;
 
 functor Message_Digest_Ops(val kind: string val scala_fun: Bytes.T -> Bytes.T): MESSAGE_DIGEST_OPS =
 struct

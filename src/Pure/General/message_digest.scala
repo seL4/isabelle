@@ -16,10 +16,12 @@ import java.math.BigInteger
 object Message_Digest {
   /* generic operations */
 
-  class Ops(kind: String) {
+  class Ops private[isabelle](val kind: String, val digest_length: Int) {
     val prefix: String = kind + ":"
+    def print_length: Int = prefix.length + digest_length
 
-    def fake_digest(rep: String): Message_Digest = new Message_Digest(prefix, rep)
+    def fake_digest(rep: String): Message_Digest =
+      Message_Digest.fake(prefix, rep)
 
     def make_digest(update: MessageDigest => Unit): Message_Digest = {
       val dig = MessageDigest.getInstance(kind).nn
@@ -27,12 +29,11 @@ object Message_Digest {
       val res = dig.digest().nn
 
       val n = dig.getDigestLength * 2
+      assert(n == digest_length)
       new Message_Digest(prefix, Library.format("%0" + n + "x", new BigInteger(1, res)))
     }
 
     val digest_empty: Message_Digest = make_digest(_ => ())
-    def digest_length: Int = digest_empty.rep.length
-    def print_length: Int = prefix.length + digest_length
 
     def digest(file: JFile): Message_Digest =
       make_digest(dig => using(new FileInputStream(file)) { stream =>
@@ -59,6 +60,26 @@ object Message_Digest {
       }
     }
   }
+
+  /* particular instances */
+
+  private lazy val instances = List(SHA1, SHA256)
+
+  def fake(prefix: String, rep: String): Message_Digest =
+    instances.find(dig => dig.prefix == prefix) match {
+      case None => error("Bad message digest prefix " + quote(prefix))
+      case Some(dig) =>
+        val m = rep.length
+        val n = dig.digest_length
+        if (m == n) new Message_Digest(prefix, rep)
+        else error("Bad message digest length " + m + " for " + quote(prefix))
+    }
+
+  def fake_prefix(s: String): Message_Digest =
+    instances.find(dig => s.startsWith(dig.prefix)) match {
+      case None => error("Cannot determine message digest prefix from " + quote(s))
+      case Some(dig) => fake(dig.prefix, Library.try_unprefix(dig.prefix, s).get)
+    }
 }
 
 final class Message_Digest private(val prefix: String, val rep: String) {
@@ -75,7 +96,7 @@ final class Message_Digest private(val prefix: String, val rep: String) {
   def base64: String = Base64.encode(HexFormat.of().nn.parseHex(rep).nn)
 }
 
-object SHA1 extends Message_Digest.Ops("SHA1") {
+object SHA1 extends Message_Digest.Ops("SHA1", 40) {
   def digest(bytes: Bytes): Message_Digest = bytes.sha1_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA1.digest") {
@@ -84,7 +105,7 @@ object SHA1 extends Message_Digest.Ops("SHA1") {
   }
 }
 
-object SHA256 extends Message_Digest.Ops("SHA256") {
+object SHA256 extends Message_Digest.Ops("SHA256", 64) {
   def digest(bytes: Bytes): Message_Digest = bytes.sha256_digest
 
   object Scala_Fun extends Scala.Fun_Bytes("SHA256.digest") {
