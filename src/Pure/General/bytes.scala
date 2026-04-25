@@ -453,7 +453,7 @@ final class Bytes private(
             (subarray_iterator zip other.subarray_iterator)
               .forall((a, b) => Arrays.equals(a.array, b.array))
           }
-          else sha1_digest == other.sha1_digest
+          else sha256_digest == other.sha256_digest
         }
       case _ => false
     }
