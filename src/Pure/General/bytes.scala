@@ -431,11 +431,11 @@ final class Bytes private(
 
   lazy val sha1_digest: Message_Digest =
     if (is_empty) SHA1.digest_empty
-    else SHA1.make_digest(update_digest)
+    else SHA1.make(update_digest)
 
   lazy val sha256_digest: Message_Digest =
     if (is_empty) SHA256.digest_empty
-    else SHA256.make_digest(update_digest)
+    else SHA256.make(update_digest)
 
   override def hashCode(): Int = sha1_digest.hashCode()
 

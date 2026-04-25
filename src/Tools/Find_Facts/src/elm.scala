@@ -43,7 +43,7 @@ object Elm {
         val elem = html.head.getElementsByTag("meta").attr("name", "shasum")
         Library.the_single(elem.eachAttr("content").asScala.toList)
       } match {
-        case Exn.Res(s) => SHA1.fake_digest(s)
+        case Exn.Res(s) => SHA1.fake(s)
         case _ => SHA1.digest_empty
       }
   }

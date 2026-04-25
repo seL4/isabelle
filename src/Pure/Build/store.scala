@@ -337,7 +337,7 @@ object Store {
         List.from[Source_File],
         { res =>
           val res_name = res.string(Sources.name)
-          val digest = SHA1.fake_digest(res.string(Sources.digest))
+          val digest = SHA1.fake(res.string(Sources.digest))
           val compressed = res.bool(Sources.compressed)
           val body = res.bytes(Sources.body)
           Source_File(res_name, digest, compressed, body, cache)

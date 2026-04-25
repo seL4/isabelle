@@ -131,7 +131,7 @@ object File_Store {
           val digest =
             proper_string(res.string(Base.digest)) match {
               case None => SHA1.digest_empty
-              case Some(rep) => SHA1.fake_digest(rep)
+              case Some(rep) => SHA1.fake(rep)
             }
           val executable = res.bool(Base.executable)
           val compressed = res.bool(Base.compressed)

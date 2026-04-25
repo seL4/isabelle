@@ -20,10 +20,10 @@ object Message_Digest {
     val prefix: String = kind + ":"
     def print_length: Int = prefix.length + digest_length
 
-    def fake_digest(rep: String): Message_Digest =
+    def fake(rep: String): Message_Digest =
       Message_Digest.fake(prefix, rep)
 
-    def make_digest(update: MessageDigest => Unit): Message_Digest = {
+    def make(update: MessageDigest => Unit): Message_Digest = {
       val dig = MessageDigest.getInstance(kind).nn
       update(dig)
       val res = dig.digest().nn
@@ -33,10 +33,10 @@ object Message_Digest {
       new Message_Digest(prefix, Library.format("%0" + n + "x", new BigInteger(1, res)))
     }
 
-    val digest_empty: Message_Digest = make_digest(_ => ())
+    val digest_empty: Message_Digest = make(_ => ())
 
     def digest(file: JFile): Message_Digest =
-      make_digest(dig => using(new FileInputStream(file)) { stream =>
+      make(dig => using(new FileInputStream(file)) { stream =>
         val buf = new Array[Byte](65536)
         var m = 0
         while ({
@@ -47,15 +47,15 @@ object Message_Digest {
       })
 
     def digest(path: Path): Message_Digest = digest(path.file)
-    def digest(bytes: Array[Byte]): Message_Digest = make_digest(_.update(bytes))
+    def digest(bytes: Array[Byte]): Message_Digest = make(_.update(bytes))
     def digest(bytes: Array[Byte], offset: Int, length: Int): Message_Digest =
-      make_digest(_.update(bytes, offset, length))
+      make(_.update(bytes, offset, length))
     def digest(string: String): Message_Digest = digest(UTF8.bytes(string))
 
     def digest(shasum: Shasum): Message_Digest = {
       shasum.rep match {
         case List(s)
-        if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake_digest(s)
+        if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake(s)
         case _ => digest(shasum.toString)
       }
     }

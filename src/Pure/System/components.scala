@@ -281,7 +281,7 @@ object Components {
     (proper_list(lines) getOrElse split_lines(File.read(components_sha1))).flatMap(line =>
       Word.explode(line) match {
         case Nil => None
-        case List(sha1, name) => Some(SHA1_Entry(SHA1.fake_digest(sha1), name))
+        case List(sha1, name) => Some(SHA1_Entry(SHA1.fake(sha1), name))
         case _ => error("Bad components.sha1 entry: " + quote(line))
       })
 

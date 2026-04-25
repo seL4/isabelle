@@ -30,9 +30,9 @@ object Document_Editor {
         } yield {
           Meta_Info(name,
             SortedSet.from(selection),
-            SHA1.fake_digest(sources),
-            SHA1.fake_digest(log),
-            SHA1.fake_digest(pdf))
+            SHA1.fake(sources),
+            SHA1.fake(log),
+            SHA1.fake(pdf))
         }
       }
       else None
