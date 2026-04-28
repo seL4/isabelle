@@ -17,8 +17,9 @@ proposition
   assumes "m \<noteq> n" and ab_ne: "cbox a b \<noteq> {}" and an: "0 \<le> a$n"
   shows measurable_shear_interval: "(\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i) ` (cbox a b) \<in> lmeasurable"
        (is  "?f ` _ \<in> _")
-   and measure_shear_interval: "measure lebesgue ((\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i) ` cbox a b)
-               = measure lebesgue (cbox a b)" (is "?Q")
+   and measure_shear_interval: 
+        "measure lebesgue ((\<lambda>x. \<chi> i. if i = m then x$m + x$n else x$i) ` cbox a b)
+         = measure lebesgue (cbox a b)" (is "?Q")
 proof -
   have lin: "linear ?f"
     by (rule linearI) (auto simp: plus_vec_def scaleR_vec_def algebra_simps)
@@ -87,13 +88,13 @@ proof -
       apply (simp add: cbox_translation [symmetric] translation_Int interval_ne_empty_cart imeq)
       apply (auto simp: mem_box_cart inner_axis' algebra_simps if_distrib all_if_distrib)
       by (metis (full_types) add_mono mult_2_right)
-    then show "cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<union>
+    moreover have "a $ m \<le> b $ m"
+      by (metis ab_ne interval_ne_empty_cart(1))
+      ultimately show "cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<union>
           (+) ?d ` (cbox a ?c \<inter> {x. b $ m \<le> ?mn \<bullet> x}) =
           cbox a (\<chi> i. if i = m then a $ m + b $ n else b $ i)"  (is "?lhs = ?rhs")
       using an \<open>m \<noteq> n\<close>
-      apply (auto simp: mem_box_cart inner_axis' algebra_simps if_distrib all_if_distrib, force)
-        apply (drule_tac x=n in spec)+
-      by (meson ab_ne add_mono_thms_linordered_semiring(3) dual_order.trans interval_ne_empty_cart(1))
+      by (force simp: mem_box_cart inner_axis' algebra_simps if_distrib all_if_distrib)
     have "negligible{x. ?mn \<bullet> x = a$m}"
       by (metis \<open>m \<noteq> n\<close> axis_index_axis eq_iff_diff_eq_0 negligible_hyperplane)
     moreover have "(cbox a ?c \<inter> {x. ?mn \<bullet> x \<le> a $ m} \<inter>
@@ -347,14 +348,12 @@ proof -
       also have "\<dots> = measure lebesgue ((\<lambda>v. \<chi> i. if i = m then v $ m + v $ n else v $ i) ` cbox (?v +a) (?v + b))"
         by (metis (no_types, lifting) cbox_translation)
       also have "\<dots> = measure lebesgue ((+) ?v ` cbox a b)"
-        apply (subst measure_shear_interval)
-        using \<open>m \<noteq> n\<close> ne apply auto
-        apply (simp add: cbox_translation)
-        by (metis cbox_borel cbox_translation measure_completion sets_lborel)
+        using \<open>m \<noteq> n\<close> ne 
+        by (subst measure_shear_interval) (auto simp: cbox_translation)
       also have "\<dots> = measure lebesgue (cbox a b)"
         by (rule measure_translation)
-        finally show ?thesis .
-      qed
+      finally show ?thesis .
+    qed
     show "?h ` S \<in> lmeasurable \<and> ?Q ?h S"
       using measure_linear_sufficient [OF lin \<open>S \<in> lmeasurable\<close>] meq 1 by force
   qed
@@ -420,10 +419,9 @@ next
     by (simp add: emeasure_eq_measure2 ennreal_less_iff)
   show ?thesis
   proof
-    have "U \<noteq> UNIV"
-      using \<open>U \<in> lmeasurable\<close> by auto
-    then have "- U \<noteq> {}"
-      by blast
+    have "- U \<noteq> {}"
+      using \<open>U \<in> lmeasurable\<close>
+      by (metis boolean_algebra.compl_zero double_complement not_measurable_UNIV)
     with \<open>open U\<close> \<open>frontier S \<subseteq> U\<close> show "setdist (frontier S) (- U) > 0"
       by (auto simp: \<open>bounded S\<close> open_closed compact_frontier_bounded setdist_gt_0_compact_closed frS)
     fix T
@@ -624,13 +622,8 @@ proof -
             using pwC that pairwise_image pairwise_mono by fastforce
           have "?l \<le> (\<Sum>i\<in>K. ?\<mu> (case i of (x, s) \<Rightarrow> f ` (S \<inter> ball x s)))"
           proof (rule measure_UNION_le [OF \<open>finite K\<close>], clarify)
-            fix x r
-            assume "(x,r) \<in> K"
-            then have "x \<in> S"
-              using Csub \<open>K \<subseteq> C\<close> by auto
-            show "f ` (S \<inter> ball x r) \<in> sets lebesgue"
-              by (meson Int_lower1 S differentiable_on_subset f_diff fmeasurableD lmeasurable_ball order_refl sets.Int differentiable_image_in_sets_lebesgue)
-          qed
+          qed (meson Int_lower1 S differentiable_on_subset f_diff fmeasurableD 
+                  lmeasurable_ball order_refl sets.Int differentiable_image_in_sets_lebesgue)
           also have "\<dots> \<le> (\<Sum>(x,s) \<in> K. (B + e) * ?\<mu> (ball x s))"
             using Csub r \<open>K \<subseteq> C\<close>  by (intro sum_mono) auto
           also have "\<dots> = (B + e) * (\<Sum>(x,s) \<in> K. ?\<mu> (ball x s))"
@@ -733,15 +726,13 @@ proof -
       have meas: "(\<lambda>x. \<bar>eucl.det (f' x)\<bar>) \<in> borel_measurable (lebesgue_on S)"
         using integrable_imp_measurable[OF int] .
       have 1: "{x \<in> S. real n * e \<le> \<bar>eucl.det (f' x)\<bar>} \<in> sets (lebesgue_on S)"
-        using borel_measurable_le[OF _ meas] by (simp add: space_lebesgue_on)
+        using borel_measurable_le[OF _ meas] by simp
       have 2: "{x \<in> S. \<bar>eucl.det (f' x)\<bar> < real (Suc n) * e} \<in> sets (lebesgue_on S)"
-        using borel_measurable_less[OF meas] by (simp add: space_lebesgue_on)
+        using borel_measurable_less[OF meas] by simp
       have "{x \<in> S. real n * e \<le> \<bar>eucl.det (f' x)\<bar> \<and> \<bar>eucl.det (f' x)\<bar> < real (Suc n) * e} \<in> sets (lebesgue_on S)"
-        using Int_Collect sets.Int[OF 1 2] by (metis Collect_conj_eq2)
-      then have "Sn n \<in> sets (lebesgue_on S)"
-        by (simp add: Sn_def)
+        using sets.Int[OF 1 2] by (metis Collect_conj_eq2)
       then have "Sn n \<in> sets lebesgue"
-        using S sets_restrict_space_iff[of S lebesgue] by blast
+        using S sets_restrict_space_iff[of S lebesgue] Sn_def by blast
       then show ?thesis
         using fmeasurableI2[OF S Sn_sub] by blast
     qed
@@ -773,14 +764,18 @@ proof -
           using lmeasure_integral[OF Sn_mble] integral_mult_right[of "Sn n" "real n * e"]
           by (metis (no_types, lifting) Henstock_Kurzweil_Integration.integral_cong lambda_one mult_commute_abs)
         also have "\<dots> \<le> integral (Sn n) (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)"
-          using integral_le[OF integrable_on_const[OF Sn_mble] Sn_int]
-          using Sn_def by blast
+          using integral_le[OF integrable_on_const[OF Sn_mble] Sn_int] Sn_def by blast
         finally show ?thesis .
       qed
       finally show ?thesis using fSn_meas [of n] by linarith
     qed
     have "f ` S = (\<Union>n. f ` Sn n)"
       using S_eq by auto
+    have disj: "disjoint_family_on Sn {..n}" for n
+      unfolding disjoint_family_on_def Sn_def 
+      using mult_strict_right_mono[OF _ \<open>e > 0\<close>]
+      apply auto
+      by (smt (verit) le_antisym nat_le_real_less)
     have bound: "?\<mu> (\<Union> ((\<lambda>k. f ` Sn k) ` {..n})) \<le> m + e * ?\<mu> S" for n
     proof -
       have "?\<mu> (\<Union> ((\<lambda>k. f ` Sn k) ` {..n})) \<le> (\<Sum>k\<le>n. ?\<mu> (f ` Sn k))"
@@ -793,11 +788,6 @@ proof -
       proof (intro add_mono mult_left_mono)
         show "(\<Sum>k\<le>n. integral (Sn k) (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)) \<le> m"
         proof -
-          have disj: "disjoint_family_on Sn {..n}"
-            unfolding disjoint_family_on_def Sn_def 
-            using mult_strict_right_mono[OF _ \<open>e > 0\<close>]
-            apply auto
-            by (smt (verit) le_antisym nat_le_real_less)
           have pw: "pairwise (\<lambda>i i'. negligible (Sn i \<inter> Sn i')) {..n}"
             using disj unfolding disjoint_family_on_def pairwise_def
             by auto
@@ -806,33 +796,19 @@ proof -
           have sum_eq: "(\<Sum>k\<le>n. integral (Sn k) (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)) = integral (\<Union>k\<le>n. Sn k) (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)"
             using integral_unique[OF hi] by simp
           also have "\<dots> \<le> integral S (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)"
-          proof (rule integral_subset_le)
-            show "(\<Union>k\<le>n. Sn k) \<subseteq> S" using Sn_sub by auto
-            show "(\<lambda>x. \<bar>eucl.det (f' x)\<bar>) integrable_on (\<Union>k\<le>n. Sn k)"
-              using hi by (auto simp: integrable_on_def)
-            show "(\<lambda>x. \<bar>eucl.det (f' x)\<bar>) integrable_on S" using int .
-            show "\<forall>x\<in>S. 0 \<le> \<bar>eucl.det (f' x)\<bar>" by auto
-          qed
+            by (metis Sn_sub UN_least abs_ge_zero hi int integrable_on_def
+                integral_subset_le)
           finally show ?thesis by (simp add: m_def)
         qed
         show "(\<Sum>k\<le>n. ?\<mu> (Sn k)) \<le> ?\<mu> S"
         proof -
-          have disj: "disjoint_family_on Sn {..n}"
-            unfolding disjoint_family_on_def Sn_def
-            using mult_strict_right_mono[OF _ \<open>e > 0\<close>]
-            apply auto
-            by (smt (verit, ccfv_threshold) nat_le_real_less order_antisym)
           have "(\<Sum>k\<le>n. ?\<mu> (Sn k)) = ?\<mu> (\<Union>k\<le>n. Sn k)"
             by (intro measure_finite_Union[symmetric])
                (auto intro: disj fmeasurableD[OF Sn_mble]
                      simp: emeasure_eq_measure2[OF Sn_mble])
           also have "\<dots> \<le> ?\<mu> S"
-          proof (rule measure_mono_fmeasurable)
-            show "(\<Union>k\<le>n. Sn k) \<subseteq> S" using Sn_sub by auto
-            show "(\<Union>k\<le>n. Sn k) \<in> sets lebesgue"
-              by (intro sets.finite_Union) (auto intro: fmeasurableD[OF Sn_mble])
-            show "S \<in> lmeasurable" using S .
-          qed
+            by (metis S Sn_sub UN_least measure_mono_fmeasurable measure_nonneg
+                measure_notin_sets)
           finally show ?thesis .
         qed
         show "0 \<le> e" using \<open>e > 0\<close> by linarith
@@ -841,7 +817,7 @@ proof -
     qed
     have fS_mble: "f ` S \<in> lmeasurable"
       using fmeasurable_countable_Union[OF fSn_mble bound] \<open>f ` S = (\<Union>n. f ` Sn n)\<close>
-      by (metis (no_types) atMost_atLeast0 image_comp)
+      by (metis (no_types))
     have fS_meas: "?\<mu> (f ` S) \<le> m + e * ?\<mu> S"
       using measure_countable_Union_le[OF fSn_mble bound] \<open>f ` S = (\<Union>n. f ` Sn n)\<close>
       by (metis (no_types) atMost_atLeast0 image_comp)
@@ -904,10 +880,8 @@ proof -
       by (rule integral_subset_le [OF _ In_int int]) auto
     with res show ?MN by linarith
   qed
-  have "?I k \<subseteq> ?I n" if "k \<le> n" for k n
-    using that by (force simp: mem_box)
-  then have "(\<Union>k\<le>n. f ` ?I k) = f ` ?I n" for n
-    by (fastforce simp add:)
+  have "(\<Union>k\<le>n. f ` ?I k) = f ` ?I n" for n
+    by (fastforce simp: mem_box)
   with mfIn have "?\<mu> (\<Union>k\<le>n. f ` ?I k) \<le> integral S (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)" for n
     by simp
   then have "(\<Union>n. f ` ?I n) \<in> lmeasurable" "?\<mu> (\<Union>n. f ` ?I n) \<le> integral S (\<lambda>x. \<bar>eucl.det (f' x)\<bar>)"
@@ -921,8 +895,7 @@ subsection\<open>Borel measurable Jacobian determinant\<close>
 proposition linear_rational_approximation:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "e > 0"
-  obtains g where "linear g"
-    "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> g i \<bullet> j \<in> \<rat>"
+  obtains g where "linear g" "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> g i \<bullet> j \<in> \<rat>"
     "onorm (f - g) < e"
 proof -
   define d where "d = e / (2 * DIM('a) * DIM('b))"
@@ -967,10 +940,8 @@ proof -
       using onorm_componentwise[OF bl_fg] by (simp add: fun_diff_def)
     also have "\<dots> \<le> (\<Sum>i\<in>(Basis::'a set). (\<Sum>j\<in>(Basis::'b set). \<bar>(f - g) i \<bullet> j\<bar>))"
       by (intro sum_mono norm_le_l1)
-    also have "\<dots> = (\<Sum>i\<in>(Basis::'a set). (\<Sum>j\<in>(Basis::'b set). \<bar>f i \<bullet> j - g i \<bullet> j\<bar>))"
-      by (simp add: inner_diff_left)
     also have "\<dots> = (\<Sum>i\<in>(Basis::'a set). (\<Sum>j\<in>(Basis::'b set). \<bar>f i \<bullet> j - q i j\<bar>))"
-      by (simp add: g_basis)
+      by (simp add: inner_diff_left g_basis)
     also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). (\<Sum>j\<in>(Basis::'b set). d))"
       by (intro sum_strict_mono finite_Basis) (use qclo abs_minus_commute in force)+
     also have "\<dots> = DIM('a) * DIM('b) * d"
@@ -983,8 +954,7 @@ proof -
 qed
 
 
-
-lemma orthogonal_transformation_exists:
+proposition orthogonal_transformation_exists:
   fixes a b :: "'a::euclidean_space"
   assumes "norm a = norm b"
   obtains T where "orthogonal_transformation T" "T a = b"
@@ -1888,7 +1858,7 @@ proof -
             using f [OF \<open>x \<in> S\<close>]
             by (simp add: Deriv.has_derivative_at_within Lim_within)
               (auto simp add: field_simps dest: spec [of _ "e/2"])
-          \<comment> \<open>Rank-1 perturbation: EU analogue of \<chi> matrix\<close>
+          \<comment> \<open>Rank-1 perturbation\<close>
           define P where "P \<equiv> \<lambda>w::'a. ((e / (4 * (u \<bullet> u) * (v \<bullet> v))) * (w \<bullet> u)) *\<^sub>R (v::'b)"
           have linP: "linear P"
             unfolding P_def by (intro linearI) (auto simp: inner_left_distrib scaleR_add_left scaleR_left_distrib algebra_simps add_divide_distrib)
@@ -1923,7 +1893,7 @@ proof -
             using linP linear_conv_bounded_linear by blast
           have linA': "linear ?A"
             by (simp add: fun_diff_def linP linear_compose_sub linf')
-          \<comment> \<open>Rational approximation of linear maps (EU version of matrix_rational_approximation)\<close>
+          \<comment> \<open>Rational approximation of linear maps\<close>
           obtain B where linB: "linear B"
                      and BRats: "\<And>i j. i \<in> Basis \<Longrightarrow> j \<in> Basis \<Longrightarrow> B i \<bullet> j \<in> \<rat>"
                      and Bo_e6: "onorm (?A - B) < e/6"
