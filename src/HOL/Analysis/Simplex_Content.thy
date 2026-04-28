@@ -117,37 +117,11 @@ theorem content_std_simplex:
      1 / fact DIM('a)"
   by (simp add: measure_def emeasure_std_simplex)
 
-(* TODO: move to Change_of_Vars *)
-proposition measure_lebesgue_linear_transformation:
-  fixes A :: "(real ^ 'n :: {finite, wellorder}) set"
-  fixes f :: "_ \<Rightarrow> real ^ 'n :: {finite, wellorder}"
-  assumes "bounded A" "A \<in> sets lebesgue" "linear f"
-  shows   "measure lebesgue (f ` A) = \<bar>det (matrix f)\<bar> * measure lebesgue A"
-proof -
-  from assms have [intro]: "A \<in> lmeasurable"
-    by (intro bounded_set_imp_lmeasurable) auto
-  hence [intro]: "f ` A \<in> lmeasurable"
-    by (intro lmeasure_integral measurable_linear_image assms)
-  have "measure lebesgue (f ` A) = integral (f ` A) (\<lambda>_. 1)"
-    by (intro lmeasure_integral measurable_linear_image assms) auto
-  also have "\<dots> = integral (f ` A) (\<lambda>_. 1 :: real ^ 1) $ 0"
-    by (subst integral_component_eq_cart [symmetric]) (auto intro: integrable_on_const)
-  also have "\<dots> = \<bar>det (matrix f)\<bar> * integral A (\<lambda>x. 1 :: real ^ 1) $ 0"
-    using assms
-    by (subst integral_change_of_variables_linear)
-       (auto simp: o_def absolutely_integrable_on_def intro: integrable_on_const)
-  also have "integral A (\<lambda>x. 1 :: real ^ 1) $ 0 = integral A (\<lambda>x. 1)"
-    by (subst integral_component_eq_cart [symmetric]) (auto intro: integrable_on_const)
-  also have "\<dots> = measure lebesgue A"
-    by (intro lmeasure_integral [symmetric]) auto
-  finally show ?thesis .
-qed
-
 theorem content_simplex:
   fixes X :: "(real ^ 'n :: {finite, wellorder}) set" and f :: "'n :: _ \<Rightarrow> real ^ ('n :: _)"
   assumes "finite X" "card X = Suc CARD('n)" and x0: "x0 \<in> X" and bij: "bij_betw f UNIV (X - {x0})"
   defines "M \<equiv> (\<chi> i. \<chi> j. f j $ i - x0 $ i)"
-  shows "content (convex hull X) = \<bar>det M\<bar> / fact (CARD('n))"
+  shows "content (convex hull X) = \<bar>matrix_det M\<bar> / fact (CARD('n))"
 proof -
   define g where "g = (\<lambda>x. M *v x)"
   have [simp]: "M *v axis i 1 = f i - x0" for i :: 'n
@@ -164,9 +138,11 @@ proof -
     using x0 by (auto simp: image_iff)
   finally have eq: "measure lebesgue (convex hull X) = measure lebesgue (convex hull \<dots>)" .
   
-  from compact have "measure lebesgue (g ` std) = \<bar>det M\<bar> * measure lebesgue std"
+  from compact have "measure lebesgue (g ` std) = \<bar>eucl.det ((*v) M)\<bar> * measure lebesgue std"
     by (subst measure_lebesgue_linear_transformation)
        (auto intro: finite_imp_bounded_convex_hull dest: compact_imp_closed simp: g_def std_def)
+  also have "\<bar>eucl.det ((*v) M)\<bar> = \<bar>matrix_det M\<bar>"
+    by (simp add: eucl_det_conv_matrix_det)
   also have "measure lebesgue std = content std" using compact
     by (intro measure_completion) (auto dest: compact_imp_closed)
   also have "content std = 1 / fact CARD('n)" unfolding std_def
@@ -207,9 +183,11 @@ proof -
   finally have eq: "measure lebesgue (convex hull {A, B, C}) =
                       measure lebesgue (convex hull {0, B - A, C - A})" .
   
-  from compact have "measure lebesgue (g ` std) = \<bar>det M\<bar> * measure lebesgue std"
-    by (subst measure_lebesgue_linear_transformation)
+  from compact have "measure lebesgue (g ` std) = \<bar>eucl.det ((*v) M)\<bar> * measure lebesgue std"
+  by (subst measure_lebesgue_linear_transformation)
        (auto intro: finite_imp_bounded_convex_hull dest: compact_imp_closed simp: g_def std_def)
+  also have "\<bar>eucl.det ((*v) M)\<bar> = \<bar>matrix_det M\<bar>"
+    by (simp add: eucl_det_conv_matrix_det)
   also have "measure lebesgue std = content std" using compact
     by (intro measure_completion) (auto dest: compact_imp_closed)
   also have "content std = 1 / 2" unfolding std_def
