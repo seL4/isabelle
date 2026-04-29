@@ -3551,8 +3551,20 @@ lemma nth_equalityI:
   by (frule nth_take_lemma [OF le_refl eq_imp_le]) simp_all
 
 lemma map_nth:
-  "map (\<lambda>i. xs ! i) [0..<length xs] = xs"
+  "map (nth xs) [0..<length xs] = xs"
   by (rule nth_equalityI, auto)
+
+lemma map_nth_upt: assumes "n \<le> length xs"
+  shows "map (nth xs) [m..<n] = take (n-m) (drop m xs)"
+proof -
+  have "map (nth xs) [m..<n] =  take (n-m) (drop m (map (nth xs) [0..<length xs]))"
+    using assms take_map[of n "(!) xs"] drop_take[of m n "map ((!) xs) [0..<length xs]"]
+    by(simp add: drop_map)
+  thus ?thesis by (metis map_nth)
+qed
+
+corollary map_nth_upt0: "n \<le> length xs \<Longrightarrow> map (nth xs) [0..<n] = take n xs"
+by(simp add: map_nth_upt)
 
 lemma list_all2_antisym:
   "\<lbrakk> (\<And>x y. \<lbrakk>P x y; Q y x\<rbrakk> \<Longrightarrow> x = y); list_all2 P xs ys; list_all2 Q ys xs \<rbrakk>
