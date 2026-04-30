@@ -134,7 +134,8 @@ proof -
     fix e::real
     assume "e > 0"
     then obtain k where k: "(1/2)^k < e/DIM('a)"
-      by (meson DIM_positive divide_less_eq_1_pos of_nat_0_less_iff one_less_numeral_iff arch_pow_inv semiring_norm(76) zero_less_divide_iff zero_less_numeral)
+      by (metis DIM_positive arch_pow_inv divide_less_eq_1 divide_pos_pos
+          less_add_one of_nat_0 of_nat_less_iff one_add_one zero_less_numeral)
     have "dist (\<Sum>i\<in>Basis. (real_of_int \<lfloor>2^k*(x \<bullet> i)\<rfloor> / 2^k) *\<^sub>R i) x =
           dist (\<Sum>i\<in>Basis. (real_of_int \<lfloor>2^k*(x \<bullet> i)\<rfloor> / 2^k) *\<^sub>R i) (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i)"
       by (simp add: euclidean_representation)
@@ -564,7 +565,9 @@ proof -
   show thesis
   proof
     show "real (max 0 (nat q)) / p ^ n < x"
-      using * by (metis assms(3) div_0 max_nat.left_neutral nat_eq_iff2 of_nat_0 of_nat_nat) 
+      using *
+      by (metis \<open>0 < x\<close> divide_eq_0_iff max_nat.left_neutral nat_eq_iff
+          of_int_of_nat_eq of_nat_0) 
     show "x < real (nat r) / p ^ n"
       using \<open>r \<ge> 0\<close> * by force
     show "\<bar>real (max 0 (nat q)) / p ^ n - real (nat r) / p ^ n\<bar> < \<epsilon>"
@@ -1054,7 +1057,7 @@ proof -
           have "odd (Suc k)"
             using True by auto
           then show ?thesis
-            by (metis (no_types) Groups.add_ac(2) Suc.IH j of_nat_Suc of_nat_mult of_nat_numeral)
+            by (metis (no_types) add.commute Suc.IH j of_nat_Suc of_nat_mult of_nat_numeral)
         qed
         moreover have "a ((2 * real j + 1) / 2 ^ n) \<le>
                        leftcut (a ((2 * real j + 1) / 2 ^ n)) (b ((2 * real j + 1) / 2 ^ n)) (c ((2 * real j + 1) / 2 ^ n))"
@@ -1984,13 +1987,13 @@ proof -
             have "False" if "\<xi> \<in> F n" "u < \<xi>" "\<xi> < v" for \<xi>
             proof -
               have "\<xi> \<notin> {z..v}"
-                by (metis DiffI disjoint_iff_not_equal less_irrefl singletonD that(1,3) v(3))
+                using \<open>\<xi> < v\<close> that(1) v(3) by fastforce
               moreover have "\<xi> \<notin> {w..z} \<inter> F n"
                 by (metis equals0D wzF_null)
               ultimately have "\<xi> \<in> {u..w}"
                 using that by auto
               then show ?thesis
-                by (metis DiffI disjoint_iff_not_equal less_eq_real_def not_le singletonD that(1,2) u(3))
+                by (metis DiffI \<open>u < \<xi>\<close> disjoint_iff order_less_irrefl singletonD that(1) u(3))
             qed
             moreover
             have "\<lbrakk>\<xi> \<in> F n; v < \<xi>; \<xi> < u\<rbrakk> \<Longrightarrow> False" for \<xi>
@@ -2005,7 +2008,8 @@ proof -
           by (metis dist_norm dist_triangle_half_r order_less_irrefl)
       qed (auto simp: open_segment_commute)
       show ?thesis
-        unfolding \<phi>_def by (metis (no_types, opaque_lifting) INT_I Inf_lower2 rangeI that(3) F01 subsetCE pqF)
+        unfolding \<phi>_def
+        by (meson F01 INT_I Inf_lower2 InterE pqF range_eqI)
     qed
     show "closed {0..1::real}" by auto
   qed (meson \<phi>_def)

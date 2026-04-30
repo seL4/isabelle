@@ -2199,7 +2199,7 @@ proof -
   have "\<forall>ys \<in> Y. set ys \<subseteq> {a}"
     by (metis (mono_tags, lifting) assms image_iff mset_eq_setD)
   thus ?thesis
-    by (metis antisym assms(1,2) singleton_set_mset_subset subset_refl)
+    by (metis antisym assms singleton_set_mset_subset subset_refl)
 qed
 
 global_interpretation mset_set: folding add_mset "{#}"
@@ -3925,7 +3925,7 @@ proof (rule total_onI)
       greatest1_in: "greatest1 \<in># M1 - ?I" and
       greatest1_greatest: "\<forall>x \<in># M1 - ?I. greatest1 \<noteq> x \<longrightarrow> (x, greatest1) \<in> r"
       using Multiset.bex_greatest_element[to_set, of "M1 - ?I" r]
-      by (metis assms(2) subset_UNIV trans_on_subset)
+      by (metis \<open>trans r\<close> transD trans_onI)
 
     from assms(1) have "total_on (set_mset (M2 - ?I)) r"
       by (meson \<open>M2 \<in> B\<close> assms(3) diff_subset_eq_self set_mset_mono total_on_subset)
@@ -3933,7 +3933,7 @@ proof (rule total_onI)
       greatest2_in: "greatest2 \<in># M2 - ?I" and
       greatest2_greatest: "\<forall>x \<in># M2 - ?I. greatest2 \<noteq> x \<longrightarrow> (x, greatest2) \<in> r"
       using Multiset.bex_greatest_element[to_set, of "M2 - ?I" r]
-      by (metis assms(2) subset_UNIV trans_on_subset)
+      by (metis \<open>trans r\<close> top_greatest trans_on_subset)
 
     have "greatest1 \<noteq> greatest2"
       using greatest1_in \<open>greatest2 \<in># M2 - ?I\<close>
@@ -3953,7 +3953,7 @@ proof (rule total_onI)
       next
         show "\<forall>k\<in>#M1 - ?I. \<exists>j\<in>#M2 - ?I. (k, j) \<in> r"
           using \<open>(greatest1, greatest2) \<in> r\<close> greatest2_in greatest1_greatest
-          by (metis assms(2) transD)
+          by (metis \<open>trans r\<close> transD)
       qed
       hence "(M1, M2) \<in> mult r"
         by (metis subset_mset.add_diff_inverse subset_mset.inf.cobounded1
