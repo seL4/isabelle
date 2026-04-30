@@ -753,7 +753,6 @@ proof (intro operative.intro comm_monoid_set_and operative_axioms.intro iffI)
 qed (use absolutely_setcontinuous_on_subset in fastforce)+
 
 lemma operative_absolutely_continuous_on:
-  fixes f :: \<open>real \<Rightarrow> 'a::euclidean_space\<close>
   shows \<open>operative (\<and>) True (\<lambda>S. absolutely_continuous_on S f)\<close>
 proof -
   define h where \<open>h \<equiv> \<lambda>S. if S = {} then 0 else f (Sup S) - f (Inf S)\<close>
@@ -1028,7 +1027,7 @@ text \<open>
 \<close>
 
 theorem fundamental_theorem_of_calculus_Bartle:
-  fixes f :: \<open>real \<Rightarrow> 'a::euclidean_space\<close> and f' :: \<open>real \<Rightarrow> 'a\<close>
+  fixes f :: \<open>real \<Rightarrow> 'a::real_normed_vector\<close> and f' :: \<open>real \<Rightarrow> 'a\<close>
   assumes neg: \<open>negligible S\<close>
     and \<open>a \<le> b\<close>
     and deriv: \<open>\<And>x. x \<in> {a..b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x within {a..b})\<close>
@@ -2597,7 +2596,7 @@ proof -
 qed
 
 lemma bilinear_integral_bound:
-  fixes bop :: \<open>'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space\<close>
+  fixes bop :: \<open>'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector \<Rightarrow> 'c::banach\<close>
   assumes bop_bound: \<open>\<And>u v. norm (bop u v) \<le> M * norm u * norm v\<close>
     and u_bound: \<open>\<And>x. x \<in> {a..b} \<Longrightarrow> norm (u x) \<le> C\<close>
     and v_int: \<open>(\<lambda>x. norm (v x)) integrable_on {a..b}\<close>
