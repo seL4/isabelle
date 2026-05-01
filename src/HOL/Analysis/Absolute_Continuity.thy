@@ -166,14 +166,11 @@ proof -
               and coll: \<open>k1 \<inter> {u..v} = k2 \<inter> {u..v}\<close>
             for k1 k2
           proof -
-            have \<open>interior k1 \<inter> interior {u..v} = interior k2 \<inter> interior {u..v}\<close>
-              using arg_cong[OF coll, of interior] by simp
-            then have \<open>interior (k1 \<inter> {u..v}) \<subseteq> interior k1 \<inter> interior k2\<close>
-              by auto
-            then have \<open>interior (k1 \<inter> {u..v}) = {}\<close>
-              using division_ofD(5)[OF div k1d k2d neq] by auto
             obtain a1 b1 where k1_eq: \<open>k1 = cbox a1 b1\<close>
               using division_ofD(4)[OF div k1d] by blast
+            then have \<open>interior (k1 \<inter> {u..v}) = {}\<close>
+              using k1d k2d coll div unfolding division_of_def
+              by (metis (no_types, lifting) inf.idem inf_assoc inf_bot_left interior_Int  neq)
             have k1_uv: \<open>k1 \<inter> {u..v} = cbox (max a1 u) (min b1 v)\<close>
               by (simp add: k1_eq cbox_interval)
             then have \<open>box (max a1 u) (min b1 v) = {}\<close>
@@ -181,7 +178,6 @@ proof -
             then show ?thesis
               using operative.box_empty_imp[OF assms(1)] k1_uv by auto
           qed
-          \<comment> \<open>Reindex via @{text SUM_IMAGE_NONZERO}\<close>
           have fin_A: \<open>finite {k \<in> d. k \<inter> {u..v} \<noteq> {}}\<close> using fin_d by auto
           have reindex: \<open>sum (\<lambda>k. norm (f k)) ((\<lambda>k. k \<inter> {u..v}) ` {k \<in> d. k \<inter> {u..v} \<noteq> {}})
               = sum ((\<lambda>k. norm (f k)) \<circ> (\<lambda>k. k \<inter> {u..v})) {k \<in> d. k \<inter> {u..v} \<noteq> {}}\<close>
@@ -1305,8 +1301,8 @@ proof -
         moreover from \<open>xk1 \<in> p\<close> pd eq obtain c d where \<open>K1 = cbox c d\<close>
           using tagged_partial_division_ofD(4) by blast
         ultimately have \<open>box c d = {}\<close> using interior_cbox by metis
-        moreover from \<open>xk1 \<in> p\<close> pd eq have \<open>x1 \<in> K1\<close> using tagged_partial_division_ofD(2) by blast
-        moreover from \<open>xk2 \<in> p\<close> pd eq have \<open>x2 \<in> K1\<close> using tagged_partial_division_ofD(2) by blast
+        moreover from \<open>xk1 \<in> p\<close> \<open>xk2 \<in> p\<close> pd eq have \<open>x1 \<in> K1\<close> \<open>x2 \<in> K1\<close> 
+          using tagged_partial_division_ofD(2) by blast+
         ultimately have \<open>x1 = x2\<close> using \<open>K1 = cbox c d\<close> by (simp add: mem_box)
         with eq show False using \<open>xk1 \<noteq> xk2\<close> by auto
       qed
@@ -2061,8 +2057,7 @@ proof -
     have limit_small: "integral S (\<lambda>x. norm (f x - h x)) < e"
       using he2 by simp
     then obtain N where "\<forall>n\<ge>N. norm (integral S (fn n) - integral S (\<lambda>x. norm (f x - h x))) < e - integral S (\<lambda>x. norm (f x - h x))"
-      using conv_S LIMSEQ_iff
-      by (smt (verit) assms(3) diff_gt_0_iff_gt)
+      using LIMSEQ_D conv_S diff_gt_0_iff_gt by blast
     then have "norm (integral S (fn N)) < e"
       by (smt (verit, best) Henstock_Kurzweil_Integration.integral_norm_bound_integral
           dual_order.refl fn_def fn_int norm_ge_zero real_norm_def)
@@ -2114,16 +2109,12 @@ proof -
     then have \<open>norm (integral (cbox (- c) c) (\<lambda>x. if x \<in> S then norm (f x) else 0) -
                      integral S (\<lambda>x. norm (f x))) < e / 3\<close>
       using B by blast
-    moreover have \<open>integral (cbox (- c) c) (\<lambda>x. if x \<in> S then norm (f x) else 0) =
-                   integral (S \<inter> cbox (- c) c) (\<lambda>x. norm (f x))\<close>
-      by (rule integral_restrict_Int)
-    ultimately show ?thesis
-      using that by auto
+    then show ?thesis
+      by (simp add: Henstock_Kurzweil_Integration.integral_restrict_Int that)
   qed
   text \<open>Apply the existing lemma to get a continuous bounded approximation on the box.\<close>
   have meas_inter: \<open>S \<inter> cbox a b \<in> lmeasurable\<close>
-    by (intro bounded_set_imp_lmeasurable bounded_Int)
-       (use S_meas lmeasurable_cbox fmeasurableD sets.Int in auto)
+    by (metis Int_commute S_meas fmeasurable_Int_fmeasurable lmeasurable_cbox)
   obtain g where g_int: \<open>g absolutely_integrable_on (S \<inter> cbox a b)\<close>
     and g_cont: \<open>continuous_on UNIV g\<close>
     and g_bdd: \<open>bounded (g ` UNIV)\<close>
