@@ -1572,13 +1572,11 @@ proof -
     using continuous_on_eq_continuous_within f has_derivative_continuous by blast
   show ?thesis
   proof (rule sets_negligible_symdiff)
-
     define C where "C \<equiv> \<lambda>e A d x y. norm(y - x) < d \<longrightarrow> norm(f y - f x - A (y - x)) \<le> e * norm(y - x)"
     let ?T = "{x \<in> S. \<forall>e>0. \<exists>d>0. \<exists>A. linear A \<and> A u \<bullet> v < b \<and> All_Rat A \<and>
                        (\<forall>y \<in> S. C e A d x y)}"
     show "?T \<in> sets lebesgue"
       using lebesgue_rational_linear_approx_set [OF S contf]
-
     proof -
       have "?T = {x \<in> S. \<forall>e>0. \<exists>d>0. \<exists>A. linear A \<and> A u \<bullet> v < b \<and> All_Rat A \<and>
                          (\<forall>y \<in> S. norm(y - x) < d \<longrightarrow> norm(f y - f x - A (y - x)) \<le> e * norm(y - x))}"
@@ -1625,9 +1623,7 @@ proof -
               for x :: 'a and l :: 'b and y :: 'a and l' :: 'b
               using that linA   
               by (intro exI [where x="l+l'"]) (simp add: Real_Vector_Spaces.linear_iff tendsto_add)
-            moreover have "\<exists>l. (\<lambda>n. A n (c *\<^sub>R x)) \<longlonglongrightarrow> l"
-              if "(\<lambda>n. A n x) \<longlonglongrightarrow> l"
-              for c :: real and x :: 'a and l :: 'b
+            moreover have "\<exists>l. (\<lambda>n. A n (c *\<^sub>R x)) \<longlonglongrightarrow> l" if "(\<lambda>n. A n x) \<longlonglongrightarrow> l" for c x l
               using that linA
               by (intro exI [where x="c *\<^sub>R l"]) (simp add: Real_Vector_Spaces.linear_iff tendsto_scaleR)
             ultimately have "subspace ?CA"
@@ -1668,8 +1664,7 @@ proof -
                               norm (y' - x) < 1/(Suc (Suc i))) \<and> norm (y' - x) < norm (y - x)"
                       by (auto simp: dist_norm norm_minus_commute)
                   qed
-                  then obtain \<gamma> where
-                        \<gamma>Sx: "\<And>i. \<gamma> i \<in> S - {x}"
+                  then obtain \<gamma> where \<gamma>Sx: "\<And>i. \<gamma> i \<in> S - {x}"
                         and \<gamma>le: "\<And>i. \<xi> * norm(\<gamma> i - x) \<le> \<bar>d \<bullet> (\<gamma> i - x)\<bar>"
                         and \<gamma>conv: "\<And>i. norm(\<gamma> i - x) < 1/(Suc i)"
                     by blast
@@ -1788,9 +1783,7 @@ proof -
               by (intro tendsto_intros a)
             moreover have "A n i = (\<Sum>j\<in>Basis. (A n i \<bullet> j) *\<^sub>R j)" for n
               by (rule euclidean_representation [symmetric])
-            ultimately have "(\<lambda>n. A n i) \<longlonglongrightarrow> (\<Sum>j\<in>Basis. a j *\<^sub>R j)"
-              by simp
-            then show ?thesis
+            ultimately show ?thesis
               by (auto simp: convergent_def)
           qed
           define B where "B \<equiv> \<lambda>i. lim (\<lambda>n. A n i)"
@@ -1895,12 +1888,7 @@ proof -
                     show "norm (f y - f x - A (p + q) (y - x)) \<le> norm (y - x) / (Suc (p + q))"
                       using A y by (force simp: C_def)
                     have "norm (A (p + q) (y - x) - B (y - x)) \<le> onorm (A (p + q) - B) * norm(y - x)"
-                    proof -
-                      have "A (p + q) (y - x) - B (y - x) = (A (p + q) - B) (y - x)"
-                        by simp
-                      then show ?thesis
-                        using onorm [OF blAB] by simp
-                    qed
+                      by (metis blAB minus_apply onorm)
                     also have "\<dots> < (e/2) * norm (y - x)"
                       using \<open>y \<noteq> x\<close> pqe2 by auto
                     also have "\<dots> \<le> (e - 1 / (Suc (p + q))) * norm (y - x)"
