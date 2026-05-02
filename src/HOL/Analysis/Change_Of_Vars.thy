@@ -1451,7 +1451,7 @@ proof -
     by (simp add: Deriv.has_derivative_at_within Lim_within)
       (auto simp add: field_simps dest: spec [of _ "e/2"])
   \<comment> \<open>Rank-1 perturbation\<close>
-  define P where "P \<equiv> \<lambda>w::'a. ((e / (4 * (u \<bullet> u) * (v \<bullet> v))) * (w \<bullet> u)) *\<^sub>R (v::'b)"
+  define P where "P \<equiv> \<lambda>w. ((e / (4 * (u \<bullet> u) * (v \<bullet> v))) * (w \<bullet> u)) *\<^sub>R v"
   have linP: "linear P"
     unfolding P_def by (intro linearI) (auto simp: inner_left_distrib scaleR_add_left scaleR_left_distrib algebra_simps add_divide_distrib)
   have Puv: "P u \<bullet> v = e / 4"
@@ -1498,10 +1498,8 @@ proof -
       finally have *: "\<bar>(?A - B) u \<bullet> v\<bar> < e/6 * norm u * norm v" .
       have "B u \<bullet> v \<le> ?A u \<bullet> v + e/6 * norm u * norm v"
         by (smt (verit) "*" fun_diff_def inner_diff_left)
-      also have "?A u \<bullet> v = f' u \<bullet> v - P u \<bullet> v"
-        by (simp add: inner_diff_left)
-      also have "\<dots> = f' u \<bullet> v - e/4"
-        by (simp add: Puv)
+      also have "?A u \<bullet> v = f' u \<bullet> v - e/4"
+        by (simp add: inner_diff_left Puv)
       finally have "B u \<bullet> v \<le> f' u \<bullet> v - e / 12"
         by simp
       then show "B u \<bullet> v < b"
@@ -1529,20 +1527,15 @@ proof -
           \<comment> \<open>First bound: (?A - B) part\<close>
           have blAB: "bounded_linear (\<lambda>w. ?A w - B w)"
             using bounded_linear_sub linA' linB linear_linear by blast
-          have "norm ((?A - B) (y - x)) / norm (y - x) \<le> onorm (?A - B)"
-            using bl le_onorm by blast
-          also have "\<dots> < e/6"
-            by (rule Bo_e6)
-          finally have "norm ((?A - B) (y - x)) / norm (y - x) < e / 6" .
+          have "norm ((?A - B) (y - x)) / norm (y - x) < e / 6" 
+            using bl le_onorm Bo_e6 le_less_trans by blast
           then show onAB: "norm ((?A - B) (y - x)) \<le> e * norm (y - x) / 6"
             by (simp add: field_split_simps False)
           \<comment> \<open>Second bound: P part (the perturbation)\<close>
           have "(f' - B) (y - x) - (?A - B) (y - x) = P (y - x)"
             by (simp add: algebra_simps)
-          then have "norm ((f' - B) (y - x) - (?A - B) (y - x)) = norm (P (y - x))"
-            by simp
-          also have "\<dots> \<le> onorm P * norm (y - x)"
-            using linP linear_conv_bounded_linear onorm by blast
+          then have "norm ((f' - B) (y - x) - (?A - B) (y - x))  \<le> onorm P * norm (y - x)"
+            using linP linear_conv_bounded_linear onorm by auto
           also have "\<dots> \<le> (e/4) * norm (y - x)"
             using onormP by (intro mult_right_mono) auto
           finally show "norm ((f' - B) (y - x) - (?A - B) (y - x)) \<le> e * norm (y - x) / 4"
@@ -1612,10 +1605,9 @@ proof -
                            and A: "\<And>k y. y \<in> S \<Longrightarrow> C (1 / real (Suc k)) (A k) (\<delta> k) x y"
                            and linA: "\<And>k. linear (A k)"
             by metis
-          have "\<forall>i j. \<exists>a. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a"
-          proof (intro allI)
-            fix i j
-            let ?CA = "{x. Cauchy (\<lambda>n. A n x)}"
+          have A_to_a: "\<exists>a. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a" for i j
+          proof -
+            define CA where "CA \<equiv> {x. Cauchy (\<lambda>n. A n x)}"
             have "\<exists>l. (\<lambda>n. A n 0) \<longlonglongrightarrow> l"
               using A True \<delta> by (fastforce simp: C_def)
             moreover have "\<exists>l. (\<lambda>n. A n (x + y)) \<longlonglongrightarrow> l" 
@@ -1626,18 +1618,18 @@ proof -
             moreover have "\<exists>l. (\<lambda>n. A n (c *\<^sub>R x)) \<longlonglongrightarrow> l" if "(\<lambda>n. A n x) \<longlonglongrightarrow> l" for c x l
               using that linA
               by (intro exI [where x="c *\<^sub>R l"]) (simp add: Real_Vector_Spaces.linear_iff tendsto_scaleR)
-            ultimately have "subspace ?CA"
-              by (auto simp: subspace_def convergent_eq_Cauchy [symmetric])
-            then have CA_eq: "?CA = span ?CA"
+            ultimately have "subspace CA"
+              by (auto simp: CA_def subspace_def convergent_eq_Cauchy [symmetric])
+            then have CA_eq: "CA = span CA"
               by (metis span_eq_iff)
             also have "\<dots> = UNIV"
             proof -
-              have "dim ?CA \<le> DIM('a)"
-                using dim_subset_UNIV[of ?CA] by auto
-              moreover have "False" if less: "dim ?CA < DIM('a)"
+              have "dim CA \<le> DIM('a)"
+                using dim_subset_UNIV[of CA] by auto
+              moreover have "False" if less: "dim CA < DIM('a)"
               proof -
-                obtain d where "d \<noteq> 0" and d: "\<And>y. y \<in> span ?CA \<Longrightarrow> orthogonal d y"
-                  using less by (force intro: orthogonal_to_subspace_exists [of ?CA])
+                obtain d where "d \<noteq> 0" and d: "\<And>y. y \<in> span CA \<Longrightarrow> orthogonal d y"
+                  using less by (force intro: orthogonal_to_subspace_exists [of CA])
                 with notPhi [OF \<open>d \<noteq> 0\<close>] obtain \<xi> where "\<xi> > 0"
                   and \<xi>: "\<And>e. e > 0 \<Longrightarrow> \<exists>y \<in> S - {x}. norm (x - y) < e \<and> \<xi> * norm (x - y) \<le> \<bar>d \<bullet> (y - x)\<bar>"
                   by (metis \<Theta>_def linorder_not_less)
@@ -1759,26 +1751,24 @@ proof -
                   qed
                 qed
                 then have "d \<bullet> z = 0"
-                  using CA_eq d orthogonal_def by auto
+                  using CA_eq d by (auto simp: orthogonal_def CA_def)
                 then show False
                   using \<open>0 < \<xi>\<close> \<open>\<xi> \<le> \<bar>d \<bullet> z\<bar>\<close> by auto
               qed
               ultimately show ?thesis
                 using dim_eq_full by fastforce
             qed
-            finally have CA: "?CA = UNIV" .
+            finally have CA: "CA = UNIV" .
             then have "Cauchy (\<lambda>n. A n i)"
-              by auto
+              by (auto simp: CA_def)
             then show "\<exists>a. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a"
               using tendsto_inner[of "\<lambda>n. A n i"] convergent_eq_Cauchy by blast
           qed
           \<comment> \<open>Construct the limit operator B as pointwise limit\<close>
           have conv: "convergent (\<lambda>n. A n i)" for i
           proof -
-            have "\<forall>j. \<exists>a. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a"
-              using \<open>\<forall>i j. \<exists>a. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a\<close> by blast
-            then obtain a where a: "\<And>j. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a j"
-              by metis
+            obtain a where a: "\<And>j. (\<lambda>n. A n i \<bullet> j) \<longlonglongrightarrow> a j"
+              using A_to_a by metis
             have "(\<lambda>n. \<Sum>j\<in>Basis. (A n i \<bullet> j) *\<^sub>R j) \<longlonglongrightarrow> (\<Sum>j\<in>Basis. a j *\<^sub>R j)"
               by (intro tendsto_intros a)
             moreover have "A n i = (\<Sum>j\<in>Basis. (A n i \<bullet> j) *\<^sub>R j)" for n
@@ -2653,8 +2643,9 @@ proof -
       by (auto simp: gS_in_sets_leb f nonneg_fg measurable_restrict_space_iff [symmetric])
     then show ?thesis
       apply (clarsimp simp add: borel_measurable_simple_function_limit_increasing)
-      apply (rename_tac h)
-      by (rule_tac h=h in that) (auto split: if_split_asm)
+      subgoal for h
+        by (rule_tac h=h in that) (auto split: if_split_asm)
+      done
   qed
   have h_lmeas: "{t. h n (g t) = y} \<inter> S \<in> sets lebesgue" for y n
   proof -
