@@ -66,9 +66,6 @@ val max_simps_for_clasimpset = 10000
 
 val sledgehammer_goal_as_fact = "Sledgehammer.goal_as_fact"
 
-(* prefer a cartouche to that(3) up to this length*)
-val max_collection_cartouche = 30
-
 val no_fact_override = {add = [], del = [], only = false}
 
 fun needs_quoting keywords s =
@@ -511,9 +508,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
                  else
                    let
                      fun get_name () =
-                       if name0 = "" orelse name0 = local_thisN 
-                         orelse collection andalso size (cartouche_thm ctxt th) <= max_collection_cartouche
-                       then 
+                       if name0 = "" orelse name0 = local_thisN then
                          cartouche_thm ctxt th
                        else
                          let val short_name = Facts.extern ctxt facts name0 in

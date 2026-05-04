@@ -736,34 +736,33 @@ lemma insert_def: "insert a B = {x. x = a} \<union> B"
 
 subsubsection \<open>Set difference\<close>
 
-text \<open>The minius-sign syntax continues to be accepted\<close>
-abbreviation set_difference :: "['a set, 'a set] \<Rightarrow> 'a set" 
+text \<open>The minius-sign syntax continues to be the default\<close>
+abbreviation (input) set_difference :: "['a set, 'a set] \<Rightarrow> 'a set" 
   (infixl "\<setminus>" 65) where "A \<setminus> B \<equiv> A-B"
 
-lemma Diff_iff [simp]: "c \<in> A - B \<longleftrightarrow> c \<in> A \<and> c \<notin> B"
+lemma Diff_iff [simp]: "c \<in> A \<setminus> B \<longleftrightarrow> c \<in> A \<and> c \<notin> B"
   by (simp add: minus_set_def fun_diff_def)
 
-lemma DiffI [intro!]: "c \<in> A \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<in> A - B"
+lemma DiffI [intro!]: "c \<in> A \<Longrightarrow> c \<notin> B \<Longrightarrow> c \<in> A \<setminus> B"
   by simp
 
-lemma DiffD1: "c \<in> A - B \<Longrightarrow> c \<in> A"
+lemma DiffD1: "c \<in> A \<setminus> B \<Longrightarrow> c \<in> A"
   by simp
 
-lemma DiffD2: "c \<in> A - B \<Longrightarrow> c \<in> B \<Longrightarrow> P"
+lemma DiffD2: "c \<in> A \<setminus> B \<Longrightarrow> c \<in> B \<Longrightarrow> P"
   by simp
 
-lemma DiffE [elim!]: "c \<in> A - B \<Longrightarrow> (c \<in> A \<Longrightarrow> c \<notin> B \<Longrightarrow> P) \<Longrightarrow> P"
+lemma DiffE [elim!]: "c \<in> A \<setminus> B \<Longrightarrow> (c \<in> A \<Longrightarrow> c \<notin> B \<Longrightarrow> P) \<Longrightarrow> P"
   by simp
 
-lemma set_diff_eq: "A - B = {x. x \<in> A \<and> x \<notin> B}"
+lemma set_diff_eq: "A \<setminus> B = {x. x \<in> A \<and> x \<notin> B}"
   by blast
 
-lemma Compl_eq_Diff_UNIV: "- A = (UNIV - A)"
+lemma Compl_eq_Diff_UNIV: "- A = (UNIV \<setminus> A)"
   by blast
 
 abbreviation sym_diff :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  "sym_diff A B \<equiv> ((A - B) \<union> (B-A))"
-
+  "sym_diff A B \<equiv> ((A \<setminus> B) \<union> (B\<setminus>A))"
 
 subsubsection \<open>Augmenting a set -- \<^const>\<open>insert\<close>\<close>
 

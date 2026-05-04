@@ -371,7 +371,8 @@ proof -
   have "bdd_above (range(\<lambda>n. \<Prod>i\<le>n. a i))"
     by (meson bdd_aboveI2 bounded)
   moreover have "incseq (\<lambda>n. \<Prod>i\<le>n. a i)"
-    unfolding mono_def by (metis 1 prod_mono2 atMost_subset_iff dual_order.trans finite_atMost zero_le_one)
+    unfolding mono_def
+    by (meson "1" atMost_subset_iff order.trans finite_atMost zero_le_one prod_mono2) 
   ultimately obtain p where p: "(\<lambda>n. \<Prod>i\<le>n. a i) \<longlonglongrightarrow> p"
     using LIMSEQ_incseq_SUP by blast
   then have "p \<noteq> 0"
