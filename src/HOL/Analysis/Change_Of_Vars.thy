@@ -3025,7 +3025,7 @@ proof (rule absolutely_integrable_componentwise)
   fix b :: 'b assume "b \<in> Basis"
   have "(\<lambda>x. \<bar>eucl.det (g' x)\<bar> * (f (g x) \<bullet> b)) absolutely_integrable_on S"
     using absolutely_integrable_component [OF intS, of b]
-    by (simp add: inner_scaleR_left)
+    by auto
   then show "(\<lambda>x. f x \<bullet> b) absolutely_integrable_on g ` S"
     by (auto intro: absolutely_integrable_on_image_real der_g)
 qed
@@ -3077,7 +3077,7 @@ proof -
         have "h' x \<circ> g'(h x) = id"
           using id that by blast
         then have "eucl.det (h' x \<circ> g' (h x)) = 1"
-          by (simp add: eucl.det_ident)
+          by auto
         then have "eucl.det (h' x) * eucl.det (g' (h x)) = 1"
           by (simp add: eucl.det_compose [OF lin_h lin_g])
         then have "\<bar>eucl.det (h' x)\<bar> * \<bar>eucl.det (g' (h x))\<bar> = 1"
@@ -3398,8 +3398,7 @@ proof -
   have "f absolutely_integrable_on (g ` ?S) \<and> integral (g ` ?S) f = b
     \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
     by (auto intro!: conj_cong absolutely_integrable_spike_set_eq integral_spike_set neg)
-  ultimately
-  show ?thesis
+  ultimately show ?thesis
     using "*" by blast
 qed
 
@@ -3486,7 +3485,7 @@ proof -
              "(\<lambda>n. integral (?U n) ?D) \<longlonglongrightarrow> integral (\<Union>n. F n) ?D"
       using integral_countable_UN [where s=F and f="?D"] DS F_leb by auto
     with iff have fag: "f absolutely_integrable_on g ` (?U n)"
-      and fg_int: "integral (\<Union>m\<le>n. g ` F m) f = integral (?U n) ?D" for n
+             and fg_int: "integral (\<Union>m\<le>n. g ` F m) f = integral (?U n) ?D" for n
       by (auto simp: image_UN)
     let ?h = "\<lambda>x. if x \<in> (\<Union>m. g ` F m) then norm(f x) else 0"
     have "(\<lambda>x. if x \<in> (\<Union>m. g ` F m) then f x else 0) absolutely_integrable_on UNIV"
@@ -3515,7 +3514,7 @@ proof -
             unfolding integral_restrict_UNIV [of _ "norm \<circ> ?D", symmetric]
           proof (rule integral_norm_bound_integral)
             show "(\<lambda>x. if x \<in> \<Union> (F ` {..k}) then (norm \<circ> ?D) x else 0) integrable_on UNIV"
-              "(\<lambda>x. if x \<in> (\<Union>n. F n) then (norm \<circ> ?D) x else 0) integrable_on UNIV"
+                 "(\<lambda>x. if x \<in> (\<Union>n. F n) then (norm \<circ> ?D) x else 0) integrable_on UNIV"
               using DU(1) DS
               unfolding absolutely_integrable_on_def o_def integrable_restrict_UNIV by auto
           qed auto
@@ -3586,7 +3585,7 @@ proof -
         }
         moreover have "bounded (range (\<lambda>k. integral (g ` ?U k) (norm \<circ> f)))"
           unfolding bounded_iff
-        proof (rule exI, clarify)
+        proof (intro exI, clarify)
           fix k
           show "norm (integral (g ` ?U k) (norm \<circ> f)) \<le> integral (g ` (\<Union>n. F n)) (norm \<circ> f)"
             unfolding integral_restrict_UNIV [of _ "norm \<circ> f", symmetric]
@@ -3640,6 +3639,13 @@ proof -
     using fsigma_Union_compact by metis
   have "negligible N"
     using N by (simp add: negligible_iff_null_sets)
+  have "g differentiable_on N"
+    by (metis CNS der_g differentiable_def differentiable_on_def differentiable_on_subset sup_ge2)
+  with \<open>negligible N\<close>
+  have neg_gN: "negligible (g ` N)"
+    by (blast intro: negligible_differentiable_image_negligible)
+  have neg: "negligible {x \<in> g ` C - g ` S. f x \<noteq> 0}" "negligible {x \<in> g ` S - g ` C. f x \<noteq> 0}"
+    using CNS by (blast intro: negligible_subset [OF neg_gN])+
   let ?D = "\<lambda>x. \<bar>eucl.det(g' x)\<bar> *\<^sub>R f (g x)"
   have "?D absolutely_integrable_on C \<and> integral C ?D = b
     \<longleftrightarrow> f absolutely_integrable_on (g ` C) \<and> integral (g ` C) f = b"
@@ -3650,10 +3656,8 @@ proof -
     then show "(g has_derivative g' x) (at x within \<Union>(F ` UNIV))"
       using Ceq \<open>C \<union> N = S\<close> der_g has_derivative_subset by blast
   next
-    have "\<Union>(F ` UNIV) \<subseteq> S"
-      using Ceq \<open>C \<union> N = S\<close> by blast
-    then show "inj_on g (\<Union>(F ` UNIV))"
-      using inj by (meson inj_on_subset)
+    show "inj_on g (\<Union>(F ` UNIV))"
+      using CNS Ceq inj inj_on_subset by blast
   qed (use F in auto)
   moreover
   have "?D absolutely_integrable_on C \<and> integral C ?D = b
@@ -3669,20 +3673,7 @@ proof -
   moreover
   have "f absolutely_integrable_on (g ` C) \<and> integral (g ` C) f = b
     \<longleftrightarrow> f absolutely_integrable_on (g ` S) \<and> integral (g ` S) f = b"
-  proof (rule conj_cong)
-    have "g differentiable_on N"
-      by (metis CNS der_g differentiable_def differentiable_on_def differentiable_on_subset sup.cobounded2)
-    with \<open>negligible N\<close>
-    have neg_gN: "negligible (g ` N)"
-      by (blast intro: negligible_differentiable_image_negligible)
-    have neg: "negligible {x \<in> g ` C - g ` S. f x \<noteq> 0}"
-              "negligible {x \<in> g ` S - g ` C. f x \<noteq> 0}"
-      using CNS by (blast intro: negligible_subset [OF neg_gN])+
-    then show "(f absolutely_integrable_on g ` C) = (f absolutely_integrable_on g ` S)"
-      by (rule absolutely_integrable_spike_set_eq)
-    show "(integral (g ` C) f = b) \<longleftrightarrow> (integral (g ` S) f = b)"
-      using integral_spike_set [OF neg] by simp
-  qed
+    using absolutely_integrable_spike_set_eq integral_spike_set neg by blast
   ultimately show ?thesis
     by simp
 qed
@@ -3723,7 +3714,7 @@ proof -
     by (rule has_absolute_integral_change_of_variables [OF S _ inj])
        (use der_g in \<open>auto simp: has_vector_derivative_def mult.commute\<close>)
   then show ?thesis
-    by (simp add: det_real)
+    by auto
 qed
 
 corollary absolutely_integrable_change_of_variables_1:
@@ -3823,8 +3814,8 @@ lemma integral_change_of_variables_linear:
   assumes "linear g"
       and "f absolutely_integrable_on (g ` S) \<or> (f \<circ> g) absolutely_integrable_on S"
     shows "integral (g ` S) f = \<bar>eucl.det g\<bar> *\<^sub>R integral S (f \<circ> g)"
-  by (metis (mono_tags, lifting) Henstock_Kurzweil_Integration.integral_cong
-      absolutely_integrable_on_linear_image assms(1,2) comp_apply
+  unfolding o_def
+  by (metis absolutely_integrable_on_linear_image assms
       has_absolute_integral_change_of_variables_linear integral_cmul)
 
 lemma absolutely_integrable_change_of_variables_1':
