@@ -399,7 +399,7 @@ fun delete_version version_id versions =
 
 fun define_blob digest text =
   map_state (fn (versions, blobs, commands, execution) =>
-    let val blobs' = Symtab.update (digest, (SHA1.fake digest, split_lines text)) blobs
+    let val blobs' = Symtab.update (digest, (SHA1.parse digest, split_lines text)) blobs
     in (versions, blobs', commands, execution) end);
 
 fun the_blob (State {blobs, ...}) digest =

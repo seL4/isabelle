@@ -15,10 +15,9 @@ sig
   val kind: T -> string
   val rep: T -> string
   val rep_short: T -> string
-  val print: T -> string
-  val print_short: T -> string
-  val fake: {prefix: string, rep: string} -> T
-  val fake_prefix: string -> T
+  val print_prefix: T -> string
+  val print_prefix_short: T -> string
+  val parse: string -> T
 end;
 
 signature MESSAGE_DIGEST_OPS =
@@ -26,7 +25,7 @@ sig
   type T
   val prefix: string
   val kind: string
-  val fake: string -> T
+  val parse: string -> T
   val digest_bytes: Bytes.T -> T
   val digest: string -> T
 end;
@@ -55,29 +54,30 @@ val kind = unsuffix ":" o prefix;
 val rep = #rep o dest;
 fun rep_short t = String.substring (rep t, 0, 12);
 
-fun print t = prefix t ^ rep t;
-fun print_short t = prefix t ^ rep_short t;
+fun print_prefix t = prefix t ^ rep t;
+fun print_prefix_short t = prefix t ^ rep_short t;
 
-val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o print_short);
+val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o quote o print_prefix_short);
 
 
 (* particular instances *)
 
 val instances = [("SHA1:", 40), ("SHA256:", 64)];
 
-fun fake (arg as {prefix, rep}) =
-  (case AList.lookup (op =) instances prefix of
-    NONE => raise Fail ("Bad message digest prefix " ^ quote prefix)
-  | SOME n =>
-      let val m = size rep in
-        if m = n then make arg
-        else raise Fail ("Bad message digest length " ^ Value.print_int m ^ " for " ^ quote prefix)
-      end);
+val digits_ok =
+  String.forall (fn c => #"0" <= c andalso c <= #"9" orelse #"a" <= c andalso c <= #"f");
 
-fun fake_prefix s =
-  (case get_first (fn (p, _) => if String.isPrefix p s then SOME p else NONE) instances of
-    NONE => raise Fail ("Cannot determine message digest prefix from " ^ quote s)
-  | SOME p => fake {prefix = p, rep = unprefix p s});
+fun parse rep =
+  if not (digits_ok rep) then error ("Bad message digest content " ^ quote rep)
+  else
+    let val m = size rep in
+      (case instances |> get_first (fn (p, n) => if m = n then SOME p else NONE) of
+        NONE =>
+          error ("Bad message digest length " ^ Value.print_int m ^
+            (instances |> map (fn (p, n) => Value.print_int n ^ " for " ^ unsuffix ":" p)
+              |> space_implode " or " |> enclose "\n(expected " ")"))
+      | SOME prefix => make {prefix = prefix, rep = rep})
+    end;
 
 end;
 
@@ -89,11 +89,14 @@ type T = Message_Digest.T;
 val kind = kind;
 val prefix = kind ^ ":";
 
-fun fake rep = Message_Digest.fake {prefix = prefix, rep = rep};
+fun parse rep =
+  let val t = Message_Digest.parse rep in
+    if Message_Digest.kind t = kind then t
+    else error ("Bad message digest " ^ Message_Digest.print_prefix_short t ^
+      " (expected " ^ kind ^ ")")
+  end;
 
-fun digest_bytes bs =
-  Message_Digest.fake {prefix = prefix, rep = Bytes.content (scala_fun bs)};
-
+val digest_bytes = parse o Bytes.content o scala_fun;
 val digest = digest_bytes o Bytes.string;
 
 end;
