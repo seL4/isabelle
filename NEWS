@@ -227,8 +227,12 @@ to Euclidean spaces.
 
 *** ML ***
 
-* Both SHA1 and SHA256 are supported via Isabelle/Scala. The native SHA1
-implementation has been discontinued.
+* Both SHA1 and SHA256 are supported via Isabelle/Scala, with minor
+changes of the supported operations: Minor INCOMPATIBILITY. SHA1.fake
+has been replaced by SHA1.parse (including proper checks). Structure
+Message_Digest provides general operations. The native SHA1
+implementation in ML has been discontinued, which may impact
+performance.
 
 * Operations Resources.provide_parse_file etc. have been removed:
 provided files are no longer managed inside the theory context (only in

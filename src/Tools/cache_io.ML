@@ -47,7 +47,7 @@ fun unsynchronized_init cache_path =
             then
               let
                 val (rep, l1, l2) = split line
-                val key = SHA1.fake rep
+                val key = SHA1.parse rep
               in ((i+1, l+l1+l2+1), Message_Digest.Table.update (key, (i+1, l1, l2)) tab) end
             else ((i+1, l), tab)
         in

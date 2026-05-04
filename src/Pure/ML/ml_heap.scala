@@ -14,7 +14,7 @@ object ML_Heap {
     if (heap.is_file) {
       val n = SHA1.print_length
       val bs = Bytes.read_file(heap, offset = File.size(heap) - n)
-      if (bs.size == n) Library.try_unprefix(SHA1.prefix, bs.text).map(SHA1.fake)
+      if (bs.size == n) Library.try_unprefix(SHA1.prefix, bs.text).map(SHA1.parse)
       else None
     }
     else None
@@ -23,7 +23,7 @@ object ML_Heap {
   def write_file_digest(heap: Path): Message_Digest.T =
     read_file_digest(heap) getOrElse {
       val digest = SHA1.digest(heap)
-      File.append(heap, digest.print)
+      File.append(heap, digest.print_prefix)
       digest
     }
 
@@ -89,7 +89,7 @@ object ML_Heap {
           List.from[(String, String)],
           res => res.string(Base.name) -> res.string(Base.heap_digest)
         ).collect({
-          case (name, digest) if digest.nonEmpty => name -> SHA1.fake(digest)
+          case (name, digest) if digest.nonEmpty => name -> SHA1.parse(digest)
         }).toMap
       }
 

@@ -20,9 +20,9 @@ object Message_Digest {
     def kind: String = Library.try_unsuffix(":", prefix).get
     def rep_short: String = rep.take(12)
 
-    def print: String = prefix + rep
-    def print_short: String = prefix + rep_short
-    override def toString: String = print_short
+    def print_prefix: String = prefix + rep
+    def print_prefix_short: String = prefix + rep_short
+    override def toString: String = print_prefix_short
 
     override def hashCode: Int = rep.hashCode
     override def equals(that: Any): Boolean =
@@ -41,7 +41,11 @@ object Message_Digest {
     val prefix: String = kind + ":"
     def print_length: Int = prefix.length + digest_length
 
-    def fake(rep: String): T = Message_Digest.fake(prefix, rep)
+    def parse(rep: String): T = {
+      val t = Message_Digest.parse(rep)
+      if (t.kind == kind) t
+      else error("Bad message digest " + t + " (expected " + kind + ")")
+    }
 
     def make(update: MessageDigest => Unit): T = {
       val dig = MessageDigest.getInstance(kind).nn
@@ -74,8 +78,7 @@ object Message_Digest {
 
     def digest(shasum: Shasum): T = {
       shasum.rep match {
-        case List(s)
-        if s.length == digest_length && s.forall(Symbol.is_ascii_hex) => fake(s)
+        case List(s) if can_parse(s) => parse(s)
         case _ => digest(shasum.toString)
       }
     }
@@ -87,20 +90,23 @@ object Message_Digest {
 
   private lazy val instances = List(SHA1, SHA256)
 
-  def fake(prefix: String, rep: String): T =
-    instances.find(dig => dig.prefix == prefix) match {
-      case None => error("Bad message digest prefix " + quote(prefix))
-      case Some(dig) =>
-        val m = rep.length
-        val n = dig.digest_length
-        if (m == n) new T(prefix, rep)
-        else error("Bad message digest length " + m + " for " + quote(prefix))
-    }
+  private def digits_ok(s: String): Boolean =
+    s.forall(c => '0' <= c && c <= '9' || 'a' <= c && c <= 'f')
 
-  def fake_prefix(s: String): T =
-    instances.find(dig => s.startsWith(dig.prefix)) match {
-      case None => error("Cannot determine message digest prefix from " + quote(s))
-      case Some(dig) => fake(dig.prefix, Library.try_unprefix(dig.prefix, s).get)
+  def can_parse(rep: String): Boolean =
+    digits_ok(rep) && instances.exists(dig => rep.length == dig.digest_length)
+
+  def parse(rep: String): T =
+    if (!digits_ok(rep)) error("Bad message digest content " + quote(rep))
+    else {
+      val m = rep.length
+      instances.find(dig => m == dig.digest_length) match {
+        case None =>
+          error("Bad message digest length " + m +
+            instances.map(dig => dig.digest_length.toString + " for " + dig.kind)
+              .mkString("\n(expected ", " or ", ")"))
+        case Some(dig) => new T(dig.prefix, rep)
+      }
     }
 }
 
