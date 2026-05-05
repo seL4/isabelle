@@ -122,7 +122,7 @@ object Isabelle_System {
   def isabelle_tags(root: Path = Path.ISABELLE_HOME): String =
     getetc("ISABELLE_TAGS", root = root) orElse Mercurial.archive_tags(root) getOrElse {
       if (Mercurial.is_repository(root)) {
-        val hg = Mercurial.repository(root)
+        val hg = Mercurial.this_repository(root)
         hg.tags(rev = hg.parent())
       }
       else ""

@@ -28,7 +28,7 @@ object Isabelle_Cronjob {
   val afp_repos: Path = main_dir + Path.explode("AFP")
 
   lazy val isabelle_hg: Mercurial.Repository = Mercurial.self_repository()
-  lazy val afp_hg: Mercurial.Repository = Mercurial.repository(afp_repos)
+  lazy val afp_hg: Mercurial.Repository = Mercurial.this_repository(afp_repos)
 
   val mailman_archives_dir = Path.explode("~/cronjob/Mailman")
 
