@@ -315,26 +315,21 @@ object JEdit_Accessible {
 
       // approximate Java Swing selection: start == end means no selection, just cursor
       override def getSelectionStart: Int =
-        getSelectionAtOffset(getCaretPosition) match {
-          case null => getCaretPosition
-          case sel => sel.getStart
+        JEdit_Lib.selection_range(text_area, getCaretPosition) match {
+          case None => getCaretPosition
+          case Some(r) => r.start
         }
       override def getSelectionEnd: Int =
-        getSelectionAtOffset(getCaretPosition) match {
-          case null => getCaretPosition
-          case sel => sel.getEnd
+        JEdit_Lib.selection_range(text_area, getCaretPosition) match {
+          case None => getCaretPosition
+          case Some(r) => r.stop
         }
       override def getSelectedText: String =
         JEdit_Lib.buffer_lock(buffer) {
-          val a = getSelectionStart
-          val b = getSelectionEnd
-          if (a == b) null
-          else {
-            (for {
-              r <- Text.Range(a min b, a max b).try_restrict(JEdit_Lib.buffer_range(buffer))
-              s <- JEdit_Lib.get_text(buffer, r)
-            } yield s).orNull
-          }
+          (for {
+            r <- JEdit_Lib.selection_range(text_area, getCaretPosition) if !r.is_singularity
+            s <- JEdit_Lib.get_text(buffer, r)
+          } yield s).orNull
         }
 
       override def selectText(start: Int, end: Int): Unit =

@@ -264,6 +264,9 @@ object JEdit_Lib {
       })
   }
 
+  def selection_range(text_area: TextArea, offset: Text.Offset): Option[Text.Range] =
+    selection_ranges(text_area).find(_.touches(offset))
+
   def visible_range(text_area: TextArea): Option[Text.Range] = {
     val buffer = text_area.getBuffer
     val n = text_area.getVisibleLines
