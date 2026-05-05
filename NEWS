@@ -31,36 +31,37 @@ class parameter from its origin class in generated code. It is still
 possible to specify code equations for instances of that class
 parameter.
 
-* Code generation: transitional legacy attribute [code del] is discontinued.
-Minor INCOMPATIBILITY.
+* Code generation: transitional legacy attribute [code del] is
+discontinued. Minor INCOMPATIBILITY.
 
 * Config options simp_depth_limit, simp_trace_depth_limit, simp_debug,
 simp_trace now qualified in Isabelle/ML. Minor INCOMPATIBILITY.
 
 * Operations mk_rrules, eq_rrule, cert_simproc, transform_simproc,
 trim_context_simproc, mk_solver, empty_ss, merge_ss, empty_simpset,
-clear_simpset, simpset_map, map_theory_simpset, fold_rule, fold_goals_tac,
-norm_hhf, norm_hhf_protect from structure "Simplifier" are now qualified.
-Minor INCOMPATIBILITY.
+clear_simpset, simpset_map, map_theory_simpset, fold_rule,
+fold_goals_tac, norm_hhf, norm_hhf_protect from structure "Simplifier"
+are now qualified. Minor INCOMPATIBILITY.
 
-* Operation map_ss from structure "Simplifier" renamed to Simplifier.map_simpset,
-following the convention that "ss" refers to a "frozen" simpset only.
-Minor INCOMPATIBILITY.
+* Operation map_ss from structure "Simplifier" renamed to
+Simplifier.map_simpset, following the convention that "ss" refers to a
+"frozen" simpset only. Minor INCOMPATIBILITY.
 
 * Datatype proc_kind from structure "Simplifier" is now qualified. Rare
 INCOMPATIBILITY.
 
-* Discontinued alias "Raw_Simplifier.rewrite"; use "Simplifier.rewrite_wrt"
-instead. Rare INCOMPATIBILITY.
+* Discontinued alias "Raw_Simplifier.rewrite"; use
+"Simplifier.rewrite_wrt" instead. Rare INCOMPATIBILITY.
 
 * Discontinued infix "addsimps" and "delsimps"; use explicit
-"Simplifier.add_simp(s)" and "Simplifier.del_simp(s)" instead.
-Minor INCOMPATIBILITY. For existing applications that involve a lot of such
-declarations, consider including the infix declarations from Isabelle2025-2 in
-src/Tools/misc_legacy.ML to ease transition.
+"Simplifier.add_simp(s)" and "Simplifier.del_simp(s)" instead. Minor
+INCOMPATIBILITY. For existing applications that involve a lot of such
+declarations, consider including the infix declarations from
+Isabelle2025-2 in src/Tools/misc_legacy.ML to ease transition.
 
 * Discontinued infixes "addsimprocs" and "delsimprocs"; use explicit
-"Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor INCOMPATIBILITY.
+"Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor
+INCOMPATIBILITY.
 
 
 *** Isabelle/jEdit Prover IDE ***
@@ -111,6 +112,11 @@ interaction with GUI vs. IO events in jEdit.
 * The built-in navigator provides a separate history for each editor
 view, instead of just one global history. INCOMPATIBILITY.
 
+* The jEdit action "focus-buffer-switcher" is accessible via further
+keyboard shortcuts CS+SPACE or AS+SPACE (by the alias
+"focus-buffer-switcher2"). This increases chances that it actually works
+on German keyboards, notably on Windows.
+
 * The jEdit action "find-prev" is accessible via keyboard shortcuts S+F3
 or "C+e g", using proper "find-prev.shortcut" instead of undefined
 "find-previous.shortcut" before.
@@ -127,6 +133,12 @@ notion of link as C-hover-click via mouse.
 AS+UP) opens a popup with the list of hyperlinks under the current
 caret, using the same notion of link as C-hover-click via mouse, but
 showing all possibilities.
+
+* The mouse action C-hover-click is strictly limited to the "C" modifier
+(command on macOS, control on Linux/Windows). This allows to use mouse
+dragging e.g. with CS modifiers for rectangular selection, regardless of
+hyperlink markup: jEdit will ignore the extra modifier, but
+Isabelle/jEdit won't.
 
 * The keyboard shortcut "F1" now refers to jEdit action
 "isabelle-documentation" to activate the Documentation panel of
@@ -152,6 +164,14 @@ providing both possibilities, e.g."isabelle.first-error" (CS+a or AS+a),
 "navigate-backwards" (CS-LEFT or AS+LEFT). This makes typing easier, but
 also reduces potential conflicts with platform-specific shortcuts,
 national keyboard variants etc.
+
+* Avoid conflicting jEdit shortcuts CS+UP/DOWN/LEFT/RIGHT to select
+words or paragraphs. Subsequent alternatives have been borrowed from vi:
+
+  select-prev-paragraph  CS+k or AS+k
+  select-next-paragraph  CS+j or AS+j
+  select-prev-word       CS+h or AS+h
+  select-next-word       CS+l or AS+l
 
 * Console/Scala: more robust Scala_Console.Progress with local output
 and interrupt handling (using thread interrupt, e.g. via "Stop" button).
@@ -223,20 +243,21 @@ reasonable implementation, but a lot of implementations would require
 these as (effectively unused) dictionary parameters.
 Minor INCOMPATIBILITY.
 
-* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class parameters
-any longer in generated code but implemented using their counterparts on finite
-sets. Minor INCOMPATIBILITY.
+* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class
+parameters any longer in generated code but implemented using their
+counterparts on finite sets. Minor INCOMPATIBILITY.
 
 * Set difference is now written using the symbol "\<setminus>" (which is not a
-  backlash), although the former symbol "-" still works. Minor INCOMPATIBILITY.
+backlash), although the former symbol "-" still works. Minor
+INCOMPATIBILITY.
 
-* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv 
-  from type "real" to any archimedian fields, renaming them arch_pow_inv 
-  and arch_pow. Minor INCOMPATIBILITY.
+* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv
+from type "real" to any archimedian fields, renaming them arch_pow_inv
+and arch_pow. Minor INCOMPATIBILITY.
 
 * Session "HOL-Analysis": much new material including Bounded_Variation,
-Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been generalised
-to Euclidean spaces.
+Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
+generalised to Euclidean spaces.
 
 
 *** ML ***

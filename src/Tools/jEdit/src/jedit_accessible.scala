@@ -313,35 +313,24 @@ object JEdit_Accessible {
 
       override def setAttributes(start: Int, end: Int, atts: AttributeSet): Unit = {}
 
-      // approximate Java Swing selection: dot == mark means no selection, just cursor
+      // approximate Java Swing selection: start == end means no selection, just cursor
       override def getSelectionStart: Int =
-        getSelectionAtOffset(getCaretPosition) match {
-          case null => getCaretPosition
-          case sel => sel.getStart
+        JEdit_Lib.selection_range(text_area, getCaretPosition) match {
+          case None => getCaretPosition
+          case Some(r) => r.start
         }
       override def getSelectionEnd: Int =
-        getSelectionAtOffset(getCaretPosition) match {
-          case null => getCaretPosition
-          case sel => sel.getEnd
+        JEdit_Lib.selection_range(text_area, getCaretPosition) match {
+          case None => getCaretPosition
+          case Some(r) => r.stop
         }
-      override def getSelectedText: String = {
+      override def getSelectedText: String =
         JEdit_Lib.buffer_lock(buffer) {
-          val buffer_range = JEdit_Lib.buffer_range(buffer)
-          val rs =
-            List.from(
-              for {
-                i <- Set(getSelectionStart, getSelectionEnd).iterator
-                r <- JEdit_Lib.point_range(buffer, i).try_restrict(buffer_range)
-              } yield r)
-          if (rs.isEmpty) null
-          else {
-            val start = rs.iterator.map(_.start).min
-            val stop = rs.iterator.map(_.stop).max
-            if (start == stop) null
-            else JEdit_Lib.get_text(buffer, Text.Range(start, stop)).orNull
-          }
+          (for {
+            r <- JEdit_Lib.selection_range(text_area, getCaretPosition)
+            s <- JEdit_Lib.get_text(buffer, r)
+          } yield s).orNull
         }
-      }
 
       override def selectText(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {

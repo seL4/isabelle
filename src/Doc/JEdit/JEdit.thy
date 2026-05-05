@@ -1346,10 +1346,11 @@ text \<open>
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
   modifier, or the action @{action_ref "isabelle.follow-link"} (shortcut
-  \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position. Alternatively, the action
-  @{action_def "isabelle.show-links"} (shortcut \<^verbatim>\<open>AS+UP\<close>) opens a popup with
-  the list of currently active hyperlinks, with the possibility to select one
-  via mouse or keyboard (see also \secref{sec:completion}).
+  \<^verbatim>\<open>CS+DOWN\<close> or \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position.
+  Alternatively, the action @{action_def "isabelle.show-links"} (shortcut
+  \<^verbatim>\<open>CS+UP\<close> or \<^verbatim>\<open>AS+UP\<close>) opens a popup with the list of currently active
+  hyperlinks, with the possibility to select one via mouse or keyboard (see
+  also \secref{sec:completion}).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1359,11 +1360,11 @@ text \<open>
   \label{fig:scope1}
   \end{figure}
 
-  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close>)
-  supports semantic selection of all occurrences of the formal entity at the
-  caret position, with a defining position in the current editor buffer. This
-  facilitates systematic renaming, using regular jEdit editing of a
-  multi-selection, see also \figref{fig:scope2}.
+  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close> or
+  \<^verbatim>\<open>AS+ENTER\<close>) supports semantic selection of all occurrences of the formal
+  entity at the caret position, with a defining position in the current editor
+  buffer. This facilitates systematic renaming, using regular jEdit editing of
+  a multi-selection, see also \figref{fig:scope2}.
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1374,11 +1375,12 @@ text \<open>
   \end{figure}
 
   By default, the visual feedback on scopes is restricted to definitions
-  within the visible text area. The keyboard modifier \<^verbatim>\<open>CS\<close> overrides this:
-  then all defining and referencing positions are shown. This modifier may be
-  configured via option @{system_option jedit_focus_modifier}; the default
-  coincides with the modifier for the above keyboard actions. The empty string
-  means to disable this additional visual feedback.
+  within the visible text area. The keyboard modifiers \<^verbatim>\<open>CS\<close> or \<^verbatim>\<open>AS\<close> override
+  this (when used without mouse buttons): then all defining and referencing
+  positions are shown. These modifier may be configured via option
+  @{system_option jedit_focus_modifier}, as space-separated list. The default
+  coincides with the modifiers for the above keyboard actions. An empty list
+  disables this additional visual feedback.
 \<close>
 
 

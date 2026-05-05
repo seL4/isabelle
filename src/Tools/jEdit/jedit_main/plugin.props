@@ -179,6 +179,9 @@ navigate-backwards.shortcut2=AS+LEFT
 navigate-forwards.label=Navigate forwards
 navigate-forwards.shortcut=CS+RIGHT
 navigate-forwards.shortcut2=AS+RIGHT
+focus-buffer-switcher2.label=Focus on Buffer S$witcher
+focus-buffer-switcher2.shortcut=CS+SPACE
+focus-buffer-switcher2.shortcut2=AS+SPACE
 
 #SideKick
 mode.isabelle-news.folding=sidekick
