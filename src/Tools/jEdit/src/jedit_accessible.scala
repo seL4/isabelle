@@ -327,7 +327,7 @@ object JEdit_Accessible {
       override def getSelectedText: String =
         JEdit_Lib.buffer_lock(buffer) {
           (for {
-            r <- JEdit_Lib.selection_range(text_area, getCaretPosition) if !r.is_singularity
+            r <- JEdit_Lib.selection_range(text_area, getCaretPosition)
             s <- JEdit_Lib.get_text(buffer, r)
           } yield s).orNull
         }

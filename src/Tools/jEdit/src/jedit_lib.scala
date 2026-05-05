@@ -260,7 +260,8 @@ object JEdit_Lib {
               r = Text.Range(rect.getStart(buffer, l), rect.getEnd(buffer, l))
               if !r.is_singularity
             } yield r)
-        case sel: Selection => List(Text.Range(sel.getStart, sel.getEnd))
+        case sel: Selection =>
+          List(Text.Range(sel.getStart, sel.getEnd)).filterNot(_.is_singularity)
       })
   }
 
