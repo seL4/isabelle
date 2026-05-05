@@ -102,6 +102,9 @@ definition map_restrict_set :: "'a set \<Rightarrow> ('a \<rightharpoonup> 'b) \
 
 parametric_constant map_restrict_set_transfer[transfer_rule]: map_restrict_set_def
 
+lemma map_restrict_set_conv_restrict_map: "map_restrict_set A m = Map.restrict_map m A"
+  unfolding map_restrict_set_def map_filter_def Map.restrict_map_def ..
+
 definition map_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" where
 "map_pred P m \<longleftrightarrow> (\<forall>x. case m x of None \<Rightarrow> True | Some y \<Rightarrow> P x y)"
 
