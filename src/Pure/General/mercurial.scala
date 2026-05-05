@@ -117,9 +117,6 @@ object Mercurial {
 
   /* hg_sync meta data */
 
-  def sync_id(root: Path, ssh: SSH.System = SSH.Local): Option[String] =
-    if (Hg_Sync.ok(root, ssh)) Some(Hg_Sync.directory(root, ssh).id) else None
-
   object Hg_Sync {
     val NAME = ".hg_sync"
     val _NAME: String = " " + NAME
@@ -130,6 +127,9 @@ object Mercurial {
     val PATH_STAT: Path = PATH + Path.explode("stat")
 
     def ok(root: Path, ssh: SSH.System = SSH.Local): Boolean = ssh.is_dir(root + PATH)
+
+    def id_directory(root: Path, ssh: SSH.System = SSH.Local): Option[String] =
+      if (Hg_Sync.ok(root, ssh)) Some(Hg_Sync.directory(root, ssh).id) else None
 
     def check_directory(root: Path, ssh: SSH.System = SSH.Local): Unit =
       if (ssh.is_dir(root) && !ok(root, ssh = ssh) && ssh.read_dir(root).nonEmpty) {
