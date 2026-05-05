@@ -79,6 +79,7 @@ object Scala_Console {
   }
 
   val init = """
+import scala.language.unsafeNulls
 import isabelle._
 import isabelle.jedit._
 import isabelle.jedit_main._
