@@ -201,6 +201,12 @@ For example:
   sorted_enumerate ~> sorted_indexed_from
   in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
 
+* Theory "HOL-Library.Finite_Map"
+  - Added lemmas.
+      fmsubset_antisym
+      fmsubset_refl[simp]
+      fmsubset_trans[trans]
+
 INCOMPATIBILITY.
 
 * Constants "open" and "uniformity" are not handled as class parameters

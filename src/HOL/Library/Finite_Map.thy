@@ -613,6 +613,15 @@ lift_definition fmsubset :: "('a, 'b) fmap \<Rightarrow> ('a, 'b) fmap \<Rightar
   is map_le
 .
 
+lemma fmsubset_refl[simp]: "m \<subseteq>\<^sub>f m"
+  by transfer (rule map_le_refl)
+
+lemma fmsubset_trans[trans]: "m\<^sub>1 \<subseteq>\<^sub>f m\<^sub>2 \<Longrightarrow> m\<^sub>2 \<subseteq>\<^sub>f m\<^sub>3 \<Longrightarrow> m\<^sub>1 \<subseteq>\<^sub>f m\<^sub>3"
+  by transfer (rule map_le_trans)
+
+lemma fmsubset_antisym: "m\<^sub>1 \<subseteq>\<^sub>f m\<^sub>2 \<Longrightarrow> m\<^sub>2 \<subseteq>\<^sub>f m\<^sub>1 \<Longrightarrow> m\<^sub>1 = m\<^sub>2"
+  by transfer (rule map_le_antisym)
+
 lemma fmsubset_alt_def: "m \<subseteq>\<^sub>f n \<longleftrightarrow> fmpred (\<lambda>k v. fmlookup n k = Some v) m"
 by transfer' (auto simp: map_pred_def map_le_def dom_def split: option.splits)
 
