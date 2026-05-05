@@ -262,4 +262,9 @@
 	    isabelle.jedit.Isabelle.recode_symbols(buffer);
 	  </CODE>
 	</ACTION>
+  <ACTION NAME="focus-buffer-switcher2">
+    <CODE>
+      editPane.focusBufferSwitcher();
+    </CODE>
+  </ACTION>
 </ACTIONS>

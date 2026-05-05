@@ -112,6 +112,11 @@ interaction with GUI vs. IO events in jEdit.
 * The built-in navigator provides a separate history for each editor
 view, instead of just one global history. INCOMPATIBILITY.
 
+* The jEdit action "focus-buffer-switcher" is accessible via further
+keyboard shortcuts CS+SPACE or AS+SPACE (by the alias
+"focus-buffer-switcher2"). This increases chances that it actually works
+on German keyboards, notably on Windows.
+
 * The jEdit action "find-prev" is accessible via keyboard shortcuts S+F3
 or "C+e g", using proper "find-prev.shortcut" instead of undefined
 "find-previous.shortcut" before.
