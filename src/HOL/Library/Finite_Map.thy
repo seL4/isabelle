@@ -116,6 +116,9 @@ definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Righta
 definition set_of_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
 "set_of_map m = {(k, v)|k v. m k = Some v}"
 
+lemma set_of_map_eq_graph: "set_of_map = Map.graph"
+  by (intro ext) (simp only: set_of_map_def Map.graph_def)
+
 lemma set_of_map_alt_def: "set_of_map m = (\<lambda>k. (k, the (m k))) ` dom m"
 unfolding set_of_map_def dom_def
 by auto

@@ -207,6 +207,7 @@ For example:
       fmsubset_refl[simp]
       fmsubset_trans[trans]
       map_restrict_set_conv_restrict_map
+      set_of_map_eq_graph
 
 INCOMPATIBILITY.
 
