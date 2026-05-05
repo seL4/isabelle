@@ -113,11 +113,8 @@ parametric_constant map_pred_transfer[transfer_rule]: map_pred_def
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
 
-lemma graph_alt_def: "Map.graph m = (\<lambda>k. (k, the (m k))) ` dom m"
-  using graph_eq_to_snd_dom .
-
 lemma finite_graph: "finite (dom m) \<Longrightarrow> finite (Map.graph m)"
-  unfolding graph_alt_def
+  unfolding Map.graph_eq_to_snd_dom
   by auto
 
 lemma inj_on_graph: "inj_on Map.graph A"
