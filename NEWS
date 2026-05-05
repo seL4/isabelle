@@ -129,6 +129,12 @@ AS+UP) opens a popup with the list of hyperlinks under the current
 caret, using the same notion of link as C-hover-click via mouse, but
 showing all possibilities.
 
+* The mouse action C-hover-click is strictly limited to the "C" modifier
+(command on macOS, control on Linux/Windows). This allows to use mouse
+dragging e.g. with CS modifiers for rectangular selection, regardless of
+hyperlink markup: jEdit will ignore the extra modifier, but
+Isabelle/jEdit won't.
+
 * The keyboard shortcut "F1" now refers to jEdit action
 "isabelle-documentation" to activate the Documentation panel of
 Isabelle/jEdit. That is more useful than the original jEdit help, which

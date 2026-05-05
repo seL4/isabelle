@@ -77,6 +77,15 @@ class Rich_Text_Area(
 
   @volatile private var caret_focus_modifier = false
 
+  def caret_focus_reset(): Unit =
+    if (caret_focus_modifier) {
+      caret_focus_modifier = false
+      caret_update()
+    }
+
+  def caret_focus_down(e: MouseEvent): Unit =
+    if (!e.isConsumed() && e.getClickCount > 0) caret_focus_reset()
+
   def caret_focus_range: Text.Range =
     if (caret_focus_modifier) Text.Range.full
     else JEdit_Lib.visible_range(text_area) getOrElse Text.Range.offside
@@ -89,12 +98,8 @@ class Rich_Text_Area(
         caret_focus_modifier = mods.contains(JEdit_Lib.modifier_string(evt))
         if (caret_focus_modifier != old) caret_update()
       },
-      key_released = { _ =>
-        if (caret_focus_modifier) {
-          caret_focus_modifier = false
-          caret_update()
-        }
-      })
+      key_released = { _ => caret_focus_reset() }
+    )
 
 
   /* common painter state */
@@ -225,8 +230,11 @@ class Rich_Text_Area(
   }
 
   private val mouse_listener = new MouseAdapter {
+    override def mouseDragged(e: MouseEvent): Unit =
+      robust_body(()) { caret_focus_down(e) }
     override def mousePressed(e: MouseEvent): Unit = {
       robust_body(()) {
+        caret_focus_down(e)
         if (!e.isConsumed() && e.getClickCount == 1) {
           hyperlink_area.info match {
             case Some(Text.Info(_, link)) if link.external =>
@@ -273,7 +281,7 @@ class Rich_Text_Area(
       robust_body(()) {
         val x = evt.getX
         val y = evt.getY
-        val control = GUI.command_modifier(evt)
+        val control = GUI.command_modifier(evt, only = true)
 
         if ((control || enable_hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
