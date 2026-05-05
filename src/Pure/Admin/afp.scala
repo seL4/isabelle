@@ -12,6 +12,8 @@ object AFP {
 
   val BASE: Path = Path.explode("$AFP_BASE")
 
+  def self_repository(): Mercurial.Repository = Mercurial.this_repository(BASE)
+
   def main_dir(base_dir: Path = BASE): Path = base_dir + Path.explode("thys")
 
   def main_dirs(afp_root: Option[Path]): List[Path] =
