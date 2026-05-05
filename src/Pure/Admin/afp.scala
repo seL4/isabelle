@@ -14,6 +14,8 @@ object AFP {
 
   def self_repository(): Mercurial.Repository = Mercurial.this_repository(BASE)
 
+  def hg_id(): String = Mercurial.Hg_Sync.id_directory(BASE) getOrElse self_repository().id()
+
   def main_dir(base_dir: Path = BASE): Path = base_dir + Path.explode("thys")
 
   def main_dirs(afp_root: Option[Path]): List[Path] =
