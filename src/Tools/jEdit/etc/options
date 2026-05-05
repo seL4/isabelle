@@ -36,8 +36,8 @@ public option jedit_symbols_search_limit : int = 50
 public option jedit_text_overview : bool = true
   -- "paint text overview column"
 
-public option jedit_focus_modifier : string = "CS"
-  -- "keyboard modifier to enable entity focus regardless of def visibility"
+public option jedit_focus_modifier : string = "CS AS"
+  -- "keyboard modifiers to enable entity focus regardless of def visibility, separated by spaces"
 
 public option jedit_toggle_full_screen : bool = false
   -- "use original jEdit action toggle-full-screen instead of Isabelle/jEdit variant"

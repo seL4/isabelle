@@ -1375,11 +1375,11 @@ text \<open>
   \end{figure}
 
   By default, the visual feedback on scopes is restricted to definitions
-  within the visible text area. The keyboard modifier \<^verbatim>\<open>CS\<close> overrides this:
-  then all defining and referencing positions are shown. This modifier may be
-  configured via option @{system_option jedit_focus_modifier}; the default
-  coincides with the modifier for the above keyboard actions. The empty string
-  means to disable this additional visual feedback.
+  within the visible text area. The keyboard modifiers \<^verbatim>\<open>CS\<close> or \<^verbatim>\<open>AS\<close> override
+  this: then all defining and referencing positions are shown. These modifier
+  may be configured via option @{system_option jedit_focus_modifier}, as
+  space-separated list. The default coincides with the modifiers for the above
+  keyboard actions. An empty list disables this additional visual feedback.
 \<close>
 
 

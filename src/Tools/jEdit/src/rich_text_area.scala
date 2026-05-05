@@ -84,9 +84,9 @@ class Rich_Text_Area(
   private val key_listener =
     JEdit_Lib.key_listener(
       key_pressed = { (evt: KeyEvent) =>
-        val mod = PIDE.options.string("jedit_focus_modifier")
+        val mods = Word.explode(PIDE.options.string("jedit_focus_modifier"))
         val old = caret_focus_modifier
-        caret_focus_modifier = (mod.nonEmpty && mod == JEdit_Lib.modifier_string(evt))
+        caret_focus_modifier = mods.contains(JEdit_Lib.modifier_string(evt))
         if (caret_focus_modifier != old) caret_update()
       },
       key_released = { _ =>
