@@ -208,7 +208,7 @@ For example:
   - Removed lemma set_of_map_finite. Use Map.finite_graph_iff_finite_dom
     instead. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
-      set_of_map_inj ~> inj_on_graph
+      set_of_map_inj ~> Map.inj_on_graph
   - Added lemmas.
       fmsubset_antisym
       fmsubset_refl[simp]

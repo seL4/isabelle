@@ -113,17 +113,6 @@ parametric_constant map_pred_transfer[transfer_rule]: map_pred_def
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
 
-lemma inj_on_graph: "inj_on Map.graph A"
-proof (rule inj_onI)
-  fix x y
-  assume "Map.graph x = Map.graph y"
-  hence "(x a = Some b) = (y a = Some b)" for a b
-    unfolding Map.graph_def by auto
-  hence "x k = y k" for k
-    by (metis not_None_eq)
-  thus "x = y" ..
-qed
-
 lemma dom_comp: "dom (m \<circ>\<^sub>m n) \<subseteq> dom n"
 unfolding map_comp_def dom_def
 by (auto split: option.splits)

@@ -835,6 +835,17 @@ lemma graph_map_of_if_distinct_dom: "distinct (map fst al) \<Longrightarrow> gra
 lemma finite_graph_iff_finite_dom[simp]: "finite (graph m) = finite (dom m)"
   by (metis graph_eq_to_snd_dom finite_imageI fst_graph_eq_dom)
 
+lemma inj_on_graph: "inj_on Map.graph A"
+proof (rule inj_onI)
+  fix x y
+  assume "Map.graph x = Map.graph y"
+  hence "(x a = Some b) = (y a = Some b)" for a b
+    unfolding Map.graph_def by auto
+  hence "x k = y k" for k
+    by (metis not_None_eq)
+  thus "x = y" ..
+qed
+
 lemma inj_on_fst_graph: "inj_on fst (graph m)"
   unfolding graph_def inj_on_def by force
 
