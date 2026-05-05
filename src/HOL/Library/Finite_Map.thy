@@ -113,10 +113,6 @@ parametric_constant map_pred_transfer[transfer_rule]: map_pred_def
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
 
-lemma finite_graph: "finite (dom m) \<Longrightarrow> finite (Map.graph m)"
-  unfolding Map.graph_eq_to_snd_dom
-  by auto
-
 lemma inj_on_graph: "inj_on Map.graph A"
 proof (rule inj_onI)
   fix x y
@@ -663,7 +659,7 @@ lemma fmsubset_restrict_fset[simp]: "fmrestrict_fset S m \<subseteq>\<^sub>f m"
 unfolding fmfilter_alt_defs by (rule fmfilter_subset)
 
 lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is Map.graph
-  by (rule finite_graph)
+  by simp
 
 lemma fset_of_fmap_inj[intro, simp]: "inj fset_of_fmap"
   apply rule

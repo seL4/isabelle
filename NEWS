@@ -205,10 +205,10 @@ For example:
   - Removed function set_of_map. Use Map.graph instead. INCOMPATIBILITY.
   - Removed lemma set_of_map_alt_def. Use Map.Map.graph_eq_to_snd_dom
     instead. Minor INCOMPATIBILITY.
+  - Removed lemma set_of_map_finite. Use Map.finite_graph_iff_finite_dom
+    instead. Minor INCOMPATIBILITY.
   - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
       set_of_map_inj ~> inj_on_graph
-  - Renamed lemmas. Minor INCOMPATIBILITY.
-      set_of_map_finite ~> finite_graph
   - Added lemmas.
       fmsubset_antisym
       fmsubset_refl[simp]
