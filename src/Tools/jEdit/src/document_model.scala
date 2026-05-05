@@ -412,7 +412,7 @@ case class File_Model(
 
   def node_name: Document.Node.Name = content.node_name
 
-  def get_text(range: Text.Range): Option[String] =
+  override def get_text(range: Text.Range): Option[String] =
     range.try_substring(content.text)
 
 
@@ -500,7 +500,7 @@ class Buffer_Model private(
 
   /* text */
 
-  def get_text(range: Text.Range): Option[String] =
+  override def get_text(range: Text.Range): Option[String] =
     JEdit_Lib.get_text(buffer, range)
 
 
