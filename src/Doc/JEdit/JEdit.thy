@@ -1346,10 +1346,11 @@ text \<open>
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
   modifier, or the action @{action_ref "isabelle.follow-link"} (shortcut
-  \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position. Alternatively, the action
-  @{action_def "isabelle.show-links"} (shortcut \<^verbatim>\<open>AS+UP\<close>) opens a popup with
-  the list of currently active hyperlinks, with the possibility to select one
-  via mouse or keyboard (see also \secref{sec:completion}).
+  \<^verbatim>\<open>CS+DOWN\<close> or \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position.
+  Alternatively, the action @{action_def "isabelle.show-links"} (shortcut
+  \<^verbatim>\<open>CS+UP\<close> or \<^verbatim>\<open>AS+UP\<close>) opens a popup with the list of currently active
+  hyperlinks, with the possibility to select one via mouse or keyboard (see
+  also \secref{sec:completion}).
 
   \begin{figure}[!htb]
   \begin{center}
@@ -1359,11 +1360,11 @@ text \<open>
   \label{fig:scope1}
   \end{figure}
 
-  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close>)
-  supports semantic selection of all occurrences of the formal entity at the
-  caret position, with a defining position in the current editor buffer. This
-  facilitates systematic renaming, using regular jEdit editing of a
-  multi-selection, see also \figref{fig:scope2}.
+  The action @{action_def "isabelle.select-entity"} (shortcut \<^verbatim>\<open>CS+ENTER\<close> or
+  \<^verbatim>\<open>AS+ENTER\<close>) supports semantic selection of all occurrences of the formal
+  entity at the caret position, with a defining position in the current editor
+  buffer. This facilitates systematic renaming, using regular jEdit editing of
+  a multi-selection, see also \figref{fig:scope2}.
 
   \begin{figure}[!htb]
   \begin{center}
