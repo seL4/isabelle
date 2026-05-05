@@ -5140,8 +5140,6 @@ proof -
     case (insert T F)
     then show ?case
     proof (cases "F={}")
-      case True then show ?thesis by simp
-    next
       case False
       with "insert.prems" have [simp]: "\<not> affine_dependent (T \<union> \<Inter>F)"
         by (auto intro: affine_dependent_subset)
@@ -5149,7 +5147,7 @@ proof -
         using affine_independent_subset insert.prems by fastforce
       show ?thesis
         by (simp add: affine_hull_Int convex_hull_Int insert.IH)
-    qed
+    qed auto
   qed
   then show "?A" "?C"
     by auto
@@ -5892,6 +5890,12 @@ next
     by (simp add: \<open>linear g\<close> aff_dim_linear_image_le)
   finally show "aff_dim S \<le> aff_dim (f ` S)" .
 qed
+
+lemma collinear_linear_image:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes "linear f" "inj f"
+  shows "collinear (f ` S) = collinear S"
+  by (simp add: assms collinear_aff_dim)
 
 
 lemma choose_affine_subset:
