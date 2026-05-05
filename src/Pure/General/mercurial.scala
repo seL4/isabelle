@@ -23,7 +23,7 @@ object Mercurial {
     def apply(root: String): Server = new Server(root)
 
     def start(root: Path): Server = {
-      val hg = repository(root)
+      val hg = this_repository(root)
 
       val server_process = Future.promise[Bash.Process]
       val server_root = Future.promise[String]
@@ -117,9 +117,6 @@ object Mercurial {
 
   /* hg_sync meta data */
 
-  def sync_id(root: Path, ssh: SSH.System = SSH.Local): Option[String] =
-    if (Hg_Sync.ok(root, ssh)) Some(Hg_Sync.directory(root, ssh).id) else None
-
   object Hg_Sync {
     val NAME = ".hg_sync"
     val _NAME: String = " " + NAME
@@ -130,6 +127,9 @@ object Mercurial {
     val PATH_STAT: Path = PATH + Path.explode("stat")
 
     def ok(root: Path, ssh: SSH.System = SSH.Local): Boolean = ssh.is_dir(root + PATH)
+
+    def id_directory(root: Path, ssh: SSH.System = SSH.Local): Option[String] =
+      if (Hg_Sync.ok(root, ssh)) Some(Hg_Sync.directory(root, ssh).id) else None
 
     def check_directory(root: Path, ssh: SSH.System = SSH.Local): Unit =
       if (ssh.is_dir(root) && !ok(root, ssh = ssh) && ssh.read_dir(root).nonEmpty) {
@@ -172,10 +172,10 @@ object Mercurial {
   def id_repository(root: Path, ssh: SSH.System = SSH.Local, rev: String = "tip"): Option[String] =
     for (hg <- detect_repository(root, ssh = ssh)) yield hg.id(rev = rev)
 
-  def repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
+  def this_repository(root: Path, ssh: SSH.System = SSH.Local): Repository =
     detect_repository(root, ssh = ssh) getOrElse error("Bad hg repository " + ssh.expand_path(root))
 
-  def self_repository(): Repository = repository(Path.ISABELLE_HOME)
+  def self_repository(): Repository = this_repository(Path.ISABELLE_HOME)
 
   def find_repository(start: Path, ssh: SSH.System = SSH.Local): Option[Repository] =
     ssh.find_path(start, detect_repository(_, ssh = ssh))
@@ -205,7 +205,7 @@ object Mercurial {
       options + " " + Bash.string(source) + " " + ssh.bash_path(root) + opt_rev(rev), ssh = ssh)
 
   def setup_repository(source: String, root: Path, ssh: SSH.System = SSH.Local): Repository = {
-    if (ssh.is_dir(root)) { val hg = repository(root, ssh = ssh); hg.pull(remote = source); hg }
+    if (ssh.is_dir(root)) { val hg = this_repository(root, ssh = ssh); hg.pull(remote = source); hg }
     else clone_repository(source, root, options = "--noupdate", ssh = ssh)
   }
 
@@ -613,7 +613,7 @@ Usage: isabelle hg_sync [OPTIONS] TARGET
         val progress = new Console_Progress(verbose = verbose)
         val hg =
           root match {
-            case Some(dir) => repository(dir)
+            case Some(dir) => this_repository(dir)
             case None => the_repository(Path.current)
           }
 

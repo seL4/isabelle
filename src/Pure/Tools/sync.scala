@@ -38,7 +38,7 @@ object Sync {
   val DIRS_ROOTS: Path = DIRS + Sessions.ROOTS
 
   sealed case class Dir(name: String, root: Path, path: Path = Path.current, rev: String = "") {
-    lazy val hg: Mercurial.Repository = Mercurial.repository(root)
+    lazy val hg: Mercurial.Repository = Mercurial.this_repository(root)
     def check(): Unit = hg
 
     def source: Path = root + path
