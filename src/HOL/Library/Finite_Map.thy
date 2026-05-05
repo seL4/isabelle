@@ -113,26 +113,19 @@ parametric_constant map_pred_transfer[transfer_rule]: map_pred_def
 definition rel_map_on_set :: "'a set \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'c) \<Rightarrow> bool" where
 "rel_map_on_set S P = eq_onp (\<lambda>x. x \<in> S) ===> rel_option P"
 
-definition set_of_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) set" where
-"set_of_map m = {(k, v)|k v. m k = Some v}"
+lemma graph_alt_def: "Map.graph m = (\<lambda>k. (k, the (m k))) ` dom m"
+  using graph_eq_to_snd_dom .
 
-lemma set_of_map_eq_graph: "set_of_map = Map.graph"
-  by (intro ext) (simp only: set_of_map_def Map.graph_def)
+lemma finite_graph: "finite (dom m) \<Longrightarrow> finite (Map.graph m)"
+  unfolding graph_alt_def
+  by auto
 
-lemma set_of_map_alt_def: "set_of_map m = (\<lambda>k. (k, the (m k))) ` dom m"
-unfolding set_of_map_def dom_def
-by auto
-
-lemma set_of_map_finite: "finite (dom m) \<Longrightarrow> finite (set_of_map m)"
-unfolding set_of_map_alt_def
-by auto
-
-lemma set_of_map_inj: "inj set_of_map"
-proof
+lemma inj_on_graph: "inj_on Map.graph A"
+proof (rule inj_onI)
   fix x y
-  assume "set_of_map x = set_of_map y"
+  assume "Map.graph x = Map.graph y"
   hence "(x a = Some b) = (y a = Some b)" for a b
-    unfolding set_of_map_def by auto
+    unfolding Map.graph_def by auto
   hence "x k = y k" for k
     by (metis not_None_eq)
   thus "x = y" ..
@@ -672,16 +665,16 @@ unfolding fmfilter_alt_defs by (rule fmfilter_subset)
 lemma fmsubset_restrict_fset[simp]: "fmrestrict_fset S m \<subseteq>\<^sub>f m"
 unfolding fmfilter_alt_defs by (rule fmfilter_subset)
 
-lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is set_of_map
-  by (rule set_of_map_finite)
+lift_definition fset_of_fmap :: "('a, 'b) fmap \<Rightarrow> ('a \<times> 'b) fset" is Map.graph
+  by (rule finite_graph)
 
 lemma fset_of_fmap_inj[intro, simp]: "inj fset_of_fmap"
   apply rule
   apply transfer'
-  using set_of_map_inj unfolding inj_def by auto
+  using inj_on_graph unfolding inj_def by auto
 
 lemma fset_of_fmap_iff[simp]: "(a, b) |\<in>| fset_of_fmap m \<longleftrightarrow> fmlookup m a = Some b"
-by transfer' (auto simp: set_of_map_def)
+  by transfer' (auto simp: Map.graph_def)
 
 lemma fset_of_fmap_iff': "(a, b) \<in> fset (fset_of_fmap m) \<longleftrightarrow> fmlookup m a = Some b"
   by simp
@@ -1036,7 +1029,7 @@ lemma fmmap_subset[intro]: "m \<subseteq>\<^sub>f n \<Longrightarrow> fmmap f m 
 
 lemma fmmap_fset_of_fmap: "fset_of_fmap (fmmap f m) = (\<lambda>(k, v). (k, f v)) |`| fset_of_fmap m"
   including fset.lifting
-  by transfer' (auto simp: set_of_map_def)
+  by transfer' (auto simp: Map.graph_def)
 
 lemma fmmap_fmupd: "fmmap f (fmupd x y m) = fmupd x (f y) (fmmap f m)"
   by transfer' (auto simp: fun_eq_iff map_upd_def)

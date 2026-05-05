@@ -202,12 +202,17 @@ For example:
   in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
 
 * Theory "HOL-Library.Finite_Map"
+  - Removed function set_of_map. Use Map.graph instead. INCOMPATIBILITY.
+  - Strengthened (and renamed) lemmas. Minor INCOMPATIBILITY.
+      set_of_map_inj ~> inj_on_graph
+  - Renamed lemmas. Minor INCOMPATIBILITY.
+      set_of_map_alt_def ~> graph_alt_def
+      set_of_map_finite ~> finite_graph
   - Added lemmas.
       fmsubset_antisym
       fmsubset_refl[simp]
       fmsubset_trans[trans]
       map_restrict_set_conv_restrict_map
-      set_of_map_eq_graph
 
 INCOMPATIBILITY.
 
