@@ -160,6 +160,14 @@ providing both possibilities, e.g."isabelle.first-error" (CS+a or AS+a),
 also reduces potential conflicts with platform-specific shortcuts,
 national keyboard variants etc.
 
+* Avoid conflicting jEdit shortcuts CS+UP/DOWN/LEFT/RIGHT to select
+words or paragraphs. Subsequent alternatives have been borrowed from vi:
+
+  select-prev-paragraph  CS+k or AS+k
+  select-next-paragraph  CS+j or AS+j
+  select-prev-word       CS+h or AS+h
+  select-next-word       CS+l or AS+l
+
 * Console/Scala: more robust Scala_Console.Progress with local output
 and interrupt handling (using thread interrupt, e.g. via "Stop" button).
 For example:

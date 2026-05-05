@@ -54,9 +54,9 @@ diff -Nru -- jedit5.7.0/jEdit/keymaps/German_Keyboard_keys.props jedit5.7.0-patc
 +vfs.browser.previous.shortcut=A+LEFT
 +vfs.browser.next.shortcut=A+RIGHT
  #}}}
-diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
+diff -ru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props
 --- jedit5.7.0/jEdit/keymaps/jEdit_keys.props	2024-08-03 19:53:29.000000000 +0200
-+++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-03-16 19:20:43.687363786 +0100
++++ jedit5.7.0-patched/jEdit/keymaps/jEdit_keys.props	2026-05-05 20:45:17.579275537 +0200
 @@ -1,5 +1,5 @@
  #{{{ Function keys
 -help.shortcut=F1
@@ -126,7 +126,7 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
  shift-left.shortcut2=S+TAB
  select-none.shortcut=ESCAPE
  backspace.shortcut=BACK_SPACE
-@@ -203,14 +201,6 @@
+@@ -203,14 +201,14 @@
  #}}}
  
  #{{{ Alternative shortcuts for frequently-used commands
@@ -138,10 +138,18 @@ diff -Nru jedit5.7.0/jEdit/keymaps/jEdit_keys.props jedit5.7.0-patched/jEdit/key
 -select-prev-page.shortcut2=AS+q
 -select-end.shortcut2=AS+x
 -select-home.shortcut2=AS+z
++select-prev-paragraph.shortcut=CS+k
++select-prev-paragraph.shortcut2=AS+k
++select-next-paragraph.shortcut=CS+j
++select-next-paragraph.shortcut2=AS+j
++select-prev-word.shortcut=CS+h
++select-prev-word.shortcut2=AS+h
++select-next-word.shortcut=CS+l
++select-next-word.shortcut2=AS+l
  copy.shortcut2=C+INSERT
  paste.shortcut2=S+INSERT
  cut.shortcut2=S+DELETE
-@@ -225,7 +215,7 @@
+@@ -225,7 +223,7 @@
  vfs.browser.rename.shortcut=F2
  vfs.browser.roots.shortcut=/
  vfs.browser.synchronize.shortcut=-
