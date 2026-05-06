@@ -11,6 +11,8 @@ import scala.language.unsafeNulls
 import isabelle._
 
 import java.io.{File => JFile}
+import java.util.Locale
+import java.text.{CharacterIterator, BreakIterator}
 import java.awt.{Component, Container}
 import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import java.awt.font.FontRenderContext
@@ -209,6 +211,21 @@ object JEdit_Lib {
 
   def undo_manager(buffer: JEditBuffer): UndoManager =
     Untyped.class_field(classOf[JEditBuffer], "undoMgr").get(buffer).asInstanceOf[UndoManager]
+
+  def char_iterator(buffer: JEditBuffer): CharacterIterator =
+    new TextArea.LineCharacterBreaker.CharIterator(buffer.getSegment(0, buffer.getLength))
+
+  def grapheme_iterator(
+    buffer: JEditBuffer,
+    locale: Locale = Library.locale_root
+  ): BreakIterator = {
+    val it = BreakIterator.getCharacterInstance(locale)
+    assert(it.class_name.containsSlice("GraphemeBreakIterator"),
+      "Bad character break iterator instance: " + it.class_name)
+
+    it.setText(char_iterator(buffer))
+    it
+  }
 
 
   /* point range */
