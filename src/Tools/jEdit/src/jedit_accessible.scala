@@ -21,6 +21,7 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea 
   TextAreaPainter, TextAreaPainterFactory, Selection}
 
 import java.awt.{Point, Rectangle}
+import java.text.BreakIterator
 import javax.accessibility.{Accessible, AccessibleContext, AccessibleRole, AccessibleText,
   AccessibleEditableText, AccessibleExtendedText, AccessibleState, AccessibleStateSet,
   AccessibleTextSequence}
@@ -166,16 +167,22 @@ object JEdit_Accessible {
         JEdit_Lib.buffer_lock(buffer) {
           if (offset < 0 || offset >= buffer.getLength) None
           else {
-            val breaker = new TextArea_JEdit.LineCharacterBreaker(text_area, offset)
-            val i = if (breaker.offsetIsBoundary(offset)) offset else breaker.previousOf(offset)
-            val range =
-              if (inc == 0) Text.Range(i, breaker.nextOf(i))
-              else if (inc < 0) Text.Range(breaker.previousOf(i), i)
+            val it = JEdit_Lib.grapheme_iterator(getBuffer)
+            val i = if (it.isBoundary(offset)) offset else it.preceding(offset)
+            if (i == BreakIterator.DONE) None
+            else {
+              val j = if (inc < 0) it.preceding(i) else it.following(i)
+              if (j == BreakIterator.DONE) None
               else {
-                val j = breaker.nextOf(i)
-                Text.Range(j, breaker.nextOf(j))
+                if (inc == 0) get_text(Text.Range(i, j))
+                else if (inc < 0) get_text(Text.Range(j, i))
+                else {
+                  val k = it.following(j)
+                  if (k == BreakIterator.DONE) None
+                  else get_text(Text.Range(j, k))
+                }
               }
-            get_text(range)
+            }
           }
         }
 
