@@ -188,46 +188,27 @@ object JEdit_Accessible {
 
       private def get_word(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          if (offset < 0 || offset >= buffer.getLength) None
+          val text_length = buffer.getLength
+          if (offset < 0 || offset >= text_length) None
           else {
-            val curr_line = text_area.getLineOfOffset(offset)
-            val prev_line = if (curr_line > 0) curr_line - 1 else curr_line
-            val next_line = if (curr_line < text_area.getLineCount - 1) curr_line + 1 else curr_line
+            val text = buffer.getSegment(0, text_length)
+            val text_range = Text.Range(0, text_length)
 
-            val curr_range = JEdit_Lib.trim_line_range(buffer, curr_line)
-            val prev_range = JEdit_Lib.trim_line_range(buffer, prev_line)
-            val next_range = JEdit_Lib.trim_line_range(buffer, next_line)
-
-            val text_start = prev_range.start
-            val text_stop = next_range.stop
-            val text_range = Text.Range(text_start, text_stop)
-
-            JEdit_Lib.get_text(buffer, text_range).flatMap { (text: String) =>
-              def word_range(pos: Int): Text.Range = {
-                val a = buffer.getStringProperty("noWordSep")
-                val b = text_area.getJoinNonWordChars
-                val start = TextUtilities.findWordStart(text, pos - text_start, a, b, false, false)
-                val stop = TextUtilities.findWordEnd(text, pos - text_start + 1, a, b, false, false)
-                Text.Range(start + text_start, stop + text_start)
-              }
-
-              val range = word_range(offset)
-              val result =
-                if (inc == 0) get_text(range)
-                else if (inc < 0 && range.start > 0) get_text(word_range(range.start - 1))
-                else if (inc > 0 && range.stop > 0 && range.stop < buffer.getLength - 1) {
-                  get_text(word_range(range.stop))
-                }
-                else None
-
-              List.from(
-                for {
-                  res <- result.iterator
-                  r0 <- Iterator(prev_range, curr_range, next_range)
-                  r <- res.range.try_restrict(r0)
-                  s <- JEdit_Lib.get_text(buffer, r)
-                } yield Text.Info(r, s)).headOption
+            def word_range(pos: Int): Option[Text.Range] = {
+              val a = buffer.getStringProperty("noWordSep")
+              val b = text_area.getJoinNonWordChars
+              val start = TextUtilities.findWordStart(text, pos, a, b, false, false)
+              val stop = TextUtilities.findWordEnd(text, pos + 1, a, b, false, false)
+              Text.Range(start, stop).try_restrict(text_range).filterNot(_.is_singularity)
             }
+
+            word_range(offset).flatMap(range =>
+              if (inc == 0) get_text(range)
+              else if (inc < 0 && range.start > 0) word_range(range.start - 1).flatMap(get_text)
+              else if (inc > 0 && range.stop > 0 && range.stop < text_length - 1) {
+                word_range(range.stop).flatMap(get_text)
+              }
+              else None)
           }
         }
 
