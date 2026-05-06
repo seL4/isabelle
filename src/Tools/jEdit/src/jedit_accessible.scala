@@ -212,10 +212,24 @@ object JEdit_Accessible {
           }
         }
 
+      private def get_line(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
+        JEdit_Lib.buffer_lock(buffer) {
+          val current =
+            try { Some(text_area.getLineOfOffset(offset)) }
+            catch { case _: ArrayIndexOutOfBoundsException => None }
+          current.flatMap(line =>
+            if (inc == 0) Some(line)
+            else if (inc < 0 && line > 0) Some(line - 1)
+            else if (line < text_area.getLineCount - 1) Some(line + 1)
+            else None
+          ).flatMap(line => get_text(JEdit_Lib.line_range(buffer, line)))
+        }
+
       private def get_part(part: Int, offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         part match {
           case AccessibleText.CHARACTER => get_character(offset, inc = inc)
           case AccessibleText.WORD => get_word(offset, inc = inc)
+          case AccessibleExtendedText.LINE => get_line(offset, inc = inc)
           case _ => None
         }
 
