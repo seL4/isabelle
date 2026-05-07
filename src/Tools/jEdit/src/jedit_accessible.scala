@@ -334,27 +334,33 @@ object JEdit_Accessible {
           } yield s).orNull
         }
 
-      override def selectText(start: Int, end: Int): Unit =
+      private def select(start: Int, end: Int): Unit = {
         if (!buffer.isReadOnly) {
           text_area.selectNone()
           text_area.addToSelection(new Selection.Range(start, end + 1))
         }
+      }
+
+      override def selectText(start: Int, end: Int): Unit = {
+        text_area.setCaretPosition(start)
+        if (start != end) select(start, end)
+      }
 
       override def cut(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
-          selectText(start, end)
+          select(start, end)
           Registers.cut(text_area, '$')
         }
 
       override def paste(start: Int): Unit =
         if (!buffer.isReadOnly) {
-          selectText(start, start)
+          select(start, start)
           Registers.paste(text_area, '$')
         }
 
       override def delete(start: Int, end: Int): Unit =
         if (!buffer.isReadOnly) {
-          selectText(start, end)
+          select(start, end)
           buffer.remove(start, end + 1 - start)
         }
 
@@ -370,7 +376,7 @@ object JEdit_Accessible {
       override def insertTextAtIndex(start: Int, s: String): Unit =
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
-            selectText(start, start)
+            select(start, start)
             buffer.insert(start, s)
           }
         }
@@ -378,7 +384,7 @@ object JEdit_Accessible {
       override def replaceText(start: Int, end: Int, s: String): Unit =
         if (!buffer.isReadOnly) {
           JEdit_Lib.buffer_edit(buffer) {
-            selectText(start, end)
+            select(start, end)
             buffer.remove(start, end + 1 - start)
             buffer.insert(start, s)
           }
