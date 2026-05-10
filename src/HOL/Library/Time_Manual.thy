@@ -266,6 +266,16 @@ by (induction n) auto
 
 time_fun f0 equations f0_eq
 
+text \<open>This may be necessary when using functions defined in locales. Example:\<close>
+
+locale L =
+  fixes p :: nat
+begin
+definition f :: nat where "f = p"
+end
+
+time_definition L.f equations L.f_def
+
 text \<open>The \<open>T_\<close> prefix can be changed by modifying the \<open>time_prefix\<close> attribute. Example:\<close>
 
 declare [[time_prefix = "t_"]]
