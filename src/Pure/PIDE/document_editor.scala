@@ -30,7 +30,7 @@ object Document_Editor {
         } yield {
           Meta_Info(name,
             SortedSet.from(selection),
-            SHA1.parse(sources),
+            Shasum.fake(sources),
             SHA1.parse(log),
             SHA1.parse(pdf))
         }
@@ -56,7 +56,7 @@ object Document_Editor {
   sealed case class Meta_Info(
     name: String,
     selection: SortedSet[String],
-    sources: Message_Digest.T,
+    sources: Shasum,
     log: Message_Digest.T,
     pdf: Message_Digest.T
   ) {
