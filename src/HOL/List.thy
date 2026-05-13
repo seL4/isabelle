@@ -8539,6 +8539,9 @@ lemma map_filter_map_filter [code_unfold]:
   \<open>map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs\<close>
   by (simp add: map_filter_def)
 
+lemma map_map_filter: "map f (map_filter g xs) = map_filter (map_option f \<circ> g) xs"
+  by (induction xs) (auto simp: option.case_eq_if)
+
 hide_const (open) map_filter
 
 

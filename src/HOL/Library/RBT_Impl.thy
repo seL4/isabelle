@@ -1854,10 +1854,6 @@ end
 lemma distinct_map_of_rev: "distinct (map fst xs) \<Longrightarrow> map_of (rev xs) = map_of xs"
 by(induct xs)(auto 4 3 simp add: map_add_def intro!: ext split: option.split intro: rev_image_eqI)
 
-lemma map_map_filter: 
-  "map f (List.map_filter g xs) = List.map_filter (map_option f \<circ> g) xs"
-by(auto simp add: List.map_filter_def)
-
 lemma map_filter_map_option_const: 
   "List.map_filter (\<lambda>x. map_option (\<lambda>y. f x) (g (f x))) xs = filter (\<lambda>x. g x \<noteq> None) (map f xs)"
 by(auto simp add: map_filter_def filter_map o_def)
