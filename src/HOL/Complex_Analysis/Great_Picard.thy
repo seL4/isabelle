@@ -453,7 +453,7 @@ proof -
     have "(f has_field_derivative 0) (at x)" for x
       by (metis True UNIV_I holf holomorphic_derivI open_UNIV)
     then obtain c where "\<And>x. f(x) = c"
-      by (meson UNIV_I DERIV_zero_connected_constant [OF connected_UNIV open_UNIV finite.emptyI contf])
+      by (metis UNIV_I convex_UNIV has_field_derivative_zero_constant)
     then show ?thesis
       using that by auto
   next

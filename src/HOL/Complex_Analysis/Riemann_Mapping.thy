@@ -567,11 +567,11 @@ proof -
   have hfd: "\<And>x. x \<in> S \<Longrightarrow> ((\<lambda>z. exp (g z) / f z) has_field_derivative 0) (at x)"
     by (rule derivative_eq_intros Df g nz| simp)+
   obtain c where c: "\<And>x. x \<in> S \<Longrightarrow> exp (g x) / f x = c"
-  proof (rule DERIV_zero_connected_constant[OF \<open>connected S\<close> openS finite.emptyI])
+  proof (rule DERIV_zero_connected_constant[OF \<open>connected S\<close> openS])
     show "continuous_on S (\<lambda>z. exp (g z) / f z)"
       by (metis (full_types) openS g continuous_on_divide continuous_on_exp holf holomorphic_on_imp_continuous_on holomorphic_on_open nz)
     then show "\<forall>x\<in>S - {}. ((\<lambda>z. exp (g z) / f z) has_field_derivative 0) (at x)"
-      using hfd by (blast intro: DERIV_zero_connected_constant [OF \<open>connected S\<close> openS finite.emptyI, of "\<lambda>z. exp(g z) / f z"])
+      using hfd by blast
   qed auto
   show ?thesis
   proof (intro exI ballI conjI)

@@ -1,5 +1,5 @@
 theory Absolute_Continuity
-  imports Bounded_Variation Equivalence_Lebesgue_Henstock_Integration Equivalence_Measurable_On_Borel
+  imports Bounded_Variation Equivalence_Measurable_On_Borel
 
 begin
 
@@ -1342,9 +1342,8 @@ lemma fundamental_theorem_of_calculus_strong:
   fixes f :: "real \<Rightarrow> 'a::banach" and f' :: "real \<Rightarrow> 'a"
   assumes "countable S"
     and "a \<le> b"
+    and "\<And>x. x \<in> {a..b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x within {a..b})"
     and "continuous_on {a..b} f"
-    and "\<And>x. x \<in> {a..b} - S \<Longrightarrow>
-      (f has_vector_derivative f' x) (at x within {a..b})"
   shows "(f' has_integral (f b - f a)) {a..b}"
 proof (intro fundamental_theorem_of_calculus_Bartle assms)
   show "negligible S"
@@ -1658,8 +1657,8 @@ lemma fundamental_theorem_of_calculus_interior_strong:
   fixes f :: "real \<Rightarrow> 'a::banach" and f' :: "real \<Rightarrow> 'a"
   assumes "countable S"
     and "a \<le> b"
-    and "continuous_on {a..b} f"
     and f': "\<And>x. x \<in> {a<..<b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+    and "continuous_on {a..b} f"
   shows "(f' has_integral (f b - f a)) {a..b}"
 proof -
   have "(f' has_integral (f b - f a)) {a..b}"
@@ -1676,6 +1675,340 @@ proof -
   qed
   then show ?thesis .
 qed
+
+
+subsection \<open>Integration by parts\<close>
+
+lemma integration_by_parts_interior_strong:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes bilinear: "bounded_bilinear (prod)"
+  assumes s: "countable s" and le: "a \<le> b"
+  assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+                 "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes int: "((\<lambda>x. prod (f x) (g' x)) has_integral
+                  (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+proof -
+  interpret bounded_bilinear prod by fact
+  have "((\<lambda>x. prod (f x) (g' x) + prod (f' x) (g x)) has_integral
+          (prod (f b) (g b) - prod (f a) (g a))) {a..b}"
+    using deriv by (intro fundamental_theorem_of_calculus_interior_strong[OF s le])
+                   (auto intro!: continuous_intros continuous_on has_vector_derivative)
+  from has_integral_diff[OF this int] show ?thesis by (simp add: algebra_simps)
+qed
+
+lemma integration_by_parts_interior:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+  by (rule integration_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (use assms in simp_all)
+
+lemma integration_by_parts:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) - y)) {a..b}"
+  shows   "((\<lambda>x. prod (f' x) (g x)) has_integral y) {a..b}"
+  by (rule integration_by_parts_interior[of _ _ _ f g f' g']) (use assms in simp_all)
+
+lemma integrable_by_parts_interior_strong:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes bilinear: "bounded_bilinear (prod)"
+  assumes s: "countable s" and le: "a \<le> b"
+  assumes cont [continuous_intros]: "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes deriv: "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+                 "\<And>x. x\<in>{a<..<b} - s \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes int: "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+proof -
+  from int obtain I where "((\<lambda>x. prod (f x) (g' x)) has_integral I) {a..b}"
+    unfolding integrable_on_def by blast
+  hence "((\<lambda>x. prod (f x) (g' x)) has_integral (prod (f b) (g b) - prod (f a) (g a) -
+           (prod (f b) (g b) - prod (f a) (g a) - I))) {a..b}" by simp
+  from integration_by_parts_interior_strong[OF assms(1-7) this]
+    show ?thesis unfolding integrable_on_def by blast
+qed
+
+lemma integrable_by_parts_interior:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a<..<b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+  by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (use assms in simp_all)
+
+lemma integrable_by_parts:
+  fixes prod :: "_ \<Rightarrow> _ \<Rightarrow> 'b :: banach"
+  assumes "bounded_bilinear (prod)" "a \<le> b"
+          "continuous_on {a..b} f" "continuous_on {a..b} g"
+  assumes "\<And>x. x\<in>{a..b} \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+          "\<And>x. x\<in>{a..b} \<Longrightarrow> (g has_vector_derivative g' x) (at x)"
+  assumes "(\<lambda>x. prod (f x) (g' x)) integrable_on {a..b}"
+  shows   "(\<lambda>x. prod (f' x) (g x)) integrable_on {a..b}"
+  by (rule integrable_by_parts_interior_strong[of _ "{}" _ _ f g f' g']) (use assms in simp_all)
+
+
+subsection \<open>Integration by substitution\<close>
+
+lemma has_integral_substitution_general:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes s: "countable s" and le: "a \<le> b"
+      and subset: "g ` {a..b} \<subseteq> {c..d}"
+      and f [continuous_intros]: "continuous_on {c..d} f"
+      and g [continuous_intros]: "continuous_on {a..b} g"
+      and deriv [derivative_intros]:
+              "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f - integral {g b..g a} f)) {a..b}"
+proof -
+  let ?F = "\<lambda>x. integral {c..g x} f"
+  have cont_int: "continuous_on {a..b} ?F"
+    by (rule continuous_on_compose2[OF _ g subset] indefinite_integral_continuous_1
+          f integrable_continuous_real)+
+  have deriv: "(((\<lambda>x. integral {c..x} f) \<circ> g) has_vector_derivative g' x *\<^sub>R f (g x))
+                 (at x within {a..b})" if "x \<in> {a..b} - s" for x
+  proof (rule has_vector_derivative_eq_rhs [OF vector_diff_chain_within refl])
+    show "(g has_vector_derivative g' x) (at x within {a..b})"
+      using deriv has_real_derivative_iff_has_vector_derivative that by blast
+    show "((\<lambda>x. integral {c..x} f) has_vector_derivative f (g x)) 
+          (at (g x) within g ` {a..b})"
+      using that le subset
+      by (blast intro: has_vector_derivative_within_subset integral_has_vector_derivative f)
+  qed
+  have deriv: "(?F has_vector_derivative g' x *\<^sub>R f (g x))
+                  (at x)" if "x \<in> {a..b} - (s \<union> {a,b})" for x
+    using deriv[of x] that by (simp add: at_within_Icc_at o_def)
+  have "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (?F b - ?F a)) {a..b}"
+    using le cont_int s deriv cont_int
+    by (intro fundamental_theorem_of_calculus_interior_strong[of "s \<union> {a,b}"]) simp_all
+  also
+  from subset have "g x \<in> {c..d}" if "x \<in> {a..b}" for x using that by blast
+  from this[of a] this[of b] le have cd: "c \<le> g a" "g b \<le> d" "c \<le> g b" "g a \<le> d" by auto
+  have "integral {c..g b} f - integral {c..g a} f = integral {g a..g b} f - integral {g b..g a} f"
+  proof cases
+    assume "g a \<le> g b"
+    note le = le this
+    from cd have "integral {c..g a} f + integral {g a..g b} f = integral {c..g b} f"
+      by (intro Henstock_Kurzweil_Integration.integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
+    with le show ?thesis
+      by (cases "g a = g b") (simp_all add: algebra_simps)
+  next
+    assume less: "\<not>g a \<le> g b"
+    then have "g a \<ge> g b" by simp
+    note le = le this
+    from cd have "integral {c..g b} f + integral {g b..g a} f = integral {c..g a} f"
+      by (intro Henstock_Kurzweil_Integration.integral_combine integrable_continuous_real continuous_on_subset[OF f] le) simp_all
+    with less show ?thesis
+      by (simp_all add: algebra_simps)
+  qed
+  finally show ?thesis .
+qed
+
+lemma has_integral_substitution_strong:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes s: "countable s" and le: "a \<le> b" "g a \<le> g b"
+    and subset: "g ` {a..b} \<subseteq> {c..d}"
+    and f [continuous_intros]: "continuous_on {c..d} f"
+    and g [continuous_intros]: "continuous_on {a..b} g"
+    and deriv [derivative_intros]:
+    "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+  shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+  using has_integral_substitution_general[OF s le(1) subset f g deriv] le(2)
+  by (cases "g a = g b") auto
+
+lemma has_integral_substitution:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
+  assumes "a \<le> b" "g a \<le> g b" "g ` {a..b} \<subseteq> {c..d}"
+      and "continuous_on {c..d} f"
+      and "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
+    shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
+proof (intro has_integral_substitution_strong[of "{}" a b g c d] assms)
+qed (auto intro: DERIV_continuous_on assms)
+
+lemma integral_shift:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes cont: "continuous_on {a + c..b + c} f"
+  shows "integral {a..b} (f \<circ> (\<lambda>x. x + c)) = integral {a + c..b + c} f"
+proof (cases "a \<le> b")
+  case True
+  have "((\<lambda>x. 1 *\<^sub>R f (x + c)) has_integral integral {a+c..b+c} f) {a..b}"
+    using True cont
+    by (intro has_integral_substitution[where c = "a + c" and d = "b + c"])
+       (auto intro!: derivative_eq_intros)
+  thus ?thesis by (simp add: has_integral_iff o_def)
+qed auto
+
+
+subsection \<open>This doesn't directly involve integration, but that gives an easy proof\<close>
+
+lemma has_derivative_zero_unique_strong_interval:
+  fixes f :: "real \<Rightarrow> 'a::banach"
+  assumes "countable k"
+    and contf: "continuous_on {a..b} f"
+    and "f a = y"
+    and fder: "\<And>x. x \<in> {a..b} - k \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within {a..b})"
+    and x: "x \<in> {a..b}"
+  shows "f x = y"
+proof -
+  have "a \<le> b" "a \<le> x"
+    using assms by auto
+  have "((\<lambda>x. 0::'a) has_integral f x - f a) {a..x}"
+  proof (rule fundamental_theorem_of_calculus_interior_strong[OF \<open>countable k\<close> \<open>a \<le> x\<close>]; clarify?)
+    have "{a..x} \<subseteq> {a..b}"
+      using x by auto
+    then show "continuous_on {a..x} f"
+      by (rule continuous_on_subset[OF contf])
+    show "(f has_vector_derivative 0) (at z)" if z: "z \<in> {a<..<x}" and notin: "z \<notin> k" for z
+      unfolding has_vector_derivative_def
+    proof (simp add: at_within_open[OF z, symmetric])
+      show "(f has_derivative (\<lambda>x. 0)) (at z within {a<..<x})"
+        by (rule has_derivative_subset [OF fder]) (use x z notin in auto)
+    qed
+  qed
+  from has_integral_unique[OF has_integral_0 this]
+  show ?thesis
+    unfolding assms by auto
+qed
+
+
+subsection \<open>Generalize a bit to any convex set\<close>
+
+lemma has_derivative_zero_unique_strong_convex:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "convex S" "countable K"
+    and contf: "continuous_on S f"
+    and "c \<in> S" "f c = y"
+    and derf: "\<And>x. x \<in> S - K \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and "x \<in> S"
+  shows "f x = y"
+proof (cases "x = c")
+  case True with \<open>f c = y\<close> show ?thesis
+    by blast
+next
+  case False
+  let ?\<phi> = "\<lambda>u. (1 - u) *\<^sub>R c + u *\<^sub>R x"
+  have contf': "continuous_on {0 ..1} (f \<circ> ?\<phi>)"
+  proof (rule continuous_intros continuous_on_subset[OF contf])+
+    show "(\<lambda>u. (1 - u) *\<^sub>R c + u *\<^sub>R x) ` {0..1} \<subseteq> S"
+      using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> by (auto simp: convex_alt algebra_simps)
+  qed
+  have "t = u" if "?\<phi> t = ?\<phi> u" for t u
+  proof -
+    from that have "(t - u) *\<^sub>R x = (t - u) *\<^sub>R c"
+      by (auto simp: algebra_simps)
+    then show ?thesis
+      using \<open>x \<noteq> c\<close> by auto
+  qed
+  then have eq: "(SOME t. ?\<phi> t = ?\<phi> u) = u" for u
+    by blast
+  then have "(?\<phi> -` K) \<subseteq> (\<lambda>z. SOME t. ?\<phi> t = z) ` K"
+    by (clarsimp simp: image_iff) (metis (no_types) eq)
+  then have fin: "countable (?\<phi> -` K)"
+    by (simp add: \<open>countable K\<close> countable_subset)
+
+  have derf': "((\<lambda>u. f (?\<phi> u)) has_derivative (\<lambda>h. 0)) (at t within {0..1})"
+               if "t \<in> {0..1} - {t. ?\<phi> t \<in> K}" for t
+  proof -
+    have df: "(f has_derivative (\<lambda>h. 0)) (at (?\<phi> t) within ?\<phi> ` {0..1})"
+      using \<open>convex S\<close> \<open>x \<in> S\<close> \<open>c \<in> S\<close> that 
+      by (auto simp: convex_alt algebra_simps intro: has_derivative_subset [OF derf])
+    have "(f \<circ> ?\<phi> has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x)) (at t within {0..1})"
+      by (rule derivative_eq_intros df | simp)+
+    then show ?thesis
+      unfolding o_def .
+  qed
+  have "(f \<circ> ?\<phi>) 1 = y"
+    apply (rule has_derivative_zero_unique_strong_interval[OF fin contf'])
+    unfolding o_def using \<open>f c = y\<close> derf' by auto
+  then show ?thesis
+    by auto
+qed
+
+
+text \<open>Also to any open connected set with finite set of exceptions. Could
+ generalize to locally convex set with limpt-free set of exceptions.\<close>
+
+lemma has_derivative_zero_unique_strong_connected:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "connected S"
+    and "open S"
+    and "countable K"
+    and contf: "continuous_on S f"
+    and "c \<in> S"
+    and "f c = y"
+    and derf: "\<And>x. x \<in> S - K \<Longrightarrow> (f has_derivative (\<lambda>h. 0)) (at x within S)"
+    and "x \<in> S"
+  shows "f x = y"
+proof -
+  have "\<exists>e>0. ball x e \<subseteq> (S \<inter> f -` {f x})" if "x \<in> S" for x
+  proof -
+    obtain e where "0 < e" and e: "ball x e \<subseteq> S"
+      using \<open>x \<in> S\<close> \<open>open S\<close> open_contains_ball by blast
+    have "ball x e \<subseteq> {u \<in> S. f u \<in> {f x}}"
+    proof safe
+      fix y
+      assume y: "y \<in> ball x e"
+      then show "y \<in> S"
+        using e by auto
+      show "f y = f x"
+      proof (rule has_derivative_zero_unique_strong_convex[OF convex_ball \<open>countable K\<close>])
+        show "continuous_on (ball x e) f"
+          using contf continuous_on_subset e by blast
+        show "(f has_derivative (\<lambda>h. 0)) (at u within ball x e)"
+             if "u \<in> ball x e - K" for u
+          by (metis Diff_iff contra_subsetD derf e has_derivative_subset that)
+      qed (use y e \<open>0 < e\<close> in auto)
+    qed
+    then show "\<exists>e>0. ball x e \<subseteq> (S \<inter> f -` {f x})"
+      using \<open>0 < e\<close> by blast
+  qed
+  then have "openin (top_of_set S) (S \<inter> f -` {y})"
+    by (auto intro!: open_openin_trans[OF \<open>open S\<close>] simp: open_contains_ball)
+  moreover have "closedin (top_of_set S) (S \<inter> f -` {y})"
+    by (force intro!: continuous_closedin_preimage [OF contf])
+  ultimately have "(S \<inter> f -` {y}) = {} \<or> (S \<inter> f -` {y}) = S"
+    using \<open>connected S\<close> by (simp add: connected_clopen)
+  then show ?thesis
+    using \<open>x \<in> S\<close> \<open>f c = y\<close> \<open>c \<in> S\<close> by auto
+qed
+
+lemma has_derivative_zero_connected_constant_on:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::banach"
+  assumes "connected S" "open S" "countable K" "continuous_on S f"
+      and "\<forall>x\<in>S-K. (f has_derivative (\<lambda>h. 0)) (at x within S)"
+  shows   "f constant_on S"
+  by (smt (verit, best) assms constant_on_def has_derivative_zero_unique_strong_connected)
+
+lemma DERIV_zero_connected_constant_on:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes *: "connected S" "open S" "countable K" "continuous_on S f"
+      and 0: "\<forall>x\<in>S-K. DERIV f x :> 0"
+  shows   "f constant_on S"
+  using has_derivative_zero_connected_constant_on [OF *] 0
+  by (metis has_derivative_at_withinI has_field_derivative_def lambda_zero)
+
+lemma DERIV_zero_connected_constant:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes "connected S" and "open S" and "countable K" and "continuous_on S f"
+      and "\<forall>x\<in>S-K. DERIV f x :> 0"
+    obtains c where "\<And>x. x \<in> S \<Longrightarrow> f(x) = c"
+  by (metis DERIV_zero_connected_constant_on [OF assms] constant_on_def)
+
+lemma has_field_derivative_0_imp_constant_on:
+  fixes f :: "'a::{real_normed_field,euclidean_space} \<Rightarrow> 'a"
+  assumes "\<And>z. z \<in> S \<Longrightarrow> (f has_field_derivative 0) (at z)" and S: "connected S" "open S"
+  shows   "f constant_on S"
+  using DERIV_zero_connected_constant_on [where K="Basis"] countable_finite
+  by (metis DERIV_isCont Diff_iff assms continuous_at_imp_continuous_on eucl.finite_Basis)
+
 
 subsection \<open>Closure and interior\<close>
 
