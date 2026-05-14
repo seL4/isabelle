@@ -18,8 +18,6 @@ text \<open>Monadic heap actions either produce values
   and transform the heap, or fail\<close>
 datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 
-declare [[code drop: "Code_Evaluation.term_of :: 'a::typerep Heap \<Rightarrow> Code_Evaluation.term"]]
-
 primrec execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a \<times> heap) option" where
   [code drop]: "execute (Heap f) = f"
 
@@ -234,6 +232,8 @@ definition raise :: "String.literal \<Rightarrow> 'a Heap" \<comment> \<open>the
   where "raise s = Heap (\<lambda>_. None)"
 
 code_datatype raise \<comment> \<open>avoid \<^const>\<open>Heap\<close> formally\<close>
+
+declare [[code drop: "Code_Evaluation.term_of :: 'a::typerep Heap \<Rightarrow> Code_Evaluation.term"]]
 
 lemma execute_raise [execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
