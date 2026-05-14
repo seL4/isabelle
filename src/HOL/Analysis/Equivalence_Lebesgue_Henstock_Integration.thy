@@ -2154,6 +2154,13 @@ proof (cases "\<F> = {}")
     by (metis from_nat_into range_from_nat_into assms negligible_Union_nat)
 qed simp
 
+lemma countable_imp_negligible:
+  fixes S :: \<open>real set\<close>
+  assumes \<open>countable S\<close>
+  shows \<open>negligible S\<close>
+  using negligible_countable_Union[OF countable_image[OF assms]]
+  by (metis (mono_tags, lifting) UN_singleton image_iff negligible_sing)
+
 lemma
   assumes S: "\<And>n. (S n) \<in> lmeasurable"
     and djointish: "pairwise (\<lambda>m n. negligible (S m \<inter> S n)) UNIV"

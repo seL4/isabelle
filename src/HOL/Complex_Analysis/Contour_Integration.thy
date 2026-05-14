@@ -740,7 +740,7 @@ proof -
       by (simp add: has_vector_derivative_def scaleR_conv_of_real o_def mult_ac)
   } then show ?thesis
     using assms cfg 
-    by (force simp: at_within_Icc_at intro: fundamental_theorem_of_calculus_interior_strong [OF \<open>finite K\<close>])
+    by (force simp: at_within_Icc_at intro: Henstock_Kurzweil_Integration.fundamental_theorem_of_calculus_interior_strong [OF \<open>finite K\<close>])
 qed
 
 lemma contour_integral_primitive:

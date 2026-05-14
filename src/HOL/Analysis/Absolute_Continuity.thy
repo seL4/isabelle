@@ -1338,6 +1338,345 @@ proof (intro fundamental_theorem_of_calculus_Bartle)
     using \<open>0 < \<epsilon>\<close> absolutely_continuous_on_imp_Henstock_Sacks assms(1,3) by fastforce
 qed (use assms in auto)
 
+lemma fundamental_theorem_of_calculus_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach" and f' :: "real \<Rightarrow> 'a"
+  assumes "countable S"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and "\<And>x. x \<in> {a..b} - S \<Longrightarrow>
+      (f has_vector_derivative f' x) (at x within {a..b})"
+  shows "(f' has_integral (f b - f a)) {a..b}"
+proof (intro fundamental_theorem_of_calculus_Bartle assms)
+  show "negligible S"
+    by (simp add: assms(1) countable_imp_negligible)
+next
+  fix \<epsilon> :: real
+  assume "0 < \<epsilon>"
+  obtain \<sigma>::"nat\<Rightarrow>real" and T where \<sigma>: "inj_on \<sigma> T" and Seq: "S = \<sigma> ` T"
+    by (meson assms(1) countable_as_injective_image_subset)
+
+  \<comment> \<open>Left inverse of $\sigma$ on T\<close>
+  define n where "n \<equiv> the_inv_into T \<sigma>"
+
+  \<comment> \<open>For each x, obtain $d(x) > 0$ with the continuity bound\<close>
+  have "\<exists>d. d > 0 \<and>
+            (x \<in> {a..b} \<and> x \<in> \<sigma> ` T \<longrightarrow> (\<forall>y. \<bar>y - x\<bar> < d \<and> y \<in> {a..b} \<longrightarrow> norm (f y - f x) \<le> \<epsilon> / 2^(4 + n x)))" 
+      for x
+  proof (cases "x \<in> {a..b}")
+    case False
+    then show ?thesis by (intro exI[of _ 1]) auto
+  next
+    case x_ab: True
+    show ?thesis
+    proof (cases "x \<in> \<sigma> ` T")
+      case False
+      then show ?thesis by (intro exI[of _ 1]) auto
+    next
+      case True
+      have cont: "continuous_on {a..b} f" by fact
+      have eps_pos: "\<epsilon> / 2^(4 + n x) > 0"
+        using \<open>0 < \<epsilon>\<close> by simp
+      obtain \<delta> where "\<delta> > 0"
+        and "\<And>y. y \<in> {a..b} \<Longrightarrow> dist y x < \<delta> \<Longrightarrow> dist (f y) (f x) < \<epsilon> / 2^(4 + n x)"
+        using cont[unfolded continuous_on_iff] x_ab eps_pos by blast
+      then show ?thesis
+        by (metis dist_norm dist_real_def less_eq_real_def)
+    qed
+  qed
+  then obtain d :: "real \<Rightarrow> real" where d_pos: "\<And>x. d x > 0"
+    and d_bound: "\<And>x. x \<in> {a..b} \<Longrightarrow> x \<in> \<sigma> ` T \<Longrightarrow>
+      (\<forall>y. \<bar>y - x\<bar> < d x \<and> y \<in> {a..b} \<longrightarrow> norm (f y - f x) \<le> \<epsilon> / 2^(4 + n x))"
+    by metis
+
+  show "\<exists>g. gauge g \<and> (\<forall>p. p tagged_partial_division_of cbox a b \<and> g fine p \<and> fst ` p \<subseteq> S \<longrightarrow> norm (\<Sum>(x, k)\<in>p. f (Sup k) - f (Inf k)) < \<epsilon>)"
+  proof (intro exI conjI allI impI)
+    show "gauge (\<lambda>x. ball x (d x))"
+      using d_pos by (intro gauge_ball_dependent) auto
+  next
+    fix p assume p_hyp: "p tagged_partial_division_of cbox a b \<and>
+      (\<lambda>x. ball x (d x)) fine p \<and> fst ` p \<subseteq> S"
+    then have p_div: "p tagged_partial_division_of cbox a b"
+      and p_fine: "(\<lambda>x. ball x (d x)) fine p" and p_tags: "fst ` p \<subseteq> S"
+      by auto
+    have p_finite: "finite p"
+      using tagged_partial_division_ofD(1)[OF p_div] .
+    then have finite_snd: "finite {k. (x,k) \<in> p \<and> P x k}" for P x
+      by (metis (mono_tags, lifting) Range.RangeI finite_Range mem_Collect_eq rev_finite_subset subsetI)
+
+    show "norm (\<Sum>(x, k)\<in>p. f (Sup k) - f (Inf k)) < \<epsilon>"
+    proof -
+      let ?S' = "{(x,k). (x,k) \<in> p \<and> x \<in> \<sigma> ` T \<and> Henstock_Kurzweil_Integration.content k \<noteq> 0}"
+      let ?t = "norm (\<Sum>(x,k)\<in>?S'. - (f (Sup k) - f (Inf k)))"
+      \<comment> \<open>Show that zero-content terms vanish, so the sum over @{term p} equals the sum over @{term "?S'"}\<close>
+      have zero_content: "f (Sup k) - f (Inf k) = 0"
+        if "(x, k) \<in> p" "Henstock_Kurzweil_Integration.content k = 0" for x k
+      proof -
+        from tagged_partial_division_ofD(4)[OF p_div that(1)]
+        obtain u v where k_eq: "k = cbox u v" by auto
+        from tagged_partial_division_ofD(2)[OF p_div that(1)]
+        have "x \<in> k" .
+        then have "u \<le> v" using k_eq by (auto simp: mem_box)
+        with that(2) have "u = v"
+          using k_eq by (auto simp: content_cbox_if Basis_real_def)
+        then have "Sup k = Inf k"
+          using k_eq \<open>u \<le> v\<close> by (simp add: Sup_atLeastAtMost Inf_atLeastAtMost)
+        then show ?thesis by simp
+      qed
+      have sum_eq: "(\<Sum>(x,k)\<in>p. f (Sup k) - f (Inf k)) =
+                    (\<Sum>(x,k)\<in>?S'. f (Sup k) - f (Inf k))"
+      proof (rule sum.same_carrierI[OF p_finite _ _ _ _ refl])
+        show "?S' \<subseteq> p" by auto
+        show "p \<subseteq> p" by auto
+      next
+        fix a assume "a \<in> p - p"
+        then show "(case a of (x, k) \<Rightarrow> f (Sup k) - f (Inf k)) = 0" by auto
+      next
+        fix b assume "b \<in> p - ?S'"
+        then obtain x k where bxk: "b = (x, k)" "(x, k) \<in> p"
+          and extra: "x \<notin> \<sigma> ` T \<or> Henstock_Kurzweil_Integration.content k = 0"
+          by (cases b) auto
+        have "x \<in> \<sigma> ` T"
+          using p_tags bxk Seq by (force simp: image_iff)
+        with extra have "Henstock_Kurzweil_Integration.content k = 0" by blast
+        then show "(case b of (x, k) \<Rightarrow> f (Sup k) - f (Inf k)) = 0"
+          using zero_content[OF bxk(2)] bxk(1) by simp
+      qed
+      have neg_eq: "- (\<Sum>(x,k)\<in>p. f (Sup k) - f (Inf k)) =
+                    (\<Sum>(x,k)\<in>?S'. - (f (Sup k) - f (Inf k)))"
+        unfolding sum_eq sum_negf[symmetric] by (simp add: case_prod_unfold)
+      have "norm (\<Sum>(x,k)\<in>p. f (Sup k) - f (Inf k)) = ?t"
+        by (subst neg_eq[symmetric], subst norm_minus_cancel[symmetric]) (rule refl)
+      also have "\<dots> \<le> (\<Sum>(x,k)\<in>?S'. \<epsilon>/2 ^ (3 + n x))"
+      proof (rule sum_norm_le)
+        fix z assume z_in: "z \<in> ?S'"
+        obtain x k where z_eq: "z = (x, k)" and xk_in: "(x, k) \<in> p"
+          and x_img: "x \<in> \<sigma> ` T" and k_nz: "Henstock_Kurzweil_Integration.content k \<noteq> 0"
+          using z_in by (cases z) auto
+        obtain u v where k_eq: "k = cbox u v" and x_in_k: "x \<in> k"
+          using tagged_partial_division_ofD p_div xk_in by metis
+        then have uv: "u \<le> v" using k_eq by (auto simp: mem_box)
+        from k_nz have "u < v"
+          using k_eq uv by (auto simp: content_cbox_if Basis_real_def)
+        have sup_k: "Sup k = v" and inf_k: "Inf k = u"
+          using k_eq uv by (simp_all add: Sup_atLeastAtMost Inf_atLeastAtMost)
+        have k_sub: "k \<subseteq> cbox a b"
+          using tagged_partial_division_ofD(3)[OF p_div xk_in] .
+        have x_ab: "x \<in> {a..b}" using x_in_k k_sub by auto
+        have u_ab: "u \<in> {a..b}" and v_ab: "v \<in> {a..b}"
+          using k_sub k_eq \<open>u \<le> v\<close> by auto
+        \<comment> \<open>From fineness, u and v are within @{term \<open>d x\<close>} of x\<close>
+        have k_ball: "k \<subseteq> ball x (d x)"
+          using fineD[OF p_fine xk_in] .
+        have "u \<in> ball x (d x)" and "v \<in> ball x (d x)"
+          using k_ball k_eq \<open>u \<le> v\<close> by auto
+        then have du: "\<bar>u - x\<bar> < d x" and dv: "\<bar>v - x\<bar> < d x"
+          by (auto simp: mem_ball dist_real_def)
+        \<comment> \<open>Apply the continuity bound d_bound\<close>
+        have bnd_v: "norm (f v - f x) \<le> \<epsilon> / 2^(4 + n x)"
+          using d_bound[OF x_ab x_img, rule_format, of v] dv v_ab by auto
+        have bnd_u: "norm (f u - f x) \<le> \<epsilon> / 2^(4 + n x)"
+          using d_bound[OF x_ab x_img, rule_format, of u] du u_ab by auto
+        \<comment> \<open>Triangle inequality and arithmetic\<close>
+        have bnd_xu: "norm (f x - f u) \<le> \<epsilon> / 2^(4 + n x)"
+          using bnd_u by (subst norm_minus_commute) 
+        have bound: "norm (-(f (Sup k) - f (Inf k))) \<le> \<epsilon>/2 ^ (3 + n x)"
+        proof -
+          have "norm (-(f (Sup k) - f (Inf k))) = norm (f (Sup k) - f (Inf k))"
+            by (rule norm_minus_cancel)
+          also have "\<dots> = norm (f v - f u)"
+            by (simp add: sup_k inf_k)
+          also have "\<dots> = norm ((f v - f x) + (f x - f u))" by simp
+          also have "\<dots> \<le> norm (f v - f x) + norm (f x - f u)"
+            by (rule norm_triangle_ineq)
+          also have "\<dots> \<le> \<epsilon> / 2^(4 + n x) + \<epsilon> / 2^(4 + n x)"
+            by (intro add_mono bnd_v bnd_xu)
+          also have "\<dots> = \<epsilon>/2 ^ (3 + n x)"
+          proof -
+            have "(2::real) ^ (4 + n x) = 2 * 2 ^ (3 + n x)" by (simp add: power_add)
+            then show ?thesis by (simp add: field_simps)
+          qed
+          finally show ?thesis .
+        qed
+        show "norm (case z of (x, k) \<Rightarrow> - (f (Sup k) - f (Inf k))) \<le>
+                      (case z of (x, k) \<Rightarrow> \<epsilon>/2 ^ (3 + n x))"
+          using bound z_eq by simp
+      qed
+      also have "\<dots> < \<epsilon>"
+      proof -
+        let ?tags = "fst ` ?S'"
+        have S'_finite: "finite ?S'"
+          by (metis (no_types, lifting) case_prodD mem_Collect_eq p_finite rev_finite_subset subsetI
+              surj_pair)
+        have tags_finite: "finite ?tags" using S'_finite by blast
+
+        \<comment> \<open>Group the sum by first component (the tag) via Sigma decomposition\<close>
+        define B where "B x \<equiv> {k. (x,k) \<in> ?S'}" for x
+        have B_finite: "finite (B x)" for x
+          using B_def finite_snd by force
+        have S'_Sigma: "?S' = (SIGMA x:?tags. B x)"
+          unfolding B_def by force
+
+        have reduce: "(\<Sum>x\<in>?tags. real (card (B x)) / 2 ^ n x) \<le> 4 \<Longrightarrow>
+              (\<Sum>(x,k)\<in>?S'. \<epsilon>/2 ^ (3 + n x)) < \<epsilon>"
+        proof (rule order_le_less_trans[of _ "\<epsilon>/2"])
+          assume bound: "(\<Sum>x\<in>?tags. real (card (B x)) / 2 ^ n x) \<le> 4"
+            \<comment> \<open>Combine\<close>
+          have "(\<Sum>(x,k)\<in>?S'. \<epsilon>/2 ^ (3 + n x)) =
+                (\<Sum>(x,k)\<in>(SIGMA x:?tags. B x). \<epsilon>/2 ^ (3 + n x))"
+            using S'_Sigma by presburger
+          also have "\<dots> = (\<Sum>x\<in>?tags. (\<Sum>k\<in>B x. \<epsilon>/2 ^ (3 + n x)))"
+            by (metis (no_types, lifting) ext B_finite sum.Sigma tags_finite)
+          also have "\<dots> = (\<epsilon> / 8) * (\<Sum>x\<in>?tags. real (card (B x)) / 2 ^ n x)"
+            by (simp add: power_add sum_distrib_left field_simps)
+          also have "\<dots> \<le> (\<epsilon> / 8) * 4"
+            using \<open>0 < \<epsilon>\<close> bound by (intro mult_left_mono) auto
+          also have "\<dots> = \<epsilon>/2" by simp
+          finally show "(\<Sum>(x,k)\<in>?S'. \<epsilon>/2 ^ (3 + n x)) \<le> \<epsilon>/2" .
+        qed (use \<open>0 < \<epsilon>\<close> in auto)
+        show ?thesis
+        proof (rule reduce)
+          show "(\<Sum>x\<in>?tags. real (card (B x)) / 2 ^ n x) \<le> 4"
+          proof (rule order_trans[where y="(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. real (card (B x)) / 2 ^ n x)"])
+            show "(\<Sum>x\<in>?tags. real (card (B x)) / 2 ^ n x) \<le>
+                  (\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. real (card (B x)) / 2 ^ n x)"
+            proof (rule sum_mono2)
+              show "finite (\<sigma> ` T \<inter> fst ` p)"
+                using p_finite by (auto intro: finite_Int finite_imageI)
+              show "?tags \<subseteq> \<sigma> ` T \<inter> fst ` p"
+                by force
+              show "\<And>i. i \<in> \<sigma> ` T \<inter> fst ` p - ?tags \<Longrightarrow> 0 \<le> real (card (B i)) / 2 ^ n i"
+                by (auto intro: divide_nonneg_nonneg)
+            qed
+            show "(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. real (card (B x)) / 2 ^ n x) \<le> 4"
+            proof (rule order_trans[where y="(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. 2 / 2 ^ n x)"])
+              show "(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. real (card (B x)) / 2 ^ n x) \<le>
+                    (\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. 2 / 2 ^ n x)"
+              proof (rule sum_mono)
+                fix x assume "x \<in> \<sigma> ` T \<inter> fst ` p"
+                show "real (card (B x)) / 2 ^ n x \<le> 2 / 2 ^ n x"
+                proof (rule divide_right_mono)
+                  show "real (card (B x)) \<le> 2"
+                  proof -
+                    have "card (B x) \<le> 2"
+                    proof -
+                      \<comment> \<open>Classify each interval by whether @{term \<open>Inf k < x\<close>} (True).\<close>
+                      \<comment> \<open>This is injective: two intervals in the same class have overlapping interiors.\<close>
+                      define h where "h k = (Inf k < x)" for k :: "real set"
+                      have disj: "interior k1 \<inter> interior k2 = {}"
+                        if "k1 \<in> B x" "k2 \<in> B x" "k1 \<noteq> k2" for k1 k2
+                        using that tagged_partial_division_ofD(5)[OF p_div] by (force simp: B_def)
+                      have x_in: "x \<in> k" if "k \<in> B x" for k
+                        using that tagged_partial_division_ofD(2)[OF p_div] by (force simp: B_def)
+                      have is_cbox: "\<exists>u v. k = cbox u v \<and> u < v" if "k \<in> B x" for k
+                        using that tagged_partial_division_ofD(4)[OF p_div] content_real_eq_0 not_less
+                        by (force simp: B_def)
+                      have "inj_on h (B x)"
+                      proof (rule inj_onI)
+                        fix k1 k2 assume k1B: "k1 \<in> B x" and k2B: "k2 \<in> B x"
+                          and heq: "h k1 = h k2"
+                        show "k1 = k2"
+                        proof (rule ccontr)
+                          assume neq: "k1 \<noteq> k2"
+                          from is_cbox[OF k1B] obtain u1 v1
+                            where k1: "k1 = cbox u1 v1" "u1 < v1" by auto
+                          from is_cbox[OF k2B] obtain u2 v2
+                            where k2: "k2 = cbox u2 v2" "u2 < v2" by auto
+                          have x1: "u1 \<le> x" "x \<le> v1"
+                            using x_in[OF k1B] k1(1) by (auto simp: mem_box)
+                          have x2: "u2 \<le> x" "x \<le> v2"
+                            using x_in[OF k2B] k2(1) by (auto simp: mem_box)
+                          have int1: "interior k1 = {u1<..<v1}"
+                            using k1(1) by (simp add: interior_cbox box_real)
+                          have int2: "interior k2 = {u2<..<v2}"
+                            using k2(1) by (simp add: interior_cbox box_real)
+                          have disjoint: "{u1<..<v1} \<inter> {u2<..<v2} = {}"
+                            using disj[OF k1B k2B neq] int1 int2 by simp
+                          then have disjoint': "{max u1 u2 <..< min v1 v2} = {}"
+                            by (simp add: Int_greaterThanLessThan)
+                          have inf1: "Inf k1 = u1" using k1 x1
+                            by (simp add: Inf_atLeastAtMost)
+                          have inf2: "Inf k2 = u2" using k2 x2
+                            by (simp add: Inf_atLeastAtMost)
+                          \<comment> \<open>Both in the same class: show max u1 u2 < min v1 v2, contradicting disjointness.\<close>
+                          show False
+                            using heq inf1 inf2 x1 x2 k1 k2 disjoint' by (force simp add: h_def)
+                        qed
+                      qed
+                      have "card (B x) = card (h ` B x)"
+                        using card_image[OF \<open>inj_on h (B x)\<close>] by simp
+                      also have "\<dots> \<le> card (UNIV :: bool set)"
+                        by (intro card_mono) auto
+                      also have "\<dots> = 2" by (rule card_UNIV_bool)
+                      finally show ?thesis .
+                    qed
+                    then show ?thesis by auto
+                  qed
+                next
+                  show "(0::real) \<le> 2 ^ n x" by simp
+                qed
+              qed
+            next
+              show "(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. 2 / (2::real) ^ n x) \<le> 4"
+              proof -
+                have A_finite: "finite (\<sigma> ` T \<inter> fst ` p)"
+                  using p_finite by (auto intro: finite_Int finite_imageI)
+                have n_inj: "inj_on n (\<sigma> ` T \<inter> fst ` p)"
+                  by (simp add: \<sigma> inj_on_Int inj_on_the_inv_into n_def)
+                have nA_finite: "finite (n ` (\<sigma> ` T \<inter> fst ` p))" using A_finite by auto
+                \<comment> \<open>Directly prove bound on the reindexed sum\<close>
+                have "(\<Sum>i\<in>n ` (\<sigma> ` T \<inter> fst ` p). 2 / (2::real) ^ i) \<le> 4"
+                proof (cases "n ` (\<sigma> ` T \<inter> fst ` p) = {}")
+                  case False
+                  have "(\<Sum>i\<in>n ` (\<sigma> ` T \<inter> fst ` p). 2 / (2::real) ^ i) \<le> (\<Sum>i\<le>Max (n ` (\<sigma> ` T \<inter> fst ` p)). 2 / 2 ^ i)"
+                  proof (rule sum_mono2)
+                    show "finite {..Max (n ` (\<sigma> ` T \<inter> fst ` p))}" by simp
+                    show "n ` (\<sigma> ` T \<inter> fst ` p) \<subseteq> {..Max (n ` (\<sigma> ` T \<inter> fst ` p))}"
+                      using nA_finite by (auto intro: Max_ge)
+                  qed simp
+                  also have "\<dots> = 2 * (\<Sum>i\<le>Max (n ` (\<sigma> ` T \<inter> fst ` p)). (1/2) ^ i)"
+                    by (simp add: sum_distrib_left power_divide)
+                  also have "\<dots> = 2 * ((1 - (1/2) ^ Suc (Max (n ` (\<sigma> ` T \<inter> fst ` p)))) / (1 - 1/2))"
+                    using sum_gp0[of "1/2::real" "Max (n ` (\<sigma> ` T \<inter> fst ` p))"] by simp
+                  also have "\<dots> \<le> 2 * (1 / (1 - 1/(2::real)))"
+                    by (intro mult_left_mono divide_right_mono diff_mono) auto
+                  also have "\<dots> = (4::real)" by simp
+                  finally show ?thesis .
+                qed auto
+                then show ?thesis
+                  using sum.reindex[OF n_inj, of "\<lambda>i. 2 / (2::real) ^ i"] by auto
+              qed
+            qed
+          qed
+        qed
+      qed
+      finally show ?thesis .
+    qed
+  qed
+qed
+
+lemma fundamental_theorem_of_calculus_interior_strong:
+  fixes f :: "real \<Rightarrow> 'a::banach" and f' :: "real \<Rightarrow> 'a"
+  assumes "countable S"
+    and "a \<le> b"
+    and "continuous_on {a..b} f"
+    and f': "\<And>x. x \<in> {a<..<b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+  shows "(f' has_integral (f b - f a)) {a..b}"
+proof -
+  have "(f' has_integral (f b - f a)) {a..b}"
+  proof (rule fundamental_theorem_of_calculus_strong[where S = "insert a (insert b S)"])
+    show "countable (insert a (insert b S))"
+      using assms(1) by auto
+    show "a \<le> b" by fact
+    show "continuous_on {a..b} f" by fact
+    fix x assume "x \<in> {a..b} - insert a (insert b S)"
+    with f' have "(f has_vector_derivative f' x) (at x)"
+      by auto
+    then show "(f has_vector_derivative f' x) (at x within {a..b})"
+      using has_vector_derivative_at_within by blast
+  qed
+  then show ?thesis .
+qed
+
 subsection \<open>Closure and interior\<close>
 
 lemma absolutely_continuous_on_interior:
@@ -1662,14 +2001,6 @@ lemma absolutely_continuous_on_closure:
   by (meson absolutely_continuous_on_interior assms closure_subset continuous_on_subset)
 
 section \<open>Bounded variation and absolutely integrable derivatives\<close>
-
-lemma countable_imp_negligible:
-  fixes S :: \<open>real set\<close>
-  assumes \<open>countable S\<close>
-  shows \<open>negligible S\<close>
-  using negligible_countable_Union[OF countable_image[OF assms]]
-  by (metis (mono_tags, lifting) UN_singleton image_iff negligible_sing)
-
 
 lemma absolutely_setcontinuous_on_componentwise:
   fixes f :: \<open>'a::euclidean_space set \<Rightarrow> 'b::euclidean_space\<close>
