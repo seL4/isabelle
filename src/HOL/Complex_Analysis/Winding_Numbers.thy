@@ -567,7 +567,7 @@ proof -
             by (auto simp: has_vector_derivative_def)
         qed (use x in auto)
       qed
-    qed (use fink t in auto)
+    qed (use fink countable_finite t in auto)
   }
   with ab show ?thesis2
     by (simp add: divide_inverse_commute integral_def)
