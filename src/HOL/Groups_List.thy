@@ -96,6 +96,9 @@ defines
 
 end
 
+lemma sum_list_bound: "\<forall>n \<in> set ns. n \<le> k \<Longrightarrow> sum_list ns \<le> k * length ns"
+by (induction ns) auto
+
 context comm_monoid_add
 begin
 
