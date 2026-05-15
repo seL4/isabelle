@@ -335,10 +335,8 @@ object JEdit_Accessible {
         }
 
       private def select(start: Int, end: Int): Unit = {
-        if (!buffer.isReadOnly) {
-          text_area.selectNone()
-          text_area.addToSelection(new Selection.Range(start, end + 1))
-        }
+        text_area.selectNone()
+        text_area.addToSelection(new Selection.Range(start, end + 1))
       }
 
       override def selectText(start: Int, end: Int): Unit = {
