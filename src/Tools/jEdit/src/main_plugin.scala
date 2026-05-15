@@ -449,7 +449,7 @@ class Main_Plugin extends EBPlugin {
 
   private val shutting_down = Synchronized(false)
 
-  override def start(): Unit = {
+  override def start(): Unit = GUI_Thread.now {
     /* strict initialization */
 
     init_options()
@@ -491,7 +491,7 @@ class Main_Plugin extends EBPlugin {
     for (view <- JEdit_Lib.jedit_view()) init_editor(view)
   }
 
-  override def stop(): Unit = {
+  override def stop(): Unit = GUI_Thread.now {
     http_server.stop()
 
     Syntax_Style.set_extender(Syntax_Style.Base_Extender)
