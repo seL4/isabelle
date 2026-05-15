@@ -6,7 +6,7 @@ section \<open>Complex Analysis Basics\<close>
 text \<open>Definitions of analytic and holomorphic functions, limit theorems, complex differentiation\<close>
 
 theory Complex_Analysis_Basics
-  imports Derivative "HOL-Library.Nonpos_Ints" Uncountable_Sets
+  imports Derivative "HOL-Library.Nonpos_Ints" Uncountable_Sets Sparse_In
 begin
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>General lemmas\<close>
@@ -656,6 +656,26 @@ next
   then show ?lhs
     by (force simp add: analytic_at)
 qed
+
+lemma analytic_at_continuation:
+  assumes "eventually (\<lambda>z. f z = g z) (at z)" "f analytic_on {z}" "g analytic_on {z}"
+  shows   "f z = g z"
+proof -
+  have "isCont (\<lambda>z. f z - g z) z"
+    by (intro analytic_at_imp_isCont analytic_intros assms)
+  hence "(\<lambda>z. f z - g z) \<midarrow>z\<rightarrow> (f z - g z)"
+    by (rule isContD)
+  also have "?this \<longleftrightarrow> (\<lambda>z. 0) \<midarrow>z\<rightarrow> (f z - g z)"
+    by (intro filterlim_cong eventually_mono[OF assms(1)]) auto
+  finally show "f z = g z"
+    by (simp add: tendsto_const_iff)
+qed
+
+lemma analytic_on_continuation:
+  assumes "eventually (\<lambda>z. f z = g z) (cosparse B)" "f analytic_on A" "g analytic_on A" "z \<in> A \<inter> B"
+  shows   "f z = g z"
+  using analytic_at_continuation[of f g z] assms analytic_on_subset
+  by (auto dest: eventually_cosparse_imp_eventually_at)
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Combining theorems for derivative with ``analytic at'' hypotheses\<close>
 

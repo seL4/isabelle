@@ -11,7 +11,7 @@ text \<open>
 
 lemma lebesgue_measure_eq_content:
   assumes "d division_of S"
-  shows "measure lebesgue S = sum Henstock_Kurzweil_Integration.content d"
+  shows "measure lebesgue S = sum content d"
   by (metis assms content_division division_ofD(4) fmeasurableD fmeasurable_cbox
       measure_completion sum.cong)
 
@@ -1404,11 +1404,11 @@ next
 
     show "norm (\<Sum>(x, k)\<in>p. f (Sup k) - f (Inf k)) < \<epsilon>"
     proof -
-      let ?S' = "{(x,k). (x,k) \<in> p \<and> x \<in> \<sigma> ` T \<and> Henstock_Kurzweil_Integration.content k \<noteq> 0}"
+      let ?S' = "{(x,k). (x,k) \<in> p \<and> x \<in> \<sigma> ` T \<and> content k \<noteq> 0}"
       let ?t = "norm (\<Sum>(x,k)\<in>?S'. - (f (Sup k) - f (Inf k)))"
       \<comment> \<open>Show that zero-content terms vanish, so the sum over @{term p} equals the sum over @{term "?S'"}\<close>
       have zero_content: "f (Sup k) - f (Inf k) = 0"
-        if "(x, k) \<in> p" "Henstock_Kurzweil_Integration.content k = 0" for x k
+        if "(x, k) \<in> p" "content k = 0" for x k
       proof -
         from tagged_partial_division_ofD(4)[OF p_div that(1)]
         obtain u v where k_eq: "k = cbox u v" by auto
@@ -1424,19 +1424,18 @@ next
       have sum_eq: "(\<Sum>(x,k)\<in>p. f (Sup k) - f (Inf k)) =
                     (\<Sum>(x,k)\<in>?S'. f (Sup k) - f (Inf k))"
       proof (rule sum.same_carrierI[OF p_finite _ _ _ _ refl])
-        show "?S' \<subseteq> p" by auto
-        show "p \<subseteq> p" by auto
+        show "?S' \<subseteq> p" "p \<subseteq> p" by auto
       next
         fix a assume "a \<in> p - p"
         then show "(case a of (x, k) \<Rightarrow> f (Sup k) - f (Inf k)) = 0" by auto
       next
         fix b assume "b \<in> p - ?S'"
         then obtain x k where bxk: "b = (x, k)" "(x, k) \<in> p"
-          and extra: "x \<notin> \<sigma> ` T \<or> Henstock_Kurzweil_Integration.content k = 0"
+          and extra: "x \<notin> \<sigma> ` T \<or> content k = 0"
           by (cases b) auto
         have "x \<in> \<sigma> ` T"
           using p_tags bxk Seq by (force simp: image_iff)
-        with extra have "Henstock_Kurzweil_Integration.content k = 0" by blast
+        with extra have "content k = 0" by blast
         then show "(case b of (x, k) \<Rightarrow> f (Sup k) - f (Inf k)) = 0"
           using zero_content[OF bxk(2)] bxk(1) by simp
       qed
@@ -1449,7 +1448,7 @@ next
       proof (rule sum_norm_le)
         fix z assume z_in: "z \<in> ?S'"
         obtain x k where z_eq: "z = (x, k)" and xk_in: "(x, k) \<in> p"
-          and x_img: "x \<in> \<sigma> ` T" and k_nz: "Henstock_Kurzweil_Integration.content k \<noteq> 0"
+          and x_img: "x \<in> \<sigma> ` T" and k_nz: "content k \<noteq> 0"
           using z_in by (cases z) auto
         obtain u v where k_eq: "k = cbox u v" and x_in_k: "x \<in> k"
           using tagged_partial_division_ofD p_div xk_in by metis
@@ -1480,20 +1479,14 @@ next
           using bnd_u by (subst norm_minus_commute) 
         have bound: "norm (-(f (Sup k) - f (Inf k))) \<le> \<epsilon>/2 ^ (3 + n x)"
         proof -
-          have "norm (-(f (Sup k) - f (Inf k))) = norm (f (Sup k) - f (Inf k))"
-            by (rule norm_minus_cancel)
-          also have "\<dots> = norm (f v - f u)"
-            by (simp add: sup_k inf_k)
-          also have "\<dots> = norm ((f v - f x) + (f x - f u))" by simp
+          have "norm (-(f (Sup k) - f (Inf k))) = norm (f v - f u)"
+            using inf_k norm_minus_cancel sup_k by blast
           also have "\<dots> \<le> norm (f v - f x) + norm (f x - f u)"
-            by (rule norm_triangle_ineq)
+            using norm_diff_triangle_le by blast
           also have "\<dots> \<le> \<epsilon> / 2^(4 + n x) + \<epsilon> / 2^(4 + n x)"
             by (intro add_mono bnd_v bnd_xu)
           also have "\<dots> = \<epsilon>/2 ^ (3 + n x)"
-          proof -
-            have "(2::real) ^ (4 + n x) = 2 * 2 ^ (3 + n x)" by (simp add: power_add)
-            then show ?thesis by (simp add: field_simps)
-          qed
+            by (simp add: power_add)
           finally show ?thesis .
         qed
         show "norm (case z of (x, k) \<Rightarrow> - (f (Sup k) - f (Inf k))) \<le>
@@ -1552,67 +1545,54 @@ next
                     (\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. 2 / 2 ^ n x)"
               proof (rule sum_mono)
                 fix x assume "x \<in> \<sigma> ` T \<inter> fst ` p"
-                show "real (card (B x)) / 2 ^ n x \<le> 2 / 2 ^ n x"
-                proof (rule divide_right_mono)
-                  show "real (card (B x)) \<le> 2"
-                  proof -
-                    have "card (B x) \<le> 2"
-                    proof -
-                      \<comment> \<open>Classify each interval by whether @{term \<open>Inf k < x\<close>} (True).\<close>
-                      \<comment> \<open>This is injective: two intervals in the same class have overlapping interiors.\<close>
-                      define h where "h k = (Inf k < x)" for k :: "real set"
-                      have disj: "interior k1 \<inter> interior k2 = {}"
-                        if "k1 \<in> B x" "k2 \<in> B x" "k1 \<noteq> k2" for k1 k2
-                        using that tagged_partial_division_ofD(5)[OF p_div] by (force simp: B_def)
-                      have x_in: "x \<in> k" if "k \<in> B x" for k
-                        using that tagged_partial_division_ofD(2)[OF p_div] by (force simp: B_def)
-                      have is_cbox: "\<exists>u v. k = cbox u v \<and> u < v" if "k \<in> B x" for k
-                        using that tagged_partial_division_ofD(4)[OF p_div] content_real_eq_0 not_less
-                        by (force simp: B_def)
-                      have "inj_on h (B x)"
-                      proof (rule inj_onI)
-                        fix k1 k2 assume k1B: "k1 \<in> B x" and k2B: "k2 \<in> B x"
-                          and heq: "h k1 = h k2"
-                        show "k1 = k2"
-                        proof (rule ccontr)
-                          assume neq: "k1 \<noteq> k2"
-                          from is_cbox[OF k1B] obtain u1 v1
-                            where k1: "k1 = cbox u1 v1" "u1 < v1" by auto
-                          from is_cbox[OF k2B] obtain u2 v2
-                            where k2: "k2 = cbox u2 v2" "u2 < v2" by auto
-                          have x1: "u1 \<le> x" "x \<le> v1"
-                            using x_in[OF k1B] k1(1) by (auto simp: mem_box)
-                          have x2: "u2 \<le> x" "x \<le> v2"
-                            using x_in[OF k2B] k2(1) by (auto simp: mem_box)
-                          have int1: "interior k1 = {u1<..<v1}"
-                            using k1(1) by (simp add: interior_cbox box_real)
-                          have int2: "interior k2 = {u2<..<v2}"
-                            using k2(1) by (simp add: interior_cbox box_real)
-                          have disjoint: "{u1<..<v1} \<inter> {u2<..<v2} = {}"
-                            using disj[OF k1B k2B neq] int1 int2 by simp
-                          then have disjoint': "{max u1 u2 <..< min v1 v2} = {}"
-                            by (simp add: Int_greaterThanLessThan)
-                          have inf1: "Inf k1 = u1" using k1 x1
-                            by (simp add: Inf_atLeastAtMost)
-                          have inf2: "Inf k2 = u2" using k2 x2
-                            by (simp add: Inf_atLeastAtMost)
+                have B2: "card (B x) \<le> 2"
+                proof -
+                  \<comment> \<open>Classify each interval by whether @{term \<open>Inf k < x\<close>} (True).\<close>
+                  \<comment> \<open>This is injective: two intervals in the same class have overlapping interiors.\<close>
+                  define h where "h k = (Inf k < x)" for k :: "real set"
+                  have disj: "interior k1 \<inter> interior k2 = {}"
+                    if "k1 \<in> B x" "k2 \<in> B x" "k1 \<noteq> k2" for k1 k2
+                    using that tagged_partial_division_ofD(5)[OF p_div] by (force simp: B_def)
+                  have x_in: "x \<in> k" if "k \<in> B x" for k
+                    using that tagged_partial_division_ofD(2)[OF p_div] by (force simp: B_def)
+                  have is_cbox: "\<exists>u v. k = cbox u v \<and> u < v" if "k \<in> B x" for k
+                    using that tagged_partial_division_ofD(4)[OF p_div] content_real_eq_0 not_less
+                    by (force simp: B_def)
+                  have "inj_on h (B x)"
+                  proof (rule inj_onI)
+                    fix k1 k2 assume k1B: "k1 \<in> B x" and k2B: "k2 \<in> B x"
+                      and heq: "h k1 = h k2"
+                    show "k1 = k2"
+                    proof (rule ccontr)
+                      assume neq: "k1 \<noteq> k2"
+                      obtain u1 v1 u2 v2
+                        where k1: "k1 = cbox u1 v1" "u1 < v1"
+                          and k2: "k2 = cbox u2 v2" "u2 < v2"
+                        by (metis is_cbox k1B k2B) 
+                      then obtain x1: "u1 \<le> x" "x \<le> v1" and x2: "u2 \<le> x" "x \<le> v2"
+                        using k1B k2B mem_box_real(2) x_in by blast
+                      have int1: "interior k1 = {u1<..<v1}"
+                        using k1(1) by (simp add: interior_cbox box_real)
+                      have int2: "interior k2 = {u2<..<v2}"
+                        using k2(1) by (simp add: interior_cbox box_real)
+                      have disjoint: "{u1<..<v1} \<inter> {u2<..<v2} = {}"
+                        using disj[OF k1B k2B neq] int1 int2 by simp
+                      then have disjoint': "{max u1 u2 <..< min v1 v2} = {}"
+                        by (simp add: Int_greaterThanLessThan)
                           \<comment> \<open>Both in the same class: show max u1 u2 < min v1 v2, contradicting disjointness.\<close>
-                          show False
-                            using heq inf1 inf2 x1 x2 k1 k2 disjoint' by (force simp add: h_def)
-                        qed
-                      qed
-                      have "card (B x) = card (h ` B x)"
-                        using card_image[OF \<open>inj_on h (B x)\<close>] by simp
-                      also have "\<dots> \<le> card (UNIV :: bool set)"
-                        by (intro card_mono) auto
-                      also have "\<dots> = 2" by (rule card_UNIV_bool)
-                      finally show ?thesis .
+                      show False
+                        using heq x1 x2 k1 k2 disjoint' by (force simp add: h_def)
                     qed
-                    then show ?thesis by auto
                   qed
-                next
-                  show "(0::real) \<le> 2 ^ n x" by simp
+                  have "card (B x) = card (h ` B x)"
+                    using card_image[OF \<open>inj_on h (B x)\<close>] by simp
+                  also have "\<dots> \<le> card (UNIV :: bool set)"
+                    by (intro card_mono) auto
+                  also have "\<dots> = 2" by (rule card_UNIV_bool)
+                  finally show ?thesis .
                 qed
+                show "real (card (B x)) / 2 ^ n x \<le> 2 / 2 ^ n x"
+                  using B2 divide_right_mono by (simp add: frac_le)
               qed
             next
               show "(\<Sum>x\<in>\<sigma> ` T \<inter> fst ` p. 2 / (2::real) ^ n x) \<le> 4"
@@ -1627,11 +1607,7 @@ next
                 proof (cases "n ` (\<sigma> ` T \<inter> fst ` p) = {}")
                   case False
                   have "(\<Sum>i\<in>n ` (\<sigma> ` T \<inter> fst ` p). 2 / (2::real) ^ i) \<le> (\<Sum>i\<le>Max (n ` (\<sigma> ` T \<inter> fst ` p)). 2 / 2 ^ i)"
-                  proof (rule sum_mono2)
-                    show "finite {..Max (n ` (\<sigma> ` T \<inter> fst ` p))}" by simp
-                    show "n ` (\<sigma> ` T \<inter> fst ` p) \<subseteq> {..Max (n ` (\<sigma> ` T \<inter> fst ` p))}"
-                      using nA_finite by (auto intro: Max_ge)
-                  qed simp
+                    using nA_finite by (auto intro!: sum_mono2 Max_ge)
                   also have "\<dots> = 2 * (\<Sum>i\<le>Max (n ` (\<sigma> ` T \<inter> fst ` p)). (1/2) ^ i)"
                     by (simp add: sum_distrib_left power_divide)
                   also have "\<dots> = 2 * ((1 - (1/2) ^ Suc (Max (n ` (\<sigma> ` T \<inter> fst ` p)))) / (1 - 1/2))"
