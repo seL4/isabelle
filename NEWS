@@ -125,14 +125,14 @@ or "C+e g", using proper "find-prev.shortcut" instead of undefined
 has been removed. INCOMPATIBILITY, use the more general
 "isabelle.follow-link" with keyboard shortcut (see below).
 
-* The jEdit action "isabelle.follow-link" (keyboard shortcut CS+DOWN or
-AS+DOWN) follows the hyperlink under the current caret, using the same
-notion of link as C-hover-click via mouse.
+* The jEdit action "isabelle.follow-link" (keyboard shortcut AS+DOWN)
+follows the hyperlink under the current caret, using the same notion of
+link as C-hover-click via mouse.
 
-* The jEdit action "isabelle.show-links" (keyboard shortcut CS+UP or
-AS+UP) opens a popup with the list of hyperlinks under the current
-caret, using the same notion of link as C-hover-click via mouse, but
-showing all possibilities.
+* The jEdit action "isabelle.show-links" (keyboard shortcut AS+UP) opens
+a popup with the list of hyperlinks under the current caret, using the
+same notion of link as C-hover-click via mouse, but showing all
+possibilities.
 
 * The mouse action C-hover-click is strictly limited to the "C" modifier
 (command on macOS, control on Linux/Windows). This allows to use mouse
@@ -158,20 +158,6 @@ INCOMPATIBILITY.
 * Tooltip messages render formal entities with additional PIDE markup,
 to distinguish multiple def-positions due to locale interpretations
 etc.
-
-* Keyboard shortcuts for CS or AS modifiers have been unified by
-providing both possibilities, e.g."isabelle.first-error" (CS+a or AS+a),
-"navigate-backwards" (CS-LEFT or AS+LEFT). This makes typing easier, but
-also reduces potential conflicts with platform-specific shortcuts,
-national keyboard variants etc.
-
-* Avoid conflicting jEdit shortcuts CS+UP/DOWN/LEFT/RIGHT to select
-words or paragraphs. Subsequent alternatives have been borrowed from vi:
-
-  select-prev-paragraph  CS+k or AS+k
-  select-next-paragraph  CS+j or AS+j
-  select-prev-word       CS+h or AS+h
-  select-next-word       CS+l or AS+l
 
 * Console/Scala: more robust Scala_Console.Progress with local output
 and interrupt handling (using thread interrupt, e.g. via "Stop" button).
