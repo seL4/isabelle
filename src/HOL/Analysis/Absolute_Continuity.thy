@@ -1470,7 +1470,7 @@ next
           using k_ball k_eq \<open>u \<le> v\<close> by auto
         then have du: "\<bar>u - x\<bar> < d x" and dv: "\<bar>v - x\<bar> < d x"
           by (auto simp: mem_ball dist_real_def)
-        \<comment> \<open>Apply the continuity bound d_bound\<close>
+        \<comment> \<open>Apply the continuity bound\<close>
         have bnd_v: "norm (f v - f x) \<le> \<epsilon> / 2^(4 + n x)"
           using d_bound[OF x_ab x_img, rule_format, of v] dv v_ab by auto
         have bnd_u: "norm (f u - f x) \<le> \<epsilon> / 2^(4 + n x)"
