@@ -257,7 +257,8 @@ and arch_pow. Minor INCOMPATIBILITY.
 
 * Session "HOL-Analysis": much new material including Bounded_Variation,
 Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
-generalised to Euclidean spaces.
+generalised to Euclidean spaces. Stronger versions of the FTC, now for
+countable rather than finite sets. Minor INCOMPATIBILITY
 
 
 *** ML ***
