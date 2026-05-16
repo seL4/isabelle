@@ -151,6 +151,8 @@ object Component_JDK {
       progress.bash(
         Library.make_lines(
           "set -e",
+          "mkdir tmp",
+          """export TMPDIR="$PWD/tmp"""",
           """bash configure --with-version-pre=isabelle --with-version-opt=""""",
           "make images"),
         cwd = ssh_dir + jdk_patched_path, ssh = ssh, echo = progress.verbose).check
