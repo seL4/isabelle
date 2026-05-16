@@ -164,7 +164,7 @@ object Component_JDK {
           "set -e",
           "mkdir tmp",
           """export TMPDIR="$PWD/tmp"""",
-          """bash configure --with-version-pre=isabelle --with-version-opt="" --disable-warnings-as-errors --with-native-debug-symbols=none""",
+          """bash configure --with-version-pre=isabelle --with-version-opt="" --disable-warnings-as-errors --with-native-debug-symbols=none --with-stdc++lib=static""",
           "make images"),
         cwd = ssh_dir + jdk_patched_path, ssh = ssh, echo = progress.verbose).check
 
