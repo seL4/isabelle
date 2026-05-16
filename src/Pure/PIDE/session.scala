@@ -23,25 +23,25 @@ object Session {
     def apply[A](name: String)(consume: A => Unit): Consumer[A] =
       new Consumer[A](name, consume)
   }
-  final class Consumer[-A] private(val name: String, val consume: A => Unit) {
-    private def failure(exn: Throwable): Unit =
-      Output.error_message(
-        "Session consumer failure: " + quote(name) + "\n" + Exn.print(exn))
+  final class Consumer[-A] private(val name: String, val consume: A => Unit)
 
-    def consume_robust(a: A): Unit =
-      try { consume(a) }
-      catch { case exn: Throwable => failure(exn) }
-  }
-
-  class Outlet[A](dispatcher: Consumer_Thread[() => Unit]) {
+  class Outlet[A](dispatcher: Consumer_Thread[() => Unit], log: Logger) {
     private val consumers = Synchronized[List[Consumer[A]]](Nil)
 
     def += (c: Consumer[A]): Unit = consumers.change(Library.update(c))
     def -= (c: Consumer[A]): Unit = consumers.change(Library.remove(c))
 
+    def consume_robust(c: Consumer[A], a: A): Unit =
+      try { c.consume(a) }
+      catch {
+        case exn: Throwable =>
+          val msg = "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn)
+          log(Output.error_message_text(msg))
+      }
+
     def post(a: A): Unit = {
       for (c <- consumers.value.iterator) {
-        dispatcher.send(() => c.consume_robust(a))
+        dispatcher.send(() => consume_robust(c, a))
       }
     }
   }
@@ -241,21 +241,22 @@ abstract class Session extends Document.Session {
 
   /* outlets */
 
-  val finished_theories = new Session.Outlet[Document.Snapshot](dispatcher)
-  val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher)
-  val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher)
-  val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher)
-  val global_options = new Session.Outlet[Session.Global_Options](dispatcher)
-  val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher)
-  val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher)
-  val commands_changed = new Session.Outlet[Session.Commands_Changed](dispatcher)
-  val phase_changed = new Session.Outlet[Session.Phase](dispatcher)
-  val syslog_messages = new Session.Outlet[Prover.Output](dispatcher)
-  val raw_output_messages = new Session.Outlet[Prover.Output](dispatcher)
-  val trace_events = new Session.Outlet[Simplifier_Trace.Event.type](dispatcher)
-  val debugger_updates = new Session.Outlet[Debugger.Update.type](dispatcher)
+  lazy val finished_theories = new Session.Outlet[Document.Snapshot](dispatcher, resources.log)
+  lazy val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher, resources.log)
+  lazy val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher, resources.log)
+  lazy val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher, resources.log)
+  lazy val global_options = new Session.Outlet[Session.Global_Options](dispatcher, resources.log)
+  lazy val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher, resources.log)
+  lazy val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher, resources.log)
+  lazy val commands_changed = new Session.Outlet[Session.Commands_Changed](dispatcher, resources.log)
+  lazy val phase_changed = new Session.Outlet[Session.Phase](dispatcher, resources.log)
+  lazy val syslog_messages = new Session.Outlet[Prover.Output](dispatcher, resources.log)
+  lazy val raw_output_messages = new Session.Outlet[Prover.Output](dispatcher, resources.log)
+  lazy val trace_events = new Session.Outlet[Simplifier_Trace.Event.type](dispatcher, resources.log)
+  lazy val debugger_updates = new Session.Outlet[Debugger.Update.type](dispatcher, resources.log)
 
-  val all_messages = new Session.Outlet[Prover.Message](dispatcher)  // potential bottle-neck!
+  // potential bottle-neck!
+  lazy val all_messages = new Session.Outlet[Prover.Message](dispatcher, resources.log)
 
 
   /** main protocol manager **/
@@ -487,7 +488,7 @@ abstract class Session extends Document.Session {
                 global_state.change(_.define_blob(digest))
                 prover.get.define_blob(digest, blob.bytes)
               case None =>
-                Output.error_message("Missing blob " + quote(name.toString))
+                resources.log(Output.error_message_text("Missing blob " + quote(name.toString)))
             }
           }
 
@@ -558,8 +559,9 @@ abstract class Session extends Document.Session {
     def handle_output(output: Prover.Output): Unit = {
     //{{{
       def bad_output(): Unit = {
-        if (verbose)
-          Output.warning("Ignoring bad prover output: " + output.message.toString)
+        if (verbose) {
+          resources.log(Output.warning_text("Ignoring bad prover output: " + output.message.toString))
+        }
       }
 
       def change_command(f: Document.State => (Command.State, Document.State)): Unit = {
@@ -742,7 +744,9 @@ abstract class Session extends Document.Session {
               postponed_changes.flush(state).foreach(handle_change)
 
           case bad =>
-            if (verbose) Output.warning("Ignoring bad message: " + bad.toString)
+            if (verbose) {
+              resources.log(Output.warning_text("Ignoring bad message: " + bad.toString))
+            }
         }
         true
         //}}}
