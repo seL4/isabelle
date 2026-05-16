@@ -42,7 +42,7 @@ final class Consumer_Thread[A] private(
   name: String, daemon: Boolean,
   bulk: A => Boolean,
   consume: List[A] => (List[Exn.Result[Unit]], Boolean),
-  timeout: Option[Time] = None,
+  timeout: Option[Time],
   limit: Int,
   finish: () => Unit
 ) {
