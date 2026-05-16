@@ -700,6 +700,33 @@ object SSH {
         thorough = thorough, filter = filter, progress = progress)
     }
 
+    def require_patch(): Unit = require_command("patch")
+
+    def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
+      val lines =
+        bash(
+          "diff -Nru" + if_proper(diff_options, " " + diff_options) + " -- " +
+            bash_path(src) + " " + bash_path(dst),
+          cwd = base_dir).check_rc(Process_Result.RC.regular).out_lines
+      Library.terminate_lines(lines)
+    }
+
+    def apply_patch(base_dir: Path, patch: String,
+      strip: Int = 1,
+      progress: Progress = new Progress
+    ): Unit = {
+      require_patch()
+      with_tmp_file("patch", ext = "rej") { rej =>
+        val result =
+          bash("patch -f -p" + strip + " -r " + bash_path(rej),
+            cwd = base_dir, input = patch, progress_stdout = progress.echo_if(progress.verbose, _))
+        if (!result.ok) {
+          val lines = if (is_file(rej)) Library.trim_split_lines(read(rej)) else Nil
+          error("Failed to apply patch" + if_proper(lines, ":\n") + cat_lines(lines))
+        }
+      }
+    }
+
     def download_file(url_name: String, file: Path, progress: Progress = new Progress): Unit =
       Isabelle_System.download_file(url_name, file, progress = progress)
 

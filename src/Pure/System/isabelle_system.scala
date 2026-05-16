@@ -510,30 +510,15 @@ object Isabelle_System {
     }
   }
 
-  def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String = {
-    val lines =
-      Isabelle_System.bash(
-        "diff -Nru" + if_proper(diff_options, " " + diff_options) + " -- " +
-          File.bash_path(src) + " " + File.bash_path(dst),
-        cwd = base_dir).check_rc(Process_Result.RC.regular).out_lines
-    Library.terminate_lines(lines)
-  }
+  def require_patch(): Unit = SSH.Local.require_patch()
+
+  def make_patch(base_dir: Path, src: Path, dst: Path, diff_options: String = ""): String =
+    SSH.Local.make_patch(base_dir, src, dst, diff_options = diff_options)
 
   def apply_patch(base_dir: Path, patch: String,
     strip: Int = 1,
     progress: Progress = new Progress
-  ): Unit = {
-    Isabelle_System.require_command("patch")
-    with_tmp_file("patch", ext = "rej") { rej =>
-      val result =
-        Isabelle_System.bash("patch -f -p" + strip + " -r " + File.bash_path(rej),
-          cwd = base_dir, input = patch, progress_stdout = progress.echo_if(progress.verbose, _))
-      if (!result.ok) {
-        val lines = if (rej.is_file) Library.trim_split_lines(File.read(rej)) else Nil
-        error("Failed to apply patch" + if_proper(lines, ":\n") + cat_lines(lines))
-      }
-    }
-  }
+  ): Unit = SSH.Local.apply_patch(base_dir, patch, strip = strip, progress = progress)
 
   def git_clone(url: String, target: Path,
     checkout: String = "HEAD",
