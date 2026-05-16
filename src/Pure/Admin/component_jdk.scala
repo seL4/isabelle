@@ -17,6 +17,8 @@ object Component_JDK {
   val default_jdk_version = "21.0.10"
   val default_zulu_version = "21.48.15-ca"
   val default_zulu_url = "https://cdn.azul.com/zulu/bin"
+  val default_source_url =
+    "https://github.com/openjdk/jdk{M}u-dev/archive/refs/tags/jdk-{V}-ga.tar.gz"
 
 
   /* platform information */
@@ -35,6 +37,130 @@ object Component_JDK {
       Download_Platform("x86_64-darwin", "zulu{Z}-jdk{V}-macosx_x64.tar.gz"),
       Download_Platform("x86_64-linux", "zulu{Z}-jdk{V}-linux_x64.tar.gz"),
       Download_Platform("x86_64-windows", "zulu{Z}-jdk{V}-win_x64.zip"))
+
+
+  /* build from source */
+
+  def major_version(version: String): String = {
+    val Major = """^(\d+)\..*$""".r
+    version match {
+      case Major(m) => m
+      case _ => error("Cannot determine major version from " + quote(version))
+    }
+  }
+
+  val patch = """diff -Nru -- jdk/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java jdk-patched/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java
+--- jdk/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-01-15 16:34:19.000000000 +0100
++++ jdk-patched/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-05-16 14:30:05.048336512 +0200
+@@ -72,6 +72,7 @@
+ import javax.accessibility.AccessibleEditableText;
+ import javax.accessibility.AccessibleExtendedComponent;
+ import javax.accessibility.AccessibleExtendedTable;
++import javax.accessibility.AccessibleExtendedText;
+ import javax.accessibility.AccessibleHyperlink;
+ import javax.accessibility.AccessibleHypertext;
+ import javax.accessibility.AccessibleIcon;
+@@ -84,6 +85,7 @@
+ import javax.accessibility.AccessibleStateSet;
+ import javax.accessibility.AccessibleTable;
+ import javax.accessibility.AccessibleText;
++import javax.accessibility.AccessibleTextSequence;
+ import javax.accessibility.AccessibleValue;
+
+ import javax.swing.Icon;
+@@ -2148,7 +2150,13 @@
+             @Override
+             public Integer call() throws Exception {
+                 AccessibleText at = ac.getAccessibleText();
+-                if (at != null) {
++                if (at instanceof AccessibleExtendedText) {
++                  AccessibleTextSequence s =
++                    ((AccessibleExtendedText) ac.getAccessibleText())
++                      .getTextSequenceAt(AccessibleExtendedText.LINE, index);
++                  return s != null ? s.startIndex : -1;
++                }
++                else if (at != null) {
+                     int lineStart;
+                     int offset;
+                     Rectangle charRect;
+@@ -2210,7 +2218,13 @@
+             @Override
+             public Integer call() throws Exception {
+                 AccessibleText at = ac.getAccessibleText();
+-                if (at != null) {
++                if (at instanceof AccessibleExtendedText) {
++                  AccessibleTextSequence s =
++                    ((AccessibleExtendedText) ac.getAccessibleText())
++                      .getTextSequenceAt(AccessibleExtendedText.LINE, index);
++                  return s != null ? s.endIndex : -1;
++                }
++                else if (at != null) {
+                     int lineEnd;
+                     int offset;
+                     Rectangle charRect;
+"""
+
+  def make_jdk(
+    target_dir: Path = Path.current,
+    source_url: String = default_source_url,
+    jdk_version: String = default_jdk_version,
+    ssh: SSH.System = SSH.Local,
+    progress: Progress = new Progress
+  ): Unit = {
+    /* platform */
+
+    val ssh_platform = ssh.isabelle_platform
+    require(ssh_platform.is_linux || ssh_platform.is_windows, "Bad platform " + ssh_platform)
+
+    val platform_path = target_dir + Path.basic(ssh_platform.ISABELLE_PLATFORM(windows = true))
+    Isabelle_System.make_directory(target_dir)
+
+    ssh.with_tmp_dir { ssh_dir =>
+      val jdk_path = Path.basic("jdk")
+      val jdk_patched_path = Path.basic("jdk-patched")
+
+
+      /* prepare sources */
+
+      ssh.require_patch()
+
+      ssh.download_file(
+        source_url.replacing("{V}" -> jdk_version, "{M}" -> major_version(jdk_version)),
+        ssh_dir + Path.explode("jdk.tar.gz"),
+        progress = progress)
+
+      progress.echo("Extracting ...")
+      for (path <- List(jdk_path, jdk_patched_path)) {
+        ssh.bash(
+          "mkdir -p " + ssh.bash_path(path) +
+          " && tar -xzf jdk.tar.gz --strip-components=1 -C " + ssh.bash_path(path),
+          cwd = ssh_dir).check
+      }
+
+      ssh.apply_patch(ssh_dir + jdk_patched_path, patch, progress = progress)
+
+      File.write(target_dir + platform_path.patch,
+        ssh.make_patch(ssh_dir, jdk_path, jdk_patched_path))
+
+
+      /* build */
+
+      progress.echo("Building jdk ...")
+      progress.bash("bash configure && make images",
+        cwd = ssh_dir + jdk_patched_path, ssh = ssh, echo = progress.verbose).check
+
+      val build_dir = ssh_dir + jdk_patched_path + Path.explode("build")
+      val result_dir =
+        ssh.read_dir(build_dir).filterNot(_.startsWith(".")) match {
+          case List(name) => build_dir + Path.basic(name) + Path.explode("images/jdk")
+          case bad =>
+            error("Cannot determine images directory" + if_proper(bad, " from " + commas_quote(bad)))
+        }
+
+      progress.echo("Getting jdk ...")
+      ssh.read_directory(result_dir, target_dir + platform_path, direct = true)
+    }
+  }
 
 
   /* build jdk */
@@ -129,9 +255,59 @@ subdirectories.
   }
 
 
-  /* Isabelle tool wrapper */
+  /* Isabelle tool wrappers */
 
-  val isabelle_tool =
+  val isabelle_tool1 =
+    Isabelle_Tool("make_jdk", "build jdk from sources",
+      Scala_Project.here,
+      { args =>
+        var target_dir = Path.current
+        var build_host = SSH.LOCAL
+        var source_url = default_source_url
+        var jdk_version = default_jdk_version
+        var options = Options.init()
+        var verbose = false
+
+        val getopts = Getopts("""
+Usage: isabelle make_jdk [OPTIONS]
+
+  Options are:
+    -D DIR       target directory (default ".")
+    -H HOST      remote build host (default: local)
+    -S URL       source archive URL template
+                 (default: """" + default_source_url + """")
+    -V NAME      JDK version (default: """" + default_jdk_version + """")
+    -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -v           verbose
+
+  Build jdk from sources.
+
+  Windows prerequisites:
+    - install Cygwin packages: patch zip
+    - install Visual Studio 2022
+        + see https://visualstudio.microsoft.com/downloads
+        + Desktop development with C++
+    - install current JDK (for bootstrap)
+""",
+          "D:" -> (arg => target_dir = Path.explode(arg)),
+          "H:" -> (arg => build_host = arg),
+          "S:" -> (arg => source_url = arg),
+          "V:" -> (arg => jdk_version = arg),
+          "o:" -> (arg => options = options + arg),
+          "v" -> (_ => verbose = true))
+
+        val more_args = getopts(args)
+        if (more_args.nonEmpty) getopts.usage()
+
+        val progress = new Console_Progress(verbose = verbose)
+
+        using(SSH.open_system(options, build_host)) { ssh =>
+          make_jdk(target_dir = target_dir, source_url = source_url, jdk_version = jdk_version,
+            ssh = ssh, progress = progress)
+        }
+      })
+
+  val isabelle_tool2 =
     Isabelle_Tool("component_jdk", "build Isabelle jdk component using downloads from Azul",
       Scala_Project.here,
       { args =>
