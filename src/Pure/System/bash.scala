@@ -319,7 +319,7 @@ object Bash {
   object Server {
     def start(
       port: Int = 0,
-      log: Logger = new System_Logger(),
+      log: Logger = new Console_Logger(),
       debugging: => Boolean = false
     ): Server = {
       val server = new Server(port, log, debugging)

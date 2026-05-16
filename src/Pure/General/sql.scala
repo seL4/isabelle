@@ -260,7 +260,7 @@ object SQL {
   /* access data */
 
   def transaction_logger(): Logger =
-    new System_Logger(guard_time = Time.guard_property("isabelle.transaction_trace"))
+    new Console_Logger(guard_time = Time.guard_property("isabelle.transaction_trace"))
 
   abstract class Data(table_prefix: String = "") {
     def tables: Tables
