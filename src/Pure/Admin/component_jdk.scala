@@ -12,6 +12,17 @@ import java.nio.file.attribute.PosixFilePermission
 
 
 object Component_JDK {
+  /* platform prerequisites */
+
+  val linux_packages: List[String] =
+    List("autoconf", "build-essential", "curl", "file", "g++", "gcc", "libasound2-dev",
+      "libcups2-dev", "libfontconfig1-dev", "libx11-dev", "libxext-dev", "libxrandr-dev",
+      "libxrender-dev", "libxt-dev", "libxtst-dev", "make", "openjdk-21-jdk", "patch", "zip")
+
+  val cygwin_packages: List[String] =
+    List("autoconf", "make", "patch", "zip")
+
+
   /* defaults */
 
   val default_jdk_version = "21.0.10"
@@ -290,8 +301,14 @@ Usage: isabelle make_jdk [OPTIONS]
 
   Build jdk from sources.
 
+  Linux prerequisites:
+    - Ubuntu 20.04 LTS
+    - apt packages:
+      apt-get update && apt-get upgrade -y && apt autoremove -y
+      apt install -y """ + linux_packages.mkString(" ") + """
+
   Windows prerequisites:
-    - install Cygwin packages: patch zip
+    - install Cygwin packages: """ + cygwin_packages.mkString(" ") + """
     - install Visual Studio 2022
         + see https://visualstudio.microsoft.com/downloads
         + Desktop development with C++
