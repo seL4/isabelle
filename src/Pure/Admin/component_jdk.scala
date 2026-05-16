@@ -149,7 +149,10 @@ object Component_JDK {
 
       progress.echo("Building jdk ...")
       progress.bash(
-        """bash configure --with-version-pre=isabelle --with-version-opt="" && make images""",
+        Library.make_lines(
+          "set -e",
+          """bash configure --with-version-pre=isabelle --with-version-opt=""""",
+          "make images"),
         cwd = ssh_dir + jdk_patched_path, ssh = ssh, echo = progress.verbose).check
 
       val build_dir = ssh_dir + jdk_patched_path + Path.explode("build")
