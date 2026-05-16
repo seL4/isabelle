@@ -12,13 +12,20 @@ import java.nio.file.attribute.PosixFilePermission
 
 
 object Component_JDK {
+  /* defaults */
+
+  val default_jdk_version = "21.0.10"
+  val default_zulu_version = "21.48.15-ca"
+  val default_zulu_url = "https://cdn.azul.com/zulu/bin"
+
+
   /* platform information */
 
   sealed case class Download_Platform(name: String, url_template: String) {
     override def toString: String = name
 
-    def url(base_url: String, jdk_version: String, zulu_version: String): String =
-      base_url + "/" + url_template.replacing("{V}" -> jdk_version, "{Z}" -> zulu_version)
+    def url(zulu_url: String, jdk_version: String, zulu_version: String): String =
+      zulu_url + "/" + url_template.replacing("{V}" -> jdk_version, "{Z}" -> zulu_version)
   }
 
   val platforms: List[Download_Platform] =
@@ -32,13 +39,9 @@ object Component_JDK {
 
   /* build jdk */
 
-  val default_base_url = "https://cdn.azul.com/zulu/bin"
-  val default_jdk_version = "21.0.10"
-  val default_zulu_version = "21.48.15-ca"
-
   def build_jdk(
     target_dir: Path = Path.current,
-    base_url: String = default_base_url,
+    zulu_url: String = default_zulu_url,
     jdk_version: String = default_jdk_version,
     zulu_version: String = default_zulu_version,
     progress: Progress = new Progress,
@@ -57,7 +60,7 @@ object Component_JDK {
 
     for (platform <- platforms) {
       Isabelle_System.with_tmp_dir("download", component_dir.path.file) { dir =>
-        val url = platform.url(base_url, jdk_version, zulu_version)
+        val url = platform.url(zulu_url, jdk_version, zulu_version)
         val name = Library.take_suffix(_ != '/', url.toList)._2.mkString
         val file = dir + Path.basic(name)
         Isabelle_System.download_file(url, file, progress = progress)
@@ -133,7 +136,7 @@ subdirectories.
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var base_url = default_base_url
+        var zulu_url = default_zulu_url
         var jdk_version = default_jdk_version
         var zulu_version = default_zulu_version
 
@@ -142,14 +145,14 @@ Usage: isabelle component_jdk [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -U URL       base URL (default: """" + default_base_url + """")
+    -U URL       Zulu base URL (default: """" + default_zulu_url + """")
     -V NAME      JDK version (default: """" + default_jdk_version + """")
     -Z NAME      Zulu version (default: """" + default_zulu_version + """")
 
   Build Isabelle jdk component using downloads from Azul.
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "U:" -> (arg => base_url = arg),
+          "U:" -> (arg => zulu_url = arg),
           "V:" -> (arg => jdk_version = arg),
           "Z:" -> (arg => zulu_version = arg))
 
@@ -158,7 +161,7 @@ Usage: isabelle component_jdk [OPTIONS]
 
         val progress = new Console_Progress()
 
-        build_jdk(target_dir = target_dir, base_url = base_url,
+        build_jdk(target_dir = target_dir, zulu_url = zulu_url,
           jdk_version = jdk_version, zulu_version = zulu_version, progress = progress)
       })
 }
