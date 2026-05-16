@@ -62,7 +62,7 @@ diff -Nru FlatLaf-3.7/flatlaf-core/src/main/java/com/formdev/flatlaf/ui/FlatMenu
     version: String = default_version,
     progress: Progress = new Progress,
   ): Unit = {
-    Isabelle_System.require_command("patch")
+    Isabelle_System.require_patch()
 
 
     /* component */

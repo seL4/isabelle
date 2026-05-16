@@ -17,7 +17,7 @@ import org.gjt.sp.util.SyntaxUtilities
 
 
 class Base_Plugin extends EBPlugin {
-  override def start(): Unit = {
+  override def start(): Unit = GUI_Thread.now {
     Locale.setDefault(Library.locale_english)
 
     Isabelle_System.init()
@@ -29,7 +29,7 @@ class Base_Plugin extends EBPlugin {
     Syntax_Style.set_extender(Syntax_Style.Base_Extender)
   }
 
-  override def stop(): Unit = {
+  override def stop(): Unit = GUI_Thread.now {
     Syntax_Style.set_extender(new SyntaxUtilities.StyleExtender)
   }
 

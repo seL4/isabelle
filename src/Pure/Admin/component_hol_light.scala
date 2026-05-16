@@ -35,9 +35,9 @@ object Component_HOL_Light {
 
     if (!only_offline) {
       Linux.check_system()
+      Isabelle_System.require_patch()
       Isabelle_System.require_command("bzip2")
       Isabelle_System.require_command("m4")
-      Isabelle_System.require_command("patch")
       Isabelle_System.require_command("zstd")
     }
 

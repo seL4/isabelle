@@ -1090,14 +1090,14 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}[t]{l}
-  @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close> or \<^verbatim>\<open>AS+b\<close>) \\
-  @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close> or \<^verbatim>\<open>AS+m\<close>) \\
+  @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close>) \\
+  @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close>) \\
   \end{tabular}\quad
   \begin{tabular}[t]{l}
-  @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close> or \<^verbatim>\<open>AS+a\<close>) \\
-  @{action_ref "isabelle.last-error"} (\<^verbatim>\<open>CS+z\<close> or \<^verbatim>\<open>AS+z\<close>) \\
-  @{action_ref "isabelle.next-error"} (\<^verbatim>\<open>CS+n\<close> or \<^verbatim>\<open>AS+n\<close>) \\
-  @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close> or \<^verbatim>\<open>AS+p\<close>) \\
+  @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close>) \\
+  @{action_ref "isabelle.last-error"} (\<^verbatim>\<open>CS+z\<close>) \\
+  @{action_ref "isabelle.next-error"} (\<^verbatim>\<open>CS+n\<close>) \\
+  @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close>) \\
   \end{tabular}
   \<^medskip>
 \<close>
@@ -1289,10 +1289,10 @@ text \<open>
 
   \<^medskip>
   \begin{tabular}[t]{ll}
-  @{action_def "isabelle.follow-link"} (\<^verbatim>\<open>CS+DOWN\<close> or \<^verbatim>\<open>AS+DOWN\<close>) \\
-  @{action_def "isabelle.show-links"} (\<^verbatim>\<open>CS+UP\<close> or \<^verbatim>\<open>AS+UP\<close>) \\
-  @{action_def "navigate-backwards"} (\<^verbatim>\<open>CS+LEFT\<close> or \<^verbatim>\<open>AS+LEFT\<close>) \\
-  @{action_def "navigate-forwards"} (\<^verbatim>\<open>CS+RIGHT\<close> or \<^verbatim>\<open>AS+RIGHT\<close>) \\
+  @{action_def "isabelle.follow-link"} (\<^verbatim>\<open>AS+DOWN\<close>) \\
+  @{action_def "isabelle.show-links"} (\<^verbatim>\<open>AS+UP\<close>) \\
+  @{action_def "navigate-backwards"} (\<^verbatim>\<open>AS+LEFT\<close>) \\
+  @{action_def "navigate-forwards"} (\<^verbatim>\<open>AS+RIGHT\<close>) \\
   \end{tabular}
   \<^medskip>
 
@@ -1346,11 +1346,10 @@ text \<open>
   \figref{fig:scope1}. Here the referencing positions are rendered with an
   additional border, in reminiscence to a hyperlink. A mouse click with \<^verbatim>\<open>C\<close>
   modifier, or the action @{action_ref "isabelle.follow-link"} (shortcut
-  \<^verbatim>\<open>CS+DOWN\<close> or \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position.
-  Alternatively, the action @{action_def "isabelle.show-links"} (shortcut
-  \<^verbatim>\<open>CS+UP\<close> or \<^verbatim>\<open>AS+UP\<close>) opens a popup with the list of currently active
-  hyperlinks, with the possibility to select one via mouse or keyboard (see
-  also \secref{sec:completion}).
+  \<^verbatim>\<open>AS+DOWN\<close>) jumps to the original defining position. Alternatively, the
+  action @{action_def "isabelle.show-links"} (shortcut \<^verbatim>\<open>AS+UP\<close>) opens a popup
+  with the list of currently active hyperlinks, with the possibility to select
+  one via mouse or keyboard (see also \secref{sec:completion}).
 
   \begin{figure}[!htb]
   \begin{center}

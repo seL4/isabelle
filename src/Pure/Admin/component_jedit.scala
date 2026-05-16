@@ -107,7 +107,7 @@ object Component_JEdit {
     progress: Progress = new Progress
   ): Unit = {
     Isabelle_System.require_command("ant", test = "-version")
-    Isabelle_System.require_command("patch")
+    Isabelle_System.require_patch()
 
     val component_dir = Components.Directory(component_path).create(progress = progress)
 
