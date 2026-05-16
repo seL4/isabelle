@@ -50,16 +50,9 @@ extends Logger {
   override def toString: String = path.toString
 }
 
-class System_Logger(override val guard_time: Time = Time.min)
+class System_Logger(
+  override val guard_time: Time = Time.min,
+  val stdout: Boolean = false)
 extends Logger {
-  override def output(msg: => String): Unit = synchronized {
-    if (proper_value(System.console).isDefined && proper_value(System.console.nn.writer).isDefined) {
-      System.console.nn.writer.nn.println(msg)
-      System.console.nn.writer.nn.flush()
-    }
-    else if (proper_value(System.out).isDefined) {
-      System.out.nn.println(msg)
-      System.out.nn.flush()
-    }
-  }
+  override def output(msg: => String): Unit = Output.output(msg, stdout = stdout)
 }
