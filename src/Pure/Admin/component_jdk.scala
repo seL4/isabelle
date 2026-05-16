@@ -112,8 +112,11 @@ object Component_JDK {
     val ssh_platform = ssh.isabelle_platform
     require(ssh_platform.is_linux || ssh_platform.is_windows, "Bad platform " + ssh_platform)
 
-    val platform_path = target_dir + Path.basic(ssh_platform.ISABELLE_PLATFORM(windows = true))
+    val platform_dir = target_dir + Path.basic(ssh_platform.ISABELLE_PLATFORM(windows = true))
     Isabelle_System.make_directory(target_dir)
+
+    progress.echo("Output directory " + platform_dir.absolute)
+    Isabelle_System.new_directory(platform_dir)
 
     ssh.with_tmp_dir { ssh_dir =>
       val jdk_path = Path.basic("jdk")
@@ -139,8 +142,7 @@ object Component_JDK {
 
       ssh.apply_patch(ssh_dir + jdk_patched_path, patch, progress = progress)
 
-      File.write(target_dir + platform_path.patch,
-        ssh.make_patch(ssh_dir, jdk_path, jdk_patched_path))
+      File.write(platform_dir.patch, ssh.make_patch(ssh_dir, jdk_path, jdk_patched_path))
 
 
       /* build */
@@ -159,7 +161,7 @@ object Component_JDK {
         }
 
       progress.echo("Getting jdk ...")
-      ssh.read_directory(result_dir, target_dir + platform_path, direct = true)
+      ssh.read_directory(result_dir, platform_dir, direct = true)
     }
   }
 
