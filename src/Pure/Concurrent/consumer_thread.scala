@@ -19,9 +19,10 @@ object Consumer_Thread {
     daemon: Boolean = false,
     timeout: Option[Time] = None,
     limit: Int = 0,
-    finish: () => Unit = () => ()
+    finish: () => Unit = () => (),
+    log: Logger = new Console_Logger()
   ): Consumer_Thread[A] = {
-    new Consumer_Thread[A](name, consume, bulk, daemon, timeout, limit, finish)
+    new Consumer_Thread[A](name, consume, bulk, daemon, timeout, limit, finish, log)
   }
 
   def fork[A](
@@ -29,9 +30,10 @@ object Consumer_Thread {
     consume: A => Boolean,
     daemon: Boolean = false,
     limit: Int = 0,
-    finish: () => Unit = () => ()
+    finish: () => Unit = () => (),
+    log: Logger = new Console_Logger()
   ): Consumer_Thread[A] = {
-    fork_bulk(name, bulk = _ => false, daemon = daemon, limit = limit, finish = finish,
+    fork_bulk(name, bulk = _ => false, daemon = daemon, limit = limit, finish = finish, log = log,
       consume = { (args: List[A]) =>
         assert(args.length == 1)
         Exn.capture { consume(args.head) } match {
@@ -50,7 +52,8 @@ final class Consumer_Thread[A] private(
   daemon: Boolean,
   timeout: Option[Time],
   limit: Int,
-  finish: () => Unit
+  finish: () => Unit,
+  log: Logger
 ) {
   /* thread */
 
@@ -63,8 +66,8 @@ final class Consumer_Thread[A] private(
   def check_thread(): Boolean = Isabelle_Thread.current == thread
 
   private def failure(exn: Throwable): Unit =
-    Output.error_message(
-      "Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn))
+    log("Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn),
+      kind = Output.Kind.error_message)
 
   private def robust_finish(): Unit =
     try { finish() } catch { case exn: Throwable => failure(exn) }
