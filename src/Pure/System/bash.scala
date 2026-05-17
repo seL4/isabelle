@@ -446,7 +446,9 @@ object Bash {
     override def init(session: Session): Unit = {
       exit()
       server =
-        Some(Server.start(debugging = session.session_options.bool("bash_process_debugging")))
+        Some(Server.start(
+          log = session.resources.log,
+          debugging = session.session_options.bool("bash_process_debugging")))
     }
 
     def exit(): Unit =
