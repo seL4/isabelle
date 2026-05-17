@@ -501,7 +501,7 @@ Usage: isabelle server [OPTIONS]
         else {
           val log_file = Logger.make_file(log_path)
           val (server_info, server) =
-            init(name, port = port, existing_server = existing_server, log_file = log_file)
+            init(name = name, port = port, existing_server = existing_server, log_file = log_file)
           Output.writeln(server_info.toString, stdout = true)
           if (console) {
             using(server_info.connection())(connection => connection.tty_loop().join())
