@@ -216,7 +216,7 @@ abstract class Session extends Document.Session {
   /* dispatcher */
 
   private val dispatcher =
-    Consumer_Thread.fork[() => Unit]("Session.dispatcher", { case e => e(); true }, daemon = true)
+    Consumer_Thread.fork[() => Unit]("Session.dispatcher", { e => e(); true }, daemon = true)
 
   def assert_dispatcher[A](body: => A): A = {
     assert(dispatcher.check_thread())
