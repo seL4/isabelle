@@ -91,6 +91,7 @@ class Channel(
 
   val log_message: Logger =
     new Logger {
+      override def toString: String = "log_message"
       override def output(kind: Output.Kind, msg: => String): Unit =
         kind match {
           case Output.Kind.writeln => log_writeln(msg)
