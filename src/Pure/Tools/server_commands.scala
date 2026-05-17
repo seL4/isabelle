@@ -122,14 +122,14 @@ object Server_Commands {
 
     def command(
       args: Args,
-      log_file: Logger,
+      log: Logger,
       progress: Progress = new Progress
     ) : (JSON.Object.T, (UUID.T, Headless.Session)) = {
       val (_, _, options, session_background) =
         try { Session_Build.command(args.build, progress = progress) }
         catch { case exn: Server.Error => error(exn.message) }
 
-      val resources = Headless.Resources(options, session_background, log_file)
+      val resources = Headless.Resources(options, session_background, log)
 
       val session = resources.start_session(print_mode = args.print_mode, progress = progress)
 
@@ -147,7 +147,7 @@ object Server_Commands {
       { case (context, Session_Start(args)) =>
           context.make_task { task =>
             val (res, entry) =
-              Session_Start.command(args, context.server.log_file, progress = task.progress)
+              Session_Start.command(args, context.server.log, progress = task.progress)
             context.server.add_session(entry)
             res
           }

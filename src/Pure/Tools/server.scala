@@ -398,10 +398,10 @@ object Server {
   }
 
   def init(
+    log: Logger,
     name: String = default_name,
     port: Int = 0,
-    existing_server: Boolean = false,
-    log_file: Logger = Logger.none
+    existing_server: Boolean = false
   ): (Info, Option[Server]) = {
     using(SQLite.open_database(private_data.database, restrict = true)) { db =>
       private_data.transaction_lock(db, create = true) {
@@ -416,7 +416,7 @@ object Server {
           case None =>
             if (existing_server) error("Isabelle server " + quote(name) + " not running")
 
-            val server = new Server(port, log_file)
+            val server = new Server(log, port)
             val server_info = Info(name, server.port, server.password)
 
             db.execute_statement(
@@ -499,9 +499,9 @@ Usage: isabelle server [OPTIONS]
           sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
         }
         else {
-          val log_file = Logger.make_file(log_path)
+          val log = Logger.make_file(log_path)
           val (server_info, server) =
-            init(name = name, port = port, existing_server = existing_server, log_file = log_file)
+            init(log, name = name, port = port, existing_server = existing_server)
           Output.writeln(server_info.toString, stdout = true)
           if (console) {
             using(server_info.connection())(connection => connection.tty_loop().join())
@@ -511,7 +511,7 @@ Usage: isabelle server [OPTIONS]
       })
 }
 
-class Server private(port0: Int, val log_file: Logger) extends Server.Handler(port0) {
+class Server private(val log: Logger, port0: Int) extends Server.Handler(port0) {
   server =>
 
   private val _sessions = Synchronized(Map.empty[UUID.T, Headless.Session])
@@ -534,12 +534,12 @@ class Server private(port0: Int, val log_file: Logger) extends Server.Handler(po
       try {
         val result = session.stop()
         if (!result.ok) {
-          log_file("Session shutdown failed: " + result.print_rc, kind = Output.Kind.error_message)
+          log("Session shutdown failed: " + result.print_rc, kind = Output.Kind.error_message)
         }
       }
       catch {
         case ERROR(msg) =>
-          log_file("Session shutdown failed: " + msg, kind = Output.Kind.error_message)
+          log("Session shutdown failed: " + msg, kind = Output.Kind.error_message)
       }
     }
   }
