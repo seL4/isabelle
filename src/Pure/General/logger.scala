@@ -60,7 +60,7 @@ class Console_Logger(override val guard_time: Time = Time.min, stdout: Boolean =
 extends Logger {
   override def output(kind: Output.Kind, msg: => String): Unit =
     Output.output(Output.make_text(kind, msg), stdout = stdout)
-  override def toString: String = if (stdout) "System.out" else "System.err"
+  override def toString: String = if (stdout) "Console.out" else "Console.err"
 }
 
 class File_Logger(path: Path, override val guard_time: Time = Time.min)
