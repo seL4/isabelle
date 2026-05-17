@@ -17,34 +17,13 @@ import java.lang.ref.WeakReference
 
 
 object Session {
-  /* outlets */
+  /* consumers */
 
   object Consumer {
     def apply[A](name: String)(consume: A => Unit): Consumer[A] =
       new Consumer[A](name, consume)
   }
   final class Consumer[-A] private(val name: String, val consume: A => Unit)
-
-  class Outlet[A](dispatcher: Consumer_Thread[() => Unit], log: Logger) {
-    private val consumers = Synchronized[List[Consumer[A]]](Nil)
-
-    def += (c: Consumer[A]): Unit = consumers.change(Library.update(c))
-    def -= (c: Consumer[A]): Unit = consumers.change(Library.remove(c))
-
-    def consume_robust(c: Consumer[A], a: A): Unit =
-      try { c.consume(a) }
-      catch {
-        case exn: Throwable =>
-          val msg = "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn)
-          log(Output.error_message_text(msg))
-      }
-
-    def post(a: A): Unit = {
-      for (c <- consumers.value.iterator) {
-        dispatcher.send(() => consume_robust(c, a))
-      }
-    }
-  }
 
 
   /* change */
@@ -241,22 +220,43 @@ abstract class Session extends Document.Session {
 
   /* outlets */
 
-  lazy val finished_theories = new Session.Outlet[Document.Snapshot](dispatcher, resources.log)
-  lazy val command_timings = new Session.Outlet[Session.Command_Timing](dispatcher, resources.log)
-  lazy val runtime_statistics = new Session.Outlet[Session.Runtime_Statistics](dispatcher, resources.log)
-  lazy val task_statistics = new Session.Outlet[Session.Task_Statistics](dispatcher, resources.log)
-  lazy val global_options = new Session.Outlet[Session.Global_Options](dispatcher, resources.log)
-  lazy val caret_focus = new Session.Outlet[Session.Caret_Focus.type](dispatcher, resources.log)
-  lazy val raw_edits = new Session.Outlet[Session.Raw_Edits](dispatcher, resources.log)
-  lazy val commands_changed = new Session.Outlet[Session.Commands_Changed](dispatcher, resources.log)
-  lazy val phase_changed = new Session.Outlet[Session.Phase](dispatcher, resources.log)
-  lazy val syslog_messages = new Session.Outlet[Prover.Output](dispatcher, resources.log)
-  lazy val raw_output_messages = new Session.Outlet[Prover.Output](dispatcher, resources.log)
-  lazy val trace_events = new Session.Outlet[Simplifier_Trace.Event.type](dispatcher, resources.log)
-  lazy val debugger_updates = new Session.Outlet[Debugger.Update.type](dispatcher, resources.log)
+  class Outlet[A] {
+    private val consumers = Synchronized[List[Session.Consumer[A]]](Nil)
+
+    def += (c: Session.Consumer[A]): Unit = consumers.change(Library.update(c))
+    def -= (c: Session.Consumer[A]): Unit = consumers.change(Library.remove(c))
+
+    def consume_robust(c: Session.Consumer[A], a: A): Unit =
+      try { c.consume(a) }
+      catch {
+        case exn: Throwable =>
+          val msg = "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn)
+          resources.log(Output.error_message_text(msg))
+      }
+
+    def post(a: A): Unit = {
+      for (c <- consumers.value.iterator) {
+        dispatcher.send(() => consume_robust(c, a))
+      }
+    }
+  }
+
+  val finished_theories = new Outlet[Document.Snapshot]
+  val command_timings = new Outlet[Session.Command_Timing]
+  val runtime_statistics = new Outlet[Session.Runtime_Statistics]
+  val task_statistics = new Outlet[Session.Task_Statistics]
+  val global_options = new Outlet[Session.Global_Options]
+  val caret_focus = new Outlet[Session.Caret_Focus.type]
+  val raw_edits = new Outlet[Session.Raw_Edits]
+  val commands_changed = new Outlet[Session.Commands_Changed]
+  val phase_changed = new Outlet[Session.Phase]
+  val syslog_messages = new Outlet[Prover.Output]
+  val raw_output_messages = new Outlet[Prover.Output]
+  val trace_events = new Outlet[Simplifier_Trace.Event.type]
+  val debugger_updates = new Outlet[Debugger.Update.type]
 
   // potential bottle-neck!
-  lazy val all_messages = new Session.Outlet[Prover.Message](dispatcher, resources.log)
+  lazy val all_messages = new Outlet[Prover.Message]
 
 
   /** main protocol manager **/
