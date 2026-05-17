@@ -136,7 +136,7 @@ object Dump {
 
     def sessions(
       logic: String = default_logic,
-      log: Logger = Logger.none
+      log: Logger = new Console_Logger()
     ): List[Session] = {
       /* partitions */
 
