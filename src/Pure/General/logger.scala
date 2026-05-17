@@ -44,8 +44,9 @@ class Logger {
 
   final def timeit[A](body: => A,
     message: Timing.Message[A] = Timing.no_message,
-    enabled: Boolean = true
-  ): A = Timing.timeit(body, message = message, enabled = enabled, output = apply(_))
+    enabled: Boolean = true,
+    kind: Output.Kind = Output.Kind.warning
+  ): A = Timing.timeit(body, message = message, enabled = enabled, output = apply(_, kind = kind))
 }
 
 
