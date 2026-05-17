@@ -17,6 +17,7 @@ object Logger {
   def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger = {
     val t = guard_time
     new Logger {
+      override def toString: String = progress.toString
       override val guard_time: Time = t
       override def output(kind: Output.Kind, msg: => String): Unit =
         progress.output(List(Progress.Message(kind, msg)))
