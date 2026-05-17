@@ -123,7 +123,7 @@ object Database_Progress {
         SortedMap.from[Long, Progress.Message],
         { res =>
           val serial = res.long(Messages.serial)
-          val kind = Progress.Kind.fromOrdinal(res.int(Messages.kind))
+          val kind = Output.Kind.fromOrdinal(res.int(Messages.kind))
           val text = res.string(Messages.text)
           val verbose = res.bool(Messages.verbose)
           serial -> Progress.Message(kind, text, verbose = verbose)

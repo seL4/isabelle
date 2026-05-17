@@ -264,9 +264,9 @@ object Server {
           case message: Progress.Message =>
             val more1 = ("verbose" -> message.verbose.toString) :: more.toList
             message.kind match {
-              case Progress.Kind.writeln => context.writeln(message.text, more1: _*)
-              case Progress.Kind.warning => context.warning(message.text, more1: _*)
-              case Progress.Kind.error_message => context.error_message(message.text, more1: _*)
+              case Output.Kind.writeln => context.writeln(message.text, more1: _*)
+              case Output.Kind.warning => context.warning(message.text, more1: _*)
+              case Output.Kind.error_message => context.error_message(message.text, more1: _*)
             }
           case theory: Progress.Theory =>
             val entries: List[JSON.Object.Entry] =

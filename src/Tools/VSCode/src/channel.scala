@@ -104,9 +104,9 @@ class Channel(
         for (msg <- msgs if do_output(msg)) {
           val message = msg.message
           message.kind match {
-            case Progress.Kind.writeln => log_writeln(message.text)
-            case Progress.Kind.warning => log_warning(message.text)
-            case Progress.Kind.error_message => log_error_message(message.text)
+            case Output.Kind.writeln => log_writeln(message.text)
+            case Output.Kind.warning => log_warning(message.text)
+            case Output.Kind.error_message => log_error_message(message.text)
           }
         }
     }
