@@ -216,7 +216,7 @@ abstract class Session extends Document.Session {
   /* dispatcher */
 
   private val dispatcher =
-    Consumer_Thread.fork[() => Unit]("Session.dispatcher", daemon = true) { case e => e(); true }
+    Consumer_Thread.fork[() => Unit]("Session.dispatcher", { case e => e(); true }, daemon = true)
 
   def assert_dispatcher[A](body: => A): A = {
     assert(dispatcher.check_thread())
@@ -303,17 +303,19 @@ abstract class Session extends Document.Session {
     consolidate: List[Document.Node.Name],
     version_result: Promise[Document.Version])
 
-  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser", daemon = true) {
-    case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
-      val prev = previous.get_finished
-      val change =
-        Timing.timeit(Thy_Syntax.parse_change(session, prev, doc_blobs, text_edits, consolidate),
-          message = _ => "parse_change",
-          enabled = timing)
-      version_result.fulfill(change.version)
-      manager.send(change)
-      true
-  }
+  private val change_parser = Consumer_Thread.fork[Text_Edits]("change_parser",
+    daemon = true,
+    consume = {
+      case Text_Edits(previous, doc_blobs, text_edits, consolidate, version_result) =>
+        val prev = previous.get_finished
+        val change =
+          Timing.timeit(Thy_Syntax.parse_change(session, prev, doc_blobs, text_edits, consolidate),
+            message = _ => "parse_change",
+            enabled = timing)
+        version_result.fulfill(change.version)
+        manager.send(change)
+        true
+    })
 
   def auto_resolve: Boolean = true
   def syntax_changed(names: List[Document.Node.Name]): Unit = {}
@@ -654,103 +656,106 @@ abstract class Session extends Document.Session {
 
     /* main thread */
 
-    Consumer_Thread.fork[Any]("Session.manager", daemon = true) {
-      case arg: Any =>
-        //{{{
-        arg match {
-          case output: Prover.Output =>
-            if (output.is_syslog) {
-              syslog += XML.content(output.message)
-              syslog_messages.post(output)
-            }
-
-            if (output.is_stdout || output.is_stderr)
-              raw_output_messages.post(output)
-            else handle_output(output)
-
-            all_messages.post(output)
-
-          case input: Prover.Input =>
-            all_messages.post(input)
-
-          case Start(start_prover) if !prover.defined =>
-            prover.set(start_prover(manager.send(_)))
-
-          case Stop =>
-            consolidation.exit()
-            delay_prune.revoke()
-            if (prover.defined) {
-              global_state.change(_ => Document.State.init)
-              prover.get.terminate()
-            }
-
-          case Get_State(promise) =>
-            promise.fulfill(global_state.value)
-
-          case Consolidate_Execution =>
-            if (prover.defined) {
-              val state = global_state.value
-              state.stable_tip_version match {
-                case None => consolidation.update()
-                case Some(version) =>
-                  val consolidate =
-                    version.nodes.descendants(consolidation.flush().toList).filter { name =>
-                      !resources.loaded_theory(name) &&
-                      !state.node_consolidated(version, name) &&
-                      state.node_maybe_consolidated(version, name)
-                    }
-                  if (consolidate.nonEmpty) handle_raw_edits(consolidate = consolidate)
+    Consumer_Thread.fork[Any]("Session.manager",
+      daemon = true,
+      consume = {
+        case arg: Any =>
+          //{{{
+          arg match {
+            case output: Prover.Output =>
+              if (output.is_syslog) {
+                syslog += XML.content(output.message)
+                syslog_messages.post(output)
               }
-            }
 
-          case Prune_History =>
-            if (prover.defined) {
-              val old_versions = global_state.change_result(_.remove_versions(prune_size))
-              if (old_versions.nonEmpty) prover.get.remove_versions(old_versions)
-            }
+              if (output.is_stdout || output.is_stderr)
+                raw_output_messages.post(output)
+              else handle_output(output)
 
-          case Update_Options(options) =>
-            if (prover.defined && is_ready) {
-              prover.get.options(options ++ prover_options)
-              handle_raw_edits()
-            }
-            global_options.post(Session.Global_Options(options))
+              all_messages.post(output)
 
-          case Cancel_Exec(exec_id) if prover.defined =>
-            prover.get.cancel_exec(exec_id)
+            case input: Prover.Input =>
+              all_messages.post(input)
 
-          case Session.Raw_Edits(doc_blobs, edits) if prover.defined =>
-            handle_raw_edits(doc_blobs = doc_blobs, edits = edits)
+            case Start(start_prover) if !prover.defined =>
+              prover.set(start_prover(manager.send(_)))
 
-          case Session.Dialog_Result(id, serial, result) if prover.defined =>
-            prover.get.dialog_result(serial, result)
-            handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
+            case Stop =>
+              consolidation.exit()
+              delay_prune.revoke()
+              if (prover.defined) {
+                global_state.change(_ => Document.State.init)
+                prover.get.terminate()
+              }
 
-          case Protocol_Command_Raw(name, args) if prover.defined =>
-            prover.get.protocol_command_raw(name, args)
+            case Get_State(promise) =>
+              promise.fulfill(global_state.value)
 
-          case Protocol_Command_Args(name, args) if prover.defined =>
-            prover.get.protocol_command_args(name, args)
+            case Consolidate_Execution =>
+              if (prover.defined) {
+                val state = global_state.value
+                state.stable_tip_version match {
+                  case None => consolidation.update()
+                  case Some(version) =>
+                    val consolidate =
+                      version.nodes.descendants(consolidation.flush().toList).filter { name =>
+                        !resources.loaded_theory(name) &&
+                        !state.node_consolidated(version, name) &&
+                        state.node_maybe_consolidated(version, name)
+                      }
+                    if (consolidate.nonEmpty) handle_raw_edits(consolidate = consolidate)
+                }
+              }
 
-          case change: Session.Change if prover.defined =>
-            val state = global_state.value
-            if (!state.removing_versions && state.is_assigned(change.previous))
-              handle_change(change)
-            else postponed_changes.store(change)
+            case Prune_History =>
+              if (prover.defined) {
+                val old_versions = global_state.change_result(_.remove_versions(prune_size))
+                if (old_versions.nonEmpty) prover.get.remove_versions(old_versions)
+              }
 
-          case Session.Change_Flush if prover.defined =>
-            val state = global_state.value
-            if (!state.removing_versions)
-              postponed_changes.flush(state).foreach(handle_change)
+            case Update_Options(options) =>
+              if (prover.defined && is_ready) {
+                prover.get.options(options ++ prover_options)
+                handle_raw_edits()
+              }
+              global_options.post(Session.Global_Options(options))
 
-          case bad =>
-            if (verbose) {
-              resources.log(Output.warning_text("Ignoring bad message: " + bad.toString))
-            }
-        }
-        true
-        //}}}
-    }
+            case Cancel_Exec(exec_id) if prover.defined =>
+              prover.get.cancel_exec(exec_id)
+
+            case Session.Raw_Edits(doc_blobs, edits) if prover.defined =>
+              handle_raw_edits(doc_blobs = doc_blobs, edits = edits)
+
+            case Session.Dialog_Result(id, serial, result) if prover.defined =>
+              prover.get.dialog_result(serial, result)
+              handle_output(new Prover.Output(Protocol.Dialog_Result(id, serial, result)))
+
+            case Protocol_Command_Raw(name, args) if prover.defined =>
+              prover.get.protocol_command_raw(name, args)
+
+            case Protocol_Command_Args(name, args) if prover.defined =>
+              prover.get.protocol_command_args(name, args)
+
+            case change: Session.Change if prover.defined =>
+              val state = global_state.value
+              if (!state.removing_versions && state.is_assigned(change.previous))
+                handle_change(change)
+              else postponed_changes.store(change)
+
+            case Session.Change_Flush if prover.defined =>
+              val state = global_state.value
+              if (!state.removing_versions)
+                postponed_changes.flush(state).foreach(handle_change)
+
+            case bad =>
+              if (verbose) {
+                resources.log(Output.warning_text("Ignoring bad message: " + bad.toString))
+              }
+          }
+          true
+          //}}}
+      }
+    )
   }
 
 

@@ -240,8 +240,7 @@ extends Progress with Progress.Local_Interrupts with Progress.Status {
       else Nil
     }
 
-    _consumer = Some(Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
-      bulk = _ => true,
+    _consumer = Some(Consumer_Thread.fork_bulk[Progress.Output]("Database_Progress.consumer",
       timeout = timeout,
       consume = { bulk_outputs =>
         val bulk_output = bulk_outputs.flatten

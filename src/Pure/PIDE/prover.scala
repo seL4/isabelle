@@ -189,18 +189,17 @@ class Prover(
     val stream = new BufferedOutputStream(raw_stream)
     command_input =
       Some(
-        Consumer_Thread.fork(name)(
-          consume =
-            {
-              case chunks =>
-                try {
-                  Bytes(chunks.map(_.size).mkString("", ",", "\n")).write_stream(stream)
-                  chunks.foreach(_.write_stream(stream))
-                  stream.flush
-                  true
-                }
-                catch { case e: IOException => system_output(name + ": " + Exn.message(e)); false }
-            },
+        Consumer_Thread.fork(name,
+          {
+            case chunks =>
+              try {
+                Bytes(chunks.map(_.size).mkString("", ",", "\n")).write_stream(stream)
+                chunks.foreach(_.write_stream(stream))
+                stream.flush
+                true
+              }
+              catch { case e: IOException => system_output(name + ": " + Exn.message(e)); false }
+          },
           finish = { case () => stream.close(); system_output(name + " terminated") }
         )
       )

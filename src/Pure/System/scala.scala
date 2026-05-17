@@ -227,7 +227,7 @@ object Scala {
     private var state = context.init_state
 
     private lazy val thread: Consumer_Thread[Interpreter.Request] =
-      Consumer_Thread.fork("Scala.Interpreter") {
+      Consumer_Thread.fork("Scala.Interpreter", {
         case Interpreter.Execute(command) =>
           try {
             running.change(_ => Some(Isabelle_Thread.current))
@@ -241,7 +241,7 @@ object Scala {
         case Interpreter.Shutdown =>
           Interpreter.del(interpreter)
           false
-      }
+      })
 
     def shutdown(): Unit = {
       thread.send(Interpreter.Shutdown)

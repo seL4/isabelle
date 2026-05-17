@@ -271,7 +271,7 @@ object Dump {
         private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
 
         private val consumer =
-          Consumer_Thread.fork(name = "dump")(consume =
+          Consumer_Thread.fork("dump",
             { (args: (Document.Snapshot, Document_Status.Node_Status)) =>
               val (snapshot, status) = args
               val name = snapshot.node_name

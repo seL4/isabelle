@@ -466,7 +466,8 @@ object Isabelle_Cronjob {
     current_log.file.delete
 
     private val thread: Consumer_Thread[String] =
-      Consumer_Thread.fork("cronjob: logger", daemon = true)(
+      Consumer_Thread.fork("cronjob: logger",
+        daemon = true,
         consume =
           { (text: String) =>
             // critical

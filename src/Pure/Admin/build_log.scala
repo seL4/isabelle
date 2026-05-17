@@ -1232,7 +1232,7 @@ object Build_Log {
         }
 
       val consumer =
-        Consumer_Thread.fork[Log_File]("build_log_database")(
+        Consumer_Thread.fork[Log_File]("build_log_database",
           limit = 1,
           consume = { log_file =>
             val t0 = progress.start.time
