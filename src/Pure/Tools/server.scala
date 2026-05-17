@@ -456,7 +456,7 @@ object Server {
     Isabelle_Tool("server", "manage resident Isabelle servers", Scala_Project.here,
       { args =>
         var console = false
-        var log_file: Option[Path] = None
+        var log_path: Option[Path] = None
         var operation_list = false
         var operation_exit = false
         var name = default_name
@@ -477,7 +477,7 @@ Usage: isabelle server [OPTIONS]
 
   Manage resident Isabelle servers.
 """,
-          "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+          "L:" -> (arg => log_path = Some(Path.explode(File.standard_path(arg)))),
           "c" -> (_ => console = true),
           "l" -> (_ => operation_list = true),
           "n:" -> (arg => name = arg),
@@ -499,7 +499,7 @@ Usage: isabelle server [OPTIONS]
           sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
         }
         else {
-          val log = Logger.make_file(log_file)
+          val log = Logger.make_file(log_path)
           val (server_info, server) =
             init(name, port = port, existing_server = existing_server, log = log)
           Output.writeln(server_info.toString, stdout = true)
