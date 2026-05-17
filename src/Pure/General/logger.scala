@@ -8,10 +8,15 @@ package isabelle
 
 
 object Logger {
+  val none: Logger = new Logger {
+    override def toString: String = "Logger.none"
+    override def output(kind: Output.Kind, msg: => String): Unit = ()
+  }
+
   def make_file(log_file: Option[Path], guard_time: Time = Time.min): Logger =
     log_file match {
       case Some(file) => new File_Logger(file, guard_time)
-      case None => new Logger
+      case None => none
     }
 
   def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger = {
@@ -26,16 +31,16 @@ object Logger {
 
   def make_system_log(progress: => Progress, options: Options, guard_time: Time = Time.min): Logger =
     options.string("system_log") match {
-      case "" => new Logger
+      case "" => none
       case "-" => make_progress(progress, guard_time = guard_time)
       case log_file => make_file(Some(Path.explode(log_file)), guard_time = guard_time)
     }
 }
 
-class Logger {
+abstract class Logger {
   val guard_time: Time = Time.min
   def guard(t: Time): Boolean = t >= guard_time
-  def output(kind: Output.Kind, msg: => String): Unit = {}
+  def output(kind: Output.Kind, msg: => String): Unit
 
   final def apply(
     msg: => String,
