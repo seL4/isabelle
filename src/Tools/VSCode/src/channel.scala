@@ -17,7 +17,7 @@ import scala.collection.mutable
 class Channel(
   in: InputStream,
   out: OutputStream,
-  val log_file: Logger = Logger.none,
+  val log_file: Logger,
   verbose: Boolean = false
 ) {
   /* read message */
