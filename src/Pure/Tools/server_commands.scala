@@ -122,8 +122,8 @@ object Server_Commands {
 
     def command(
       args: Args,
-      progress: Progress = new Progress,
-      log_file: Logger = Logger.none
+      log_file: Logger,
+      progress: Progress = new Progress
     ) : (JSON.Object.T, (UUID.T, Headless.Session)) = {
       val (_, _, options, session_background) =
         try { Session_Build.command(args.build, progress = progress) }
@@ -147,8 +147,7 @@ object Server_Commands {
       { case (context, Session_Start(args)) =>
           context.make_task { task =>
             val (res, entry) =
-              Session_Start.command(args, progress = task.progress,
-                log_file = context.server.log_file)
+              Session_Start.command(args, context.server.log_file, progress = task.progress)
             context.server.add_session(entry)
             res
           }
