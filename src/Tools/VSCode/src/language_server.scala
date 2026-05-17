@@ -160,7 +160,7 @@ class Language_Server(
   session_requirements: Boolean = false,
   session_no_build: Boolean = false,
   modes: List[String] = Nil,
-  log_file: Logger = Logger.make_file(None)
+  log_file: Logger = Logger.none
 ) {
   server =>
 

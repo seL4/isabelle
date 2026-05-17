@@ -123,7 +123,7 @@ object Server_Commands {
     def command(
       args: Args,
       progress: Progress = new Progress,
-      log_file: Logger = Logger.make_file(None)
+      log_file: Logger = Logger.none
     ) : (JSON.Object.T, (UUID.T, Headless.Session)) = {
       val (_, _, options, session_background) =
         try { Session_Build.command(args.build, progress = progress) }
