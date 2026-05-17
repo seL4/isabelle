@@ -438,6 +438,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
         val sessions = getopts(args)
 
         val progress = new Console_Progress(verbose = verbose)
+        val log = Logger.make_system_log(progress, options)
 
         val start_date = Date.now()
 
@@ -446,6 +447,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
         dump(options, logic,
           aspects = aspects,
           progress = progress,
+          log = log,
           dirs = dirs,
           select_dirs = select_dirs,
           output_dir = output_dir,
