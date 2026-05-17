@@ -90,7 +90,8 @@ class Channel(
   def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
   object Error_Logger extends Logger {
-    def apply(msg: => String): Unit = log_error_message(msg)
+    override def output(kind: Output.Kind, msg: => String): Unit =
+      log_error_message(msg)
   }
 
 

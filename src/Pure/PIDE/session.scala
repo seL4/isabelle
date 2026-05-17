@@ -230,8 +230,8 @@ abstract class Session extends Document.Session {
       try { c.consume(a) }
       catch {
         case exn: Throwable =>
-          val msg = "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn)
-          resources.log(Output.error_message_text(msg))
+          resources.log("Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn),
+            kind = Output.Kind.error_message)
       }
 
     def post(a: A): Unit = {
@@ -490,7 +490,8 @@ abstract class Session extends Document.Session {
                 global_state.change(_.define_blob(digest))
                 prover.get.define_blob(digest, blob.bytes)
               case None =>
-                resources.log(Output.error_message_text("Missing blob " + quote(name.toString)))
+                resources.log("Missing blob " + quote(name.toString),
+                  kind = Output.Kind.error_message)
             }
           }
 
@@ -562,7 +563,8 @@ abstract class Session extends Document.Session {
     //{{{
       def bad_output(): Unit = {
         if (verbose) {
-          resources.log(Output.warning_text("Ignoring bad prover output: " + output.message.toString))
+          resources.log("Ignoring bad prover output: " + output.message.toString,
+            kind = Output.Kind.warning)
         }
       }
 
@@ -749,7 +751,7 @@ abstract class Session extends Document.Session {
 
             case bad =>
               if (verbose) {
-                resources.log(Output.warning_text("Ignoring bad message: " + bad.toString))
+                resources.log("Ignoring bad message: " + bad.toString, kind = Output.Kind.warning)
               }
           }
           true

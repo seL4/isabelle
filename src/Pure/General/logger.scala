@@ -18,7 +18,8 @@ object Logger {
     val t = guard_time
     new Logger {
       override val guard_time: Time = t
-      override def output(msg: => String): Unit = progress.echo(msg)
+      override def output(kind: Output.Kind, msg: => String): Unit =
+        progress.output(List(Progress.Message(kind, msg)))
     }
   }
 
@@ -33,10 +34,13 @@ object Logger {
 class Logger {
   val guard_time: Time = Time.min
   def guard(t: Time): Boolean = t >= guard_time
-  def output(msg: => String): Unit = {}
+  def output(kind: Output.Kind, msg: => String): Unit = {}
 
-  final def apply(msg: => String, time: Option[Time] = None): Unit =
-    if (time.isEmpty || guard(time.get)) output(msg)
+  final def apply(
+    msg: => String,
+    time: Option[Time] = None,
+    kind: Output.Kind = Output.Kind.writeln
+  ): Unit = if (time.isEmpty || guard(time.get)) output(kind, msg)
 
   final def timeit[A](body: => A,
     message: Timing.Message[A] = Timing.no_message,
@@ -47,12 +51,15 @@ class Logger {
 
 class Console_Logger(override val guard_time: Time = Time.min, stdout: Boolean = false)
 extends Logger {
-  override def output(msg: => String): Unit = Output.output(msg, stdout = stdout)
+  override def output(kind: Output.Kind, msg: => String): Unit =
+    Output.output(Output.make_text(kind, msg), stdout = stdout)
   override def toString: String = if (stdout) "System.out" else "System.err"
 }
 
 class File_Logger(path: Path, override val guard_time: Time = Time.min)
 extends Logger {
-  override def output(msg: => String): Unit = synchronized { File.append(path, msg + "\n") }
+  override def output(kind: Output.Kind, msg: => String): Unit = synchronized {
+    File.append(path, Output.make_text(kind, msg) + "\n")
+  }
   override def toString: String = path.toString
 }
