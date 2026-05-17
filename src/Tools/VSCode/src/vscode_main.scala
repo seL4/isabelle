@@ -346,7 +346,7 @@ Usage: isabelle vscode_server [OPTIONS]
             new Language_Server(channel, options, session_name = logic, session_dirs = dirs.toList,
               include_sessions = include_sessions.toList, session_ancestor = logic_ancestor,
               session_requirements = logic_requirements, session_no_build = no_build,
-              modes = modes, log = log)
+              modes = modes, log_file = log)
 
           // prevent spurious garbage on the main protocol channel
           val orig_out = System.out

@@ -160,7 +160,7 @@ class Language_Server(
   session_requirements: Boolean = false,
   session_no_build: Boolean = false,
   modes: List[String] = Nil,
-  log: Logger = new Logger
+  log_file: Logger = Logger.make_file(None)
 ) {
   server =>
 
@@ -321,7 +321,8 @@ class Language_Server(
               progress.echo(msg)
               error(msg) })
 
-        val session_resources = new VSCode_Resources(options, session_background, log = log)
+        val session_resources =
+          new VSCode_Resources(options, session_background, log_file = log_file)
         val session_options = options.bool.update("editor_output_state", true)
         val session =
           new VSCode_Session(session_options, session_resources) {
@@ -385,7 +386,7 @@ class Language_Server(
   }
 
   def exit(): Unit = {
-    log("\n")
+    log_file("\n")
     sys.exit(if (session_.value.isEmpty) Process_Result.RC.ok else Process_Result.RC.failure)
   }
 
@@ -519,7 +520,7 @@ class Language_Server(
   /* main loop */
 
   def start(): Unit = {
-    log("Server started " + Date.now())
+    log_file("Server started " + Date.now())
 
     def handle(json: JSON.T): Unit = {
       try {
@@ -562,7 +563,7 @@ class Language_Server(
           case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
           case LSP.Sledgehammer_Locate() => sledgehammer.locate()
           case LSP.Sledgehammer_Sendback(text) => sledgehammer.sendback(text)
-          case _ => if (!LSP.ResponseMessage.is_empty(json)) log("### IGNORED")
+          case _ => if (!LSP.ResponseMessage.is_empty(json)) log_file("### IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
@@ -576,7 +577,7 @@ class Language_Server(
             case _ => handle(json)
           }
           loop()
-        case None => log("### TERMINATE")
+        case None => log_file("### TERMINATE")
       }
     }
     loop()
