@@ -353,7 +353,7 @@ object Dump {
     logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = new Progress,
-    log: Logger = Logger.none,
+    log: Logger = new Console_Logger(),
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
