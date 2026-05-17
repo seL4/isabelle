@@ -72,7 +72,7 @@ object Language_Server {
     /* input from client */
 
     private val delay_input: Delay =
-      Delay.last(server.options.seconds("vscode_input_delay"), server.channel.Error_Logger) {
+      Delay.last(server.options.seconds("vscode_input_delay"), server.channel.log_message) {
         session.resources.flush_input(session, server.channel)
       }
 
@@ -190,7 +190,7 @@ class Language_Server(
     File_Watcher(sync_documents, options.seconds("vscode_load_delay"))
 
   private val delay_load: Delay =
-    Delay.last(options.seconds("vscode_load_delay"), channel.Error_Logger) {
+    Delay.last(options.seconds("vscode_load_delay"), channel.log_message) {
       val (invoke_input, invoke_load) =
         resources.resolve_dependencies(session, editor, file_watcher)
       if (invoke_input) editor.invoke()
@@ -228,7 +228,7 @@ class Language_Server(
   /* caret handling */
 
   private val delay_caret_update: Delay =
-    Delay.last(options.seconds("vscode_input_delay"), channel.Error_Logger) {
+    Delay.last(options.seconds("vscode_input_delay"), channel.log_message) {
       session.caret_focus.post(Session.Caret_Focus)
     }
 
@@ -244,7 +244,7 @@ class Language_Server(
   private lazy val preview_panel = new Preview_Panel(resources)
 
   private lazy val delay_preview: Delay =
-    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger) {
+    Delay.last(options.seconds("vscode_output_delay"), channel.log_message) {
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
@@ -257,7 +257,7 @@ class Language_Server(
   /* output to client */
 
   private val delay_output: Delay =
-    Delay.last(options.seconds("vscode_output_delay"), channel.Error_Logger) {
+    Delay.last(options.seconds("vscode_output_delay"), channel.log_message) {
       if (resources.flush_output(channel)) delay_output.invoke()
     }
 

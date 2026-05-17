@@ -89,10 +89,15 @@ class Channel(
   def log_warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, false)
   def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
-  object Error_Logger extends Logger {
-    override def output(kind: Output.Kind, msg: => String): Unit =
-      log_error_message(msg)
-  }
+  val log_message: Logger =
+    new Logger {
+      override def output(kind: Output.Kind, msg: => String): Unit =
+        kind match {
+          case Output.Kind.writeln => log_writeln(msg)
+          case Output.Kind.warning => log_warning(msg)
+          case Output.Kind.error_message => log_error_message(msg)
+        }
+    }
 
 
   /* progress */
