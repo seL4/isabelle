@@ -26,12 +26,16 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
     }
     if (do_run) {
       try { event }
-      catch { case exn: Throwable if !Exn.is_interrupt(exn) => log(Exn.message(exn)); throw exn }
+      catch {
+        case exn: Throwable if !Exn.is_interrupt(exn) =>
+          log(Exn.message(exn), kind = Output.Kind.error_message)
+          throw exn
+      }
     }
   }
 
   def invoke(msg: String = ""): Unit = synchronized {
-    if (msg.nonEmpty) log("Delay.invoke " + msg)
+    if (msg.nonEmpty) log("Delay.invoke " + msg, kind = Output.Kind.warning)
     val new_run =
       running match {
         case Some(request) => if (first) false else { request.cancel(); true }
@@ -43,7 +47,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
   }
 
   def revoke(msg: String = ""): Unit = synchronized {
-    if (msg.nonEmpty) log("Delay.revoke " + msg)
+    if (msg.nonEmpty) log("Delay.revoke " + msg, kind = Output.Kind.warning)
     running match {
       case Some(request) => request.cancel(); running = None
       case None =>
@@ -51,7 +55,7 @@ final class Delay private(first: Boolean, delay: => Time, log: Logger, event: =>
   }
 
   def postpone(alt_delay: Time, msg: String = ""): Unit = synchronized {
-    if (msg.nonEmpty) log("Delay.postpone " + msg)
+    if (msg.nonEmpty) log("Delay.postpone " + msg, kind = Output.Kind.warning)
     running match {
       case Some(request) =>
         val alt_time = Time.now() + alt_delay
