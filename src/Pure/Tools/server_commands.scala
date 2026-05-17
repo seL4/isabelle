@@ -129,7 +129,7 @@ object Server_Commands {
         try { Session_Build.command(args.build, progress = progress) }
         catch { case exn: Server.Error => error(exn.message) }
 
-      val resources = Headless.Resources(options, session_background, log = log_file)
+      val resources = Headless.Resources(options, session_background, log_file)
 
       val session = resources.start_session(print_mode = args.print_mode, progress = progress)
 

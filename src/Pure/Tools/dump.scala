@@ -223,7 +223,7 @@ object Dump {
     private def progress = context.progress
 
     val resources: Headless.Resources =
-      Headless.Resources.make(options, logic, progress = progress, log = log,
+      Headless.Resources.make(options, logic, log, progress = progress,
         session_dirs = context.session_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
