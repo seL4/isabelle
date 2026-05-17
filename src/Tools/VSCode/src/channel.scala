@@ -17,7 +17,7 @@ import scala.collection.mutable
 class Channel(
   in: InputStream,
   out: OutputStream,
-  log: Logger = new Logger,
+  log_file: Logger = Logger.make_file(None),
   verbose: Boolean = false
 ) {
   /* read message */
@@ -51,7 +51,7 @@ class Channel(
           case Value.Int(n) if n >= 0 =>
             val msg = read_content(n)
             val json = JSON.parse(msg)
-            LSP.Message.log("IN: " + n, json, log, verbose)
+            LSP.Message.log("IN: " + n, json, log_file, verbose)
             Some(json)
           case _ => error("Bad Content-Length: " + s)
         }
@@ -67,7 +67,7 @@ class Channel(
     val n = content.size
     val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
 
-    LSP.Message.log("OUT: " + n, json, log, verbose)
+    LSP.Message.log("OUT: " + n, json, log_file, verbose)
     out.synchronized {
       out.write(header)
       content.write_stream(out)
