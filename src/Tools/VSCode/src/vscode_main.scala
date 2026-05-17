@@ -298,7 +298,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
       { args =>
         try {
           var logic_ancestor: Option[String] = None
-          var log_file: Option[Path] = None
+          var log_path: Option[Path] = None
           var logic_requirements = false
           val dirs = new mutable.ListBuffer[Path]
           val include_sessions = new mutable.ListBuffer[String]
@@ -327,7 +327,7 @@ Usage: isabelle vscode_server [OPTIONS]
   Run the VSCode Language Server protocol (JSON RPC) over stdin/stdout.
 """,
             "A:" -> (arg => logic_ancestor = Some(arg)),
-            "L:" -> (arg => log_file = Some(Path.explode(File.standard_path(arg)))),
+            "L:" -> (arg => log_path = Some(Path.explode(File.standard_path(arg)))),
             "R:" -> (arg => { logic = arg; logic_requirements = true }),
             "d:" -> (arg => dirs += Path.explode(File.standard_path(arg))),
             "i:" -> (arg => include_sessions += arg),
@@ -340,13 +340,14 @@ Usage: isabelle vscode_server [OPTIONS]
           val more_args = getopts(args)
           if (more_args.nonEmpty) getopts.usage()
 
-          val log = Logger.make_file(log_file)
-          val channel = new Channel(System.in.nn, System.out.nn, log_file = log, verbose = verbose)
+          val log_file = Logger.make_file(log_path)
+          val channel =
+            new Channel(System.in.nn, System.out.nn, log_file = log_file, verbose = verbose)
           val server =
             new Language_Server(channel, options, session_name = logic, session_dirs = dirs.toList,
               include_sessions = include_sessions.toList, session_ancestor = logic_ancestor,
               session_requirements = logic_requirements, session_no_build = no_build,
-              modes = modes, log_file = log)
+              modes = modes, log_file = log_file)
 
           // prevent spurious garbage on the main protocol channel
           val orig_out = System.out
