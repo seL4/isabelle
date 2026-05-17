@@ -273,7 +273,7 @@ object Sessions {
               val deps_base = info.deps_base(session_bases)
               val session_background =
                 Background(base = deps_base, sessions_structure = sessions_structure)
-              val resources = new Resources(session_background)
+              val resources = new Resources(session_background, Logger.none)
 
               progress.echo(
                 "Session " + info.chapter + "/" + session_name +

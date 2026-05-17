@@ -454,7 +454,7 @@ object Headless {
       options: Options,
       session_background: Sessions.Background,
       log: Logger = Logger.none
-    ): Resources = new Resources(options, session_background, log = log)
+    ): Resources = new Resources(options, session_background, log)
 
     def make(
       options: Options,
@@ -611,7 +611,7 @@ object Headless {
     val options: Options,
     session_background: Sessions.Background,
     log: Logger = Logger.none)
-  extends isabelle.Resources(session_background.check_errors, log = log) {
+  extends isabelle.Resources(session_background.check_errors, log) {
     resources =>
 
     val store: Store = Store(options)

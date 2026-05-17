@@ -70,7 +70,7 @@ object VSCode_Resources {
 class VSCode_Resources(
   val options: Options,
   session_background: Sessions.Background,
-  log_file: Logger = Logger.make_file(None))
+  log_file: Logger)
 extends Resources(session_background, log = log_file) {
   resources =>
 

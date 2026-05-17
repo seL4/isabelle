@@ -302,7 +302,7 @@ object Build_Job {
               override val store: Store = build_context.store
 
               override val resources: Resources =
-                new Resources(session_background, log = log,
+                new Resources(session_background, log,
                   command_timings =
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 

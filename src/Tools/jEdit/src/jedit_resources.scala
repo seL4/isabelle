@@ -27,7 +27,7 @@ object JEdit_Resources {
 }
 
 class JEdit_Resources private(session_background: Sessions.Background)
-extends Resources(session_background, log = new Console_Logger()) {
+extends Resources(session_background, new Console_Logger()) {
   /* document node name */
 
   def node_name(path: String): Document.Node.Name =
