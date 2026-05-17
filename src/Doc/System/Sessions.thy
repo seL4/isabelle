@@ -306,8 +306,9 @@ text \<open>
 
     \<^item> @{system_option_def system_log} specifies an optional log file for
     low-level messages produced by \<^ML>\<open>Output.system_message\<close> in
-    Isabelle/ML; the standard value ``\<^verbatim>\<open>-\<close>'' refers to console progress of the
-    build job.
+    Isabelle/ML, or via the @{scala_object isabelle.Logger} module in
+    Isabelle/Scala. Its standard value ``\<^verbatim>\<open>-\<close>'' refers to \<^verbatim>\<open>progress\<close> provided
+    to the Isabelle tool in question: usually this refers to the console.
 
     \<^item> @{system_option_def "system_heaps"} determines the directories for
     session heap images: \<^path>\<open>$ISABELLE_HEAPS\<close> is the user directory and

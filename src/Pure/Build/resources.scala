@@ -14,7 +14,8 @@ import java.io.{File => JFile}
 
 
 object Resources {
-  def bootstrap: Resources = new Resources(Sessions.Background(base = Sessions.Base.bootstrap))
+  def bootstrap: Resources =
+    new Resources(Sessions.Background(base = Sessions.Base.bootstrap), Logger.none)
 
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
@@ -25,7 +26,7 @@ object Resources {
 
 class Resources(
   val session_background: Sessions.Background,
-  val log: Logger = new Logger,
+  val log: Logger,
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>

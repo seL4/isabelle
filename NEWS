@@ -298,8 +298,15 @@ Note: This extension of Scala3 is not yet a "safe" type-system. Even
 with type-checking of Explicit Nulls enabled, the Java/VM can produce
 null values by other means, e.g. during object initialization.
 
+* Various Isabelle/Scala programming interfaces now demand a Logger
+argument. Suitable values are Logger.none or new Console_Logger -- the
+latter ensures that spurious system errors are reported.
+
 * The command-line tool "isabelle build_log" works again. It was broken
 in Isabelle2025-1 and Isabelle2025-2.
+
+* The command-line tool "isabelle dump" now refers to system option
+"system_log", just like "isabelle build".
 
 * The command-line tool "isabelle home" provides a convenient shortcut
 for "isabelle getenv" to display notable values from the Isabelle

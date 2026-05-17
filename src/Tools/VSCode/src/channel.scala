@@ -17,7 +17,7 @@ import scala.collection.mutable
 class Channel(
   in: InputStream,
   out: OutputStream,
-  log: Logger = new Logger,
+  val log_file: Logger,
   verbose: Boolean = false
 ) {
   /* read message */
@@ -51,7 +51,7 @@ class Channel(
           case Value.Int(n) if n >= 0 =>
             val msg = read_content(n)
             val json = JSON.parse(msg)
-            LSP.Message.log("IN: " + n, json, log, verbose)
+            LSP.Message.log("IN: " + n, json, log_file, verbose)
             Some(json)
           case _ => error("Bad Content-Length: " + s)
         }
@@ -67,7 +67,7 @@ class Channel(
     val n = content.size
     val header = UTF8.bytes("Content-Length: " + n + "\r\n\r\n")
 
-    LSP.Message.log("OUT: " + n, json, log, verbose)
+    LSP.Message.log("OUT: " + n, json, log_file, verbose)
     out.synchronized {
       out.write(header)
       content.write_stream(out)
@@ -89,9 +89,16 @@ class Channel(
   def log_warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, false)
   def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
-  object Error_Logger extends Logger {
-    def apply(msg: => String): Unit = log_error_message(msg)
-  }
+  val log_message: Logger =
+    new Logger {
+      override def toString: String = "log_message"
+      override def output(kind: Output.Kind, msg: => String): Unit =
+        kind match {
+          case Output.Kind.writeln => log_writeln(msg)
+          case Output.Kind.warning => log_warning(msg)
+          case Output.Kind.error_message => log_error_message(msg)
+        }
+    }
 
 
   /* progress */
@@ -104,9 +111,9 @@ class Channel(
         for (msg <- msgs if do_output(msg)) {
           val message = msg.message
           message.kind match {
-            case Progress.Kind.writeln => log_writeln(message.text)
-            case Progress.Kind.warning => log_warning(message.text)
-            case Progress.Kind.error_message => log_error_message(message.text)
+            case Output.Kind.writeln => log_writeln(message.text)
+            case Output.Kind.warning => log_warning(message.text)
+            case Output.Kind.error_message => log_error_message(message.text)
           }
         }
     }

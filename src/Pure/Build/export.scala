@@ -283,9 +283,8 @@ object Export {
     }
 
     private val consumer =
-      Consumer_Thread.fork_bulk[(Entry, Boolean)](name = "export")(
-        bulk = _ => true,
-        consume = args => (args.grouped(20).toList.flatMap(consume), true))
+      Consumer_Thread.fork_bulk[(Entry, Boolean)]("export",
+        args => (args.grouped(20).toList.flatMap(consume), true))
 
     def make_entry(session_name: String, args: Protocol.Export.Args, body: Bytes): Unit = {
       if (!progress.stopped && !body.is_empty) {

@@ -24,8 +24,20 @@ object Event_Timer {
     def cancel(): Boolean = task.cancel()
   }
 
-  def request(time: Time, repeat: Option[Time] = None)(event: => Unit): Request = {
-    val task = new TimerTask { def run(): Unit = event }
+  def request(
+    time: Time,
+    repeat: Option[Time] = None,
+    log: Logger = new Console_Logger()
+  )(event: => Unit): Request = {
+    val task =
+      new TimerTask {
+        def run(): Unit =
+          try { event }
+          catch {
+            case exn: Throwable =>
+              if (!Exn.is_interrupt(exn)) log(Exn.print(exn), kind = Output.Kind.error_message)
+          }
+      }
     repeat match {
       case None => event_timer.schedule(task, new JDate(time.ms))
       case Some(rep) => event_timer.schedule(task, new JDate(time.ms), rep.ms)

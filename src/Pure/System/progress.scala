@@ -29,22 +29,14 @@ object Progress {
       case _ => msg
     }
 
-  enum Kind { case writeln, warning, error_message }
   sealed case class Message(
-    kind: Kind,
+    kind: Output.Kind,
     text: String,
     override val verbose: Boolean = false,
     override val status: Boolean = false
   ) extends Msg {
     override def message: Message = this
-
-    lazy val output_text: String =
-      kind match {
-        case Kind.writeln => Output.writeln_text(text)
-        case Kind.warning => Output.warning_text(text)
-        case Kind.error_message => Output.error_message_text(text)
-      }
-
+    lazy val output_text: String = Output.make_text(kind, text)
     override def toString: String = output_text
   }
 
@@ -57,7 +49,8 @@ object Progress {
     override val status: Boolean = false
   ) extends Msg {
     override def message: Message =
-      Message(Kind.writeln, print_session + print_theory + print_percentage + print_cumulated_time,
+      Message(Output.Kind.writeln,
+        print_session + print_theory + print_percentage + print_cumulated_time,
         verbose = verbose, status = status)
 
     def print_session: String = if_proper(session, session + ": ")
@@ -124,7 +117,7 @@ object Progress {
             if_proper(session, session + ": ") +
               "command " + quote(run.name) + " running for " + run.time(now).message +
               " (line " + run.line + " of theory " + quote(name.theory) + ")"
-          Progress.Message(Progress.Kind.writeln, text, verbose = true, status = status)
+          Progress.Message(Output.Kind.writeln, text, verbose = true, status = status)
         })
   }
 
@@ -216,11 +209,11 @@ class Progress {
   }
 
   final def echo(msg: String, verbose: Boolean = false): Unit =
-    output(List(Progress.Message(Progress.Kind.writeln, msg, verbose = verbose)))
+    output(List(Progress.Message(Output.Kind.writeln, msg, verbose = verbose)))
   final def echo_warning(msg: String, verbose: Boolean = false): Unit =
-    output(List(Progress.Message(Progress.Kind.warning, msg, verbose = verbose)))
+    output(List(Progress.Message(Output.Kind.warning, msg, verbose = verbose)))
   final def echo_error_message(msg: String, verbose: Boolean = false): Unit =
-    output(List(Progress.Message(Progress.Kind.error_message, msg, verbose = verbose)))
+    output(List(Progress.Message(Output.Kind.error_message, msg, verbose = verbose)))
 
   final def echo_if(cond: Boolean, msg: String): Unit = if (cond) echo(msg)
 

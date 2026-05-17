@@ -21,7 +21,7 @@ object LSP {
   object Message {
     val empty: JSON.Object.T = JSON.Object("jsonrpc" -> "2.0")
 
-    def log(prefix: String, json: JSON.T, logger: Logger, verbose: Boolean): Unit = {
+    def log(prefix: => String, json: JSON.T, logger: Logger, verbose: Boolean): Unit = {
       val header =
         json match {
           case JSON.Object(obj) => obj -- (obj.keySet - "method" - "id")

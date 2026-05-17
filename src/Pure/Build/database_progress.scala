@@ -123,7 +123,7 @@ object Database_Progress {
         SortedMap.from[Long, Progress.Message],
         { res =>
           val serial = res.long(Messages.serial)
-          val kind = Progress.Kind.fromOrdinal(res.int(Messages.kind))
+          val kind = Output.Kind.fromOrdinal(res.int(Messages.kind))
           val text = res.string(Messages.text)
           val verbose = res.bool(Messages.verbose)
           serial -> Progress.Message(kind, text, verbose = verbose)
@@ -240,8 +240,7 @@ extends Progress with Progress.Local_Interrupts with Progress.Status {
       else Nil
     }
 
-    _consumer = Some(Consumer_Thread.fork_bulk[Progress.Output](name = "Database_Progress.consumer")(
-      bulk = _ => true,
+    _consumer = Some(Consumer_Thread.fork_bulk[Progress.Output]("Database_Progress.consumer",
       timeout = timeout,
       consume = { bulk_outputs =>
         val bulk_output = bulk_outputs.flatten

@@ -161,7 +161,8 @@ object Simplifier_Trace {
         "Simplifier_Trace.reply", XML.Encode.long(serial), XML.string(answer.name))
     }
 
-    Consumer_Thread.fork[Any]("Simplifier_Trace.manager", daemon = true)(
+    Consumer_Thread.fork[Any]("Simplifier_Trace.manager",
+      daemon = true,
       consume = { (arg: Any) =>
         arg match {
           case Handle_Results(session, id, results, slot) =>

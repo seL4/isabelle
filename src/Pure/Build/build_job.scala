@@ -302,7 +302,7 @@ object Build_Job {
               override val store: Store = build_context.store
 
               override val resources: Resources =
-                new Resources(session_background, log = log,
+                new Resources(session_background, log,
                   command_timings =
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
@@ -467,7 +467,9 @@ object Build_Job {
 
           val timeout_request: Option[Event_Timer.Request] =
             if (info.timeout_ignored) None
-            else Some(Event_Timer.request(Time.now() + info.timeout) { process.terminate() })
+            else {
+              Some(Event_Timer.request(Time.now() + info.timeout, log = log) { process.terminate() })
+            }
 
           val build_errors =
             Isabelle_Thread.interrupt_handle(process.terminate()) {

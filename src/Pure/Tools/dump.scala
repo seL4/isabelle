@@ -136,7 +136,7 @@ object Dump {
 
     def sessions(
       logic: String = default_logic,
-      log: Logger = new Logger
+      log: Logger = new Console_Logger()
     ): List[Session] = {
       /* partitions */
 
@@ -223,7 +223,7 @@ object Dump {
     private def progress = context.progress
 
     val resources: Headless.Resources =
-      Headless.Resources.make(options, logic, progress = progress, log = log,
+      Headless.Resources.make(options, logic, log, progress = progress,
         session_dirs = context.session_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
@@ -271,7 +271,7 @@ object Dump {
         private val consumer_bad_theories = Synchronized(List.empty[Bad_Theory])
 
         private val consumer =
-          Consumer_Thread.fork(name = "dump")(consume =
+          Consumer_Thread.fork("dump",
             { (args: (Document.Snapshot, Document_Status.Node_Status)) =>
               val (snapshot, status) = args
               val name = snapshot.node_name
@@ -353,7 +353,7 @@ object Dump {
     logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = new Progress,
-    log: Logger = new Logger,
+    log: Logger = new Console_Logger(),
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
@@ -438,6 +438,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
         val sessions = getopts(args)
 
         val progress = new Console_Progress(verbose = verbose)
+        val log = Logger.make_system_log(progress, options)
 
         val start_date = Date.now()
 
@@ -446,6 +447,7 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
         dump(options, logic,
           aspects = aspects,
           progress = progress,
+          log = log,
           dirs = dirs,
           select_dirs = select_dirs,
           output_dir = output_dir,

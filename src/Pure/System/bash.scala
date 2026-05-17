@@ -318,11 +318,11 @@ object Bash {
 
   object Server {
     def start(
+      log: Logger,
       port: Int = 0,
-      log: Logger = new System_Logger(),
       debugging: => Boolean = false
     ): Server = {
-      val server = new Server(port, log, debugging)
+      val server = new Server(log, port, debugging)
       server.start()
       server
     }
@@ -336,7 +336,7 @@ object Bash {
       result.err_lines
   }
 
-  class Server private(port: Int, log: Logger, debugging: => Boolean)
+  class Server private(log: Logger, port: Int, debugging: => Boolean)
   extends isabelle.Server.Handler(port) {
     server =>
 
@@ -446,7 +446,8 @@ object Bash {
     override def init(session: Session): Unit = {
       exit()
       server =
-        Some(Server.start(debugging = session.session_options.bool("bash_process_debugging")))
+        Some(Server.start(session.resources.log,
+          debugging = session.session_options.bool("bash_process_debugging")))
     }
 
     def exit(): Unit =
