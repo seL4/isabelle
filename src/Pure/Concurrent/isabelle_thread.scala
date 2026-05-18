@@ -14,6 +14,11 @@ object Isabelle_Thread {
   /* self-thread */
 
   def current: Thread = Thread.currentThread().nn
+  def current_name: String =
+    current.getName match {
+      case null => ""
+      case name: String => name
+    }
 
   def self: Isabelle_Thread =
     current match {

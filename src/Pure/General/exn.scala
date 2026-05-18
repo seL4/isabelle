@@ -152,11 +152,17 @@ object Exn {
   def print(exn: Throwable): String =
     if (debug()) message(exn) + "\n" + trace(exn) else message(exn)
 
-  def capture_trace[A](trace: String => Unit)(e: => A): Result[A] =
+  def capture_trace[A](
+    trace: String => Unit,
+    prefix: String = Isabelle_Thread.current_name
+  )(e: => A): Result[A] =
     try { Res(e) }
     catch {
       case exn: Throwable =>
-        if (!is_interrupt(exn)) trace(print(exn))
-        Exn[A](exn)
+        if (!is_interrupt(exn)) {
+          val msg = print(exn)
+          trace(if (prefix.nonEmpty) Library.prefix_lines(prefix + ": ", msg) else msg)
+        }
+      Exn[A](exn)
     }
 }

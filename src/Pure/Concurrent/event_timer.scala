@@ -14,7 +14,7 @@ import java.util.{Timer, TimerTask, Date => JDate}
 
 
 object Event_Timer {
-  private lazy val event_timer = new Timer("event_timer", true)
+  private lazy val event_timer = new Timer("Isabelle.event_timer", true)
 
   final class Request private[Event_Timer](
     val time: Time,
