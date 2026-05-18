@@ -103,8 +103,8 @@ class Scala_Console extends Shell("Scala") {
       buffer = buffer_init()
       global_out match {
         case null =>
-          java.lang.System.out.nn.print(str)
-          java.lang.System.out.nn.flush()
+          scala.Console.err.print(str)
+          scala.Console.err.flush()
         case out =>
           if (str.nonEmpty) { GUI_Thread.later { out.writeAttrs(null, str) } }
       }
