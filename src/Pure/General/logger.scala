@@ -78,4 +78,7 @@ extends Logger {
     File.append(path, Output.make_text(kind, msg) + "\n")
   }
   override def toString: String = path.toString
+
+  // touch file as file-system test
+  File.append(path, "")
 }
