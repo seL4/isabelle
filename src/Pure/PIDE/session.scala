@@ -23,7 +23,9 @@ object Session {
     def apply[A](name: String)(consume: A => Unit): Consumer[A] =
       new Consumer[A](name, consume)
   }
-  final class Consumer[-A] private(val name: String, val consume: A => Unit)
+  final class Consumer[-A] private(val name: String, val consume: A => Unit) {
+    def failure_prefix: String = "Failure of session consumer " + quote(name)
+  }
 
 
   /* change */
@@ -226,17 +228,12 @@ abstract class Session extends Document.Session {
     def += (c: Session.Consumer[A]): Unit = consumers.change(Library.update(c))
     def -= (c: Session.Consumer[A]): Unit = consumers.change(Library.remove(c))
 
-    def consume_robust(c: Session.Consumer[A], a: A): Unit =
-      try { c.consume(a) }
-      catch {
-        case exn: Throwable =>
-          resources.log.error_message(
-            "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn))
-      }
-
     def post(a: A): Unit = {
       for (c <- consumers.value.iterator) {
-        dispatcher.send(() => consume_robust(c, a))
+        dispatcher.send(() =>
+          Exn.capture_trace(resources.log.error_message, prefix = c.failure_prefix)
+            { c.consume(a) }
+        )
       }
     }
   }
