@@ -25,9 +25,9 @@ object Event_Timer {
   }
 
   def request(
+    log: Logger,
     time: Time,
-    repeat: Option[Time] = None,
-    log: Logger = new Console_Logger()
+    repeat: Option[Time] = None
   )(event: => Unit): Request = {
     val task = new TimerTask { def run(): Unit = Exn.capture_trace(log.error_message) { event } }
     repeat match {

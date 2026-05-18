@@ -40,7 +40,8 @@ object Kodkod {
     max_solutions: Int = Int.MaxValue,
     cleanup_inst: Boolean = false,
     timeout: Time = Time.zero,
-    max_threads: Int = 0
+    max_threads: Int = 0,
+    log: Logger = new Console_Logger()
   ): Result = {
     /* executor */
 
@@ -102,7 +103,7 @@ object Kodkod {
       val timeout_request =
         if (timeout.is_zero) None
         else {
-          Some(Event_Timer.request(Time.now() + timeout) {
+          Some(Event_Timer.request(log, Time.now() + timeout) {
             context.error("Ran out of time")
             context.return_code(Process_Result.RC.failure)
             executor_kill()

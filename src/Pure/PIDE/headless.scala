@@ -341,7 +341,7 @@ object Headless {
 
       lazy val check_progress = {
         var check_count = 0
-        Event_Timer.request(Time.now(), repeat = Some(check_delay)) {
+        Event_Timer.request(resources.log, Time.now(), repeat = Some(check_delay)) {
           if (progress.stopped) use_theories_state.change(_.cancel_result)
           else {
             check_count += 1

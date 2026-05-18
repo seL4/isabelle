@@ -43,7 +43,7 @@ final class Delay(
         case None => true
       }
     if (new_run) {
-      running = Some(Event_Timer.request(Time.now() + delay, log = log)(run()))
+      running = Some(Event_Timer.request(log, Time.now() + delay)(run()))
     }
   }
 
@@ -61,7 +61,7 @@ final class Delay(
       case Some(request) =>
         val alt_time = Time.now() + alt_delay
         if (request.time < alt_time && request.cancel()) {
-          running = Some(Event_Timer.request(alt_time, log = log)(run()))
+          running = Some(Event_Timer.request(log, alt_time)(run()))
         }
       case None =>
     }

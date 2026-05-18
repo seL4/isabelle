@@ -468,7 +468,7 @@ object Build_Job {
           val timeout_request: Option[Event_Timer.Request] =
             if (info.timeout_ignored) None
             else {
-              Some(Event_Timer.request(Time.now() + info.timeout, log = log) { process.terminate() })
+              Some(Event_Timer.request(log, Time.now() + info.timeout) { process.terminate() })
             }
 
           val build_errors =
