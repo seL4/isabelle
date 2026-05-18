@@ -467,7 +467,7 @@ object Server {
 Usage: isabelle server [OPTIONS]
 
   Options are:
-    -L FILE      logging on FILE
+    -L FILE      logging on FILE (default: console stderr)
     -c           console interaction with specified server
     -l           list servers (alternative operation)
     -n NAME      explicit server name (default: """ + default_name + """)
@@ -499,7 +499,7 @@ Usage: isabelle server [OPTIONS]
           sys.exit(if (ok) Process_Result.RC.ok else Process_Result.RC.failure)
         }
         else {
-          val log = Logger.make_file(log_path)
+          val log = Logger.make_file(log_path, default = Logger.console)
           val (server_info, server) =
             init(log, name = name, port = port, existing_server = existing_server)
           Output.writeln(server_info.toString, stdout = true)

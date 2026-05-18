@@ -36,7 +36,7 @@ text \<open>
 \<open>Usage: isabelle server [OPTIONS]
 
   Options are:
-    -L FILE      logging on FILE
+    -L FILE      logging on FILE (default: console stderr)
     -c           console interaction with specified server
     -l           list servers (alternative operation)
     -n NAME      explicit server name (default: isabelle)
@@ -82,7 +82,7 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-L\<close> specifies a log file for exceptional output of internal server
-  and session operations.
+  and session operations. The default is the console (stderr).
 
   \<^medskip>
   Operation \<^verbatim>\<open>-l\<close> lists all active server processes with their connection
