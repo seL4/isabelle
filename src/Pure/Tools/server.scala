@@ -533,14 +533,9 @@ class Server private(val log: Logger, port0: Int) extends Server.Handler(port0) 
     for ((_, session) <- sessions) {
       try {
         val result = session.stop()
-        if (!result.ok) {
-          log("Session shutdown failed: " + result.print_rc, kind = Output.Kind.error_message)
-        }
+        if (!result.ok) log.error_message("Session shutdown failed: " + result.print_rc)
       }
-      catch {
-        case ERROR(msg) =>
-          log("Session shutdown failed: " + msg, kind = Output.Kind.error_message)
-      }
+      catch { case ERROR(msg) => log.error_message("Session shutdown failed: " + msg) }
     }
   }
 

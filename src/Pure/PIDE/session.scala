@@ -230,8 +230,8 @@ abstract class Session extends Document.Session {
       try { c.consume(a) }
       catch {
         case exn: Throwable =>
-          resources.log("Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn),
-            kind = Output.Kind.error_message)
+          resources.log.error_message(
+            "Session consumer failure: " + quote(c.name) + "\n" + Exn.print(exn))
       }
 
     def post(a: A): Unit = {
@@ -489,9 +489,7 @@ abstract class Session extends Document.Session {
               case Some(blob) =>
                 global_state.change(_.define_blob(digest))
                 prover.get.define_blob(digest, blob.bytes)
-              case None =>
-                resources.log("Missing blob " + quote(name.toString),
-                  kind = Output.Kind.error_message)
+              case None => resources.log.error_message("Missing blob " + quote(name.toString))
             }
           }
 
@@ -562,10 +560,7 @@ abstract class Session extends Document.Session {
     def handle_output(output: Prover.Output): Unit = {
     //{{{
       def bad_output(): Unit = {
-        if (verbose) {
-          resources.log("Ignoring bad prover output: " + output.message.toString,
-            kind = Output.Kind.warning)
-        }
+        if (verbose) resources.log.warning("Ignoring bad prover output: " + output.message.toString)
       }
 
       def change_command(f: Document.State => (Command.State, Document.State)): Unit = {
@@ -750,9 +745,7 @@ abstract class Session extends Document.Session {
                 postponed_changes.flush(state).foreach(handle_change)
 
             case bad =>
-              if (verbose) {
-                resources.log("Ignoring bad message: " + bad.toString, kind = Output.Kind.warning)
-              }
+              if (verbose) resources.log.warning("Ignoring bad message: " + bad.toString)
           }
           true
           //}}}

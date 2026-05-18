@@ -29,11 +29,7 @@ object Event_Timer {
     repeat: Option[Time] = None,
     log: Logger = new Console_Logger()
   )(event: => Unit): Request = {
-    val task =
-      new TimerTask {
-        def run(): Unit =
-          Exn.capture_trace(log(_, kind = Output.Kind.error_message)) { event }
-      }
+    val task = new TimerTask { def run(): Unit = Exn.capture_trace(log.error_message) { event } }
     repeat match {
       case None => event_timer.schedule(task, new JDate(time.ms))
       case Some(rep) => event_timer.schedule(task, new JDate(time.ms), rep.ms)

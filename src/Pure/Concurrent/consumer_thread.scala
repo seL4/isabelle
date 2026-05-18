@@ -66,8 +66,7 @@ final class Consumer_Thread[A] private(
   def check_thread(): Boolean = Isabelle_Thread.current == thread
 
   private def failure(exn: Throwable): Unit =
-    log("Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn),
-      kind = Output.Kind.error_message)
+    log.error_message("Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn))
 
   private def robust_finish(): Unit =
     try { finish() } catch { case exn: Throwable => failure(exn) }

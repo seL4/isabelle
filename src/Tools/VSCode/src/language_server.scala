@@ -563,9 +563,7 @@ class Language_Server(
           case LSP.Sledgehammer_Locate() => sledgehammer.locate()
           case LSP.Sledgehammer_Sendback(text) => sledgehammer.sendback(text)
           case _ =>
-            if (!LSP.ResponseMessage.is_empty(json)) {
-              channel.log_file("IGNORED", kind = Output.Kind.warning)
-            }
+            if (!LSP.ResponseMessage.is_empty(json)) channel.log_file.warning("IGNORED")
         }
       }
       catch { case exn: Throwable => channel.log_error_message(Exn.message(exn)) }
@@ -579,7 +577,7 @@ class Language_Server(
             case _ => handle(json)
           }
           loop()
-        case None => channel.log_file("TERMINATE", kind = Output.Kind.warning)
+        case None => channel.log_file.warning("TERMINATE")
       }
     }
     loop()

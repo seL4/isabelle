@@ -57,6 +57,9 @@ abstract class Logger {
     kind: Output.Kind = Output.Kind.writeln
   ): Unit = if (time.isEmpty || guard(time.get)) output(kind, msg)
 
+  final def warning(msg: => String): Unit = apply(msg, kind = Output.Kind.warning)
+  final def error_message(msg: => String): Unit = apply(msg, kind = Output.Kind.error_message)
+
   final def timeit[A](body: => A,
     message: Timing.Message[A] = Timing.no_message,
     enabled: Boolean = true,

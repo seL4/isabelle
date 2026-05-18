@@ -39,8 +39,7 @@ object GUI_Thread {
 
   def later(body: => Unit): Unit = {
     if (check()) body
-    else SwingUtilities.invokeLater(() =>
-      Exn.capture_trace(GUI.log(_, kind = Output.Kind.error_message)) { body })
+    else SwingUtilities.invokeLater(() => Exn.capture_trace(GUI.log.error_message) { body })
   }
 
   def future[A](body: => A): Future[A] = {
