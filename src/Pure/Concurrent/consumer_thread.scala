@@ -65,11 +65,11 @@ final class Consumer_Thread[A] private(
   def is_active(): Boolean = active && thread.isAlive
   def check_thread(): Boolean = Isabelle_Thread.current == thread
 
-  private def failure(exn: Throwable): Unit =
-    log.error_message("Consumer thread failure: " + quote(thread_name) + "\n" + Exn.print(exn))
+  private def failure_prefix: String =
+    "Failure of consumer thread " + quote(thread_name)
 
   private def robust_finish(): Unit =
-    try { finish() } catch { case exn: Throwable => failure(exn) }
+    Exn.capture_trace(log.error_message, prefix = failure_prefix) { finish() }
 
 
   /* requests */
@@ -107,7 +107,7 @@ final class Consumer_Thread[A] private(
       (req.ack, res) match {
         case (Some(a), _) => a.change(_ => Some(res))
         case (None, Exn.Res(_)) =>
-        case (None, Exn.Exn(exn)) => failure(exn)
+        case (None, Exn.Exn(exn)) => log.error_message(failure_prefix + ":\n" + Exn.print(exn))
       }
     }
 
