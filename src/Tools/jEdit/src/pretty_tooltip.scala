@@ -80,7 +80,7 @@ object Pretty_Tooltip {
   private var active = true
 
   private val pending_delay =
-    Delay.last(PIDE.options.seconds("jedit_tooltip_delay"), gui = true) {
+    GUI.Delay.last(PIDE.options.seconds("jedit_tooltip_delay")) {
       pending match {
         case Some(body) => pending = None; body()
         case None =>
@@ -102,7 +102,7 @@ object Pretty_Tooltip {
     }
 
   private lazy val reactivate_delay =
-    Delay.last(PIDE.options.seconds("jedit_tooltip_delay"), gui = true) {
+    GUI.Delay.last(PIDE.options.seconds("jedit_tooltip_delay")) {
       active = true
     }
 
@@ -117,7 +117,7 @@ object Pretty_Tooltip {
   /* dismiss */
 
   private lazy val focus_delay =
-    Delay.last(PIDE.session.input_delay, gui = true) { dismiss_unfocused() }
+    GUI.Delay.last(PIDE.session.input_delay) { dismiss_unfocused() }
 
   def dismiss_unfocused(): Unit = {
     stack.span(pretty_tooltip => !pretty_tooltip.pretty_text_area.isFocusOwner) match {

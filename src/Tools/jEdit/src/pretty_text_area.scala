@@ -278,7 +278,7 @@ class Pretty_Text_Area(
   private val search_field: Component =
     Component.wrap(new Completion_Popup.History_Text_Field("isabelle-search") {
       private val input_delay =
-        Delay.last(PIDE.session.input_delay, gui = true) { search_action(this) }
+        GUI.Delay.last(PIDE.session.input_delay) { search_action(this) }
       getDocument.addDocumentListener(new DocumentListener {
         def changedUpdate(e: DocumentEvent): Unit = input_delay.invoke()
         def insertUpdate(e: DocumentEvent): Unit = input_delay.invoke()

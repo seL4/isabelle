@@ -96,10 +96,10 @@ object JEdit_Editor extends Editor {
   def purge(): Unit = flush_edits(purge = true)
 
   private val delay_input: Delay =
-    Delay.last(PIDE.session.input_delay, gui = true) { flush() }
+    GUI.Delay.last(PIDE.session.input_delay) { flush() }
 
   private val delay_generated_input: Delay =
-    Delay.first(PIDE.session.generated_input_delay, gui = true) { flush() }
+    GUI.Delay.first(PIDE.session.generated_input_delay) { flush() }
 
   def invoke(): Unit = delay_input.invoke()
   def revoke(): Unit = delay_input.revoke()

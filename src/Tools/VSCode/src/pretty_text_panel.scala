@@ -29,7 +29,7 @@ class Pretty_Text_Panel private(
   private var current_formatted: XML.Body = Nil
   private var margin: Double = resources.message_margin
 
-  private val delay_margin = Delay.last(resources.output_delay, log = channel.log_message) {
+  private val delay_margin = channel.Delay.last(resources.output_delay) {
     refresh(current_output)
   }
 

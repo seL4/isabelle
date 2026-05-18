@@ -95,8 +95,8 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     override def detect_program(s: String): Option[String] =
       Document_Build.detect_program_start(s)
 
-    private val delay: Delay =
-      Delay.first(PIDE.session.output_delay) {
+    private lazy val delay: Delay =
+      PIDE.resources.Delay.first(PIDE.session.output_delay) {
         if (!stopped) {
           output_process(progress)
           show_state()
@@ -224,12 +224,12 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
   }
 
   private lazy val delay_build: Delay =
-    Delay.first(PIDE.session.output_delay, gui = true) {
+    GUI.Delay.first(PIDE.session.output_delay) {
       if (!document_build_attempt()) delay_build.invoke()
     }
 
   private lazy val delay_auto_build: Delay =
-    Delay.last(PIDE.session.document_delay, gui = true) {
+    GUI.Delay.last(PIDE.session.document_delay) {
       pending_process()
     }
 
@@ -245,7 +245,7 @@ class Document_Dockable(view: View, position: String) extends Dockable(view, pos
     JEdit_Session.document_selector(PIDE.plugin.options, standalone = true)
 
   private lazy val delay_load: Delay =
-    Delay.last(PIDE.session.load_delay, gui = true) {
+    GUI.Delay.last(PIDE.session.load_delay) {
       for (session <- document_session.selection_value) {
         current_state.change(_.reset())
         if (!load_document(session)) delay_load.invoke()

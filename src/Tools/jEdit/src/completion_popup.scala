@@ -351,7 +351,7 @@ object Completion_Popup {
       }
     }
 
-    private val input_delay = Delay.last(completion_delay, gui = true) { action() }
+    private val input_delay = GUI.Delay.last(completion_delay) { action() }
 
 
     /* dismiss popup */
@@ -492,7 +492,7 @@ object Completion_Popup {
       }
     }
 
-    private val process_delay = Delay.last(completion_delay, gui = true) { action() }
+    private val process_delay = GUI.Delay.last(completion_delay) { action() }
 
     override def processKeyEvent(evt0: KeyEvent): Unit = {
       val evt = KeyEventWorkaround.processKeyEvent(evt0)

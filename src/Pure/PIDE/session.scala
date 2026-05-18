@@ -334,7 +334,7 @@ abstract class Session extends Document.Session {
       nodes = Set.empty
       commands = Set.empty
     }
-    private val delay_flush = Delay.first(output_delay) { flush() }
+    private lazy val delay_flush = resources.Delay.first(output_delay) { flush() }
 
     def invoke(assign: Boolean, edited_nodes: List[Document.Node.Name], cmds: List[Command]): Unit =
       synchronized {
@@ -375,8 +375,8 @@ abstract class Session extends Document.Session {
   /* node consolidation */
 
   private object consolidation {
-    private val delay =
-      Delay.first(consolidate_delay) { manager.send(Consolidate_Execution) }
+    private lazy val delay =
+      resources.Delay.first(consolidate_delay) { manager.send(Consolidate_Execution) }
 
     private val init_state: Option[Set[Document.Node.Name]] = Some(Set.empty)
     private val state = Synchronized(init_state)
@@ -440,7 +440,7 @@ abstract class Session extends Document.Session {
   /* manager thread */
 
   private lazy val delay_prune =
-    Delay.first(prune_delay) { manager.send(Prune_History) }
+    resources.Delay.first(prune_delay) { manager.send(Prune_History) }
 
   private val manager: Consumer_Thread[Any] = {
     /* global state */

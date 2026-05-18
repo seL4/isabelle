@@ -99,7 +99,7 @@ extends BorderPanel {
     new GUI.Label("Selection:", selection_field) { tooltip = selection_tooltip }
 
   private val selection_delay =
-    Delay.last(graphview.options.seconds("editor_input_delay"), gui = true) {
+    GUI.Delay.last(graphview.options.seconds("editor_input_delay")) {
       val (pattern, ok) =
         selection_field.text match {
           case null | "" => (None, true)

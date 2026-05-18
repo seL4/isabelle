@@ -191,7 +191,7 @@ object Build_Job {
     }
 
     private lazy val nodes_delay: Delay =
-      Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
+      resources.Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
 
     def nodes_status_exit(state: Document.State): Unit = synchronized {
       nodes_delay.revoke()

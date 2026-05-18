@@ -79,7 +79,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
   private var current_overview = Overview()
 
   private val delay_repaint =
-    Delay.first(PIDE.session.update_delay, gui = true) { repaint() }
+    GUI.Delay.first(PIDE.session.update_delay) { repaint() }
 
   override def paintComponent(gfx: Graphics): Unit = {
     super.paintComponent(gfx)
@@ -119,7 +119,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout) {
   def revoke(): Unit = { delay_refresh.revoke(); future_refresh.change { x => x.cancel(); x } }
 
   private val delay_refresh =
-    Delay.first(PIDE.session.update_delay, gui = true) {
+    GUI.Delay.first(PIDE.session.update_delay) {
       if (!doc_view.rich_text_area.check_robust_body) invoke()
       else {
         JEdit_Lib.buffer_lock(buffer) {

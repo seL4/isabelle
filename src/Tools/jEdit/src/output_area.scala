@@ -73,7 +73,7 @@ class Output_Area(
   def handle_update(): Unit = ()
 
   lazy val delay_resize: Delay =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
+    GUI.Delay.first(PIDE.session.update_delay) { handle_resize() }
 
 
   /* handle events */
@@ -82,7 +82,7 @@ class Output_Area(
   def handle_shown(): Unit = ()
 
   lazy val delay_shown: Delay =
-    Delay.first(PIDE.session.input_delay, gui = true) { handle_shown() }
+    GUI.Delay.first(PIDE.session.input_delay) { handle_shown() }
 
   private lazy val hierarchy_listener =
     new HierarchyListener {

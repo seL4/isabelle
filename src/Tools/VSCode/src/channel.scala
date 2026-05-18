@@ -89,6 +89,9 @@ class Channel(
   def log_warning(msg: String): Unit = display_message(LSP.MessageType.Warning, msg, false)
   def log_writeln(msg: String): Unit = display_message(LSP.MessageType.Info, msg, false)
 
+
+  /* logger */
+
   val log_message: Logger =
     new Logger {
       override def toString: String = "log_message"
@@ -99,6 +102,8 @@ class Channel(
           case Output.Kind.error_message => log_error_message(msg)
         }
     }
+
+  object Delay extends Delay_Ops(log_message)
 
 
   /* progress */

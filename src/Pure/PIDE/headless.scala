@@ -352,7 +352,7 @@ object Headless {
 
       val consumer = {
         val delay_nodes_status =
-          Delay.first(nodes_status_delay max Time.zero) {
+          resources.Delay.first(nodes_status_delay max Time.zero) {
             val st = use_theories_state.value
             val now = progress.now()
             progress.nodes_status(
@@ -360,7 +360,7 @@ object Headless {
           }
 
         val delay_commit_clean =
-          Delay.first(commit_cleanup_delay max Time.zero) {
+          resources.Delay.first(commit_cleanup_delay max Time.zero) {
             val clean_theories = use_theories_state.change_result(_.clean_theories)
             if (clean_theories.nonEmpty && session.is_ready) {
               progress.echo("Removing " + clean_theories.length + " theories ...")

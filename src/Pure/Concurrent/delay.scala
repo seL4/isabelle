@@ -7,33 +7,32 @@ Delayed events.
 package isabelle
 
 
-object Delay {
+class Delay_Ops(log: Logger) {
+  override def toString: String = "Delay(" + log.toString + ")"
+
+  protected def app(body: => Unit): Unit = body
+
   // delayed event after first invocation
-  def first(
-    delay: => Time,
-    log: Logger = new Console_Logger(),
-    gui: Boolean = false
-  )(event: => Unit): Delay = {
-    new Delay(true, delay, log, if (gui) GUI_Thread.later { event } else event)
-  }
+  def first(delay: => Time)(event: => Unit): Delay = new Delay(true, delay, log, app, event)
 
   // delayed event after last invocation
-  def last(delay: => Time,
-    log: Logger = new Console_Logger(),
-    gui: Boolean = false
-  )(event: => Unit): Delay = {
-    new Delay(false, delay, log, if (gui) GUI_Thread.later { event } else event)
-  }
+  def last(delay: => Time)(event: => Unit): Delay = new Delay(false, delay, log, app, event)
 }
 
-final class Delay private(first: Boolean, delay: => Time, log: Logger, event: => Unit) {
+final class Delay(
+  first: Boolean,
+  delay: => Time,
+  log: Logger,
+  app: (=> Unit) => Unit,
+  event: => Unit
+) {
   private var running: Option[Event_Timer.Request] = None
 
   private def run(): Unit = {
     val do_run = synchronized {
       if (running.isDefined) { running = None; true } else false
     }
-    if (do_run) event
+    if (do_run) app(event)
   }
 
   def invoke(msg: String = ""): Unit = synchronized {

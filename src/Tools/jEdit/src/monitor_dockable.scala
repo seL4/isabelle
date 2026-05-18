@@ -57,10 +57,10 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
   private val input_delay =
-    Delay.first(PIDE.session.input_delay, gui = true) { update_chart() }
+    GUI.Delay.first(PIDE.session.input_delay) { update_chart() }
 
   private val update_delay =
-    Delay.first(PIDE.session.chart_delay, gui = true) { update_chart() }
+    GUI.Delay.first(PIDE.session.chart_delay) { update_chart() }
 
 
   /* controls */

@@ -144,8 +144,8 @@ class Debugger private(session: Session) {
 
   private val state = Synchronized(Debugger.State())
 
-  private val delay_update =
-    Delay.first(session.output_delay) {
+  private lazy val delay_update =
+    session.resources.Delay.first(session.output_delay) {
       session.debugger_updates.post(Debugger.Update)
     }
 

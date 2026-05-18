@@ -28,7 +28,11 @@ import com.formdev.flatlaf.FlatLaf
 object GUI {
   /* logger */
 
-  lazy val log: Logger = new Console_Logger()
+  val log: Logger = new Console_Logger()
+
+  object Delay extends Delay_Ops(log) {
+    override protected def app(body: => Unit): Unit = GUI_Thread.later { body }
+  }
 
 
   /* Swing look-and-feel */

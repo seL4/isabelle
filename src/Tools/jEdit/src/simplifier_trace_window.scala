@@ -156,7 +156,7 @@ class Simplifier_Trace_Window(
   /* resize */
 
   private val delay_resize =
-    Delay.first(PIDE.session.update_delay, gui = true) { handle_resize() }
+    GUI.Delay.first(PIDE.session.update_delay) { handle_resize() }
 
   peer.addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent): Unit = delay_resize.invoke()

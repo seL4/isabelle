@@ -123,7 +123,7 @@ object Session_Build {
       }
 
     private val delay_exit =
-      Delay.first(Time.seconds(1.0), gui = true) {
+      GUI.Delay.first(Time.seconds(1.0)) {
         if (can_auto_close) conclude()
         else {
           val button = new GUI.Button("Close") { override def clicked(): Unit = conclude() }

@@ -217,7 +217,7 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   /* caret handling */
 
   private val delay_caret_update =
-    Delay.last(PIDE.session.input_delay, gui = true) {
+    GUI.Delay.last(PIDE.session.input_delay) {
       session.caret_focus.post(Session.Caret_Focus)
       JEdit_Lib.invalidate_screen(text_area)
     }

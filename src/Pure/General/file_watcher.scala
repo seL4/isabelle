@@ -30,8 +30,11 @@ object File_Watcher {
     override def toString: String = "File_Watcher.none"
   }
 
-  def apply(handle: Set[JFile] => Unit, delay: => Time = Time.seconds(0.5)): File_Watcher =
-    if (Platform.is_windows) none else new Impl(handle, delay)
+  def apply(
+    handle: Set[JFile] => Unit,
+    resources: Resources,
+    delay: => Time = Time.seconds(0.5)
+  ): File_Watcher = if (Platform.is_windows) none else new Impl(handle, resources, delay)
 
 
   /* proper implementation */
@@ -40,7 +43,11 @@ object File_Watcher {
     dirs: Map[JFile, WatchKey] = Map.empty,
     changed: Set[JFile] = Set.empty)
 
-  class Impl private[File_Watcher](handle: Set[JFile] => Unit, delay: Time) extends File_Watcher {
+  class Impl private[File_Watcher](
+    handle: Set[JFile] => Unit,
+    resources: Resources,
+    delay: Time
+  ) extends File_Watcher {
     private val state = Synchronized(File_Watcher.State())
     private val watcher = FileSystems.getDefault.nn.newWatchService().nn
 
@@ -83,7 +90,7 @@ object File_Watcher {
 
     /* changed directory entries */
 
-    private val delay_changed = Delay.last(delay) {
+    private val delay_changed = resources.Delay.last(delay) {
       val changed = state.change_result(st => (st.changed, st.copy(changed = Set.empty)))
       handle(changed)
     }

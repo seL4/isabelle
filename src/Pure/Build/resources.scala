@@ -39,6 +39,8 @@ class Resources(
 
   override def toString: String = "Resources(" + session_base.print_body + ")"
 
+  object Delay extends Delay_Ops(log)
+
 
   /* init session */
 

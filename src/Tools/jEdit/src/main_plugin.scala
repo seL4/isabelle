@@ -117,10 +117,10 @@ class Main_Plugin extends EBPlugin {
   /* theory files */
 
   private lazy val delay_init: Delay =
-    Delay.last(PIDE.session.load_delay, gui = true) { init_models() }
+    GUI.Delay.last(PIDE.session.load_delay) { init_models() }
 
   private lazy val delay_load: Delay =
-    Delay.last(session.load_delay, gui = true) {
+    GUI.Delay.last(session.load_delay) {
       if (JEdit_Options.continuous_checking()) {
         if (!PerspectiveManager.isPerspectiveEnabled ||
             JEdit_Lib.jedit_buffers().exists(_.isLoading)) delay_load.invoke()
@@ -179,7 +179,7 @@ class Main_Plugin extends EBPlugin {
     if (Document_Model.sync_files(changed)) JEdit_Editor.invoke_generated()
 
   lazy val file_watcher: File_Watcher =
-    File_Watcher(file_watcher_action, session.load_delay)
+    File_Watcher(file_watcher_action, session.resources, session.load_delay)
 
 
   /* session phase */

@@ -43,7 +43,7 @@ class JEdit_Mouse_Handler(edit_pane: EditPane) extends JEditMouseHandler(edit_pa
   private var after_jump = false
 
   private val delay_jump =
-    Delay.last(JEdit_Mouse_Handler.jump_delay(), gui = true) { after_jump = false }
+    GUI.Delay.last(JEdit_Mouse_Handler.jump_delay()) { after_jump = false }
 
   def jump(): Unit = { after_jump = true; delay_jump.invoke() }
 
