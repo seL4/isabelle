@@ -134,10 +134,7 @@ object Dump {
         dirs = session_dirs, strict = true)
     }
 
-    def sessions(
-      logic: String = default_logic,
-      log: Logger = new Console_Logger()
-    ): List[Session] = {
+    def sessions(log: Logger, logic: String = default_logic): List[Session] = {
       /* partitions */
 
       def session_info(session_name: String): Sessions.Info =
@@ -350,10 +347,10 @@ object Dump {
 
   def dump(
     options: Options,
+    log: Logger,
     logic: String,
     aspects: List[Aspect] = Nil,
     progress: Progress = new Progress,
-    log: Logger = new Console_Logger(),
     dirs: List[Path] = Nil,
     select_dirs: List[Path] = Nil,
     output_dir: Path = default_output_dir,
@@ -366,7 +363,7 @@ object Dump {
 
       context.build_logic(logic)
 
-      for (session <- context.sessions(logic = logic, log = log)) {
+      for (session <- context.sessions(log, logic = logic)) {
         session.process({ (args: Args) =>
           progress.echo("Processing theory " + args.print_node + " ...")
           val aspect_args =
@@ -444,10 +441,9 @@ Usage: isabelle dump [OPTIONS] [SESSIONS ...]
 
         progress.echo("Started at " + Build_Log.print_date(start_date), verbose = true)
 
-        dump(options, logic,
+        dump(options, log, logic,
           aspects = aspects,
           progress = progress,
-          log = log,
           dirs = dirs,
           select_dirs = select_dirs,
           output_dir = output_dir,
