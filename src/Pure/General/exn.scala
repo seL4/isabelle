@@ -154,14 +154,15 @@ object Exn {
 
   def capture_trace[A](
     trace: String => Unit,
-    prefix: String = Isabelle_Thread.current_name
+    prefix: => String = "Failure on thread " + quote(Isabelle_Thread.current_name)
   )(e: => A): Result[A] =
     try { Res(e) }
     catch {
       case exn: Throwable =>
         if (!is_interrupt(exn)) {
-          val msg = print(exn)
-          trace(if (prefix.nonEmpty) Library.prefix_lines(prefix + ": ", msg) else msg)
+          val a = prefix
+          val b = print(exn)
+          trace(if_proper(a, a + ":\n") + b)
         }
       Exn[A](exn)
     }
