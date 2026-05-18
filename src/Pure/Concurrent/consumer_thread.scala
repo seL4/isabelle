@@ -20,7 +20,7 @@ object Consumer_Thread {
     timeout: Option[Time] = None,
     limit: Int = 0,
     finish: () => Unit = () => (),
-    log: Logger = new Console_Logger()
+    log: Logger = Logger.console
   ): Consumer_Thread[A] = {
     new Consumer_Thread[A](name, consume, bulk, daemon, timeout, limit, finish, log)
   }
@@ -31,7 +31,7 @@ object Consumer_Thread {
     daemon: Boolean = false,
     limit: Int = 0,
     finish: () => Unit = () => (),
-    log: Logger = new Console_Logger()
+    log: Logger = Logger.console
   ): Consumer_Thread[A] = {
     fork_bulk(name, bulk = _ => false, daemon = daemon, limit = limit, finish = finish, log = log,
       consume = { (args: List[A]) =>

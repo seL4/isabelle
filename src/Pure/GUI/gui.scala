@@ -28,7 +28,7 @@ import com.formdev.flatlaf.FlatLaf
 object GUI {
   /* logger */
 
-  val log: Logger = new Console_Logger()
+  def log: Logger = Logger.console
 
   object Delay extends Delay_Ops(log) {
     override protected def app(body: => Unit): Unit = GUI_Thread.later { body }

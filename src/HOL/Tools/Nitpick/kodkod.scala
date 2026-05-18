@@ -41,7 +41,7 @@ object Kodkod {
     cleanup_inst: Boolean = false,
     timeout: Time = Time.zero,
     max_threads: Int = 0,
-    log: Logger = new Console_Logger()
+    log: Logger = Logger.console
   ): Result = {
     /* executor */
 

@@ -13,6 +13,8 @@ object Logger {
     override def output(kind: Output.Kind, msg: => String): Unit = ()
   }
 
+  val console: Logger = new Console_Logger()
+
   def make_file(
     log_path: Option[Path],
     guard_time: Time = Time.min,
