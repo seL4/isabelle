@@ -13,10 +13,14 @@ object Logger {
     override def output(kind: Output.Kind, msg: => String): Unit = ()
   }
 
-  def make_file(log_file: Option[Path], guard_time: Time = Time.min): Logger =
-    log_file match {
+  def make_file(
+    log_path: Option[Path],
+    guard_time: Time = Time.min,
+    default: => Logger = none
+  ): Logger =
+    log_path match {
       case Some(file) => new File_Logger(file, guard_time)
-      case None => none
+      case None => default
     }
 
   def make_progress(progress: => Progress, guard_time: Time = Time.min): Logger = {
@@ -29,11 +33,16 @@ object Logger {
     }
   }
 
-  def make_system_log(progress: => Progress, options: Options, guard_time: Time = Time.min): Logger =
+  def make_system_log(
+    progress: => Progress,
+    options: Options,
+    guard_time: Time = Time.min,
+    default: => Logger = none
+  ): Logger =
     options.string("system_log") match {
-      case "" => none
+      case "" => default
       case "-" => make_progress(progress, guard_time = guard_time)
-      case log_file => make_file(Some(Path.explode(log_file)), guard_time = guard_time)
+      case log_path => make_file(Some(Path.explode(log_path)), guard_time = guard_time)
     }
 }
 
