@@ -32,11 +32,7 @@ object Event_Timer {
     val task =
       new TimerTask {
         def run(): Unit =
-          try { event }
-          catch {
-            case exn: Throwable =>
-              if (!Exn.is_interrupt(exn)) log(Exn.print(exn), kind = Output.Kind.error_message)
-          }
+          Exn.capture_trace(log(_, kind = Output.Kind.error_message)) { event }
       }
     repeat match {
       case None => event_timer.schedule(task, new JDate(time.ms))

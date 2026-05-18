@@ -151,4 +151,12 @@ object Exn {
 
   def print(exn: Throwable): String =
     if (debug()) message(exn) + "\n" + trace(exn) else message(exn)
+
+  def capture_trace[A](trace: String => Unit)(e: => A): Result[A] =
+    try { Res(e) }
+    catch {
+      case exn: Throwable =>
+        if (!is_interrupt(exn)) trace(print(exn))
+        Exn[A](exn)
+    }
 }
