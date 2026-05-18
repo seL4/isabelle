@@ -26,6 +26,11 @@ import com.formdev.flatlaf.FlatLaf
 
 
 object GUI {
+  /* logger */
+
+  lazy val log: Logger = new Console_Logger()
+
+
   /* Swing look-and-feel */
 
   def current_laf(): String = UIManager.getLookAndFeel.class_name
