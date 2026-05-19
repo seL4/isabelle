@@ -1204,8 +1204,8 @@ object Document {
 
     def removed_versions(removed: List[Document_ID.Version]): State = {
       val versions1 = Version.purge_suppressed(versions -- removed)
-
       val assignments1 = assignments -- removed
+
       var blobs1_names = Set.empty[Node.Name]
       var blobs1 = Set.empty[Message_Digest.T]
       var commands1 = Map.empty[Document_ID.Command, Command.State]
