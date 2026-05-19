@@ -278,6 +278,8 @@ object Document {
 
       private def full_range: Text.Range = full_index._2
 
+      def unordered_iterator: Iterator[Command] = commands.unordered_iterator
+
       def iterator(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] = {
         if (commands.nonEmpty && full_range.contains(i)) {
           val (cmd0, start0) = full_index._1(i / Commands.block_size)
@@ -1212,7 +1214,7 @@ object Document {
         (version_id, version) <- versions1.iterator
         command_execs = assignments1(version_id).command_execs
         (_, node) <- version.nodes.iterator
-        command <- node.commands.iterator
+        command <- node.commands.unordered_iterator
       } {
         for ((name, digest) <- command.blobs_defined) {
           blobs1_names += name
