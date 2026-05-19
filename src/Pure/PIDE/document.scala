@@ -941,10 +941,12 @@ object Document {
     }
 
     final class Assignment private(
-      val command_execs: Map[Document_ID.Command, List[Document_ID.Exec]] = Map.empty,
+      command_execs: Map[Document_ID.Command, List[Document_ID.Exec]] = Map.empty,
       val is_finished: Boolean = false
     ) {
       override def toString: String = "Assignment(" + command_execs.size + "," + is_finished + ")"
+
+      def get(id: Document_ID.Command): List[Document_ID.Exec] = command_execs.getOrElse(id, Nil)
 
       def check_finished: Assignment = { require(is_finished, "assignment not finished"); this }
       def unfinished: Assignment = new Assignment(command_execs, false)
@@ -1212,7 +1214,6 @@ object Document {
       var execs1 = Map.empty[Document_ID.Exec, Command.State]
       for {
         (version_id, version) <- versions1.iterator
-        command_execs = assignments1(version_id).command_execs
         (_, node) <- version.nodes.iterator
         command <- node.commands.unordered_iterator
       } {
@@ -1226,7 +1227,7 @@ object Document {
         }
 
         for {
-          exec_id <- command_execs.getOrElse(command.id, Nil)
+          exec_id <- assignments1(version_id).get(command.id)
           if !execs1.isDefinedAt(exec_id)
           st <- execs.get(exec_id)
         } execs1 += (exec_id -> st)
@@ -1246,7 +1247,7 @@ object Document {
     def command_maybe_consolidated(version: Version, command: Command): Boolean = {
       require(is_assigned(version), "version not assigned (command_maybe_consolidated)")
       try {
-        the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil) match {
+        the_assignment(version).check_finished.get(command.id) match {
           case eval_id :: print_ids =>
             the_dynamic_state(eval_id).maybe_consolidated &&
             !print_ids.exists(print_id => the_dynamic_state(print_id).consolidating)
@@ -1262,7 +1263,7 @@ object Document {
     ) : List[(Document_ID.Generic, Command.State)] = {
       require(is_assigned(version), "version not assigned (command_states_self)")
       try {
-        the_assignment(version).check_finished.command_execs.getOrElse(command.id, Nil)
+        the_assignment(version).check_finished.get(command.id)
           .map(id => id -> the_dynamic_state(id)) match {
             case Nil => fail
             case res => res
