@@ -1223,14 +1223,14 @@ object Document {
         }
 
         if (!commands1.isDefinedAt(command.id)) {
-          commands.get(command.id).foreach(st => commands1 += (command.id -> st))
+          for (st <- commands.get(command.id)) commands1 += (command.id -> st)
         }
 
-        for {
-          exec_id <- assignments1(version_id).get(command.id)
-          if !execs1.isDefinedAt(exec_id)
-          st <- execs.get(exec_id)
-        } execs1 += (exec_id -> st)
+        for (exec_id <- assignments1(version_id).get(command.id)) {
+          if (!execs1.isDefinedAt(exec_id)) {
+            for (st <- execs.get(exec_id)) execs1 += (exec_id -> st)
+          }
+        }
       }
 
       copy(
