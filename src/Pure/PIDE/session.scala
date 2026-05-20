@@ -138,6 +138,13 @@ abstract class Session extends Document.Session {
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
 
 
+  /* diagnostics */
+
+  def now(): Date = Date.now()
+  final val start_date: Date = now()
+  def print_now(): String = (now() - start_date).toString
+
+
   /* session exports */
 
   def open_session_context(
@@ -853,9 +860,4 @@ abstract class Session extends Document.Session {
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String): Unit =
     manager.send(Session.Dialog_Result(id, serial, result))
 
-
-  /* diagnostics */
-
-  val init_time: Time = Time.now()
-  def print_now(): String = (Time.now() - init_time).toString
 }

@@ -99,6 +99,11 @@ object Build_Job {
   ) extends Name.T
 
   abstract class Build_Session(progress: Progress) extends Session {
+    session =>
+
+    override def now(): Date = progress.now()
+
+
     /* additional process output */
 
     private val process_output_file = Isabelle_System.tmp_file("process_output")
@@ -160,7 +165,7 @@ object Build_Job {
     private def nodes_status_progress(state: Document.State = get_state()): Unit = {
       val result =
         synchronized {
-          lazy val now = progress.now()
+          lazy val now = session.now()
           for (id <- state.running_theories if !nodes_changed(id)) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
