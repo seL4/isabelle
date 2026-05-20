@@ -719,6 +719,11 @@ lemma bounded_translation_minus:
   shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. x - a) ` S)"
 using bounded_translation [of S "-a"] by simp
 
+lemma bounded_translation_eq [simp]:
+  fixes a :: "'a :: real_normed_vector"
+  shows "bounded ((+) a ` S) \<longleftrightarrow> bounded S"
+  by (metis bounded_iff bounded_translation imageI norm_add_leD)
+
 lemma bounded_uminus [simp]:
   fixes X :: "'a::real_normed_vector set"
   shows "bounded (uminus ` X) \<longleftrightarrow> bounded X"

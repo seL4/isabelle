@@ -114,6 +114,9 @@ lemma loop_free_linear_image_eq:
     shows "loop_free(f \<circ> g) = loop_free g"
   using assms inj_on_eq_iff [of f] by (auto simp: loop_free_def)
 
+lemma loop_free_cnj: "loop_free (cnj \<circ> g) = loop_free g"
+  by (simp add: inj_on_def linear_cnj loop_free_linear_image_eq)
+
 lemma simple_path_linear_image_eq:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "linear f" "inj f"
@@ -3263,6 +3266,49 @@ lemma inside_subset:
   shows "inside S \<subseteq> T"
   using bounded_subset [of "connected_component_set (- S) _" U] assms
   by (metis (no_types, lifting) ComplI Un_iff connected_component_maximal inside_def mem_Collect_eq subsetI)
+
+lemma inside_translation:
+  fixes a :: "'a :: real_normed_vector"
+  shows "inside ((+) a ` S) = (+) a ` inside S"
+proof (rule set_eqI)
+  fix x :: 'a
+  define y where "y \<equiv> x - a"
+  then have xy: "x = a + y" by simp
+  have homeo: "homeomorphism (- S) ((+) a ` (- S)) ((+) a) ((+) (- a))"
+    using homeomorphism_symD homeomorphism_translation by blast
+  have "connected_component_set (- ((+) a ` S)) x =
+        (+) a ` connected_component_set (- S) y"
+    using connected_component_set_homeomorphism[OF homeo]
+    by (metis ComplD ComplI connected_component_eq_empty imageI image_is_empty translation_Compl
+        xy)
+  with xy show "(x \<in> inside ((+) a ` S)) = (x \<in> (+) a ` inside S)"
+    by (auto simp: inside_def)
+qed
+
+lemma outside_translation:
+  fixes a :: "'a :: real_normed_vector"
+  shows "outside ((+) a ` S) = (+) a ` outside S"
+  unfolding outside_inside inside_translation
+  by (metis image_Un translation_Compl)
+
+lemma inside_cnj_image: "inside (cnj ` S) = cnj ` inside S"
+proof (rule set_eqI)
+  fix x
+  define y where "y \<equiv> cnj x"
+  then have xy: "x = cnj y" by simp
+  have homeo: "homeomorphism (- S) (cnj ` (- S)) (cnj) cnj"
+    by (simp add: homeomorphism_def image_cnj_conv_vimage_cnj)
+  have "connected_component_set (- (cnj ` S)) x = cnj ` connected_component_set (- S) y"
+    using connected_component_set_homeomorphism[OF homeo]
+    by (metis complex_cnj_cnj connected_component_eq_empty image_cnj_conv_vimage_cnj image_is_empty
+        in_image_cnj_iff vimage_Compl y_def)
+  with xy show "(x \<in> inside (cnj ` S)) = (x \<in> cnj ` inside S)"
+    by (auto simp: inside_def bounded_cnj_image)
+qed
+
+lemma outside_cnj_image: "outside (cnj ` S) = cnj ` outside S"
+  unfolding outside_inside inside_translation
+  using image_cnj_conv_vimage_cnj inside_cnj_image by auto
 
 lemma frontier_not_empty:
   fixes S :: "'a :: real_normed_vector set"

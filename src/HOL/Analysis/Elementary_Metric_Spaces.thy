@@ -915,6 +915,8 @@ proof -
   then show ?thesis unfolding bounded_any_center [where a="(x, y)"] by auto
 qed
 
+lemma bounded_cnj_image: "bounded (cnj ` S) = bounded S"
+  by (auto simp: bounded_iff)
 
 section \<open>Compactness\<close>
 
@@ -1315,6 +1317,14 @@ lemma diameter_le:
   using assms
   by (auto simp: dist_norm diameter_def intro: cSUP_least)
 
+lemma diameter_image_cnj: "diameter (cnj ` S) = diameter S"
+proof -
+  have "(\<lambda>(x,y). dist x y) ` (cnj ` S \<times> cnj ` S) = (\<lambda>(x,y). dist x y) ` (S \<times> S)"
+    by (force simp: image_iff)
+  then show ?thesis
+    by (simp add: diameter_def)
+qed
+
 lemma diameter_bounded_bound:
   fixes S :: "'a :: metric_space set"
   assumes S: "bounded S" "x \<in> S" "y \<in> S"
@@ -1437,6 +1447,15 @@ proof (rule order_antisym)
     show "diameter S \<le> diameter (closure S)"
       by (simp add: assms bounded_closure closure_subset diameter_subset)
 qed
+
+lemma diameter_translation:
+  fixes a :: "'a::real_normed_vector"
+  shows "diameter ((+) a ` S) = diameter S"
+proof (cases "S = {}")
+  case False
+  then show ?thesis
+    by (simp add: diameter_def image_comp split_def flip: image_paired_Times)
+qed (simp add: diameter_def)
 
 proposition Lebesgue_number_lemma:
   assumes "compact S" "\<C> \<noteq> {}" "S \<subseteq> \<Union>\<C>" and ope: "\<And>B. B \<in> \<C> \<Longrightarrow> open B"
@@ -3328,5 +3347,5 @@ proof -
       by (simp add: Cauchy_def)
   qed            
 qed
-  
+
 end

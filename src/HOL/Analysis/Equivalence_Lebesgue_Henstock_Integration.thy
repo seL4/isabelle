@@ -3378,6 +3378,17 @@ lemma absolutely_integrable_component:
   "f absolutely_integrable_on A \<Longrightarrow> (\<lambda>x. f x \<bullet> (b :: 'b :: euclidean_space)) absolutely_integrable_on A"
   by (drule absolutely_integrable_linear[OF _ bounded_linear_inner_left[of b]]) (simp add: o_def)
 
+lemma Re_absolutely_integrable_on:
+  assumes "g absolutely_integrable_on S"
+  shows "(\<lambda>t. Re (g t)) absolutely_integrable_on S"
+  using absolutely_integrable_component [OF assms]
+  by (metis (lifting) ext complex_inner_1_right)
+
+lemma Im_absolutely_integrable_on:
+  assumes "g absolutely_integrable_on S"
+  shows "(\<lambda>t. Im (g t)) absolutely_integrable_on S"
+  using absolutely_integrable_component [OF assms]
+  by (metis (lifting) ext complex_inner_i_right)
 
 lemma integrable_on_iff_component:
   fixes f :: "'a::euclidean_space \<Rightarrow> real^'n"

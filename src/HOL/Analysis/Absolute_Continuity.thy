@@ -439,6 +439,67 @@ proof (intro allI impI)
   qed
 qed
 
+lemma absolutely_continuous_on_reflect:
+  assumes "absolutely_continuous_on {S - b..S - a} f"
+  shows "absolutely_continuous_on {a..b} (f \<circ> (-) S)"
+proof -
+  show ?thesis
+    unfolding absolutely_continuous_on_def absolutely_setcontinuous_on_def
+  proof (intro allI impI)
+    fix \<epsilon> :: real assume "\<epsilon> > 0"
+    with assms obtain \<delta> where "\<delta> > 0"
+      and \<delta>: "\<And>d T. d division_of T \<Longrightarrow> T \<subseteq> {S - b..S - a} \<Longrightarrow> (\<Sum>k\<in>d. content k) < \<delta> \<Longrightarrow>
+             (\<Sum>k\<in>d. norm (f (Sup k) - f (Inf k))) < \<epsilon>"
+      unfolding absolutely_continuous_on_def absolutely_setcontinuous_on_def by meson
+    show "\<exists>\<delta>>0. \<forall>d T. d division_of T \<and> T \<subseteq> {a..b} \<and>
+          (\<Sum>k\<in>d. content k) < \<delta> \<longrightarrow>
+          (\<Sum>k\<in>d. norm ((f \<circ> (-) S) (Sup k) - (f \<circ> (-) S) (Inf k))) < \<epsilon>"
+    proof (intro exI conjI allI impI)
+      show "\<delta> > 0" by fact
+      fix d T assume "d division_of T \<and> T \<subseteq> {a..b} \<and>
+          (\<Sum>k\<in>d. content k) < \<delta>"
+      then have dv: "d division_of T" and sub: "T \<subseteq> {a..b}"
+        and sm: "(\<Sum>k\<in>d. content k) < \<delta>" by auto
+      have sub': "(-) S ` T \<subseteq> {S - b..S - a}"
+        using sub by auto
+      have inj: "inj_on ((`) ((-) S)) d"
+        by (simp add: inj_on_image)
+      have content_eq: "content ((-) S ` k) = content k" if "k \<in> d" for k
+      proof -
+        obtain c e :: real where ce: "k = cbox c e" and "c \<le> e"
+          using \<open>k \<in> d\<close> dv
+          by (metis atLeastatMost_empty_iff box_real(2) cbox_division_memE)
+        then show "content ((-) S ` k) = content k"
+          unfolding ce by (simp add: Henstock_Kurzweil_Integration.content_real)
+      qed
+      have osc_eq: "(\<Sum>k\<in>d. norm ((f \<circ> (-) S) (Sup k) - (f \<circ> (-) S) (Inf k))) =
+                    (\<Sum>k'\<in>(`) ((-) S) ` d. norm (f (Sup k') - f (Inf k')))"
+      proof -
+        have "(\<Sum>k'\<in>(`) ((-) S) ` d. norm (f (Sup k') - f (Inf k'))) =
+              (\<Sum>k\<in>d. norm (f (Sup ((-) S ` k)) - f (Inf ((-) S ` k))))"
+          using sum.reindex[OF inj] by simp
+        also have "\<dots> = (\<Sum>k\<in>d. norm (f (S - Inf k) - f (S - Sup k)))"
+        proof (intro sum.cong refl)
+          fix k assume "k \<in> d"
+          then obtain c e :: real where ce: "k = cbox c e" and "c \<le> e"
+            by (metis atLeastatMost_empty_iff box_real(2) cbox_division_memE dv)
+          then show "norm (f (Sup ((-) S ` k)) - f (Inf ((-) S ` k))) =
+                     norm (f (S - Inf k) - f (S - Sup k))"
+            unfolding ce 
+            by (auto simp: image_affinity_atLeastAtMost cSup_atLeastAtMost cInf_atLeastAtMost)
+        qed
+        also have "\<dots> = (\<Sum>k\<in>d. norm ((f \<circ> (-) S) (Sup k) - (f \<circ> (-) S) (Inf k)))"
+          by (intro sum.cong refl) (simp add: norm_minus_commute)
+        finally show ?thesis by simp
+      qed
+      have sm': "(\<Sum>k\<in>(`) ((-) S) ` d. content k) < \<delta>"
+        by (metis content_eq inj sm sum.reindex_cong)
+      show "(\<Sum>k\<in>d. norm ((f \<circ> (-) S) (Sup k) - (f \<circ> (-) S) (Inf k))) < \<epsilon>"
+        unfolding osc_eq using \<delta>[OF division_of_reflect[OF dv] sub' sm'] .
+    qed
+  qed
+qed
+
 subsection \<open>Relationship to bounded variation and continuity\<close>
 
 lemma absolutely_continuous_on_imp_continuous:
@@ -982,7 +1043,7 @@ proof -
   qed
 qed
 
-lemma absolutely_continuous_on_mul:
+lemma absolutely_continuous_on_mul [continuous_intros]:
   fixes f :: \<open>real \<Rightarrow> real\<close> and g :: \<open>real \<Rightarrow> 'a::euclidean_space\<close>
   assumes \<open>absolutely_continuous_on S f\<close>
     \<open>absolutely_continuous_on S g\<close>
@@ -991,7 +1052,13 @@ lemma absolutely_continuous_on_mul:
   using absolutely_continuous_on_bilinear
     [OF bilinear_conv_bounded_bilinear[THEN iffD2, OF bounded_bilinear_scaleR] assms] .
 
-lemma absolutely_continuous_on_vsum:
+lemma absolutely_continuous_on_real_mult [continuous_intros]:
+  fixes f :: \<open>real \<Rightarrow> real\<close> and g :: \<open>real \<Rightarrow> real\<close>
+  assumes \<open>absolutely_continuous_on S f\<close> \<open>absolutely_continuous_on S g\<close> \<open>is_interval S\<close> \<open>bounded S\<close> 
+  shows \<open>absolutely_continuous_on S (\<lambda>x. f x * g x)\<close>
+  using absolutely_continuous_on_mul assms by fastforce
+
+lemma absolutely_continuous_on_vsum [continuous_intros]:
   assumes \<open>finite k\<close>
     \<open>\<And>i. i \<in> k \<Longrightarrow> absolutely_continuous_on S (f i)\<close>
   shows \<open>absolutely_continuous_on S (\<lambda>x. \<Sum>i\<in>k. f i x)\<close>
@@ -1007,7 +1074,7 @@ next
     by (simp add: absolutely_continuous_on_add)
 qed
 
-lemma absolutely_continuous_on_sing:
+lemma absolutely_continuous_on_sing [continuous_intros]:
   \<open>absolutely_continuous_on {a} f\<close>
   using absolutely_continuous_on_null[of a a f] by (simp add: content_real_eq_0)
 
@@ -1343,7 +1410,7 @@ lemma fundamental_theorem_of_calculus_strong:
   assumes "countable S"
     and "a \<le> b"
     and "\<And>x. x \<in> {a..b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x within {a..b})"
-    and "continuous_on {a..b} f"
+    and contf: "continuous_on {a..b} f"
   shows "(f' has_integral (f b - f a)) {a..b}"
 proof (intro fundamental_theorem_of_calculus_Bartle assms)
   show "negligible S"
@@ -1372,12 +1439,11 @@ next
       then show ?thesis by (intro exI[of _ 1]) auto
     next
       case True
-      have cont: "continuous_on {a..b} f" by fact
       have eps_pos: "\<epsilon> / 2^(4 + n x) > 0"
         using \<open>0 < \<epsilon>\<close> by simp
       obtain \<delta> where "\<delta> > 0"
         and "\<And>y. y \<in> {a..b} \<Longrightarrow> dist y x < \<delta> \<Longrightarrow> dist (f y) (f x) < \<epsilon> / 2^(4 + n x)"
-        using cont[unfolded continuous_on_iff] x_ab eps_pos by blast
+        using contf[unfolded continuous_on_iff] x_ab eps_pos by blast
       then show ?thesis
         by (metis dist_norm dist_real_def less_eq_real_def)
     qed
@@ -1409,18 +1475,7 @@ next
       \<comment> \<open>Show that zero-content terms vanish, so the sum over @{term p} equals the sum over @{term "?S'"}\<close>
       have zero_content: "f (Sup k) - f (Inf k) = 0"
         if "(x, k) \<in> p" "content k = 0" for x k
-      proof -
-        from tagged_partial_division_ofD(4)[OF p_div that(1)]
-        obtain u v where k_eq: "k = cbox u v" by auto
-        from tagged_partial_division_ofD(2)[OF p_div that(1)]
-        have "x \<in> k" .
-        then have "u \<le> v" using k_eq by (auto simp: mem_box)
-        with that(2) have "u = v"
-          using k_eq by (auto simp: content_cbox_if Basis_real_def)
-        then have "Sup k = Inf k"
-          using k_eq \<open>u \<le> v\<close> by (simp add: Sup_atLeastAtMost Inf_atLeastAtMost)
-        then show ?thesis by simp
-      qed
+        using tagged_partial_division_ofD(2,4)[OF p_div] that by fastforce
       have sum_eq: "(\<Sum>(x,k)\<in>p. f (Sup k) - f (Inf k)) =
                     (\<Sum>(x,k)\<in>?S'. f (Sup k) - f (Inf k))"
       proof (rule sum.same_carrierI[OF p_finite _ _ _ _ refl])
@@ -1430,8 +1485,7 @@ next
         then show "(case a of (x, k) \<Rightarrow> f (Sup k) - f (Inf k)) = 0" by auto
       next
         fix b assume "b \<in> p - ?S'"
-        then obtain x k where bxk: "b = (x, k)" "(x, k) \<in> p"
-          and extra: "x \<notin> \<sigma> ` T \<or> content k = 0"
+        then obtain x k where bxk: "b = (x, k)" "(x, k) \<in> p" and extra: "x \<notin> \<sigma> ` T \<or> content k = 0"
           by (cases b) auto
         have "x \<in> \<sigma> ` T"
           using p_tags bxk Seq by (force simp: image_iff)
@@ -1454,9 +1508,9 @@ next
           using tagged_partial_division_ofD p_div xk_in by metis
         then have uv: "u \<le> v" using k_eq by (auto simp: mem_box)
         from k_nz have "u < v"
-          using k_eq uv by (auto simp: content_cbox_if Basis_real_def)
+          using k_eq uv by (auto simp: content_cbox_if)
         have sup_k: "Sup k = v" and inf_k: "Inf k = u"
-          using k_eq uv by (simp_all add: Sup_atLeastAtMost Inf_atLeastAtMost)
+          using k_eq uv by auto
         have k_sub: "k \<subseteq> cbox a b"
           using tagged_partial_division_ofD(3)[OF p_div xk_in] .
         have x_ab: "x \<in> {a..b}" using x_in_k k_sub by auto
