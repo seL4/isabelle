@@ -1123,7 +1123,7 @@ object Document {
           (state1.snippet(List(command1), doc_blobs), state1)
       }
 
-    def progress_theories: List[Document_ID.Exec] =
+    def running_theories: List[Document_ID.Exec] =
       List.from(
         for ((id, st) <- theories.iterator if st.document_status.timings.has_running)
           yield id)

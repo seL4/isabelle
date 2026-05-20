@@ -161,7 +161,7 @@ object Build_Job {
       val result =
         synchronized {
           lazy val now = progress.now()
-          for (id <- state.progress_theories if !nodes_changed(id)) nodes_changed += id
+          for (id <- state.running_theories if !nodes_changed(id)) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
               state.theory_snapshot(state_id, build_blobs) match {
