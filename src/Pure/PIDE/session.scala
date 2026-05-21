@@ -197,6 +197,9 @@ abstract class Session extends Document.Session {
   def update_delay: Time = session_options.seconds("editor_update_delay")
   def document_delay: Time = session_options.seconds("editor_document_delay")
   def chart_delay: Time = session_options.seconds("editor_chart_delay")
+  def build_progress_delay: Time = session_options.seconds("build_progress_delay")
+  def build_timing_threshold: Time = session_options.seconds("build_timing_threshold")
+  def editor_timing_threshold: Time = session_options.seconds("editor_timing_threshold")
   def syslog_limit: Int = session_options.int("editor_syslog_limit")
   def reparse_limit: Int = session_options.int("editor_reparse_limit")
 

@@ -634,8 +634,6 @@ abstract class Rendering(
 
   /* tooltips */
 
-  def timing_threshold: Time = options.seconds("editor_timing_threshold")
-
   private sealed case class Tooltip_Info(
     range: Text.Range,
     messages: List[(Long, XML.Elem)] = Nil,
@@ -667,6 +665,7 @@ abstract class Rendering(
     else name
 
   def tooltips(elements: Markup.Elements, range: Text.Range): Option[Text.Info[List[XML.Elem]]] = {
+    val timing_threshold = session.editor_timing_threshold
     val results =
       snapshot.cumulate[Tooltip_Info](range, Tooltip_Info(range), elements, command_states =>
         {

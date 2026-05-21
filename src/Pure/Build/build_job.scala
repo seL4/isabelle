@@ -136,13 +136,6 @@ object Build_Job {
     }
 
 
-    /* options */
-
-    val build_progress_delay: Time = session_options.seconds("build_progress_delay")
-    val build_timing_threshold: Time = session_options.seconds("build_timing_threshold")
-    val editor_timing_threshold: Time = session_options.seconds("editor_timing_threshold")
-
-
     /* errors */
 
     private val build_errors: Promise[List[String]] = Future.promise
