@@ -261,9 +261,7 @@ abstract class Session extends Document.Session {
   val raw_output_messages = new Outlet[Prover.Output]
   val trace_events = new Outlet[Simplifier_Trace.Event.type]
   val debugger_updates = new Outlet[Debugger.Update.type]
-
-  // potential bottle-neck!
-  lazy val all_messages = new Outlet[Prover.Message]
+  val all_messages = new Outlet[Prover.Message]  // potential bottle-neck!
 
 
   /** main protocol manager **/
