@@ -117,7 +117,7 @@ fun check_thread_manager () = Synchronized.change global_state
            |> List.app (unregister (false, "Timed out"));
            print_new_messages ();
            (* give threads some time to respond to interrupt *)
-           OS.Process.sleep min_wait_time)
+           Time.sleep min_wait_time)
       end))
     in make_state manager timeout_heap active canceling messages end)
 

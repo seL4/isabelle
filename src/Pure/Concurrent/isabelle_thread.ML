@@ -132,7 +132,7 @@ val is_active = Thread.Thread.isActive o get_thread;
 
 fun join t =
   while is_active t
-  do OS.Process.sleep (seconds 0.1);
+  do Time.sleep (seconds 0.1);
 
 
 (* interrupts *)

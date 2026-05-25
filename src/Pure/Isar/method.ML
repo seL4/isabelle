@@ -483,7 +483,7 @@ fun STATIC test : context_tactic =
 fun RUNTIME (tac: context_tactic) (ctxt, st) =
   if detect_closure_state st then Seq.empty else tac (ctxt, st);
 
-fun sleep t = RUNTIME (fn ctxt_st => (OS.Process.sleep t; Seq.single (Seq.Result ctxt_st)));
+fun sleep t = RUNTIME (fn ctxt_st => (Time.sleep t; Seq.single (Seq.Result ctxt_st)));
 
 
 (* evaluate method text *)

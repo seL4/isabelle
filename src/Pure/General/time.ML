@@ -8,6 +8,7 @@ signature TIME =
 sig
   include TIME
   val seconds: real -> time
+  val sleep: time -> unit
   val min: time * time -> time
   val max: time * time -> time
   val scale: real -> time -> time
@@ -23,6 +24,8 @@ open Time;
 
 val seconds = seconds;
 
+val sleep = OS.Process.sleep;
+
 fun min (t1, t2) = if t1 < t2 then t1 else t2;
 fun max (t1, t2) = if t1 > t2 then t1 else t2;
 
@@ -31,7 +34,7 @@ fun scale s t = Time.fromNanoseconds (Real.ceil (s * Real.fromInt (Time.toNanose
 fun parse s =
   (case Time.fromString s of
     SOME t => t
-  | NONE => raise Fail ("Bad time " ^ quote s));
+  | NONE => raise Fail ("Bad time \"" ^ s ^ "\""));
 
 fun print t =
   if t < Time.zeroTime then "-" ^ Time.toString (Time.zeroTime - t)
