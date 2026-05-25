@@ -271,7 +271,7 @@ via "isabelle build" or "isabelle process_theories".
 * More operations for structure Time, notably Time.seconds and
 Time.sleep.
 
-* Structures Posix, OS.Process and OS.IO are no longer accessible in
+* Structures Posix, OS.Process and OS.IO are no longer exposed to
 Isabelle/ML user-space. Minor INCOMPATIBILITY: use regular Isabelle/ML
 operations, notably Time.sleep instead of OS.Process.sleep.
 
