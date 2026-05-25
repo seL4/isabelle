@@ -1626,6 +1626,8 @@ end
 ML \<open>
 structure OS =
 struct
+  open OS;
+  structure IO = struct end;
   structure Process =
   struct
     val getEnv = OS.Process.getEnv;
