@@ -1633,6 +1633,8 @@ struct
   structure FileSys = OS.FileSys;
   structure Path = OS.Path;
 end;
+
+structure Posix = struct end;
 \<close>
 
 declare [[ML_write_global = false]]
