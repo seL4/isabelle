@@ -7,6 +7,7 @@ Time based on nanoseconds (idealized), printed as milliseconds.
 signature TIME =
 sig
   include TIME
+  val seconds: real -> time
   val min: time * time -> time
   val max: time * time -> time
   val scale: real -> time -> time
@@ -19,6 +20,8 @@ structure Time: TIME =
 struct
 
 open Time;
+
+val seconds = seconds;
 
 fun min (t1, t2) = if t1 < t2 then t1 else t2;
 fun max (t1, t2) = if t1 > t2 then t1 else t2;
