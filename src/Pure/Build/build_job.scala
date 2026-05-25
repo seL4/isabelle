@@ -99,6 +99,11 @@ object Build_Job {
   ) extends Name.T
 
   abstract class Build_Session(progress: Progress) extends Session {
+    session =>
+
+    override def now(): Date = progress.now()
+
+
     /* additional process output */
 
     private val process_output_file = Isabelle_System.tmp_file("process_output")
@@ -131,13 +136,6 @@ object Build_Job {
     }
 
 
-    /* options */
-
-    val build_progress_delay: Time = session_options.seconds("build_progress_delay")
-    val build_timing_threshold: Time = session_options.seconds("build_timing_threshold")
-    val editor_timing_threshold: Time = session_options.seconds("editor_timing_threshold")
-
-
     /* errors */
 
     private val build_errors: Promise[List[String]] = Future.promise
@@ -160,8 +158,8 @@ object Build_Job {
     private def nodes_status_progress(state: Document.State = get_state()): Unit = {
       val result =
         synchronized {
-          lazy val now = progress.now()
-          for (id <- state.progress_theories if !nodes_changed(id)) nodes_changed += id
+          lazy val now = session.now()
+          for (id <- state.running_theories if !nodes_changed(id)) nodes_changed += id
           val nodes_status1 =
             nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
               state.theory_snapshot(state_id, build_blobs) match {

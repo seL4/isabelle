@@ -43,15 +43,9 @@ object ML_Process {
           fun paragraph (_: string) = ();
           fun subparagraph (_: string) = ();
           val ML_file = PolyML.use;
-          """,
-          if (Platform.is_windows)
-            "fun exit 0 = OS.Process.exit OS.Process.success" +
-            " | exit 1 = OS.Process.exit OS.Process.failure" +
-            " | exit rc = OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))"
-          else
-            "fun exit rc = Posix.Process.exit (Word8.fromInt rc)",
-          "PolyML.Compiler.prompt1 := \"Poly/ML> \"",
-          "PolyML.Compiler.prompt2 := \"Poly/ML# \"")
+          PolyML.Compiler.prompt1 := "Poly/ML> ";
+          PolyML.Compiler.prompt2 := "Poly/ML# ";
+          """)
       }
       else {
         List(

@@ -507,7 +507,6 @@ val chide : string -> unit  (* stderr *)
 
 val warn : string -> unit
 
-val die : string -> 'exit
 
 val timed : ('a -> 'b) -> 'a -> real * 'b
 
@@ -1428,7 +1427,6 @@ in
 
   val warn = err "WARNING";
 
-  fun die s = (err "\nFATAL ERROR" s; OS.Process.exit OS.Process.failure);
 end;
 
 fun timed f a =

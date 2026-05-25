@@ -107,7 +107,8 @@ final class Consumer_Thread[A] private(
       (req.ack, res) match {
         case (Some(a), _) => a.change(_ => Some(res))
         case (None, Exn.Res(_)) =>
-        case (None, Exn.Exn(exn)) => log.error_message(failure_prefix + ":\n" + Exn.print(exn))
+        case (None, Exn.Exn(exn)) =>
+          for (msg <- Exn.print_failure(exn, prefix = failure_prefix)) log.error_message(msg)
       }
     }
 

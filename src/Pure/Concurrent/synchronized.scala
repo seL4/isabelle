@@ -26,21 +26,21 @@ final class Synchronized[A] private(init: A) {
 
   /* synchronized access */
 
-  def timed_access[B](time_limit: A => Option[Time], f: A => Option[(B, A)]): Option[B] =
+  def timed_access[B](until: A => Option[Time], body: A => Option[(B, A)]): Option[B] =
     synchronized {
       def check(x: A): Option[B] =
-        f(x) match {
+        body(x) match {
           case None => None
           case Some((y, x1)) =>
             state = x1
             notifyAll()
             Some(y)
         }
-      @tailrec def try_change(): Option[B] = {
+      @tailrec def loop(): Option[B] = {
         val x = state
         check(x) match {
           case None =>
-            time_limit(x) match {
+            until(x) match {
               case Some(t) =>
                 val timeout = (t - Time.now()).ms
                 if (timeout > 0L) {
@@ -50,24 +50,24 @@ final class Synchronized[A] private(init: A) {
                 else None
               case None =>
                 wait()
-                try_change()
+                loop()
             }
           case some => some
         }
       }
-      try_change()
+      loop()
     }
 
-  def guarded_access[B](f: A => Option[(B, A)]): B =
-    timed_access(_ => None, f).get
+  def guarded_access[B](body: A => Option[(B, A)]): B =
+    timed_access(_ => None, body).get
 
 
   /* unconditional change */
 
-  def change(f: A => A): Unit = synchronized { state = f(state); notifyAll() }
+  def change(body: A => A): Unit = synchronized { state = body(state); notifyAll() }
 
-  def change_result[B](f: A => (B, A)): B = synchronized {
-    val (result, new_state) = f(state)
+  def change_result[B](body: A => (B, A)): B = synchronized {
+    val (result, new_state) = body(state)
     state = new_state
     notifyAll()
     result

@@ -1392,9 +1392,10 @@ text \<open>
   The basis library proposal of SML97 needs to be treated with caution. Many
   of its operations simply do not fit with important Isabelle/ML conventions
   (like ``canonical argument order'', see
-  \secref{sec:canonical-argument-order}), others cause problems with the
-  parallel evaluation model of Isabelle/ML (such as \<^ML>\<open>TextIO.print\<close> or
-  \<^ML>\<open>OS.Process.system\<close>).
+  \secref{sec:canonical-argument-order}), others are in conflict with the
+  parallel evaluation of Isabelle/ML and Isabelle/PIDE messages (such as
+  \<^ML>\<open>TextIO.print\<close>). Note that Isabelle systems programming happens
+  primarily in Isabelle/Scala.
 
   Subsequently we give a brief overview of important operations on basic ML
   data types.

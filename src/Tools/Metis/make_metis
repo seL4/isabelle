@@ -52,4 +52,4 @@ EOF
 ;
 EOF
 
-) > metis.ML
+) | egrep -v '\bdie\b' > metis.ML

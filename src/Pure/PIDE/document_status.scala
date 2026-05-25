@@ -275,7 +275,7 @@ object Document_Status {
       var max_time = Time.zero
       var command_timings = Map.empty[Document_ID.Command, Command_Timings]
 
-      for (command <- node.commands.iterator) {
+      for (command <- node.commands.unordered_iterator) {
         val status = state.command_status(version, command)
 
         theory_status = Theory_Status.merge(theory_status, status.theory_status)

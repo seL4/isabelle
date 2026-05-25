@@ -127,6 +127,10 @@ final class Linear_Set[A] private(
   def contains(elem: A): Boolean =
     nonEmpty && (end.get == elem || nexts.isDefinedAt(elem))
 
+  def unordered_iterator: Iterator[A] =
+    if (isEmpty) Iterator.empty
+    else start.iterator ++ nexts.valuesIterator
+
   private def make_iterator(from: Option[A]): Iterator[A] = new Iterator[A] {
     private var next_elem = from
     def hasNext: Boolean = next_elem.isDefined

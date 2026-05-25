@@ -52,11 +52,11 @@ end;
 
 (* synchronous wait *)
 
-fun sync_wait time cond lock =
+fun sync_wait limit cond lock =
   Thread_Attributes.with_attributes
     (Thread_Attributes.sync_interrupts (Thread_Attributes.get_attributes ()))
     (fn _ =>
-      (case time of
+      (case limit of
         SOME t => Exn.Res (Thread.ConditionVar.waitUntil (cond, lock, t))
       | NONE => (Thread.ConditionVar.wait (cond, lock); Exn.Res true))
       handle exn => Exn.Exn exn);

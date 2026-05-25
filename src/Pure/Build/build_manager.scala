@@ -740,8 +740,8 @@ object Build_Manager {
     def stopped(a: A): Boolean = progress.stopped
 
     private val interrupted = Synchronized(false)
-    private def sleep(time_limit: Time): Unit =
-      interrupted.timed_access(_ => Some(time_limit), b => if (b) Some((), false) else None)
+    private def sleep(until: Time): Unit =
+      interrupted.timed_access(_ => Some(until), b => if (b) Some((), false) else None)
     def interrupt(): Unit = interrupted.change(_ => true)
 
     @tailrec private def loop(a: A): Unit =

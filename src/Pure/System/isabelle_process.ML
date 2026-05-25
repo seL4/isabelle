@@ -179,7 +179,10 @@ fun init_protocol modes = Thread_Attributes.uninterruptible (fn _ => fn (address
     val _ = Options.set_process_default NONE;
   in
     (case result of
-      Exn.Exn (Protocol_Command.STOP rc) => if rc = 0 then () else exit rc
+      Exn.Exn (Protocol_Command.STOP rc) =>
+        if rc = 0 then ()
+        else if rc = 1 then OS.Process.exit OS.Process.failure
+        else OS.Process.exit (RunCall.unsafeCast (Word8.fromInt rc))
     | _ => Exn.release result)
   end);
 

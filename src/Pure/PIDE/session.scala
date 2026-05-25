@@ -138,6 +138,13 @@ abstract class Session extends Document.Session {
   def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
 
 
+  /* diagnostics */
+
+  def now(): Date = Date.now()
+  final val start_date: Date = now()
+  def print_now(): String = (now() - start_date).toString
+
+
   /* session exports */
 
   def open_session_context(
@@ -190,6 +197,9 @@ abstract class Session extends Document.Session {
   def update_delay: Time = session_options.seconds("editor_update_delay")
   def document_delay: Time = session_options.seconds("editor_document_delay")
   def chart_delay: Time = session_options.seconds("editor_chart_delay")
+  def build_progress_delay: Time = session_options.seconds("build_progress_delay")
+  def build_timing_threshold: Time = session_options.seconds("build_timing_threshold")
+  def editor_timing_threshold: Time = session_options.seconds("editor_timing_threshold")
   def syslog_limit: Int = session_options.int("editor_syslog_limit")
   def reparse_limit: Int = session_options.int("editor_reparse_limit")
 
@@ -251,9 +261,7 @@ abstract class Session extends Document.Session {
   val raw_output_messages = new Outlet[Prover.Output]
   val trace_events = new Outlet[Simplifier_Trace.Event.type]
   val debugger_updates = new Outlet[Debugger.Update.type]
-
-  // potential bottle-neck!
-  lazy val all_messages = new Outlet[Prover.Message]
+  val all_messages = new Outlet[Prover.Message]  // potential bottle-neck!
 
 
   /** main protocol manager **/
@@ -853,9 +861,4 @@ abstract class Session extends Document.Session {
   def dialog_result(id: Document_ID.Generic, serial: Long, result: String): Unit =
     manager.send(Session.Dialog_Result(id, serial, result))
 
-
-  /* diagnostics */
-
-  val init_time: Time = Time.now()
-  def print_now(): String = (Time.now() - init_time).toString
 }

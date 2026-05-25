@@ -1623,6 +1623,21 @@ syntax (output)
   "_constrain" :: "prop' \<Rightarrow> type \<Rightarrow> prop'"  (\<open>_ :: _\<close> [4, 0] 3)
 end
 
+ML \<open>
+structure OS =
+struct
+  open OS;
+  structure IO = struct end;
+  structure Process =
+  struct
+    val getEnv = OS.Process.getEnv;
+  end;
+  structure FileSys = OS.FileSys;
+  structure Path = OS.Path;
+end;
+
+structure Posix = struct end;
+\<close>
 
 declare [[ML_write_global = false]]
 

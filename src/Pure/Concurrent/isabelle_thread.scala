@@ -20,6 +20,8 @@ object Isabelle_Thread {
       case name: String => name
     }
 
+  def failure_prefix: String = "Failure of thread " + quote(current_name)
+
   def self: Isabelle_Thread =
     current match {
       case thread: Isabelle_Thread => thread

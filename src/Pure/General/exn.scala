@@ -152,18 +152,25 @@ object Exn {
   def print(exn: Throwable): String =
     if (debug()) message(exn) + "\n" + trace(exn) else message(exn)
 
+  def print_failure(
+    exn: Throwable,
+    prefix: => String = Isabelle_Thread.failure_prefix
+  ): Option[String] =
+    if (is_interrupt(exn)) None
+    else {
+      val a = prefix
+      val b = print(exn)
+      Some(if_proper(a, a + ":\n") + b)
+    }
+
   def capture_trace[A](
     trace: String => Unit,
-    prefix: => String = "Failure on thread " + quote(Isabelle_Thread.current_name)
+    prefix: => String = Isabelle_Thread.failure_prefix
   )(e: => A): Result[A] =
     try { Res(e) }
     catch {
       case exn: Throwable =>
-        if (!is_interrupt(exn)) {
-          val a = prefix
-          val b = print(exn)
-          trace(if_proper(a, a + ":\n") + b)
-        }
-      Exn[A](exn)
+        for (msg <- print_failure(exn, prefix = prefix)) trace(msg)
+        Exn[A](exn)
     }
 }
