@@ -64,29 +64,29 @@ fun assign (Var {name, state}) x =
 
 (* synchronized access *)
 
-fun timed_access (Var {name, state}) time_limit f =
+fun timed_access (Var {name, state}) until body =
   (case ! state of
     Immutable _ => immutable_fail name
   | Mutable {lock, cond, ...} =>
       Multithreading.synchronized name lock (fn () =>
         let
-          fun try_change () =
+          fun loop () =
             (case ! state of
               Immutable _ => immutable_fail name
             | Mutable {content = x, ...} =>
-                (case f x of
+                (case body x of
                   NONE =>
-                    (case Multithreading.sync_wait (time_limit x) cond lock of
-                      Exn.Res true => try_change ()
+                    (case Multithreading.sync_wait (until x) cond lock of
+                      Exn.Res true => loop ()
                     | Exn.Res false => NONE
                     | Exn.Exn exn => Exn.reraise exn)
                 | SOME (y, x') =>
                     Thread_Attributes.uninterruptible_body (fn _ =>
                       (state := Mutable {lock = lock, cond = cond, content = x'};
                         Thread.ConditionVar.broadcast cond; SOME y))));
-        in try_change () end));
+        in loop () end));
 
-fun guarded_access var f = the (timed_access var (fn _ => NONE) f);
+fun guarded_access var body = the (timed_access var (fn _ => NONE) body);
 
 
 (* unconditional change *)
