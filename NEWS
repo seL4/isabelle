@@ -268,6 +268,13 @@ system options, without affecting the underlying ML process default.
 INCOMPATIBILITY: need to use formal PIDE session to load theories, e.g.
 via "isabelle build" or "isabelle process_theories".
 
+* More operations for structure Time, notably Time.seconds and
+Time.sleep.
+
+* Structures OS.Process and OS.IO are no longer accessible in
+Isabelle/ML user-space. Minor INCOMPATIBILITY: use regular Isabelle/ML
+operations, notably Time.sleep instead of OS.Process.sleep.
+
 
 *** System ***
 
