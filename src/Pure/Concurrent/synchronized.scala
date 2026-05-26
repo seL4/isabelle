@@ -43,7 +43,9 @@ final class Synchronized[A] private(init: A) {
       }
       def wait_until(limit: Option[Time]): Unit =
         limit match {
-          case Some(t) => wait((t - Time.now()).ms)
+          case Some(t) =>
+            val timeout = (t - Time.now()).ms
+            if (timeout > 0) wait(timeout)
           case None => wait()
         }
       @tailrec def loop(limit0: Option[Time]): Option[B] = {
