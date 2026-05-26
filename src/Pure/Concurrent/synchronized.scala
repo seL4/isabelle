@@ -36,26 +36,29 @@ final class Synchronized[A] private(init: A) {
             notifyAll()
             Some(y)
         }
-      @tailrec def loop(): Option[B] = {
+      def min_limit(x: A, a: Option[Time]): Option[Time] = {
+        val b = until(x)
+        if (b.isEmpty) a
+        else if (a.isEmpty) b
+        else if (a.get <= b.get) a
+        else b
+      }
+      def wait_until(limit: Option[Time]): Unit =
+        limit match {
+          case Some(t) => wait((t - Time.now()).ms)
+          case None => wait()
+        }
+      @tailrec def loop(limit0: Option[Time]): Option[B] = {
         val x = state
         check(x) match {
           case None =>
-            until(x) match {
-              case Some(t) =>
-                Time.now() match {
-                  case now if t > now =>
-                    wait((t - now).ms)
-                    check(state)
-                  case _ => None
-                }
-              case None =>
-                wait()
-                loop()
-            }
+            val limit = min_limit(x, limit0)
+            val expired = limit match { case Some(t) => Time.now() >= t case None => false }
+            if (expired) None else { wait_until(limit); loop(limit) }
           case some => some
         }
       }
-      loop()
+      loop(None)
     }
 
   def guarded_access[B](body: A => Option[(B, A)]): B =

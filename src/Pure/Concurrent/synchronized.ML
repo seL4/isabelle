@@ -78,7 +78,16 @@ fun timed_access (Var {name, state}) until body =
                  (state := Mutable {lock = lock, cond = cond, content = x'};
                   Thread.ConditionVar.broadcast cond;
                   SOME y)));
-          fun loop () =
+          fun min_limit x a =
+            let val b = until x in
+              if is_none b then a
+              else if is_none a then b
+              else if the a <= the b then a
+              else b
+            end;
+          fun wait_until limit =
+            ignore (Exn.release (Multithreading.sync_wait limit cond lock));
+          fun loop limit0 =
             let
               val x =
                 (case ! state of
@@ -87,13 +96,13 @@ fun timed_access (Var {name, state}) until body =
             in
               (case check x of
                 NONE =>
-                  (case Multithreading.sync_wait (until x) cond lock of
-                    Exn.Res false => NONE
-                  | Exn.Res true => loop ()
-                  | Exn.Exn exn => Exn.reraise exn)
+                  let
+                    val limit = min_limit x limit0;
+                    val expired = (case limit of SOME t => Time.now () >= t | NONE => false);
+                  in if expired then NONE else (wait_until limit; loop limit) end
               | some => some)
             end;
-        in loop () end));
+        in loop NONE end));
 
 fun guarded_access var body = the (timed_access var (fn _ => NONE) body);
 
