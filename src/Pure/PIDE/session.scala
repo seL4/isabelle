@@ -582,7 +582,7 @@ abstract class Session extends Document.Session {
         msg.properties match {
           case Protocol.Command_Timing(state_id, props) if prover.defined =>
             val message = XML.elem(Markup(Markup.Command_Timing.name, props))
-            change_command(_.accumulate(state_id, cache.elem(message), cache))
+            change_command(_.accumulate(resources.log, state_id, cache.elem(message), cache))
             command_timings.post(Session.Command_Timing(state_id, props))
 
           case Markup.Task_Statistics(props) =>
@@ -605,7 +605,8 @@ abstract class Session extends Document.Session {
             msg.text match {
               case Protocol.Commands_Accepted(ids) =>
                 ids.foreach(id =>
-                  change_command(_.accumulate(id, Protocol.Commands_Accepted.message, cache)))
+                  change_command(
+                    _.accumulate(resources.log, id, Protocol.Commands_Accepted.message, cache)))
               case _ => bad_output()
             }
 
@@ -647,7 +648,7 @@ abstract class Session extends Document.Session {
           case _ =>
             output.properties match {
               case Position.Id(state_id) =>
-                change_command(_.accumulate(state_id, output.message, cache))
+                change_command(_.accumulate(resources.log, state_id, output.message, cache))
               case _ => raw_output_messages.post(output)
             }
           }

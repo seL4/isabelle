@@ -282,6 +282,7 @@ object Command {
     }
 
     def accumulate(
+        log: Logger,
         now: Date,
         self_id: Document_ID.Generic => Boolean,
         other_id: (Document.Node.Name, Document_ID.Generic) =>
@@ -303,7 +304,7 @@ object Command {
                       add_status(now, markup).
                       add_markup(Text.Info(command.core_range, elem), status = true)
                   case _ =>
-                    Output.warning("Ignored status message: " + msg)
+                    log.warning("Ignored status message: " + msg)
                     state
                 }
             }
@@ -312,7 +313,7 @@ object Command {
         case XML.Elem(Markup(Markup.REPORT, atts0), msgs) =>
           msgs.foldLeft(this) {
             case (state, msg) =>
-              def bad(): Unit = Output.warning("Ignored report message: " + msg)
+              def bad(): Unit = log.warning("Ignored report message: " + msg)
 
               msg match {
                 case XML.Elem(Markup(name, atts), args) =>
@@ -362,7 +363,7 @@ object Command {
               st
 
             case _ =>
-              Output.warning("Ignored message without serial number: " + message)
+              log.warning("Ignored message without serial number: " + message)
               this
           }
       }
