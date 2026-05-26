@@ -643,7 +643,7 @@ abstract class Session extends Document.Session {
       else {
         output match {
           case msg: Prover.Protocol_Output =>
-            val handled = protocol_handlers.invoke(msg)
+            val handled = protocol_handlers.invoke(resources.log, msg)
             if (!handled) handle_protocol_output(msg)
           case _ =>
             output.properties match {

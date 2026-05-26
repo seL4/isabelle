@@ -42,13 +42,13 @@ object Protocol_Handlers {
       init(handler)
     }
 
-    def invoke(msg: Prover.Protocol_Output): Boolean =
+    def invoke(log: Logger, msg: Prover.Protocol_Output): Boolean =
       msg.properties match {
         case (Markup.FUNCTION, a) :: _ if functions.isDefinedAt(a) =>
           try { functions(a)(msg) }
           catch {
             case exn: Throwable =>
-              Output.error_message(
+              log.error_message(
                 "Failed invocation of protocol function: " + quote(a) + "\n" + Exn.print(exn))
             false
           }
@@ -73,6 +73,6 @@ class Protocol_Handlers private(session: Session) {
   def get(name: String): Option[Session.Protocol_Handler] = state.value.get(name)
   def init(handler: Session.Protocol_Handler): Unit = state.change(_.init(handler))
   def init(name: String): Unit = state.change(_.init(name))
-  def invoke(msg: Prover.Protocol_Output): Boolean = state.value.invoke(msg)
+  def invoke(log: Logger, msg: Prover.Protocol_Output): Boolean = state.value.invoke(log, msg)
   def exit(exit_state: Document.State): Unit = state.change(_.exit(exit_state))
 }
