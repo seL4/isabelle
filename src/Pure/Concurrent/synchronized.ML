@@ -71,13 +71,11 @@ fun timed_access (Var {name, state}) until body =
       Multithreading.synchronized name lock (fn () =>
         let
           fun check x =
-            (case body x of
-              NONE => NONE
-            | SOME (y, x') =>
-                Thread_Attributes.uninterruptible_body (fn _ =>
-                 (state := Mutable {lock = lock, cond = cond, content = x'};
-                  Thread.ConditionVar.broadcast cond;
-                  SOME y)));
+            body x |> Option.map (fn (y, x') =>
+              Thread_Attributes.uninterruptible_body (fn _ =>
+               (state := Mutable {lock = lock, cond = cond, content = x'};
+                Thread.ConditionVar.broadcast cond;
+                y)));
           fun min_limit x a =
             let val b = until x in
               if is_none b then a

@@ -29,12 +29,10 @@ final class Synchronized[A] private(init: A) {
   def timed_access[B](until: A => Option[Time], body: A => Option[(B, A)]): Option[B] =
     synchronized {
       def check(x: A): Option[B] =
-        body(x) match {
-          case None => None
-          case Some((y, x1)) =>
-            state = x1
-            notifyAll()
-            Some(y)
+        for ((y, x1) <- body(x)) yield {
+          state = x1
+          notifyAll()
+          y
         }
       def min_limit(x: A, a: Option[Time]): Option[Time] = {
         val b = until(x)
