@@ -460,7 +460,7 @@ class Main_Plugin extends EBPlugin {
     /* non-strict initialization */
 
     try {
-      completion_history.load()
+      completion_history.load(GUI.log)
       spell_checker.update(options.value)
 
       JEdit_Menu.init()

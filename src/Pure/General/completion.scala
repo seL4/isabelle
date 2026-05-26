@@ -57,9 +57,9 @@ object Completion {
   object History {
     val empty: History = new History()
 
-    def load(): History = {
+    def load(log: Logger): History = {
       def ignore_error(msg: String): Unit =
-        Output.warning("Ignoring bad content of file " + COMPLETION_HISTORY +
+        log.warning("Ignoring bad content of file " + COMPLETION_HISTORY +
           if_proper(msg, "\n" + msg))
 
       val content =
@@ -111,8 +111,8 @@ object Completion {
     private var history = History.empty
     def value: History = synchronized { history }
 
-    def load(): Unit = {
-      val h = History.load()
+    def load(log: Logger): Unit = {
+      val h = History.load(log)
       synchronized { history = h }
     }
 
