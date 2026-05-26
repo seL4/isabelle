@@ -42,12 +42,12 @@ final class Synchronized[A] private(init: A) {
           case None =>
             until(x) match {
               case Some(t) =>
-                val timeout = (t - Time.now()).ms
-                if (timeout > 0L) {
-                  wait(timeout)
-                  check(state)
+                Time.now() match {
+                  case now if t > now =>
+                    wait((t - now).ms)
+                    check(state)
+                  case _ => None
                 }
-                else None
               case None =>
                 wait()
                 loop()
