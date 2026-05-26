@@ -70,20 +70,29 @@ fun timed_access (Var {name, state}) until body =
   | Mutable {lock, cond, ...} =>
       Multithreading.synchronized name lock (fn () =>
         let
+          fun check x =
+            (case body x of
+              NONE => NONE
+            | SOME (y, x') =>
+                Thread_Attributes.uninterruptible_body (fn _ =>
+                 (state := Mutable {lock = lock, cond = cond, content = x'};
+                  Thread.ConditionVar.broadcast cond;
+                  SOME y)));
           fun loop () =
-            (case ! state of
-              Immutable _ => immutable_fail name
-            | Mutable {content = x, ...} =>
-                (case body x of
-                  NONE =>
-                    (case Multithreading.sync_wait (until x) cond lock of
-                      Exn.Res true => loop ()
-                    | Exn.Res false => NONE
-                    | Exn.Exn exn => Exn.reraise exn)
-                | SOME (y, x') =>
-                    Thread_Attributes.uninterruptible_body (fn _ =>
-                      (state := Mutable {lock = lock, cond = cond, content = x'};
-                        Thread.ConditionVar.broadcast cond; SOME y))));
+            let
+              val x =
+                (case ! state of
+                  Immutable _ => immutable_fail name
+                | Mutable {content, ...} => content);
+            in
+              (case check x of
+                NONE =>
+                  (case Multithreading.sync_wait (until x) cond lock of
+                    Exn.Res false => NONE
+                  | Exn.Res true => loop ()
+                  | Exn.Exn exn => Exn.reraise exn)
+              | some => some)
+            end;
         in loop () end));
 
 fun guarded_access var body = the (timed_access var (fn _ => NONE) body);
