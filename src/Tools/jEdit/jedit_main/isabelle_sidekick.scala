@@ -291,6 +291,6 @@ class Isabelle_Sidekick_Bibtex extends SideKickParser("bibtex") {
       }
       data
     }
-    catch { case ERROR(msg) => Output.warning(msg); null }
+    catch { case ERROR(msg) => GUI.log.warning(msg); null }
   }
 }
