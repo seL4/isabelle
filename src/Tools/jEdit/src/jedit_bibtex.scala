@@ -118,7 +118,7 @@ object JEdit_Bibtex {
                   yield (token_style(chunk.kind, tok), tok.source)
                 (styled_tokens, new Line_Context(Some(ctxt1)))
               }
-              catch { case ERROR(msg) => Output.warning(msg); no_markup }
+              catch { case ERROR(msg) => GUI.log.warning(msg); no_markup }
             case None => no_markup
           }
 

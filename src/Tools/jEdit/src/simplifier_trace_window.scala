@@ -97,7 +97,7 @@ private object Simplifier_Trace_Window {
             else if (head.markup == Markup.SIMP_TRACE_IGNORE) {
               parent.parent match {
                 case None =>
-                  Output.error_message(
+                  GUI.log.error_message(
                     "Simplifier_Trace_Window: malformed ignore message with parent " + head.parent)
                 case Some(tree) =>
                   tree.children -= head.parent
@@ -111,7 +111,7 @@ private object Simplifier_Trace_Window {
             }
 
           case None =>
-            Output.error_message("Simplifier_Trace_Window: unknown parent " + head.parent)
+            GUI.log.error_message("Simplifier_Trace_Window: unknown parent " + head.parent)
         }
     }
 

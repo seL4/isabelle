@@ -262,7 +262,7 @@ object Simplifier_Trace {
                 }
                 do_cancel(serial, id)
               case None =>
-                Output.warning("send_reply: unknown serial " + serial)
+                session.resources.log.warning("send_reply: unknown serial " + serial)
             }
 
             do_reply(session, serial, answer)
