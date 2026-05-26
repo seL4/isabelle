@@ -396,12 +396,19 @@ definition T_while_option2
 definition T_while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<Rightarrow> nat" where
 "T_while_option b f T_f x = snd (the (T_while_option2 b f T_f (x,0)))"
 
-lemma T_while_option_if_T_while_option2:
-  assumes "T_while_option2 b f tf (s,n0) = Some (t,n)"
-  shows "while_option b f s = Some t"
-using assms[unfolded T_while_option2_def]
-  while_option_commute[of "\<lambda>(s,_). b s" b fst "(\<lambda>(s, n). (f s, n + tf s))" f "(s,n0)"]
+lemma T_while_option_eq_T_while_option2:
+  "while_option b f s = map_option fst (T_while_option2 b f tf (s,n0))"
+unfolding T_while_option2_def
+  using while_option_commute[of "\<lambda>(s,_). b s" b fst "(\<lambda>(s, n). (f s, n + tf s))" f "(s,n0)"]
   by (simp add: split_def)
+
+lemma T_while_option_if_T_while_option2:
+  "T_while_option2 b f tf (s,n0) = Some (t,n) \<Longrightarrow> while_option b f s = Some t"
+by(simp add: T_while_option_eq_T_while_option2[of b f s tf n0])
+
+lemma T_while_option2_if_T_while_option:
+  "while_option b f s = Some t \<Longrightarrow> \<exists>n. T_while_option2 b f tf (s,n0) = Some (t,n)"
+by(simp add: T_while_option_eq_T_while_option2[of b f s tf n0])
 
 
 subsection \<open>\<open>while_Some\<close> and \<open>while_saturate\<close>\<close>
