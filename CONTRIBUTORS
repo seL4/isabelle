@@ -5,7 +5,10 @@ listed as an author in one of the source files of this Isabelle distribution.
 
 Contributions to this Isabelle version
 --------------------------------------
-
+* 2026: Hanna Lachnitt (University Stanford), Mathias Fleury and
+  Pascal Walter (University Freiburg)
+  Reconstructing cvc5 proofs in the SMT method, now included as part of Isabelle
+  with cvc5 as component.
 
 Contributions to Isabelle2025-1
 -------------------------------

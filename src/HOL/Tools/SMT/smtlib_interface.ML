@@ -9,10 +9,12 @@ signature SMTLIB_INTERFACE =
 sig
   val smtlibC: SMT_Util.class
   val hosmtlibC: SMT_Util.class
-  val bvsmlibC: SMT_Util.class
-  val realsmlibC: SMT_Util.class
-  val add_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
-  val del_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
+  val bvsmtlibC: SMT_Util.class
+  val setsmtlibC: SMT_Util.class
+  val realsmtlibC: SMT_Util.class
+  val add_logic: int * (string -> term list -> Proof.context -> SMT_Translate.smtlib_logic option) -> Context.generic
+    -> Context.generic
+  val del_logic: int * (string -> term list -> SMT_Translate.smtlib_logic option) -> Context.generic -> Context.generic
 
   type dtype_decls = (string * (string * (string * string) list) list) list
   type func_decl = string * (string list * string)
@@ -20,8 +22,6 @@ sig
     {dtyps: (BNF_Util.fp_kind * (string * (string * (string * string) list) list)) list,
      funcs: func_decl list, logic: string, sorts: string list} ->
     (SMT_Util.role * SMT_Translate.sterm) list -> string
-
-  val serialize_datatypes: BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T
 
   val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
   val assert_name_of_role_and_index: SMT_Util.role -> int -> string
@@ -34,9 +34,10 @@ struct
 val hoC = ["ho"]
 
 val smtlibC = ["smtlib"]   (* SMT-LIB 2 *)
-val hosmtlibC = smtlibC @ hoC   (* possibly SMT-LIB 3 *)
-val bvsmlibC = smtlibC @ ["BV"] (* if BV are supported *)
-val realsmlibC = ["Real"]
+val hosmtlibC = hoC   (* possibly SMT-LIB 3 *)
+val bvsmtlibC = ["BV"] (* if BV are supported *)
+val realsmtlibC = ["Real"]
+val setsmtlibC = ["Set"] (* if non SMT-LIB theory of sets is supported*)
 
 (* builtins *)
 
@@ -84,9 +85,10 @@ end
 
 fun fst_int_ord ((i1, _), (i2, _)) = int_ord (i1, i2)
 
+
 structure Logics = Generic_Data
 (
-  type T = (int * (string -> term list -> string option)) list
+  type T = (int * (string -> term list -> Proof.context -> SMT_Translate.smtlib_logic option)) list
   val empty = []
   fun merge data = Ord_List.merge fst_int_ord data
 )
@@ -96,12 +98,10 @@ fun del_logic pf = Logics.map (Ord_List.remove fst_int_ord pf)
 
 fun choose_logic ctxt prover ts =
   let
-    fun choose [] = "AUFLIA"
-      | choose ((_, f) :: fs) = (case f prover ts of SOME s => s | NONE => choose fs)
+    fun choose [] = SMT_Translate.SL {fixedSizeBitVectors=false, real=false, set=false}
+      | choose ((_, f) :: fs) = (case f prover ts ctxt of SOME s => s | NONE => choose fs)
   in
-    (case choose (Logics.get (Context.Proof ctxt)) of
-      "" => "" (* for default Z3 logic, a subset of everything *)
-    | logic => "(set-logic " ^ logic ^ ")\n")
+    choose (Logics.get (Context.Proof ctxt))
   end
 
 
@@ -179,6 +179,7 @@ fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) s
       {logic, sorts, dtyps, funcs} ts =
   let
     val unsat_core = member (op =) smt_options (":produce-unsat-cores", "true")
+    val models = member (op =) smt_options (":produce-models", "true")
   in
     Buffer.empty
     |> fold (Buffer.add o enclose "; " "\n") comments
@@ -192,25 +193,10 @@ fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) s
         (SMTLIB.str_of (named_sterm (assert_name_of_role_and_index role i) (tree_of_sterm 0 t)))))
         (map_index I ts)
     |> Buffer.add "(check-sat)\n"
-    |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else "(get-proof)\n")
+    |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else
+       if models then "(get-model)\n" else "(get-proof)\n")
     |> Buffer.content
   end
-
-local
-
-fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
-fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
-fun sdatatype (_, ctrs) = enclose "(" ")" (implode_space (map sctr ctrs))
-fun sarity (name, _) = enclose "(" ")" (name ^ " 0")
-
-in
-
-fun serialize_datatypes ((fp, dtyps : dtype_decls)) =
-  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes (" ^
-    implode_space (map sarity dtyps) ^ ") (") "))\n"
-  (space_implode"\n  " (map sdatatype dtyps)))
-
-end
 
 (* interface *)
 

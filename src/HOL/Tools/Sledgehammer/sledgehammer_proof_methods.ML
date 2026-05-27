@@ -11,7 +11,8 @@ sig
 
   datatype SMT_backend =
     SMT_Z3 |
-    SMT_Verit of string
+    SMT_Verit of string |
+    SMT_cvc of string
 
   datatype proof_method =
     Algebra_Method |
@@ -58,7 +59,8 @@ open Sledgehammer_Util
 
 datatype SMT_backend =
   SMT_Z3 |
-  SMT_Verit of string
+  SMT_Verit of string |
+  SMT_cvc of string
 
 datatype proof_method =
   Metis_Method of string option * string option * string list |
@@ -142,6 +144,8 @@ fun pretty_proof_method prefix suffix facts meth =
       | SMT_Method SMT_Z3 => "smt (z3)"
       | SMT_Method (SMT_Verit strategy) =>
         "smt (" ^ commas ("verit" :: (if strategy = "default" then [] else [strategy])) ^ ")"
+      | SMT_Method (SMT_cvc strategy) =>
+        "smt (" ^ commas ("cvc5" :: (if strategy = "default" then [] else [strategy])) ^ ")"
       | SATx_Method => "satx"
       | Argo_Method => "argo"
       | Blast_Method => "blast"
@@ -177,7 +181,9 @@ fun tac_of_proof_method ctxt (local_facts, global_facts) meth =
       end
 
     fun tac_of_smt SMT_Z3 = SMT_Solver.smt_tac
-      | tac_of_smt (SMT_Verit strategy) = Verit_Strategies.verit_tac_stgy strategy
+      | tac_of_smt (SMT_Verit strategy) = Alethe_Strategies.verit_tac_stgy strategy
+      | tac_of_smt (SMT_cvc strategy) = Alethe_Strategies.cvc5_tac_stgy strategy
+
   in
     (case meth of
       Metis_Method options => tac_of_metis options

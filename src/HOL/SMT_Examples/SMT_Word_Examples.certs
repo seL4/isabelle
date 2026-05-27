@@ -33,6 +33,16 @@ unsat
 (let ((@x49 (trans @x45 (rewrite (= (not true) false)) (= (not (= (bvadd (_ bv27 5) (_ bv11 5)) (_ bv6 5))) false))))
 (mp (asserted (not (= (bvadd (_ bv27 5) (_ bv11 5)) (_ bv6 5)))) @x49 false)))))))
 
+0e3ec4ac7c67aebfff2a5df85b922b50d3602563 9 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x38 (monotonicity (rewrite (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) (= (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)) (= (_ bv21 8) (_ bv21 8))))))
+(let ((@x42 (trans @x38 (rewrite (= (= (_ bv21 8) (_ bv21 8)) true)) (= (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)) true))))
+(let ((@x45 (monotonicity @x42 (= (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) (not true)))))
+(let ((@x49 (trans @x45 (rewrite (= (not true) false)) (= (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) false))))
+(mp (asserted (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)))) @x49 false)))))))
+
 9cf93e929e27dc04c30894bd14ced90c3cc565db 9 0
 unsat
 ((set-logic <null>)
@@ -43,15 +53,17 @@ unsat
 (let ((@x54 (trans @x50 (rewrite (= (not true) false)) (= (not (= (bvsub (_ bv11 8) (_ bv27 8)) (bvneg (_ bv16 8)))) false))))
 (mp (asserted (not (= (bvsub (_ bv11 8) (_ bv27 8)) (bvneg (_ bv16 8))))) @x54 false)))))))
 
-0e3ec4ac7c67aebfff2a5df85b922b50d3602563 9 0
+fba3705db466758448378b5ea95c8262e4d62c80 11 0
 unsat
 ((set-logic <null>)
 (proof
-(let ((@x38 (monotonicity (rewrite (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) (= (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)) (= (_ bv21 8) (_ bv21 8))))))
-(let ((@x42 (trans @x38 (rewrite (= (= (_ bv21 8) (_ bv21 8)) true)) (= (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)) true))))
-(let ((@x45 (monotonicity @x42 (= (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) (not true)))))
-(let ((@x49 (trans @x45 (rewrite (= (not true) false)) (= (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8))) false))))
-(mp (asserted (not (= (bvmul (_ bv7 8) (_ bv3 8)) (_ bv21 8)))) @x49 false)))))))
+(let ((?x28 (bvneg (_ bv11 5))))
+(let ((?x29 (bvneg ?x28)))
+(let (($x30 (= ?x29 (_ bv11 5))))
+(let ((@x42 (trans (monotonicity (rewrite (= ?x28 (_ bv21 5))) (= ?x29 (bvneg (_ bv21 5)))) (rewrite (= (bvneg (_ bv21 5)) (_ bv11 5))) $x30)))
+(let ((@x49 (trans (monotonicity @x42 (= $x30 (= (_ bv11 5) (_ bv11 5)))) (rewrite (= (= (_ bv11 5) (_ bv11 5)) true)) (= $x30 true))))
+(let ((@x56 (trans (monotonicity @x49 (= (not $x30) (not true))) (rewrite (= (not true) false)) (= (not $x30) false))))
+(mp (asserted (not $x30)) @x56 false)))))))))
 
 faad761e2741d8b647fa62db13d8b0e649fb03d0 11 0
 unsat
@@ -64,33 +76,6 @@ unsat
 (let ((@x59 (monotonicity @x56 (= (not (= (bvadd (bvneg (_ bv40 7)) (_ bv1 7)) (bvneg (_ bv39 7)))) (not true)))))
 (let ((@x63 (trans @x59 (rewrite (= (not true) false)) (= (not (= (bvadd (bvneg (_ bv40 7)) (_ bv1 7)) (bvneg (_ bv39 7)))) false))))
 (mp (asserted (not (= (bvadd (bvneg (_ bv40 7)) (_ bv1 7)) (bvneg (_ bv39 7))))) @x63 false)))))))))
-
-4bf6f825855790123eb3af10c0a8ece72a2696c0 7 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x35 (monotonicity (rewrite (= (= (_ bv11 5) (_ bv11 5)) true)) (= (not (= (_ bv11 5) (_ bv11 5))) (not true)))))
-(let ((@x39 (trans @x35 (rewrite (= (not true) false)) (= (not (= (_ bv11 5) (_ bv11 5))) false))))
-(mp (asserted (not (= (_ bv11 5) (_ bv11 5)))) @x39 false)))))
-
-a481dcd4c078eb4bbc4578997c1becc3d0588892 18 0
-unsat
-((set-logic <null>)
-(proof
-(let ((?x31 (bvmul (_ bv4 4) x$)))
-(let (($x32 (= ?x31 (_ bv4 4))))
-(let (($x43 (= (_ bv5 4) x$)))
-(let (($x56 (not (or (not $x43) (= (_ bv4 4) ?x31)))))
-(let ((@x48 (monotonicity (rewrite (= (= x$ (_ bv5 4)) $x43)) (= (not (= x$ (_ bv5 4))) (not $x43)))))
-(let ((@x55 (monotonicity @x48 (rewrite (= $x32 (= (_ bv4 4) ?x31))) (= (or (not (= x$ (_ bv5 4))) $x32) (or (not $x43) (= (_ bv4 4) ?x31))))))
-(let (($x34 (not (=> (= x$ (_ bv5 4)) $x32))))
-(let ((@x39 (rewrite (= (=> (= x$ (_ bv5 4)) $x32) (or (not (= x$ (_ bv5 4))) $x32)))))
-(let ((@x60 (trans (monotonicity @x39 (= $x34 (not (or (not (= x$ (_ bv5 4))) $x32)))) (monotonicity @x55 (= (not (or (not (= x$ (_ bv5 4))) $x32)) $x56)) (= $x34 $x56))))
-(let ((@x67 (monotonicity (not-or-elim (mp (asserted $x34) @x60 $x56) $x43) (= ?x31 (bvmul (_ bv4 4) (_ bv5 4))))))
-(let ((@x73 (monotonicity (trans @x67 (rewrite (= (bvmul (_ bv4 4) (_ bv5 4)) (_ bv4 4))) $x32) (= (= (_ bv4 4) ?x31) (= (_ bv4 4) (_ bv4 4))))))
-(let ((@x77 (trans @x73 (rewrite (= (= (_ bv4 4) (_ bv4 4)) true)) (= (= (_ bv4 4) ?x31) true))))
-(let ((@x84 (trans (monotonicity @x77 (= (not (= (_ bv4 4) ?x31)) (not true))) (rewrite (= (not true) false)) (= (not (= (_ bv4 4) ?x31)) false))))
-(mp (not-or-elim (mp (asserted $x34) @x60 $x56) (not (= (_ bv4 4) ?x31))) @x84 false))))))))))))))))
 
 e913ddebe8fd3723faed676f00550d0f85717e48 19 0
 unsat
@@ -112,15 +97,15 @@ unsat
 (let ((@x67 (trans @x63 (rewrite (= (not true) false)) (= $x38 false))))
 (mp (asserted $x38) @x67 false)))))))))))))))))
 
-1cd4bc28651d39e32aab684ecfdd3be7c1dd0a2c 9 0
+769bdf70860c69df30d176b7eb677294e426fc4b 9 0
 unsat
 ((set-logic <null>)
 (proof
-(let ((@x37 (monotonicity (rewrite (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) (= (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)) (= (_ bv4 32) (_ bv4 32))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv4 32) (_ bv4 32)) true)) (= (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) false))))
-(mp (asserted (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)))) @x48 false)))))))
+(let ((@x37 (monotonicity (rewrite (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) (= (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)) (= (_ bv15 8) (_ bv15 8))))))
+(let ((@x41 (trans @x37 (rewrite (= (= (_ bv15 8) (_ bv15 8)) true)) (= (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)) true))))
+(let ((@x44 (monotonicity @x41 (= (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) (not true)))))
+(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) false))))
+(mp (asserted (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)))) @x48 false)))))))
 
 178251ca0606b596bae71a7cf9b656088f51af57 9 0
 unsat
@@ -132,6 +117,16 @@ unsat
 (let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvor (_ bv6 8) (_ bv3 8)) (_ bv7 8))) false))))
 (mp (asserted (not (= (bvor (_ bv6 8) (_ bv3 8)) (_ bv7 8)))) @x48 false)))))))
 
+1cd4bc28651d39e32aab684ecfdd3be7c1dd0a2c 9 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x37 (monotonicity (rewrite (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) (= (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)) (= (_ bv4 32) (_ bv4 32))))))
+(let ((@x41 (trans @x37 (rewrite (= (= (_ bv4 32) (_ bv4 32)) true)) (= (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)) true))))
+(let ((@x44 (monotonicity @x41 (= (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) (not true)))))
+(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32))) false))))
+(mp (asserted (not (= (bvand (_ bv6 32) (_ bv5 32)) (_ bv4 32)))) @x48 false)))))))
+
 c2fb3d6f1f3f3e6dd3836f7f610e92c43dd7dfff 8 0
 unsat
 ((set-logic <null>)
@@ -141,15 +136,33 @@ unsat
 (let ((@x47 (trans (monotonicity @x40 (= (not (= (bvnot (_ bv240 16)) (_ bv65295 16))) (not true))) (rewrite (= (not true) false)) (= (not (= (bvnot (_ bv240 16)) (_ bv65295 16))) false))))
 (mp (asserted (not (= (bvnot (_ bv240 16)) (_ bv65295 16)))) @x47 false))))))
 
-769bdf70860c69df30d176b7eb677294e426fc4b 9 0
+a481dcd4c078eb4bbc4578997c1becc3d0588892 18 0
 unsat
 ((set-logic <null>)
 (proof
-(let ((@x37 (monotonicity (rewrite (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) (= (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)) (= (_ bv15 8) (_ bv15 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv15 8) (_ bv15 8)) true)) (= (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8))) false))))
-(mp (asserted (not (= (bvxor (_ bv240 8) (_ bv255 8)) (_ bv15 8)))) @x48 false)))))))
+(let ((?x31 (bvmul (_ bv4 4) x$)))
+(let (($x32 (= ?x31 (_ bv4 4))))
+(let (($x43 (= (_ bv5 4) x$)))
+(let (($x56 (not (or (not $x43) (= (_ bv4 4) ?x31)))))
+(let ((@x48 (monotonicity (rewrite (= (= x$ (_ bv5 4)) $x43)) (= (not (= x$ (_ bv5 4))) (not $x43)))))
+(let ((@x55 (monotonicity @x48 (rewrite (= $x32 (= (_ bv4 4) ?x31))) (= (or (not (= x$ (_ bv5 4))) $x32) (or (not $x43) (= (_ bv4 4) ?x31))))))
+(let (($x34 (not (=> (= x$ (_ bv5 4)) $x32))))
+(let ((@x39 (rewrite (= (=> (= x$ (_ bv5 4)) $x32) (or (not (= x$ (_ bv5 4))) $x32)))))
+(let ((@x60 (trans (monotonicity @x39 (= $x34 (not (or (not (= x$ (_ bv5 4))) $x32)))) (monotonicity @x55 (= (not (or (not (= x$ (_ bv5 4))) $x32)) $x56)) (= $x34 $x56))))
+(let ((@x67 (monotonicity (not-or-elim (mp (asserted $x34) @x60 $x56) $x43) (= ?x31 (bvmul (_ bv4 4) (_ bv5 4))))))
+(let ((@x73 (monotonicity (trans @x67 (rewrite (= (bvmul (_ bv4 4) (_ bv5 4)) (_ bv4 4))) $x32) (= (= (_ bv4 4) ?x31) (= (_ bv4 4) (_ bv4 4))))))
+(let ((@x77 (trans @x73 (rewrite (= (= (_ bv4 4) (_ bv4 4)) true)) (= (= (_ bv4 4) ?x31) true))))
+(let ((@x84 (trans (monotonicity @x77 (= (not (= (_ bv4 4) ?x31)) (not true))) (rewrite (= (not true) false)) (= (not (= (_ bv4 4) ?x31)) false))))
+(mp (not-or-elim (mp (asserted $x34) @x60 $x56) (not (= (_ bv4 4) ?x31))) @x84 false))))))))))))))))
+
+fbcdf2e6d22b0878c3a8d9953b010348ac7444a9 8 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x36 (monotonicity (rewrite (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2))) (= (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2)) (= (_ bv3 2) (_ bv3 2))))))
+(let ((@x40 (trans @x36 (rewrite (= (= (_ bv3 2) (_ bv3 2)) true)) (= (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2)) true))))
+(let ((@x47 (trans (monotonicity @x40 (= (not (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2))) (not true))) (rewrite (= (not true) false)) (= (not (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2))) false))))
+(mp (asserted (not (= ((_ extract 2 1) (_ bv6 3)) (_ bv3 2)))) @x47 false))))))
 
 584cf4e60989598a0043c67a2cbfb9786830972b 9 0
 unsat
@@ -160,15 +173,6 @@ unsat
 (let ((@x44 (monotonicity @x41 (= (not (= (concat (_ bv3 4) (_ bv15 6)) (_ bv207 10))) (not true)))))
 (let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (concat (_ bv3 4) (_ bv15 6)) (_ bv207 10))) false))))
 (mp (asserted (not (= (concat (_ bv3 4) (_ bv15 6)) (_ bv207 10)))) @x48 false)))))))
-
-c4ba99a31bff950f61b48e2df91d0092a4605b5b 8 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) (= (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)) (= (_ bv3 2) (_ bv3 2))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv3 2) (_ bv3 2)) true)) (= (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)) true))))
-(let ((@x47 (trans (monotonicity @x40 (= (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) (not true))) (rewrite (= (not true) false)) (= (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) false))))
-(mp (asserted (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)))) @x47 false))))))
 
 62fc6678382dfb5f2112f46aac810939a87814fd 9 0
 unsat
@@ -190,15 +194,15 @@ unsat
 (let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ zero_extend 6) (_ bv10 4)) (_ bv10 10))) false))))
 (mp (asserted (not (= ((_ zero_extend 6) (_ bv10 4)) (_ bv10 10)))) @x47 false)))))))
 
-9db301365e8ecb55d7eee63724f390087c022cac 9 0
+6a1651ecd0ee18afb5d28df84a7ed4f4d3f87c8c 9 0
 unsat
 ((set-logic <null>)
 (proof
-(let ((@x37 (monotonicity (rewrite (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) (= (_ bv76 8) (_ bv76 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv76 8) (_ bv76 8)) true)) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) false))))
-(mp (asserted (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)))) @x48 false)))))))
+(let ((@x36 (monotonicity (rewrite (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) (= (_ bv9 4) (_ bv9 4))))))
+(let ((@x40 (trans @x36 (rewrite (= (= (_ bv9 4) (_ bv9 4)) true)) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) true))))
+(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (not true)))))
+(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) false))))
+(mp (asserted (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)))) @x47 false)))))))
 
 10141671f4de43526d88d4ecd79c12df4bdb4825 9 0
 unsat
@@ -210,7 +214,7 @@ unsat
 (let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ sign_extend 2) (_ bv10 4)) (_ bv58 6))) false))))
 (mp (asserted (not (= ((_ sign_extend 2) (_ bv10 4)) (_ bv58 6)))) @x47 false)))))))
 
-f043e921c4475109c2fdff12856bf28a46f470e8 9 0
+5310529a849a2ce4a76c79fa19d15ddff008a931 9 0
 unsat
 ((set-logic <null>)
 (proof
@@ -219,36 +223,6 @@ unsat
 (let ((@x44 (monotonicity @x41 (= (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8))) (not true)))))
 (let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8))) false))))
 (mp (asserted (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8)))) @x48 false)))))))
-
-a14cf81020b4c017a44794d9f507892fc994a0aa 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x37 (monotonicity (rewrite (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) (= (_ bv6 8) (_ bv6 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv6 8) (_ bv6 8)) true)) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) false))))
-(mp (asserted (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)))) @x48 false)))))))
-
-1737667dcdf52add3cf7ec23188f82da46dd2b0a 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) (= (_ bv9 4) (_ bv9 4))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv9 4) (_ bv9 4)) true)) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) true))))
-(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (not true)))))
-(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) false))))
-(mp (asserted (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)))) @x47 false)))))))
-
-4c62aea85c861b1e65021c56cee22174328eedc0 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) (= (_ bv13 4) (_ bv13 4))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv13 4) (_ bv13 4)) true)) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) true))))
-(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (not true)))))
-(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) false))))
-(mp (asserted (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)))) @x47 false)))))))
 
 dfec96be9ace458cbe9ee12898f33db7192c335c 17 0
 unsat
@@ -267,6 +241,36 @@ unsat
 (let (($x53 (or $x52 false false false false false false false false false false false false false false false false)))
 (let ((@x55 (unit-resolution ((_ th-lemma bv) $x53) @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 @x26 $x52)))
 (unit-resolution @x55 @x63 false)))))))))))))))
+
+285cd5bba5ca1905574b61e3d461a4ebff2f3453 9 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x37 (monotonicity (rewrite (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) (= (_ bv6 8) (_ bv6 8))))))
+(let ((@x41 (trans @x37 (rewrite (= (= (_ bv6 8) (_ bv6 8)) true)) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) true))))
+(let ((@x44 (monotonicity @x41 (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (not true)))))
+(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) false))))
+(mp (asserted (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)))) @x48 false)))))))
+
+0e7ad4f3881773eabe983302ffcd8df49d64b282 9 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x36 (monotonicity (rewrite (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) (= (_ bv13 4) (_ bv13 4))))))
+(let ((@x40 (trans @x36 (rewrite (= (= (_ bv13 4) (_ bv13 4)) true)) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) true))))
+(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (not true)))))
+(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) false))))
+(mp (asserted (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)))) @x47 false)))))))
+
+7442f84851c79dc3192f17e0216df2eabe56c352 9 0
+unsat
+((set-logic <null>)
+(proof
+(let ((@x37 (monotonicity (rewrite (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) (= (_ bv76 8) (_ bv76 8))))))
+(let ((@x41 (trans @x37 (rewrite (= (= (_ bv76 8) (_ bv76 8)) true)) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) true))))
+(let ((@x44 (monotonicity @x41 (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (not true)))))
+(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) false))))
+(mp (asserted (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)))) @x48 false)))))))
 
 73db5e04efabac69390d8eaa510230b30d68aff6 51 0
 unsat
@@ -362,63 +366,4 @@ unsat
 (let (($x29 (= ?x28 0)))
 (let ((@x30 (asserted $x29)))
 (unit-resolution ((_ th-lemma arith triangle-eq) (or (not $x29) $x183)) @x30 (unit-resolution @x189 @x180 $x184) false)))))))))))))))))))
-
-b2ee8007cb3c8ac4e5e5757d28bfd35a7b69ce1c 8 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) (= (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)) (= (_ bv3 2) (_ bv3 2))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv3 2) (_ bv3 2)) true)) (= (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)) true))))
-(let ((@x47 (trans (monotonicity @x40 (= (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) (not true))) (rewrite (= (not true) false)) (= (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2))) false))))
-(mp (asserted (not (= ((_ extract 2 1) (_ bv6 4)) (_ bv3 2)))) @x47 false))))))
-
-285cd5bba5ca1905574b61e3d461a4ebff2f3453 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x37 (monotonicity (rewrite (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) (= (_ bv6 8) (_ bv6 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv6 8) (_ bv6 8)) true)) (= (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8))) false))))
-(mp (asserted (not (= (bvlshr (_ bv25 8) (_ bv2 8)) (_ bv6 8)))) @x48 false)))))))
-
-7442f84851c79dc3192f17e0216df2eabe56c352 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x37 (monotonicity (rewrite (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) (= (_ bv76 8) (_ bv76 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv76 8) (_ bv76 8)) true)) (= (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8))) false))))
-(mp (asserted (not (= (bvshl (_ bv19 8) (_ bv2 8)) (_ bv76 8)))) @x48 false)))))))
-
-5310529a849a2ce4a76c79fa19d15ddff008a931 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x37 (monotonicity (rewrite (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8))) (= (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8)) (= (_ bv4 8) (_ bv4 8))))))
-(let ((@x41 (trans @x37 (rewrite (= (= (_ bv4 8) (_ bv4 8)) true)) (= (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8)) true))))
-(let ((@x44 (monotonicity @x41 (= (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8))) (not true)))))
-(let ((@x48 (trans @x44 (rewrite (= (not true) false)) (= (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8))) false))))
-(mp (asserted (not (= (bvashr (_ bv19 8) (_ bv2 8)) (_ bv4 8)))) @x48 false)))))))
-
-0e7ad4f3881773eabe983302ffcd8df49d64b282 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) (= (_ bv13 4) (_ bv13 4))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv13 4) (_ bv13 4)) true)) (= (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)) true))))
-(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) (not true)))))
-(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4))) false))))
-(mp (asserted (not (= ((_ rotate_left 1) (_ bv14 4)) (_ bv13 4)))) @x47 false)))))))
-
-6a1651ecd0ee18afb5d28df84a7ed4f4d3f87c8c 9 0
-unsat
-((set-logic <null>)
-(proof
-(let ((@x36 (monotonicity (rewrite (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) (= (_ bv9 4) (_ bv9 4))))))
-(let ((@x40 (trans @x36 (rewrite (= (= (_ bv9 4) (_ bv9 4)) true)) (= (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)) true))))
-(let ((@x43 (monotonicity @x40 (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) (not true)))))
-(let ((@x47 (trans @x43 (rewrite (= (not true) false)) (= (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4))) false))))
-(mp (asserted (not (= ((_ rotate_right 2) (_ bv6 4)) (_ bv9 4)))) @x47 false)))))))
 

@@ -1591,7 +1591,7 @@ lemma has_sum_uminus:
 lemma summable_on_uminus:
   fixes f :: \<open>'a \<Rightarrow> 'b::topological_ab_group_add\<close>
   shows\<open>(\<lambda>x. - f x) summable_on A \<longleftrightarrow> f summable_on A\<close>
-  by (metis summable_on_def has_sum_uminus verit_minus_simplify(4))
+  by (metis summable_on_def has_sum_uminus alethe_minus_simplify(4))
 
 lemma infsum_uminus:
   fixes f :: \<open>'a \<Rightarrow> 'b::{topological_ab_group_add, t2_space}\<close>

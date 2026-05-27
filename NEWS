@@ -177,6 +177,11 @@ For example:
 * SMT:
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
+  - update the reconstruction to the latest version of Alethe proof standard.
+  - reconstruction is now possible using the SMT solver cvc5. Remark that the
+    reconstruction works best if you have Reals imported, even if you are using
+    only integers.
+  - like veriT, cvc5 has strategies to improve the performance of reconstruction.
 
 * Theory "HOL.Finite_Set"
   - Added lemmas.
@@ -245,6 +250,12 @@ and arch_pow. Minor INCOMPATIBILITY.
 Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
 generalised to Euclidean spaces. Stronger versions of the FTC, now for
 countable rather than finite sets. Minor INCOMPATIBILITY
+
+* Sledgehammer:
+  - Update of bundled provers:
+      . veriT 2026.05
+      . cvc5 1.3.4
+  - Sledgehammer can now suggest cvc5 as proof backend `by (smt (cvc5, ...))`
 
 
 *** ML ***

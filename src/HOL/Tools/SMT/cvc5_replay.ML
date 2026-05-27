@@ -111,7 +111,7 @@ fun replay_theorem_step rewrite_rules ll_defs assumed inputs proof_prems
     val export_vars = concl_tranformation @
        (ListPair.zip (map Free fixes, map Free (ListPair.zip (names, map snd fixes))))
 
-    val post = let val thy = Proof_Context.theory_of (Simplifier.empty_simpset ctxt) in
+    val post = let val thy = Proof_Context.theory_of (empty_simpset ctxt) in
         Simplifier.rewrite_term thy ((if Lethe_Proof.keep_raw_lifting rule andalso not (null rewrite_rules) then tl rewrite_rules else rewrite_rules)) []
         #> Object_Logic.atomize_term ctxt
         #> not (null ll_defs andalso Lethe_Proof.keep_raw_lifting rule) ? SMTLIB_Isar.unlift_term ll_defs
@@ -163,8 +163,6 @@ fun replay_theorem_step rewrite_rules ll_defs assumed inputs proof_prems
     val ({elapsed, ...}, thm) =
       SMT_Config.with_time_limit ctxt SMT_Config.reconstruction_step_timeout replay step
         handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT SMT_Failure.Time_Out
-    (*TODO: Maybe add flag so this is only output when checking an external proof, although I feel
-      it would be useful even when not*)
     val _ = (SMT_Config.verbose_msg ctxt (K ("Successfully checked step " ^ id)) ())
 
     val stats' = Symtab.cons_list (rule, Time.toNanoseconds elapsed) stats
@@ -215,7 +213,7 @@ fun replay_definition_step rewrite_rules ll_defs _ _ _
 
 fun replay_assumed assms ll_defs rewrite_rules stats ctxt term =
   let
-    val rewrite = let val thy = Proof_Context.theory_of (Simplifier.empty_simpset ctxt) in
+    val rewrite = let val thy = Proof_Context.theory_of (empty_simpset ctxt) in
         Simplifier.rewrite_term thy rewrite_rules []
         #> not (null ll_defs) ? SMTLIB_Isar.unlift_term ll_defs
       end
@@ -300,7 +298,7 @@ fun replay outer_ctxt
               proof_ctxt = [],
               concl = Thm.prop_of th'
                 |> Simplifier.rewrite_term (Proof_Context.theory_of
-                     (Simplifier.empty_simpset ctxt |> Simplifier.add_simps rewrite_rules)) rewrite_rules [],
+                     (empty_simpset ctxt |> Simplifier.add_simps rewrite_rules)) rewrite_rules [],
               bounds = [],
               insts = Symtab.empty,
               declarations = [],
@@ -309,7 +307,7 @@ fun replay outer_ctxt
       end
 
     val used_assert_ids = fold add_used_asserts_in_step actual_steps []
-    fun normalize_tac ctxt = let val thy = Proof_Context.theory_of (Simplifier.empty_simpset ctxt) in
+    fun normalize_tac ctxt = let val thy = Proof_Context.theory_of (empty_simpset ctxt) in
       Simplifier.rewrite_term thy rewrite_rules [] end
     val used_assm_js =
       map_filter (fn (id, th) => let val i = index_of_id id in if i >= 0 then SOME (i, th)

@@ -254,7 +254,12 @@ fun bunches_of_metis_methods ctxt needs_full_types needs_lam_defs =
   end
 
 fun bunches_of_smt_methods ctxt =
-  [map (SMT_Method o SMT_Verit) (Verit_Strategies.all_veriT_stgies (Context.Proof ctxt))]
+  [map (SMT_Method o SMT_cvc) (Alethe_Strategies.all_cvc5_stgies (Context.Proof ctxt)),
+   map (SMT_Method o SMT_Verit) (Alethe_Strategies.all_veriT_stgies (Context.Proof ctxt)),
+   single (SMT_Method SMT_Z3)]
+  |> flat
+  |> single
+
 
 fun bunches_of_proof_methods ctxt smt_proofs needs_full_types needs_lam_defs =
   let

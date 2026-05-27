@@ -292,7 +292,7 @@ proof -
         apply (subst Rep_matrix_zero_imp_mult_zero)
         using sorted_sparse_row_matrix_zero apply fastforce
         apply (subst Rep_matrix_zero_imp_mult_zero)
-         apply (metis Rep_move_matrix comp_1 nrows_le nrows_spvec sorted_sparse_row_vector_zero verit_comp_simplify1(3))
+         apply (metis Rep_move_matrix comp_1 nrows_le nrows_spvec sorted_sparse_row_vector_zero alethe_comp_simplify1(3))
         apply simp
         done
     next

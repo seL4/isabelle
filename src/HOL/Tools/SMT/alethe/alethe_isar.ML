@@ -1,19 +1,19 @@
-(*  Title:      HOL/Tools/SMT/lethe_isar.ML
+(*  Title:      HOL/Tools/SMT/alethe/alethe_isar.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-LETHE proofs as generic ATP proofs for Isar proof reconstruction.
+Alethe proofs as generic ATP proofs for Isar proof reconstruction.
 *)
 
-signature LETHE_ISAR =
+signature ALETHE_ISAR =
 sig
   type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   val atp_proof_of_veriT_proof: Proof.context -> term list -> thm list -> term list -> term ->
-    (string * term) list -> int list -> int -> (int * string) list -> Lethe_Proof.lethe_step list ->
+    (string * term) list -> int list -> int -> (int * string) list -> Alethe_Node.alethe_step list ->
     (term, string) ATP_Proof.atp_step list
 end;
 
-structure Lethe_Isar: LETHE_ISAR =
+structure Alethe_Isar: ALETHE_ISAR =
 struct
 
 open ATP_Util
@@ -22,12 +22,12 @@ open ATP_Proof
 open ATP_Proof_Reconstruct
 open SMTLIB_Interface
 open SMTLIB_Isar
-open Lethe_Proof
+open Alethe_Proof
 
 fun atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules hyp_ts concl_t fact_helper_ts prem_ids
     conjecture_id fact_helper_ids =
   let
-    fun steps_of (Lethe_Proof.Lethe_Step {id, rule, prems, concl, ...}) =
+    fun steps_of (Alethe_Node.Alethe_Step {id, rule, prems, concl, ...}) =
       let
         val concl' = postprocess_step_conclusion ctxt rewrite_rules ll_defs concl
         fun standard_step role = ((id, []), role, concl', rule, map (rpair []) prems)
