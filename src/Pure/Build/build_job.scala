@@ -150,52 +150,18 @@ object Build_Job {
 
     /* document nodes --- session theories */
 
-    def nodes_domain: List[Document.Node.Name]
+    override def nodes_status_delay: Time = build_progress_delay
 
-    private var nodes_changed = Set.empty[Document_ID.Generic]
-    private var nodes_status = Document_Status.Nodes_Status.empty
+    def nodes_status_domain: List[Document.Node.Name]
 
-    private def nodes_status_progress(state: Document.State = get_state()): Unit = {
-      val result =
-        synchronized {
-          lazy val now = session.now()
-          for (id <- state.running_theories if !nodes_changed(id)) nodes_changed += id
-          val nodes_status1 =
-            nodes_changed.foldLeft(nodes_status)({ case (status, state_id) =>
-              state.theory_snapshot(state_id, build_blobs) match {
-                case None => status
-                case Some(snapshot) =>
-                  Exn.Interrupt.expose()
-                  status.update_node(now,
-                    snapshot.state, snapshot.version, snapshot.node_name,
-                    threshold = editor_timing_threshold)
-              }
-            })
-          val result =
-            if (nodes_changed.isEmpty) None
-            else {
-              Some(Progress.Nodes_Status(now,
-                nodes_domain, nodes_status1,
-                session = resources.session_background.session_name,
-                old = Some(nodes_status)))
-            }
+    def nodes_status_progress(nodes_status: Session.Nodes_Status): Unit =
+      progress.nodes_status(
+        Progress.Nodes_Status(nodes_status.now, nodes_status_domain, nodes_status.new_status,
+          session = resources.session_background.session_name,
+          old = Some(nodes_status.old_status)))
 
-          nodes_changed = Set.empty
-          nodes_status = nodes_status1
-
-          result
-        }
-      result.foreach(progress.nodes_status)
-    }
-
-    private lazy val nodes_delay: Delay =
-      resources.Delay.first(build_progress_delay) { nodes_status_progress(); nodes_delay.invoke() }
-
-    def nodes_status_exit(state: Document.State): Unit = synchronized {
-      nodes_delay.revoke()
-      nodes_status_progress(state = state)
+    def nodes_status_exit(): Unit =
       progress.nodes_status(Progress.Nodes_Status.empty(resources.session_background.session_name))
-    }
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
       start_process_output()
@@ -208,13 +174,9 @@ object Build_Job {
         write_process_output(
           Protocol.Command_Timing_Marker(props.filter(Markup.command_timing_export)))
       }
-
-      nodes_changed += state_id
-      nodes_delay.invoke()
     }
 
-    def theory_timing(name: Document.Node.Name): Unit = synchronized {
-      val t = nodes_status(name).cumulated_time
+    def theory_timing(name: Document.Node.Name, t: Time): Unit = synchronized {
       val props = Markup.Name(name.theory) ::: Markup.Timing_Properties.Elapsed.make(t.seconds)
       write_process_output(Protocol.Theory_Timing_Marker(props))
     }
@@ -310,7 +272,7 @@ object Build_Job {
               override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
                 Document.Blobs.make(session_blobs(node_name))
 
-              override val nodes_domain: List[Document.Node.Name] =
+              override val nodes_status_domain: List[Document.Node.Name] =
                 session_background.base.used_theories.map(_._1.symbolic_path)
             }
 
@@ -336,7 +298,7 @@ object Build_Job {
 
           session.init_protocol_handler(new Session.Protocol_Handler {
               override def exit(exit_state: Document.State): Unit = {
-                session.nodes_status_exit(exit_state)
+                session.nodes_status_exit()
                 session.errors_cancel()
               }
 
@@ -391,15 +353,18 @@ object Build_Job {
             case Session.Command_Timing(state_id, props) => session.command_timing(state_id, props)
           }
 
+          session.nodes_status += Session.Consumer("nodes_status")(session.nodes_status_progress)
+
           session.runtime_statistics += Session.Consumer("ML_statistics") {
             case Session.Runtime_Statistics(props) =>
               session.write_process_output(Protocol.ML_Statistics_Marker(props))
           }
 
-          session.finished_theories += Session.Consumer[Document.Snapshot]("finished_theories") {
-            case snapshot =>
+          session.finished_theories += Session.Consumer[Session.Finished_Theory]("finished_theories") {
+            case thy =>
               if (!progress.stopped) {
-                session.theory_timing(snapshot.node_name)
+                val snapshot = thy.snapshot
+                session.theory_timing(snapshot.node_name, thy.node_status.cumulated_time)
 
                 def export_(name: String, xml: XML.Body, compress: Boolean = true): Unit = {
                   if (!progress.stopped) {
