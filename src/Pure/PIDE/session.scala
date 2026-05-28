@@ -443,7 +443,7 @@ abstract class Session extends Document.Session {
             current_status =
               current_status.update_node(now,
                 node_snapshot.state, node_snapshot.version, node_snapshot.node_name,
-                threshold = editor_timing_threshold)
+                threshold = Time.zero)
 
           for {
             id <- changed_running
