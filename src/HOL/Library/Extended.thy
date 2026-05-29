@@ -77,6 +77,9 @@ end
 
 declare zero_extended_def[symmetric, code_post]
 
+lemma Minf_eq_zero[simp]: "-\<infinity> = 0 \<longleftrightarrow> False" and Pinf_eq_zero[simp]: "\<infinity> = 0 \<longleftrightarrow> False"
+  unfolding zero_extended_def by auto
+
 instantiation extended :: (one)one
 begin
 definition "1 = Fin(1::'a)"
@@ -84,6 +87,9 @@ instance ..
 end
 
 declare one_extended_def[symmetric, code_post]
+
+lemma Minf_eq_one[simp]: "-\<infinity> = 1 \<longleftrightarrow> False" and Pinf_eq_one[simp]: "\<infinity> = 1 \<longleftrightarrow> False"
+  unfolding one_extended_def by auto
 
 instantiation extended :: (plus)plus
 begin
@@ -107,7 +113,6 @@ case_of_simps plus_case: plus_extended.simps
 instance ..
 
 end
-
 
 
 instance extended :: (ab_semigroup_add)ab_semigroup_add
@@ -195,5 +200,73 @@ instance
     bot_extended_def top_extended_def split: extended.splits)
 end
 
+instantiation extended :: (conditionally_complete_lattice) complete_lattice
+begin
+
+definition
+  "Inf A = (
+    if A = {} \<or> A = {\<infinity>} then \<infinity>
+    else if -\<infinity> \<in> A \<or> \<not> bdd_below (Fin -` A) then -\<infinity>
+    else Fin (Inf (Fin -` A)))"
+
+definition
+  "Sup A = (
+    if A = {} \<or> A = {-\<infinity>} then -\<infinity>
+    else if \<infinity> \<in> A \<or> \<not> bdd_above (Fin -` A) then \<infinity>
+    else Fin (Sup (Fin -` A)))"
+
+instance
+proof standard
+  have [dest]: "Inf (Fin -` A) \<le> x" if "Fin x \<in> A" "bdd_below (Fin -` A)" for A and x :: 'a
+    using that by (intro cInf_lower) auto
+  have *: False if "\<not> z \<le> Inf (Fin -` A)" "\<And>x. x \<in> A \<Longrightarrow> Fin z \<le> x" "Fin x \<in> A" for A and x z :: 'a
+    using cInf_greatest[of "Fin -` A" z] that vimage_eq by force
+  show "Inf A \<le> x" if "x \<in> A" for x :: "'a extended" and A
+    using that unfolding Inf_extended_def by (cases x) auto
+  show "z \<le> Inf A" if "\<And>x. x \<in> A \<Longrightarrow> z \<le> x" for z :: "'a extended" and A
+    using that
+    unfolding Inf_extended_def
+    apply (clarsimp; safe)
+         apply force
+        apply force
+    subgoal
+      by (cases z; force simp: bdd_below_def)
+    subgoal
+      by (cases z; force simp: bdd_below_def)
+    subgoal for x y
+      by (cases z; cases y) (auto elim: *)
+    subgoal for x y
+      by (cases z; cases y; simp; metis * less_eq_extended.elims(2))
+    done
+  have [dest]: "x \<le> Sup (Fin -` A)" if "Fin x \<in> A" "bdd_above (Fin -` A)" for A and x :: 'a
+    using that by (intro cSup_upper) auto
+  have *: False if "\<not> Sup (Fin -` A) \<le> z" "\<And>x. x \<in> A \<Longrightarrow> x \<le> Fin z" "Fin x \<in> A" for A and x z :: 'a
+    using cSup_least[of "Fin -` A" z] that vimage_eq by force
+  show "x \<le> Sup A" if "x \<in> A" for x :: "'a extended" and A
+    using that unfolding Sup_extended_def by (cases x) auto
+  show "Sup A \<le> z" if "\<And>x. x \<in> A \<Longrightarrow> x \<le> z" for z :: "'a extended" and A
+    using that
+    unfolding Sup_extended_def
+    apply (clarsimp; safe)
+         apply force
+        apply force
+    subgoal
+      by (cases z; force)
+    subgoal
+      by (cases z; force)
+    subgoal for x y
+      by (cases z; cases y) (auto elim: *)
+    subgoal for x y
+      by (cases z; cases y; simp; metis * extended.exhaust)
+    done
+  show "Inf {} = (top::'a extended)"
+    unfolding Inf_extended_def top_extended_def by simp
+  show "Sup {} = (bot::'a extended)"
+    unfolding Sup_extended_def bot_extended_def by simp
+qed
+
 end
 
+instance extended :: ("{conditionally_complete_lattice,linorder}") complete_linorder ..
+
+end

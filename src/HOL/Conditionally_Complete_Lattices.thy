@@ -804,6 +804,12 @@ by (auto simp add: Min_def Inf_nat_def) (meson LeastI assms bot.extremum_unique 
 lemma Sup_nat_empty [simp]: "Sup {} = (0::nat)"
   by (auto simp add: Sup_nat_def) 
 
+lemma Sup_nat_in_if:
+  fixes x :: nat and X :: "nat set"
+  assumes "X \<noteq> {}" "bdd_above X"
+  shows "Sup X \<in> X"
+    using Sup_nat_def assms(1,2) bdd_above_nat by force
+
 
 
 instantiation int :: conditionally_complete_linorder
@@ -860,7 +866,42 @@ proof
   { fix x :: int and X :: "int set" assume "X \<noteq> {}" "\<And>y. y \<in> X \<Longrightarrow> x \<le> y" then show "x \<le> Inf X"
       using Sup_le[of "uminus ` X" "-x"] by (force simp: Inf_int_def) }
 qed
+
 end
+
+lemma Sup_int_in_if:
+  fixes x :: int and X :: "int set"
+  assumes "X \<noteq> {}" "bdd_above X"
+  shows "Sup X \<in> X"
+proof -
+  from assms obtain x y where "X \<subseteq> {..y}" "x \<in> X"
+    by (auto simp: bdd_above_def)
+  then have *: "finite (X \<inter> {x..y})" "X \<inter> {x..y} \<noteq> {}" and "x \<le> y"
+    by (auto simp: subset_eq)
+  have "z \<le> Max (X \<inter> {x..y})" if "z \<in> X" for z
+  proof cases
+    assume "x \<le> z" with \<open>z \<in> X\<close> \<open>X \<subseteq> {..y}\<close> *(1) show ?thesis
+      by (auto intro!: Max_ge)
+  next
+    assume "\<not> x \<le> z"
+    then have "z < x" by simp
+    also have "x \<le> Max (X \<inter> {x..y})"
+      using \<open>x \<in> X\<close> *(1) \<open>x \<le> y\<close> by (intro Max_ge) auto
+    finally show ?thesis by simp
+  qed
+  with Max_in[OF *] have "\<exists>x\<in>X. (\<forall>y\<in>X. y \<le> x)" by blast
+  then show "Sup X \<in> X"
+    using cSup_eq_maximum by blast
+qed
+
+lemma Inf_int_in_if:
+  fixes S :: "int set"
+  assumes "S \<noteq> {}" "bdd_below S"
+  shows "Inf S \<in> S"
+unfolding Inf_int_def
+using assms bdd_above_uminus Sup_int_in_if[of "uminus ` S"]
+  imageE[of "\<Squnion> (uminus ` S)" uminus S]
+by fastforce
 
 lemma interval_cases:
   fixes S :: "'a :: conditionally_complete_linorder set"
