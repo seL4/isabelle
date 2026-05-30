@@ -2407,7 +2407,6 @@ lemma (in topological_space) convergent_filter_bot [simp, intro]: "convergent_fi
   by (simp add: convergent_filter_iff)
 
 
-
 class complete_uniform_space = uniform_space +
   assumes cauchy_filter_convergent': "cauchy_filter (F :: 'a filter) \<Longrightarrow> F \<noteq> bot \<Longrightarrow> convergent_filter F"
 
@@ -2688,6 +2687,7 @@ lemma (in uniform_space) Cauchy_seq_iff_tendsto:
   "Cauchy f \<longleftrightarrow> filterlim (map_prod f f) uniformity (at_top \<times>\<^sub>F at_top)"
   unfolding Cauchy_uniform cauchy_filter_def filterlim_def filtermap_prod_filter ..
 
+
 theorem (in uniform_space) controlled_seq_imp_Cauchy_seq:
   fixes U :: "nat \<Rightarrow> ('a \<times> 'a) set"
   assumes U: "\<And>P. eventually P uniformity \<Longrightarrow> (\<exists>n. \<forall>x\<in>U n. P x)"
@@ -2786,6 +2786,45 @@ lemma (in complete_uniform_space) complete_UNIV_cuspace [intro]: "complete UNIV"
   unfolding complete_uniform using cauchy_filter_convergent
   by (auto simp: convergent_filter.simps)
 
+lemma convergent_eq_Cauchy_within:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_space"
+  shows "(\<exists>l. (f \<longlongrightarrow> l) (at a within S)) \<longleftrightarrow>
+         (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. \<forall>y\<in>S.
+            x \<noteq> a \<and> dist x a < d \<and> y \<noteq> a \<and> dist y a < d \<longrightarrow> dist (f x) (f y) < e)"
+proof -
+  have "(\<exists>l. (f \<longlongrightarrow> l) (at a within S)) \<longleftrightarrow> convergent_filter (filtermap f (at a within S))"
+    unfolding filterlim_def convergent_filter_iff by auto
+  also have "\<dots> \<longleftrightarrow> (\<forall>e>0. \<exists>P. eventually P (at a within S) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist (f x) (f y) < e))"
+    by (simp add: cauchy_filter_metric_filtermap convergent_filter_iff_cauchy)
+  also have "\<dots> \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. \<forall>x'\<in>S.
+      x \<noteq> a \<and> dist x a < d \<and> x' \<noteq> a \<and> dist x' a < d \<longrightarrow> dist (f x) (f x') < e)"
+    (is "?L \<longleftrightarrow> ?R")
+  proof
+    assume ?L
+    show ?R
+    proof (intro allI impI)
+      fix e :: real assume "e > 0"
+      with \<open>?L\<close> obtain P where ev: "eventually P (at a within S)"
+        and P: "\<And>x y. P x \<Longrightarrow> P y \<Longrightarrow> dist (f x) (f y) < e" by auto
+      then show "\<exists>d>0. \<forall>x\<in>S. \<forall>x'\<in>S. x \<noteq> a \<and> dist x a < d \<and> x' \<noteq> a \<and> dist x' a < d \<longrightarrow> dist (f x) (f x') < e"
+        by (metis eventually_at)
+    qed
+  next
+    assume ?R
+    show ?L
+    proof (intro allI impI)
+      fix e :: real assume "e > 0"
+      with \<open>?R\<close> obtain d where "d > 0"
+        and d: "\<And>x x'. x \<in> S \<Longrightarrow> x' \<in> S \<Longrightarrow> x \<noteq> a \<Longrightarrow> dist x a < d \<Longrightarrow> x' \<noteq> a \<Longrightarrow> dist x' a < d \<Longrightarrow> dist (f x) (f x') < e"
+        by auto
+      have "\<forall>\<^sub>F x in at a within S. x \<in> S \<and> x \<noteq> a \<and> dist x a < d"
+        unfolding eventually_at using \<open>d > 0\<close> by auto
+      with d show "\<exists>P. eventually P (at a within S) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> dist (f x) (f y) < e)"
+        by blast
+    qed
+  qed
+  finally show ?thesis .
+qed
 
 
 lemma norm_infsum_le:

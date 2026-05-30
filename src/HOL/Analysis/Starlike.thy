@@ -309,6 +309,85 @@ proof -
     by (simp add: closure_mono dual_order.antisym)
 qed
 
+lemma finite_frontier_interval_real:
+  fixes S :: "real set"
+  assumes "is_interval S"
+  shows "finite (frontier S) \<and> card (frontier S) \<le> 2"
+proof (cases "interior S = {}")
+  case True
+  \<comment> \<open>A convex real set with empty interior is either empty or a singleton.\<close>
+  have "S = {} \<or> (\<exists>a. S = {a})"
+  proof (cases "S = {}")
+    case False
+    then obtain x where xs: "x \<in> S" by auto
+    have "S = {x}"
+    proof (rule ccontr)
+      assume "S \<noteq> {x}"
+      then obtain y where ys: "y \<in> S" and yx: "y \<noteq> x" using xs by blast
+      have convS: "convex S" using assms is_interval_convex by blast
+      then obtain a b where ab: "a < b" "{a..b} \<subseteq> S"
+        by (meson atMostAtLeast_subset_convex linorder_less_linear xs ys yx)
+      then have "{a <..< b} \<subseteq> interior S"
+        using interior_atLeastAtMost_real interior_mono by blast
+      moreover have "{a <..< b} \<noteq> {}" using ab(1) by auto
+      ultimately show False using True by auto
+    qed
+    then show ?thesis by auto
+  qed auto
+  then show "finite (frontier S) \<and> card (frontier S) \<le> 2" by (auto simp: frontier_def)
+next
+  \<comment> \<open>Interior is nonempty.  Any point of the frontier that lies strictly between
+    two points of the closure must be in the interior (by convexity), so cannot
+    be a frontier point.  This limits the frontier to at most 2 elements.\<close>
+  case False
+  then obtain c where c_int: "c \<in> interior S" by blast
+  have convS: "convex S" using assms is_interval_convex_1 by blast
+  show ?thesis
+  proof (rule ccontr)
+    assume inf: "\<not> ?thesis"
+    \<comment> \<open>An infinite set of reals contains at least 3 distinct points, and among any
+      3 reals we can pick a middle one.\<close>
+    then consider "infinite (frontier S)" | "card (frontier S) \<ge> 3"
+      by linarith
+    then obtain F where "finite F" "F \<subseteq> frontier S" "card F = 3"
+      by (meson infinite_arbitrarily_large obtain_subset_with_card_n)
+    then obtain x y z where "x \<in> F" "y \<in> F" "z \<in> F" "x<y" "y<z"
+      apply (simp add: eval_nat_numeral card_Suc_eq)
+      by (metis antisym insert_subset linorder_not_le order.refl)
+    \<comment> \<open>@{term y} lies in the open segment from some interior point to a closure point,
+      hence in the interior — contradiction.\<close>
+    have y_cls: "y \<in> closure S" and y_nint: "y \<notin> interior S"
+      using \<open>F \<subseteq> frontier S\<close> \<open>y \<in> F\<close> frontier_def by auto
+    have x_cls: "x \<in> closure S"
+      using \<open>F \<subseteq> frontier S\<close> \<open>x \<in> F\<close> frontier_def by auto
+    have z_cls: "z \<in> closure S"
+      using \<open>F \<subseteq> frontier S\<close> \<open>z \<in> F\<close> frontier_def by auto
+    \<comment> \<open>Use the interior point @{term c} and one of @{term x}, @{term z} to trap @{term y}.\<close>
+    have "y \<in> interior S"
+    proof (cases "c \<le> y")
+      case True
+      \<comment> \<open>@{term \<open>c \<le> y\<close>} and @{term \<open>y < z\<close>}, so @{term \<open>y \<in> open_segment c z\<close>} @{text "\<subseteq> interior S"}.\<close>
+      have "c < y" using True
+        using c_int less_eq_real_def y_nint by blast
+      have "open_segment c z \<subseteq> interior S"
+        by (rule in_interior_closure_convex_segment[OF convS c_int z_cls])
+      moreover have "y \<in> open_segment c z"
+        using \<open>c < y\<close> \<open>y < z\<close> open_segment_eq_real_ivl by auto
+      ultimately show ?thesis by auto
+    next
+      case False
+      \<comment> \<open>@{term \<open>x < y\<close>} and @{term \<open>y < c\<close>}, so @{term \<open>y \<in> open_segment x c\<close>}.
+        But @{term \<open>open_segment c x\<close>} = @{term \<open>open_segment x c\<close>} @{text "\<subseteq> interior S"}.\<close>
+      have "open_segment c x \<subseteq> interior S"
+        by (rule in_interior_closure_convex_segment[OF convS c_int x_cls])
+      moreover have "y \<in> open_segment c x"
+        using \<open>x < y\<close> False open_segment_eq_real_ivl by auto
+      ultimately show ?thesis by auto
+    qed
+    with y_nint show False by contradiction
+  qed
+qed
+
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Some obvious but surprisingly hard simplex lemmas\<close>
 

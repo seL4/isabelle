@@ -1769,6 +1769,10 @@ proof
     by (rule someI[of _ "f' 1"]) (simp add: scaleR[symmetric] f')
 qed (auto simp: vector_derivative_def has_vector_derivative_def differentiable_def)
 
+corollary vector_differentiable:
+  "f differentiable net \<longleftrightarrow> (\<exists>f'. (f has_vector_derivative f') net)"
+  using differentiableI_vector vector_derivative_works by blast
+
 lemma vector_derivative_within:
   assumes not_bot: "at x within S \<noteq> bot" and y: "(f has_vector_derivative y) (at x within S)"
   shows "vector_derivative f (at x within S) = y"

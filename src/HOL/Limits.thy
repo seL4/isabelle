@@ -456,6 +456,9 @@ lemma Zfun_zero: "Zfun (\<lambda>x. 0) F"
 lemma Zfun_norm_iff: "Zfun (\<lambda>x. norm (f x)) F = Zfun (\<lambda>x. f x) F"
   unfolding Zfun_def by simp
 
+lemma Zfun_cong: "eventually (\<lambda>x. f x = g x) F \<Longrightarrow> Zfun f F = Zfun g F"
+  by (smt (verit) Zfun_ssubst eventually_mono)
+
 lemma Zfun_imp_Zfun:
   assumes f: "Zfun f F"
     and g: "eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) F"
@@ -592,7 +595,7 @@ lemma tendsto_0_le:
   by (simp add: Zfun_imp_Zfun tendsto_Zfun_iff)
 
 
-subsubsection \<open>Distance and norms\<close>
+subsection \<open>Distance and norms\<close>
 
 lemma tendsto_dist [tendsto_intros]:
   fixes l m :: "'a::metric_space"

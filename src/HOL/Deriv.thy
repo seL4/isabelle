@@ -963,6 +963,35 @@ lemma has_vector_derivative_divide[derivative_intros]:
   using has_vector_derivative_mult_left [of f x F "inverse a"]
   by (simp add: field_class.field_divide_inverse)
 
+lemma has_vector_derivative_within_1D:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector"
+  shows "(f has_vector_derivative f') (at x within S) \<longleftrightarrow>
+         ((\<lambda>y. (f y - f x) /\<^sub>R (y - x)) \<longlongrightarrow> f') (at x within S)"
+proof -
+  have ev_eq: "\<forall>\<^sub>F y in at x within S. (f y - f x) /\<^sub>R (y - x) - f' = (f y - f x - (y - x) *\<^sub>R f') /\<^sub>R (y - x)"
+    unfolding eventually_at_filter by (simp add: scaleR_diff_right scaleR_scaleR)
+  show ?thesis
+  proof
+    assume "(f has_vector_derivative f') (at x within S)"
+    then have "Zfun (\<lambda>y. (f y - f x - (y - x) *\<^sub>R f') /\<^sub>R \<bar>y - x\<bar>) (at x within S)"
+      unfolding has_vector_derivative_def has_derivative_at_within tendsto_Zfun_iff by auto
+    then have "Zfun (\<lambda>y. norm ((f y - f x - (y - x) *\<^sub>R f') /\<^sub>R \<bar>y - x\<bar>)) (at x within S)"
+      using Zfun_norm_iff by fastforce
+    then show "((\<lambda>y. (f y - f x) /\<^sub>R (y - x)) \<longlongrightarrow> f') (at x within S)"
+      using Zfun_norm_iff Zfun_ssubst ev_eq tendsto_Zfun_iff by fastforce
+  next
+    assume R: "((\<lambda>y. (f y - f x) /\<^sub>R (y - x)) \<longlongrightarrow> f') (at x within S)"
+    have "Zfun (\<lambda>y. (f y - f x) /\<^sub>R (y - x) - f') (at x within S)"
+      using R by (simp add: tendsto_Zfun_iff)
+    then have "Zfun (\<lambda>y. (f y - f x - (y - x) *\<^sub>R f') /\<^sub>R (y - x)) (at x within S)"
+      by (smt (verit, del_insts) Zfun_ssubst ev_eq eventually_mono)
+    then have "Zfun (\<lambda>y. (f y - f x - (y - x) *\<^sub>R f') /\<^sub>R \<bar>y - x\<bar>) (at x within S)"
+      using Zfun_norm_iff by (fastforce simp add: Zfun_le)
+    then show "(f has_vector_derivative f') (at x within S)"
+      unfolding has_vector_derivative_def has_derivative_at_within tendsto_Zfun_iff
+      using bounded_linear_scaleR_left by auto
+  qed
+qed
 
 subsection \<open>Derivatives\<close>
 
