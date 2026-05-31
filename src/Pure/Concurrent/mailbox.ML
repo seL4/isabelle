@@ -24,10 +24,11 @@ fun create () = Mailbox (Synchronized.var "mailbox" []);
 fun send (Mailbox mailbox) msg = Synchronized.change mailbox (cons msg);
 
 fun receive timeout (Mailbox mailbox) =
-  Synchronized.timed_access mailbox
-    (fn _ => Option.map (fn t => Time.now () + t) timeout)
-    (fn [] => NONE | msgs => SOME (msgs, []))
-  |> these |> rev;
+  let val limit = timeout |> Option.map (fn t => Time.now () + t) in
+    Synchronized.timed_access mailbox (K limit)
+      (fn [] => NONE | msgs => SOME (msgs, []))
+    |> these |> rev
+  end;
 
 fun await_empty (Mailbox mailbox) =
   Synchronized.guarded_access mailbox (fn [] => SOME ((), []) | _ => NONE);

@@ -21,9 +21,11 @@ class Mailbox[A] private(limit: Int) {
     if (limit <= 0) mailbox.change(msg :: _)
     else mailbox.guarded_access(msgs => if (msgs.length < limit) Some(((), msg :: msgs)) else None)
 
-  def receive(timeout: Option[Time] = None): List[A] =
-    (mailbox.timed_access(_ => timeout.map(t => Time.now() + t),
+  def receive(timeout: Option[Time] = None): List[A] = {
+    val limit = timeout.map(t => Time.now() + t)
+    (mailbox.timed_access(_ => limit,
       { case Nil => None case msgs => Some((msgs, Nil)) }) getOrElse Nil).reverse
+  }
 
   def await_empty(): Unit =
     mailbox.guarded_access({ case Nil => Some(((), Nil)) case _ => None })

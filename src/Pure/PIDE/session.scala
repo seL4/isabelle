@@ -45,6 +45,13 @@ object Session {
 
   //{{{
   case class Command_Timing(state_id: Document_ID.Generic, props: Properties.T)
+  case class Nodes_Status(
+    now: Date,
+    snapshot: Document.Snapshot,
+    new_status: Document_Status.Nodes_Status,
+    old_status: Document_Status.Nodes_Status
+  )
+  case class Finished_Theory(snapshot: Document.Snapshot, node_status: Document_Status.Node_Status)
   case class Runtime_Statistics(props: Properties.T)
   case class Task_Statistics(props: Properties.T)
   case class Global_Options(options: Options)
@@ -248,8 +255,9 @@ abstract class Session extends Document.Session {
     }
   }
 
-  val finished_theories = new Outlet[Document.Snapshot]
+  val finished_theories = new Outlet[Session.Finished_Theory]
   val command_timings = new Outlet[Session.Command_Timing]
+  val nodes_status = new Outlet[Session.Nodes_Status]
   val runtime_statistics = new Outlet[Session.Runtime_Statistics]
   val task_statistics = new Outlet[Session.Task_Statistics]
   val global_options = new Outlet[Session.Global_Options]
@@ -379,6 +387,105 @@ abstract class Session extends Document.Session {
       assigned.reverse
     }
   }
+
+
+  /* node status */
+
+  def nodes_status_delay: Time = output_delay
+
+  private object nodes_status_buffer {
+    sealed case class State(
+      finished: Boolean = false,
+      finished_theories: List[Document.Snapshot] = Nil,
+      changed_nodes: Set[Document_ID.Generic] = Set.empty
+    ) {
+      def finish: State = copy(finished = true)
+
+      def finish_theory(snapshot: Document.Snapshot): State =
+        copy(finished_theories = snapshot :: finished_theories)
+
+      def update(id: Document_ID.Generic): State =
+        if (changed_nodes(id)) this else copy(changed_nodes = changed_nodes + id)
+
+      def reset: State =
+        if (finished_theories.isEmpty && changed_nodes.isEmpty) this
+        else copy(finished_theories = Nil, changed_nodes = Set.empty)
+    }
+
+    val state = Synchronized(State())
+
+    def test(): Boolean = !state.value.finished
+
+    def sleep(): Unit = {
+      val limit = Time.now() + nodes_status_delay
+      state.timed_access(_ => Some(limit), st => if (st.finished) Some((), st) else None)
+    }
+
+    def update(id: Document_ID.Generic): Unit = state.change(_.update(id))
+
+    def finish_theory(snapshot: Document.Snapshot): Unit = state.change(_.finish_theory(snapshot))
+
+    private val thread = Isabelle_Thread.fork(name = "Session.nodes_status_buffer", daemon = true) {
+      var current_status = Document_Status.Nodes_Status.empty
+
+      def main(): Unit = {
+        val snapshot = session.snapshot()
+        val current = state.change_result(st => (st, st.reset))
+
+        val changed_running =
+          snapshot.state.running_theories.foldLeft(current.changed_nodes)(
+            { case (ch, id) => if (ch(id)) ch else ch + id })
+        if (changed_running.nonEmpty) {
+          val now = session.now()
+          val old_status = current_status
+
+          def update_status(node_snapshot: Document.Snapshot): Unit =
+            current_status =
+              current_status.update_node(now,
+                node_snapshot.state, node_snapshot.version, node_snapshot.node_name,
+                threshold = Time.zero)
+
+          for {
+            id <- changed_running
+            node_snapshot <- snapshot.state.theory_snapshot(id, build_blobs)
+          } update_status(node_snapshot)
+
+          val changed_commands: Set[Document.Node.Name] =
+            changed_running.foldLeft(Set.empty)(
+              { case (ch, id) =>
+                  snapshot.state.execs.get(id) match {
+                    case None => ch
+                    case Some(st) =>
+                      val name = st.command.node_name
+                      if (ch(name)) ch else ch + name
+                  }
+              })
+          for (node_name <- changed_commands) update_status(snapshot.switch(node_name))
+
+          nodes_status.post(Session.Nodes_Status(now, snapshot, current_status, old_status))
+        }
+
+        if (current.finished) {
+          for (thy_snapshot <- current.finished_theories) {
+            finished_theories.post(
+              Session.Finished_Theory(thy_snapshot, current_status(thy_snapshot.node_name)))
+          }
+        }
+      }
+
+      try { while ({ sleep(); main(); test() }) () }
+      catch {
+        case exn: Throwable =>
+          for (msg <- Exn.print_failure(exn)) resources.log.error_message(msg)
+      }
+    }
+
+    def shutdown(): Unit = {
+      state.change(_.finish)
+      thread.join()
+    }
+  }
+
 
 
   /* node consolidation */
@@ -556,7 +663,7 @@ abstract class Session extends Document.Session {
       if (prover.defined) protocol_handlers.exit(exit_state)
       for (id <- exit_state.theories.keys) {
         val snapshot = global_state.change_result(_.end_theory(id, build_blobs))
-        finished_theories.post(snapshot)
+        nodes_status_buffer.finish_theory(snapshot)
       }
       file_formats.stop_session()
       phase = Session.Terminated(process_result)
@@ -585,6 +692,7 @@ abstract class Session extends Document.Session {
             val message = XML.elem(Markup(Markup.Command_Timing.name, props))
             change_command(_.accumulate(resources.log, state_id, cache.elem(message), cache))
             command_timings.post(Session.Command_Timing(state_id, props))
+            nodes_status_buffer.update(state_id)
 
           case Markup.Task_Statistics(props) =>
             task_statistics.post(Session.Task_Statistics(props))
@@ -828,6 +936,7 @@ abstract class Session extends Document.Session {
     if (was_ready) manager.send(Stop)
     prover.await_reset()
 
+    nodes_status_buffer.shutdown()
     change_parser.shutdown()
     change_buffer.shutdown()
     manager.shutdown()

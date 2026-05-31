@@ -150,16 +150,21 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       }
 
     val now = Date.now()
+    val limit = Time.seconds(timing_threshold)
 
     val theories =
       List.from(
-        for ((a, st) <- nodes_status.iterator if st.command_timings.nonEmpty)
-          yield Theory_Entry(a, st.cumulated_time.seconds)).sorted(Entry.Ordering)
+        for {
+          (a, st) <- nodes_status.iterator
+          if st.command_timings.valuesIterator.exists(timings => timings.sum(now).is_notable(limit))
+        } yield Theory_Entry(a, st.cumulated_time.seconds)).sorted(Entry.Ordering)
     val commands =
-      (for {
-        (command_id, timings) <- nodes_status(name).command_timings.toList
-        command <- snapshot.get_command(command_id)
-      } yield Command_Entry(command, timings.sum(now).seconds)).sorted(Entry.Ordering)
+      List.from(
+        for {
+          (command_id, timings) <- nodes_status(name).command_timings.iterator
+          command <- snapshot.get_command(command_id)
+          t = timings.sum(now) if t.is_notable(limit)
+        } yield Command_Entry(command, t.seconds)).sorted(Entry.Ordering)
 
     theories.flatMap(entry =>
       if (entry.name == name) entry.make_current :: commands
@@ -178,7 +183,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
     nodes_status =
       nodes_status.update_nodes(Date.now(), PIDE.resources, snapshot.state, snapshot.version,
-        threshold = Time.seconds(timing_threshold),
+        threshold = Time.zero,
         domain = Some(domain))
 
     val entries = make_entries(snapshot)

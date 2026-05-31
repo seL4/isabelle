@@ -41,20 +41,19 @@ final class Synchronized[A] private(init: A) {
         else if (a.get <= b.get) a
         else b
       }
-      def wait_until(limit: Option[Time]): Unit =
-        limit match {
-          case Some(t) =>
-            val timeout = (t - Time.now()).ms
-            if (timeout > 0) wait(timeout)
-          case None => wait()
-        }
       @tailrec def loop(limit0: Option[Time]): Option[B] = {
         val x = state
         check(x) match {
           case None =>
             val limit = min_limit(x, limit0)
-            val expired = limit match { case Some(t) => Time.now() >= t case None => false }
-            if (expired) None else { wait_until(limit); loop(limit) }
+            val waiting =
+              limit match {
+                case None => Some(0L)
+                case Some(t) =>
+                  val now = Time.now()
+                  if (now < t) Some((t - now).ms) else None
+              }
+            if (waiting.isDefined) { wait(waiting.get); loop(limit) } else None
           case some => some
         }
       }
