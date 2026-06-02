@@ -165,7 +165,10 @@ object JEdit_Accessible {
 
       private def get_character(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          if (offset < 0 || offset >= buffer.getLength) None
+          val text_length = buffer.getLength
+          val n = offset + inc
+          if (n == text_length && n > 0) Some(Text.Info(Text.Range(n, n + 1), "\n"))
+          else if (offset < 0 || offset >= text_length) None
           else {
             val it = JEdit_Lib.grapheme_iterator(getBuffer)
             val i = if (it.isBoundary(offset)) offset else it.preceding(offset)
@@ -214,15 +217,24 @@ object JEdit_Accessible {
 
       private def get_line(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          val current =
-            try { Some(text_area.getLineOfOffset(offset)) }
-            catch { case _: ArrayIndexOutOfBoundsException => None }
-          current.flatMap(line =>
-            if (inc == 0) Some(line)
-            else if (inc < 0 && line > 0) Some(line - 1)
-            else if (line < text_area.getLineCount - 1) Some(line + 1)
-            else None
-          ).flatMap(line => get_text(JEdit_Lib.line_range(buffer, line)))
+          val text_length = buffer.getLength
+          val line_count = buffer.getLineCount
+          if (text_length == 0) None
+          else if (inc == 0 && offset == text_length + 1) Some(Text.Info(Text.Range(offset), ""))
+          else {
+            val current_line =
+              try { Some(text_area.getLineOfOffset(offset)) }
+              catch { case _: ArrayIndexOutOfBoundsException => None }
+            for {
+              line0 <- current_line
+              line1 <-
+                if (inc == 0) Some(line0)
+                else if (inc < 0 && line0 > 0) Some(line0 - 1)
+                else if (line0 < line_count - 1) Some(line0 + 1)
+                else None
+              res <- get_text(JEdit_Lib.trim_line_range(buffer, line1))
+            } yield Text.Info(Text.Range(res.range.start, res.range.stop + 1), res.info + "\n")
+          }
         }
 
       private def get_part(part: Int, offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
@@ -281,7 +293,7 @@ object JEdit_Accessible {
         }
       }
 
-      override def getCharCount: Int = text_area.getBufferLength
+      override def getCharCount: Int = if (buffer.getLength == 0) 0 else buffer.getLength + 1
 
       override def getCaretPosition: Int = text_area.getCaretPosition
 

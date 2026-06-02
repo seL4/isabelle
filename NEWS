@@ -93,6 +93,11 @@ will display the menu title on the Braille display properly ---
 otherwise no action was indicated. Minor INCOMPATIBILITY with native
 Windows GUI behavior of F10, which FlatLaf attempted to imitate here.
 
+* The Java Access Bridge on JDK/x86_64-windows has been patched
+slightly, for more robust detection of text lines via the regular API
+for javax.accessibility.AccessibleExtendedTable.LINE instead of historic
+workarounds.
+
 * The jEdit action "sidekick-tree" is more accessible via shortcut F8.
 
 * The jEdit actions "isabelle.recode-plain" (shortcut F9) and
