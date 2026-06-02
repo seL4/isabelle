@@ -214,15 +214,18 @@ object JEdit_Accessible {
 
       private def get_line(offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         JEdit_Lib.buffer_lock(buffer) {
-          val current =
+          val current_line =
             try { Some(text_area.getLineOfOffset(offset)) }
             catch { case _: ArrayIndexOutOfBoundsException => None }
-          current.flatMap(line =>
-            if (inc == 0) Some(line)
-            else if (inc < 0 && line > 0) Some(line - 1)
-            else if (line < text_area.getLineCount - 1) Some(line + 1)
-            else None
-          ).flatMap(line => get_text(JEdit_Lib.line_range(buffer, line)))
+          for {
+            line0 <- current_line
+            line1 <-
+              if (inc == 0) Some(line0)
+              else if (inc < 0 && line0 > 0) Some(line0 - 1)
+              else if (line0 < text_area.getLineCount - 1) Some(line0 + 1)
+              else None
+            res <- get_text(JEdit_Lib.line_range(buffer, line1))
+          } yield res
         }
 
       private def get_part(part: Int, offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
