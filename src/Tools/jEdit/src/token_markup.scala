@@ -39,9 +39,9 @@ object Token_Markup {
       else after(buffer, line - 1)
 
     def after(buffer: JEditBuffer, line: Int): Line_Context = {
-      val line_mgr = JEdit_Lib.buffer_line_manager(buffer)
+      val line_manager = JEdit_Lib.buffer_line_manager(buffer)
       def context =
-        line_mgr.getLineContext(line) match {
+        line_manager.getLineContext(line) match {
           case c: Line_Context => Some(c)
           case _ => None
         }
