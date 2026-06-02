@@ -178,6 +178,13 @@ object Component_JDK {
 
       progress.echo("Getting jdk ...")
       ssh.read_directory(result_dir, platform_dir, direct = true)
+
+      if (ssh_platform.is_windows) {
+        for (path <- File.find_files(platform_dir)) {
+          val exe = File.is_exe(path) || File.is_dll(path)
+          File.set_executable(path, reset = !exe)
+        }
+      }
     }
   }
 
