@@ -219,13 +219,11 @@ object JEdit_Accessible {
         JEdit_Lib.buffer_lock(buffer) {
           val text_length = buffer.getLength
           val line_count = buffer.getLineCount
-          if (inc == 0 && offset == text_length + 1) Some(Text.Info(Text.Range(offset), ""))
+          if (text_length == 0) None
+          else if (inc == 0 && offset == text_length + 1) Some(Text.Info(Text.Range(offset), ""))
           else {
             val current_line =
-              try {
-                if (text_length == 0) None
-                else Some(text_area.getLineOfOffset(offset))
-              }
+              try { Some(text_area.getLineOfOffset(offset)) }
               catch { case _: ArrayIndexOutOfBoundsException => None }
             for {
               line0 <- current_line
