@@ -390,25 +390,25 @@ subsection \<open>\<open>T_while_option\<close>\<close>
 text \<open>Step counting for while-loops: add a counter.\<close>
 
 definition T_while_option2
-  :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<times> nat \<Rightarrow> ('a \<times> nat) option" where
-"T_while_option2 b f T_f = while_option (\<lambda>(x,n). b x) (\<lambda>(x,n). (f x, n + T_f x))"
+  :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<times> nat \<Rightarrow> ('a \<times> nat) option" where
+"T_while_option2 b f T_b T_f = while_option (\<lambda>(x,n). b x) (\<lambda>(x,n). (f x, n + T_b x + T_f x))"
 
-definition T_while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<Rightarrow> nat" where
-"T_while_option b f T_f x = snd (the (T_while_option2 b f T_f (x,0)))"
+definition T_while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> ('a \<Rightarrow> nat) \<Rightarrow> 'a \<Rightarrow> nat" where
+"T_while_option b f T_b T_f x = snd (the (T_while_option2 b f T_b T_f (x,0)))"
 
 lemma T_while_option_eq_T_while_option2:
-  "while_option b f s = map_option fst (T_while_option2 b f tf (s,n0))"
+  "while_option b f s = map_option fst (T_while_option2 b f tb tf (s,n0))"
 unfolding T_while_option2_def
-  using while_option_commute[of "\<lambda>(s,_). b s" b fst "(\<lambda>(s, n). (f s, n + tf s))" f "(s,n0)"]
+  using while_option_commute[of "\<lambda>(s,_). b s" b fst "(\<lambda>(s, n). (f s, n + tb s + tf s))" f "(s,n0)"]
   by (simp add: split_def)
 
 lemma T_while_option_if_T_while_option2:
-  "T_while_option2 b f tf (s,n0) = Some (t,n) \<Longrightarrow> while_option b f s = Some t"
-by(simp add: T_while_option_eq_T_while_option2[of b f s tf n0])
+  "T_while_option2 b f tb tf (s,n0) = Some (t,n) \<Longrightarrow> while_option b f s = Some t"
+by(simp add: T_while_option_eq_T_while_option2[of b f s tb tf n0])
 
 lemma T_while_option2_if_T_while_option:
-  "while_option b f s = Some t \<Longrightarrow> \<exists>n. T_while_option2 b f tf (s,n0) = Some (t,n)"
-by(simp add: T_while_option_eq_T_while_option2[of b f s tf n0])
+  "while_option b f s = Some t \<Longrightarrow> \<exists>n. T_while_option2 b f tb tf (s,n0) = Some (t,n)"
+by(simp add: T_while_option_eq_T_while_option2[of b f s tb tf n0])
 
 
 subsection \<open>\<open>while_Some\<close> and \<open>while_saturate\<close>\<close>
