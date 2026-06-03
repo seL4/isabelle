@@ -167,7 +167,7 @@ object JEdit_Accessible {
         JEdit_Lib.buffer_lock(buffer) {
           val text_length = buffer.getLength
           val n = offset + inc
-          if (n == text_length && n > 0) Some(Text.Info(Text.Range(n, n + 1), "\n"))
+          if (n == text_length) Some(Text.Info(Text.Range(n, n + 1), "\n"))
           else if (offset < 0 || offset >= text_length) None
           else {
             val it = JEdit_Lib.grapheme_iterator(getBuffer)
@@ -219,8 +219,7 @@ object JEdit_Accessible {
         JEdit_Lib.buffer_lock(buffer) {
           val text_length = buffer.getLength
           val line_count = buffer.getLineCount
-          if (text_length == 0) None
-          else if (inc == 0 && offset == text_length + 1) Some(Text.Info(Text.Range(offset), ""))
+          if (inc == 0 && offset == text_length + 1) Some(Text.Info(Text.Range(offset), ""))
           else {
             val current_line =
               try { Some(text_area.getLineOfOffset(offset)) }
@@ -293,7 +292,7 @@ object JEdit_Accessible {
         }
       }
 
-      override def getCharCount: Int = if (buffer.getLength == 0) 0 else buffer.getLength + 1
+      override def getCharCount: Int = buffer.getLength + 1
 
       override def getCaretPosition: Int = text_area.getCaretPosition
 
