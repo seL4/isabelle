@@ -31,8 +31,8 @@ object Document_Editor {
           Meta_Info(name,
             SortedSet.from(selection),
             Shasum.fake(sources),
-            SHA1.parse(log),
-            SHA1.parse(pdf))
+            Message_Digest.parse(log),
+            Message_Digest.parse(pdf))
         }
       }
       else None
