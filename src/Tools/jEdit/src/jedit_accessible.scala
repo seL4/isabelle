@@ -1,10 +1,8 @@
 /*  Title:      Tools/jEdit/src/jedit_accessible.scala
     Author:     Makarius
 
-Support for accessible jEdit components, notably used with screenreaders:
-  - NVDA (Windows), see https://www.nvaccess.org
-  - JAWS (Windows), see https://support.freedomscientific.com/Downloads/JAWS
-  - VoiceOver (macOS), builtin Command-F5
+Support for accessible jEdit components, notably for the NVDA screen reader
+on Windows (see https://www.nvaccess.org).
 */
 
 package isabelle.jedit

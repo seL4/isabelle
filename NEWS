@@ -66,6 +66,10 @@ INCOMPATIBILITY.
 
 *** Isabelle/jEdit Prover IDE ***
 
+* Support for screen reader technology via Java Accessibility has been
+greatly improved, but is limited to NVDA on Windows (see
+https://www.nvaccess.org).
+
 * The menu bar of jEdit has been adapted to the requirements of
 Isabelle/jEdit, with special focus on accessibility: menus need to be
 clearly structured and provide reasonable access paths, usually with
