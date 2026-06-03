@@ -145,19 +145,9 @@ object JEdit_Accessible {
       def text_changed(offset: Text.Offset): Unit =
         firePropertyChange(AccessibleContext.ACCESSIBLE_TEXT_PROPERTY, null, Value.Int.obj(offset))
 
-      private var old_caret = 0
       override def caretUpdate(e: CaretEvent): Unit = {
-        val caret = e.getDot
-        if (old_caret != caret) {
-          // see javax.swing.text.JTextComponent.AccessibleJTextComponent
-          firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, old_caret, caret)
-          old_caret = caret
-        }
-
-        for (text <- proper_string(getSelectedText)) {
-          // see javax.swing.text.JTextComponent.AccessibleJTextComponent
-          firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, null, text)
-        }
+        firePropertyChange(AccessibleContext.ACCESSIBLE_CARET_PROPERTY, null, caret)
+        firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY, null, getSelectedText)
       }
 
       private def get_text(range: Text.Range): Option[Text.Info[String]] =
