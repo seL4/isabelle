@@ -106,7 +106,7 @@ object JEdit_Accessible {
   class TextArea(view: jedit.View) extends JEditTextArea(view: jedit.View) {
     text_area =>
 
-    def accessible_text_changed(offset: Text.Offset = 0): Unit = GUI_Thread.require {
+    def accessible_text_changed(offset: Text.Offset): Unit = GUI_Thread.require {
       accessibleContext match {
         case accessible_context: Accessible_Context => accessible_context.text_changed(offset)
         case _ =>

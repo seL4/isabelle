@@ -582,7 +582,7 @@ class Buffer_Model private(
     def accessible_text_changed(offset: Text.Offset): Unit =
       for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
         if (text_area.isInstanceOf[JEdit_Accessible.TextArea]) {
-          text_area.asInstanceOf[JEdit_Accessible.TextArea].accessible_text_changed(offset = offset)
+          text_area.asInstanceOf[JEdit_Accessible.TextArea].accessible_text_changed(offset)
         }
       }
 
