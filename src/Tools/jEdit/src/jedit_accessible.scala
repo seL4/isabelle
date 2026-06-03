@@ -233,7 +233,7 @@ object JEdit_Accessible {
                 else if (line0 < line_count - 1) Some(line0 + 1)
                 else None
               res <- get_text(JEdit_Lib.trim_line_range(buffer, line1))
-            } yield Text.Info(Text.Range(res.range.start, res.range.stop + 1), res.info + "\n")
+            } yield res
           }
         }
 
