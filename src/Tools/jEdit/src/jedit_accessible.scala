@@ -240,7 +240,7 @@ object JEdit_Accessible {
       private def get_part(part: Int, offset: Text.Offset, inc: Int = 0): Option[Text.Info[String]] =
         part match {
           case AccessibleText.CHARACTER => get_character(offset, inc = inc)
-          case AccessibleText.WORD => get_word(offset, inc = inc)
+          case AccessibleText.WORD | AccessibleText.SENTENCE => get_word(offset, inc = inc)
           case AccessibleExtendedText.LINE => get_line(offset, inc = inc)
           case _ => None
         }
