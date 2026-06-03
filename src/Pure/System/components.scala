@@ -271,22 +271,22 @@ object Components {
 
   /* component repository content */
 
-  val components_sha1: Path = Path.explode("~~/Admin/components/components.sha1")
+  val components_shasum: Path = Path.explode("~~/Admin/components/components.shasum")
 
-  sealed case class SHA1_Entry(digest: Message_Digest.T, name: String) {
+  sealed case class Shasum_Entry(digest: Message_Digest.T, name: String) {
     override def toString: String = Shasum.make(digest, name).toString
   }
 
-  def read_components_sha1(lines: List[String] = Nil): List[SHA1_Entry] =
-    (proper_list(lines) getOrElse split_lines(File.read(components_sha1))).flatMap(line =>
+  def read_components_shasum(lines: List[String] = Nil): List[Shasum_Entry] =
+    (proper_list(lines) getOrElse split_lines(File.read(components_shasum))).flatMap(line =>
       Word.explode(line) match {
         case Nil => None
-        case List(sha1, name) => Some(SHA1_Entry(SHA1.parse(sha1), name))
-        case _ => error("Bad components.sha1 entry: " + quote(line))
+        case List(digest, name) => Some(Shasum_Entry(Message_Digest.parse(digest), name))
+        case _ => error("Bad components.shasum entry: " + quote(line))
       })
 
-  def write_components_sha1(entries: List[SHA1_Entry]): Unit =
-    File.write(components_sha1, entries.sortBy(_.name).mkString)
+  def write_components_shasum(entries: List[Shasum_Entry]): Unit =
+    File.write(components_shasum, entries.sortBy(_.name).mkString)
 
 
   /** manage user components **/
@@ -343,7 +343,7 @@ object Components {
     progress: Progress = new Progress,
     publish: Boolean = false,
     force: Boolean = false,
-    update_components_sha1: Boolean = false
+    update_components_shasum: Boolean = false
   ): Unit = {
     val archives: List[Path] =
       for (path <- components) yield {
@@ -368,7 +368,7 @@ object Components {
         }
       }
 
-    if ((publish && archives.nonEmpty) || update_components_sha1) {
+    if ((publish && archives.nonEmpty) || update_components_shasum) {
       val server = options.string("isabelle_components_server")
       if (server.isEmpty) error("Undefined option isabelle_components_server")
 
@@ -415,8 +415,8 @@ object Components {
           }
         }
 
-        // remote SHA1 digests
-        if (update_components_sha1) {
+        // remote message digests
+        if (update_components_shasum) {
           val lines =
             for {
               entry <- ssh.read_dir(components_dir)
@@ -428,25 +428,25 @@ object Components {
               ssh.execute("cd " + ssh.bash_path(components_dir) +
                 "; sha1sum " + Bash.string(entry)).check.out
             }
-          write_components_sha1(read_components_sha1(lines))
+          write_components_shasum(read_components_shasum(lines))
         }
       }
     }
 
-    // local SHA1 digests
+    // local message digests
     {
       val new_entries =
         for (archive <- archives)
         yield {
           val name = archive.file_name
           progress.echo("Digesting local " + name)
-          SHA1_Entry(SHA1.digest(archive), name)
+          Shasum_Entry(SHA1.digest(archive), name)
         }
       val new_names = new_entries.map(_.name).toSet
 
-      write_components_sha1(
+      write_components_shasum(
         new_entries :::
-        read_components_sha1().filterNot(entry => new_names.contains(entry.name)))
+        read_components_shasum().filterNot(entry => new_names.contains(entry.name)))
     }
   }
 
@@ -461,7 +461,7 @@ object Components {
       Scala_Project.here,
       { args =>
         var publish = false
-        var update_components_sha1 = false
+        var update_components_shasum = false
         var force = false
         var options = Options.init()
 
@@ -475,7 +475,7 @@ Usage: isabelle components_build [OPTIONS] ARCHIVES... DIRS...
     -P           publish on SSH server (see options below)
     -f           force: overwrite existing component archives and directories
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
-    -u           update all SHA1 keys in Isabelle repository Admin/components
+    -u           update all shasums in Isabelle repository Admin/components
 
   Build and publish Isabelle components as .tar.gz archives on SSH server,
   depending on system options:
@@ -484,14 +484,14 @@ Usage: isabelle components_build [OPTIONS] ARCHIVES... DIRS...
           "P" -> (_ => publish = true),
           "f" -> (_ => force = true),
           "o:" -> (arg => options = options + arg),
-          "u" -> (_ => update_components_sha1 = true))
+          "u" -> (_ => update_components_shasum = true))
 
         val more_args = getopts(args)
-        if (more_args.isEmpty && !update_components_sha1) getopts.usage()
+        if (more_args.isEmpty && !update_components_shasum) getopts.usage()
 
         val progress = new Console_Progress()
 
         components_build(options, more_args.map(Path.explode), progress = progress,
-          publish = publish, force = force, update_components_sha1 = update_components_sha1)
+          publish = publish, force = force, update_components_shasum = update_components_shasum)
       })
 }
