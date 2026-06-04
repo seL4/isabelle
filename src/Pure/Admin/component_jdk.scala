@@ -25,9 +25,9 @@ object Component_JDK {
 
   /* defaults */
 
-  val default_jdk_version = "21.0.11"
-  val default_jdk_variant = "-ga"
-  val default_zulu_version = "21.50.19-ca"
+  val default_jdk_version = "25.0.3"
+  val default_jdk_variant = "+9"
+  val default_zulu_version = "25.34.17-ca"
   val default_zulu_url = "https://cdn.azul.com/zulu/bin"
   val default_source_url =
     "https://github.com/openjdk/jdk{M}u-dev/archive/refs/tags/jdk-{V}{W}.tar.gz"
@@ -59,8 +59,8 @@ object Component_JDK {
   }
 
   val patch = """diff -Nru -- jdk/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java jdk-patched/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java
---- jdk/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-04-17 20:09:35.000000000 +0100
-+++ jdk-patched/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-06-02 10:39:30.481289300 +0100
+--- jdk/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-04-17 21:08:13.000000000 +0200
++++ jdk-patched/src/jdk.accessibility/windows/classes/com/sun/java/accessibility/internal/AccessBridge.java	2026-06-04 15:10:21.215067676 +0200
 @@ -72,6 +72,7 @@
  import javax.accessibility.AccessibleEditableText;
  import javax.accessibility.AccessibleExtendedComponent;
@@ -77,7 +77,7 @@ object Component_JDK {
  import javax.accessibility.AccessibleValue;
  
  import javax.swing.Icon;
-@@ -2148,7 +2150,13 @@
+@@ -2127,7 +2129,13 @@
              @Override
              public Integer call() throws Exception {
                  AccessibleText at = ac.getAccessibleText();
@@ -92,7 +92,7 @@ object Component_JDK {
                      int lineStart;
                      int offset;
                      Rectangle charRect;
-@@ -2210,7 +2218,13 @@
+@@ -2189,7 +2197,13 @@
              @Override
              public Integer call() throws Exception {
                  AccessibleText at = ac.getAccessibleText();
