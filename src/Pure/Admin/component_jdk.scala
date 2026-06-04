@@ -26,19 +26,17 @@ object Component_JDK {
   /* defaults */
 
   val default_jdk_version = "21.0.11"
+  val default_jdk_variant = "-ga"
   val default_zulu_version = "21.50.19-ca"
   val default_zulu_url = "https://cdn.azul.com/zulu/bin"
   val default_source_url =
-    "https://github.com/openjdk/jdk{M}u-dev/archive/refs/tags/jdk-{V}-ga.tar.gz"
+    "https://github.com/openjdk/jdk{M}u-dev/archive/refs/tags/jdk-{V}{W}.tar.gz"
 
 
   /* platform information */
 
   sealed case class Download_Platform(name: String, url_template: String) {
     override def toString: String = name
-
-    def url(zulu_url: String, jdk_version: String, zulu_version: String): String =
-      zulu_url + "/" + url_template.replacing("{V}" -> jdk_version, "{Z}" -> zulu_version)
   }
 
   val platforms: List[Download_Platform] =
@@ -115,6 +113,7 @@ object Component_JDK {
     target_dir: Path = Path.current,
     source_url: String = default_source_url,
     jdk_version: String = default_jdk_version,
+    jdk_variant: String = default_jdk_variant,
     ssh: SSH.System = SSH.Local,
     progress: Progress = new Progress
   ): Unit = {
@@ -139,7 +138,8 @@ object Component_JDK {
       ssh.require_patch()
 
       ssh.download_file(
-        source_url.replacing("{V}" -> jdk_version, "{M}" -> major_version(jdk_version)),
+        source_url.replacing(
+          "{M}" -> major_version(jdk_version), "{V}" -> jdk_version, "{W}" -> jdk_variant),
         ssh_dir + Path.explode("jdk.tar.gz"),
         progress = progress)
 
@@ -195,6 +195,7 @@ object Component_JDK {
     target_dir: Path = Path.current,
     zulu_url: String = default_zulu_url,
     jdk_version: String = default_jdk_version,
+    jdk_variant: String = default_jdk_variant,
     zulu_version: String = default_zulu_version,
     progress: Progress = new Progress,
   ): Unit = {
@@ -212,7 +213,10 @@ object Component_JDK {
 
     for (platform <- platforms) {
       Isabelle_System.with_tmp_dir("download", component_dir.path.file) { dir =>
-        val url = platform.url(zulu_url, jdk_version, zulu_version)
+        val url =
+          zulu_url + "/" +
+          platform.url_template.replacing(
+            "{V}" -> jdk_version, "{W}" -> jdk_variant, "{Z}" -> zulu_version)
         val name = Library.take_suffix(_ != '/', url.toList)._2.mkString
         val file = dir + Path.basic(name)
         Isabelle_System.download_file(url, file, progress = progress)
@@ -269,7 +273,7 @@ esac
     /* README */
 
     File.write(component_dir.README,
-      """This is OpenJDK """ + jdk_version + """ based on downloads by Azul, see also
+      """This is OpenJDK {V}{W} based on downloads by Azul, see also
 https://www.azul.com/downloads/?package=jdk
 
 The main license is GPL2, but some modules are covered by other (more liberal)
@@ -277,7 +281,7 @@ licenses, see legal/* for details.
 
 Linux, Windows, macOS all work uniformly, depending on platform-specific
 subdirectories.
-""")
+""".replacing("{V}" -> jdk_version, "{W}" -> jdk_variant))
   }
 
 
@@ -291,6 +295,7 @@ subdirectories.
         var build_host = SSH.LOCAL
         var source_url = default_source_url
         var jdk_version = default_jdk_version
+        var jdk_variant = default_jdk_variant
         var options = Options.init()
         var verbose = false
 
@@ -303,6 +308,7 @@ Usage: isabelle make_jdk [OPTIONS]
     -S URL       source archive URL template
                  (default: """" + default_source_url + """")
     -V NAME      JDK version (default: """" + default_jdk_version + """")
+    -W NAME      JDK variant (default: """" + default_jdk_variant + """")
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
     -v           verbose
 
@@ -325,6 +331,7 @@ Usage: isabelle make_jdk [OPTIONS]
           "H:" -> (arg => build_host = arg),
           "S:" -> (arg => source_url = arg),
           "V:" -> (arg => jdk_version = arg),
+          "W:" -> (arg => jdk_variant = arg),
           "o:" -> (arg => options = options + arg),
           "v" -> (_ => verbose = true))
 
@@ -335,7 +342,7 @@ Usage: isabelle make_jdk [OPTIONS]
 
         using(SSH.open_system(options, build_host)) { ssh =>
           make_jdk(target_dir = target_dir, source_url = source_url, jdk_version = jdk_version,
-            ssh = ssh, progress = progress)
+            jdk_variant = jdk_variant, ssh = ssh, progress = progress)
         }
       })
 
@@ -346,6 +353,7 @@ Usage: isabelle make_jdk [OPTIONS]
         var target_dir = Path.current
         var zulu_url = default_zulu_url
         var jdk_version = default_jdk_version
+        var jdk_variant = default_jdk_variant
         var zulu_version = default_zulu_version
 
         val getopts = Getopts("""
@@ -355,6 +363,7 @@ Usage: isabelle component_jdk [OPTIONS]
     -D DIR       target directory (default ".")
     -U URL       Zulu base URL (default: """" + default_zulu_url + """")
     -V NAME      JDK version (default: """" + default_jdk_version + """")
+    -W NAME      JDK variant (default: """" + default_jdk_variant + """")
     -Z NAME      Zulu version (default: """" + default_zulu_version + """")
 
   Build Isabelle jdk component using downloads from Azul.
@@ -362,6 +371,7 @@ Usage: isabelle component_jdk [OPTIONS]
           "D:" -> (arg => target_dir = Path.explode(arg)),
           "U:" -> (arg => zulu_url = arg),
           "V:" -> (arg => jdk_version = arg),
+          "W:" -> (arg => jdk_variant = arg),
           "Z:" -> (arg => zulu_version = arg))
 
         val more_args = getopts(args)
@@ -369,7 +379,7 @@ Usage: isabelle component_jdk [OPTIONS]
 
         val progress = new Console_Progress()
 
-        build_jdk(target_dir = target_dir, zulu_url = zulu_url,
-          jdk_version = jdk_version, zulu_version = zulu_version, progress = progress)
+        build_jdk(target_dir = target_dir, zulu_url = zulu_url, jdk_version = jdk_version,
+          jdk_variant = jdk_variant, zulu_version = zulu_version, progress = progress)
       })
 }
