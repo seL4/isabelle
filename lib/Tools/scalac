@@ -6,8 +6,14 @@
 
 isabelle scala_build || exit $?
 
+declare -a JAVA_ARGS=()
+for ARG in $ISABELLE_JAVA_SYSTEM_OPTIONS
+do
+  JAVA_ARGS["${#JAVA_ARGS[@]}"]="-J$ARG"
+done
+
 classpath "$ISABELLE_SETUP_CLASSPATH"; unset ISABELLE_SETUP_CLASSPATH
 classpath "$CLASSPATH"; export CLASSPATH=""
 
-isabelle_scala scalac -Dfile.encoding=UTF-8 \
+isabelle_scala scalac "${JAVA_ARGS[@]}" \
   -classpath "$(platform_path "$ISABELLE_CLASSPATH")" "$@"
