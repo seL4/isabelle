@@ -157,7 +157,7 @@ mac.CFBundleTypeRole=Editor
         mac_sign_options +
         " --input " + File.bash_platform_path(dummy_dir) +
         " --main-jar " + File.bash_platform_path(dist_dir + Path.explode("lib/classes/isabelle.jar")) +
-        " --copyright 'Isabelle contributors: various open-source lincenses'" +
+        " --copyright 'Isabelle contributors: various open-source licenses'" +
         " --description 'Isabelle prover platform'" +
         " --vendor 'Isabelle'" +
         if_proper(platform.is_macos,
