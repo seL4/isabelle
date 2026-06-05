@@ -284,55 +284,55 @@ lemma fset_eq_iff[no_atp]: "(A = B) = (\<forall>x. (x |\<in>| A) = (x |\<in>| B)
   by (rule set_eq_iff[Transfer.transferred])
 
 lemma fBallI[no_atp]: "(\<And>x. x |\<in>| A \<Longrightarrow> P x) \<Longrightarrow> fBall A P"
-  by (rule ballI[Transfer.transferred])
+  using ballI .
 
 lemma fbspec[no_atp]: "fBall A P \<Longrightarrow> x |\<in>| A \<Longrightarrow> P x"
-  by (rule bspec[Transfer.transferred])
+  using bspec .
 
 lemma fBallE[no_atp]: "fBall A P \<Longrightarrow> (P x \<Longrightarrow> Q) \<Longrightarrow> (x |\<notin>| A \<Longrightarrow> Q) \<Longrightarrow> Q"
-  by (rule ballE[Transfer.transferred])
+  using ballE .
 
 lemma fBexI[no_atp]: "P x \<Longrightarrow> x |\<in>| A \<Longrightarrow> fBex A P"
-  by (rule bexI[Transfer.transferred])
+  using bexI .
 
 lemma rev_fBexI[no_atp]: "x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> fBex A P"
-  by (rule rev_bexI[Transfer.transferred])
+  using rev_bexI .
 
 lemma fBexCI[no_atp]: "(fBall A (\<lambda>x. \<not> P x) \<Longrightarrow> P a) \<Longrightarrow> a |\<in>| A \<Longrightarrow> fBex A P"
-  by (rule bexCI[Transfer.transferred])
+  using bexCI .
 
 lemma fBexE[no_atp]: "fBex A P \<Longrightarrow> (\<And>x. x |\<in>| A \<Longrightarrow> P x \<Longrightarrow> Q) \<Longrightarrow> Q"
-  by (rule bexE[Transfer.transferred])
+  using bexE .
 
 lemma fBall_triv[no_atp]: "fBall A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<longrightarrow> P)"
-  by (rule ball_triv[Transfer.transferred])
+  using ball_triv .
 
 lemma fBex_triv[no_atp]: "fBex A (\<lambda>x. P) = ((\<exists>x. x |\<in>| A) \<and> P)"
-  by (rule bex_triv[Transfer.transferred])
+  using bex_triv .
 
 lemma fBex_triv_one_point1[no_atp]: "fBex A (\<lambda>x. x = a) = (a |\<in>| A)"
-  by (rule bex_triv_one_point1[Transfer.transferred])
+  using bex_triv_one_point1 .
 
 lemma fBex_triv_one_point2[no_atp]: "fBex A ((=) a) = (a |\<in>| A)"
-  by (rule bex_triv_one_point2[Transfer.transferred])
+  using bex_triv_one_point2 .
 
 lemma fBex_one_point1[no_atp]: "fBex A (\<lambda>x. x = a \<and> P x) = (a |\<in>| A \<and> P a)"
-  by (rule bex_one_point1[Transfer.transferred])
+  using bex_one_point1 .
 
 lemma fBex_one_point2[no_atp]: "fBex A (\<lambda>x. a = x \<and> P x) = (a |\<in>| A \<and> P a)"
-  by (rule bex_one_point2[Transfer.transferred])
+  using bex_one_point2 .
 
 lemma fBall_one_point1[no_atp]: "fBall A (\<lambda>x. x = a \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
-  by (rule ball_one_point1[Transfer.transferred])
+  using ball_one_point1 .
 
 lemma fBall_one_point2[no_atp]: "fBall A (\<lambda>x. a = x \<longrightarrow> P x) = (a |\<in>| A \<longrightarrow> P a)"
-  by (rule ball_one_point2[Transfer.transferred])
+  using ball_one_point2 .
 
 lemma fBall_conj_distrib: "fBall A (\<lambda>x. P x \<and> Q x) = (fBall A P \<and> fBall A Q)"
-  by (rule ball_conj_distrib[Transfer.transferred])
+  using ball_conj_distrib .
 
 lemma fBex_disj_distrib: "fBex A (\<lambda>x. P x \<or> Q x) = (fBex A P \<or> fBex A Q)"
-  by (rule bex_disj_distrib[Transfer.transferred])
+  using bex_disj_distrib .
 
 lemma fBall_cong[fundef_cong]: "A = B \<Longrightarrow> (\<And>x. x |\<in>| B \<Longrightarrow> P x = Q x) \<Longrightarrow> fBall A P = fBall B Q"
   by (rule ball_cong[Transfer.transferred])
