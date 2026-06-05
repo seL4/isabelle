@@ -332,6 +332,10 @@ Usage: isabelle build_app [OPTIONS] ARCHIVE
     -v           verbose
 
   Build standalone desktop app from Isabelle distribution archive (file or URL).
+
+  Windows prerequisites:
+    - 7z (e.g. from Cygwin)
+    - WiX Toolset v5, see https://github.com/wixtoolset/wix/releases/tag/v5.0.2
 """,
             "D:" -> (arg => target_dir = Path.explode(arg)),
             "K:" -> (arg => codesign_keychain = arg),
