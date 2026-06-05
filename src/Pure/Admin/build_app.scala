@@ -293,16 +293,17 @@ mac.CFBundleTypeRole=Editor
 
       /* macOS packaging */
 
-      if (platform.is_macos && codesign_user.nonEmpty) {
-        progress.echo("Building signed dmg ...")
+      if (platform.is_macos && codesign_user.nonEmpty || platform.is_windows) {
+        progress.echo("Building app bundle ...")
+        val ext = if (platform.is_macos) "dmg" else "exe"
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
-          " --type dmg" +
-          mac_sign_options +
+          " --type " + Bash.string(ext) +
+          if_proper(platform.is_macos, mac_sign_options) +
           if_proper(progress.verbose, " --verbose"))
         Isabelle_System.move_file(
-          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext("dmg"),
-          app_target.ext("dmg"))
+          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext(ext),
+          app_target.ext(ext))
       }
     }
   }
