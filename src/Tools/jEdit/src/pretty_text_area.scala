@@ -365,16 +365,22 @@ class Pretty_Text_Area(
           else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 
         case KeyEvent.VK_LEFT if !propagate_keys =>
-          pretty_text_area.goToPrevCharacter(false)
+          pretty_text_area.goToPrevCharacter(GUI.shift_modifier(evt, only = true))
           evt.consume()
         case KeyEvent.VK_RIGHT if !propagate_keys =>
-          pretty_text_area.goToNextCharacter(false)
+          pretty_text_area.goToNextCharacter(GUI.shift_modifier(evt, only = true))
           evt.consume()
         case KeyEvent.VK_UP if !propagate_keys =>
-          pretty_text_area.goToPrevLine(false)
+          pretty_text_area.goToPrevLine(GUI.shift_modifier(evt, only = true))
           evt.consume()
         case KeyEvent.VK_DOWN if !propagate_keys =>
-          pretty_text_area.goToNextLine(false)
+          pretty_text_area.goToNextLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_HOME if !propagate_keys =>
+          pretty_text_area.goToStartOfLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_END if !propagate_keys =>
+          pretty_text_area.goToEndOfLine(GUI.shift_modifier(evt, only = true))
           evt.consume()
 
         case _ =>
