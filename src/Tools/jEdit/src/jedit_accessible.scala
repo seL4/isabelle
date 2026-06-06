@@ -16,7 +16,7 @@ import org.gjt.sp.jedit.{jEdit, Buffer, ViewFactory, TextUtilities, Registers}
 import org.gjt.sp.jedit.bufferset.BufferSet
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, JEditTextAreaFactory, TextArea => TextArea_JEdit,
-  TextAreaPainter, TextAreaPainterFactory, Selection}
+  TextAreaPainter, TextAreaPainterFactory, JEditEmbeddedTextArea, Selection}
 
 import java.awt.{Point, Rectangle}
 import java.text.BreakIterator
@@ -121,6 +121,30 @@ object JEdit_Accessible {
     protected class Accessible_Context extends AccessibleJPanel with TextArea_Context {
       override def view: jedit.View = TextArea.this.view
       override def text_area: TextArea_JEdit = TextArea.this
+      override def getAccessibleText: AccessibleText = this
+      override def getAccessibleEditableText: AccessibleEditableText = this
+
+      override def getAccessibleName: String = make_title("editor text", buffer)
+      override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
+      override def getAccessibleStateSet: AccessibleStateSet =
+        init_states(super.getAccessibleStateSet)
+
+      override def fire_property_change(name: String, a: AnyRef, b: AnyRef): Unit =
+        firePropertyChange(name, a, b)
+    }
+  }
+
+  class EmbeddedTextArea(view: jedit.View) extends JEditEmbeddedTextArea {
+    text_area =>
+
+    override def getAccessibleContext: AccessibleContext = {
+      if (accessibleContext == null) { accessibleContext = new Accessible_Context }
+      accessibleContext
+    }
+
+    protected class Accessible_Context extends AccessibleJPanel with TextArea_Context {
+      override def view: jedit.View = EmbeddedTextArea.this.view
+      override def text_area: TextArea_JEdit = EmbeddedTextArea.this
       override def getAccessibleText: AccessibleText = this
       override def getAccessibleEditableText: AccessibleEditableText = this
 

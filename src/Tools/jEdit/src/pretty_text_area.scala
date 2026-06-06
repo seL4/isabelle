@@ -23,7 +23,6 @@ import scala.util.matching.Regex
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
-import org.gjt.sp.jedit.textarea.JEditEmbeddedTextArea
 import org.gjt.sp.jedit.search.HyperSearchResults
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
@@ -112,7 +111,7 @@ class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
   propagate_keys: Boolean = false
-) extends JEditEmbeddedTextArea {
+) extends JEdit_Accessible.EmbeddedTextArea(view) {
   pretty_text_area =>
 
   GUI_Thread.require {}
