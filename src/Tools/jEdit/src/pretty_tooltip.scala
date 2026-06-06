@@ -47,7 +47,8 @@ object Pretty_Tooltip {
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    output: List[XML.Elem]
+    output: List[XML.Elem],
+    focus: Boolean
   ): Unit = {
     GUI_Thread.require {}
 
@@ -68,7 +69,7 @@ object Pretty_Tooltip {
             val pretty_tooltip =
               new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output)
             stack = pretty_tooltip :: rest
-            pretty_tooltip.show_popup()
+            pretty_tooltip.show_popup(focus = focus)
         }
     }
   }
@@ -267,9 +268,9 @@ class Pretty_Tooltip private(
       }
     }
 
-  private def show_popup(): Unit = {
+  private def show_popup(focus: Boolean = false): Unit = {
     popup.show
-    pretty_text_area.requestFocus()
+    if (focus) pretty_text_area.requestFocus()
     pretty_text_area.update(rendering.snapshot, results, output)
   }
 

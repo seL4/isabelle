@@ -547,7 +547,8 @@ object Isabelle {
     } {
       val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
       val results = rendering.snapshot.command_results(tip.range)
-      Pretty_Tooltip(editor_context.view, painter, loc, rendering, results, tip.info)
+      Pretty_Tooltip(editor_context.view, painter, loc, rendering, results, tip.info,
+        focus = true)
     }
   }
 
