@@ -111,7 +111,8 @@ class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
   propagate_keys: Boolean = false,
-  caret_visible: Boolean = false
+  caret_visible: Boolean = false,
+  unicode_symbols: Boolean = Isabelle_Encoding.is_active()
 ) extends JEdit_Accessible.EmbeddedTextArea(view) {
   pretty_text_area =>
 
@@ -189,7 +190,8 @@ class Pretty_Text_Area(
         {
           val (rich_texts, rendering) =
             try {
-              val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
+              val rich_texts =
+                Rich_Text.format(output, margin, metric, unicode_symbols, cache = PIDE.session.cache)
               val rendering =
                 JEdit_Rendering.make(snapshot, rich_texts = rich_texts, results = results)
               (rich_texts, rendering)
