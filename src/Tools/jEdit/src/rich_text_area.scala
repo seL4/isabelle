@@ -325,8 +325,9 @@ class Rich_Text_Area(
                           val painter = text_area.getPainter
                           val loc = new Point(x, y + painter.getLineHeight / 2)
                           val results = snapshot.command_results(tip.range)
+                          val unicode_symbols = Isabelle_Encoding.is_active(buffer = buffer)
                           Pretty_Tooltip(view, painter, loc, rendering, results, tip.info,
-                            focus = true, propagate_keys = true)
+                            focus = true, propagate_keys = true, unicode_symbols = unicode_symbols)
                       }
                   }
                 }

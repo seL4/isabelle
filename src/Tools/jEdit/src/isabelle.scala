@@ -547,8 +547,9 @@ object Isabelle {
     } {
       val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
       val results = rendering.snapshot.command_results(tip.range)
+      val unicode_symbols = Isabelle_Encoding.is_active(buffer = text_area.getBuffer)
       Pretty_Tooltip(editor_context.view, painter, loc, rendering, results, tip.info,
-        focus = true, caret_visible = true)
+        focus = true, caret_visible = true, unicode_symbols = unicode_symbols)
     }
   }
 
