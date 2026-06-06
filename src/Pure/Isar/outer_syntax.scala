@@ -100,14 +100,14 @@ final class Outer_Syntax private(
 
   def complete(
     history: Completion.History,
-    unicode: Boolean,
+    unicode_symbols: Boolean,
     explicit: Boolean,
     start: Text.Offset,
     text: CharSequence,
     caret: Int,
     context: Completion.Language_Context
   ): Option[Completion.Result] = {
-    completion.complete(history, unicode, explicit, start, text, caret, context)
+    completion.complete(history, unicode_symbols, explicit, start, text, caret, context)
   }
 
 

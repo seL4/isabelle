@@ -33,7 +33,7 @@ object Completion_Popup {
 
   /** items with GUI rendering **/
 
-  class Item(item: Completion.Item, insert: Completion.Item => Unit, unicode: Boolean)
+  class Item(item: Completion.Item, insert: Completion.Item => Unit, unicode_symbols: Boolean)
   extends Selection_Popup.Item {
     override def select(): Unit = {
       PIDE.plugin.completion_history.update(item)
@@ -44,7 +44,7 @@ object Completion_Popup {
       item.description match {
         case a :: bs =>
           val style = GUI.Style_HTML
-          def output(s: String): String = Symbol.output(unicode, Symbol.print_newlines(s))
+          def output(s: String): String = Symbol.output(unicode_symbols, Symbol.print_newlines(s))
           style.enclose(
             style.make_bold(output(a)) + style.make_text(bs.map(b => " " + output(b)).mkString))
         case Nil => ""
@@ -165,7 +165,7 @@ object Completion_Popup {
       opt_rendering: Option[JEdit_Rendering]
     ): Option[Completion.Result] = {
       val buffer = text_area.getBuffer
-      val unicode = Isabelle_Encoding.is_active(buffer = buffer)
+      val unicode_symbols = Isabelle_Encoding.is_active(buffer = buffer)
 
       Isabelle.buffer_syntax(buffer) match {
         case Some(syntax) =>
@@ -184,7 +184,8 @@ object Completion_Popup {
             line_text <- JEdit_Lib.get_text(buffer, line_range)
             result <-
               syntax.complete(
-                history, unicode, explicit, line_start, line_text, caret - line_start, context)
+                history, unicode_symbols, explicit, line_start, line_text, caret - line_start,
+                context)
           } yield result
 
         case None => None
@@ -273,7 +274,7 @@ object Completion_Popup {
     ): Boolean = {
       val history = PIDE.plugin.completion_history.value
       val buffer = text_area.getBuffer
-      val unicode = Isabelle_Encoding.is_active(buffer = buffer)
+      val unicode_symbols = Isabelle_Encoding.is_active(buffer = buffer)
 
       if (buffer.isEditable) {
         val caret = text_area.getCaretPosition
@@ -282,7 +283,7 @@ object Completion_Popup {
         val (no_completion, semantic_completion) = {
           opt_rendering match {
             case Some(rendering) =>
-              rendering.semantic_completion_result(history, unicode, result0.map(_.range),
+              rendering.semantic_completion_result(history, unicode_symbols, result0.map(_.range),
                 rendering.before_caret_range(caret))
             case None => (false, None)
           }
@@ -309,7 +310,7 @@ object Completion_Popup {
                   insert(item)
                   true
                 case _ :: _ if !delayed =>
-                  open_popup(result.range, result.items.map(new Item(_, insert, unicode)),
+                  open_popup(result.range, result.items.map(new Item(_, insert, unicode_symbols)),
                     focus = focus,
                     select_enter = completion_select_enter,
                     select_tab = completion_select_tab)
@@ -441,7 +442,7 @@ object Completion_Popup {
       GUI.layered_pane(text_field) match {
         case Some(layered) if text_field.isEditable =>
           val history = PIDE.plugin.completion_history.value
-          val unicode = Isabelle_Encoding.is_active()
+          val unicode_symbols = Isabelle_Encoding.is_active()
 
           val caret = text_field.getCaret.getDot
           val text = text_field.getText
@@ -454,7 +455,7 @@ object Completion_Popup {
               val loc =
                 SwingUtilities.convertPoint(text_field, fm.stringWidth(text), fm.getHeight, layered)
 
-              val items = result.items.map(new Item(_, insert, unicode))
+              val items = result.items.map(new Item(_, insert, unicode_symbols))
               val completion =
                 new Selection_Popup(None, layered, loc, text_field.getFont, items,
                   select_enter = completion_select_enter,

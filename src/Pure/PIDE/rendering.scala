@@ -344,7 +344,7 @@ abstract class Rendering(
 
   def semantic_completion_result(
     history: Completion.History,
-    unicode: Boolean,
+    unicode_symbols: Boolean,
     completed_range: Option[Text.Range],
     caret_range: Text.Range
   ): (Boolean, Option[Completion.Result]) = {
@@ -352,7 +352,7 @@ abstract class Rendering(
       case Some(Text.Info(_, Completion.No_Completion)) => (true, None)
       case Some(Text.Info(range, names: Completion.Names)) =>
         get_text(range) match {
-          case Some(original) => (false, names.complete(range, history, unicode, original))
+          case Some(original) => (false, names.complete(range, history, unicode_symbols, original))
           case None => (false, None)
         }
       case None => (false, None)
