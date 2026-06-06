@@ -1308,6 +1308,78 @@ next
   ultimately show ?thesis by blast
 qed
 
+lemma any_closest_point_affine_orthogonal:
+  fixes S :: "('a::euclidean_space) set"
+  assumes "affine S" "b \<in> S" "\<And>x. x \<in> S \<Longrightarrow> dist a b \<le> dist a x"
+  shows "\<And>x. x \<in> S \<Longrightarrow> orthogonal (x - b) (a - b)"
+proof -
+  fix x assume "x \<in> S"
+  have convS: "convex S" using assms(1) affine_imp_convex by blast
+  have closS: "closed S" using assms(1) affine_closed by blast
+  have le1: "(a - b) \<bullet> (x - b) \<le> 0"
+    using any_closest_point_dot[OF convS closS assms(2) \<open>x \<in> S\<close>] assms(3) by blast
+  have "2 *\<^sub>R b - x \<in> S"
+    by (metis \<open>x \<in> S\<close> assms(1,2) diff_diff_eq2 mem_affine_3_minus2 scaleR_2 scaleR_one)
+  then have le2: "(a - b) \<bullet> ((2 *\<^sub>R b - x) - b) \<le> 0"
+    using any_closest_point_dot[OF convS closS assms(2)] assms(3) by blast
+  then show "orthogonal (x - b) (a - b)"
+    using le1 by (simp add: inner_diff_right algebra_simps orthogonal_def inner_commute)
+qed
+
+lemma orthogonal_any_closest_point:
+  fixes S :: "('a::euclidean_space) set"
+  assumes "b \<in> S" "\<And>x. x \<in> S \<Longrightarrow> orthogonal (x - b) (a - b)"
+  shows "\<And>x. x \<in> S \<Longrightarrow> dist a b \<le> dist a x"
+proof -
+  fix x assume "x \<in> S"
+  have orth: "orthogonal (x - b) (a - b)"
+    using assms(2)[OF \<open>x \<in> S\<close>] .
+  have "orthogonal (a - b) (x - b)"
+    using orth by (simp add: orthogonal_commute)
+  then have "orthogonal (a - b) (b - x)"
+    using orthogonal_clauses(3)[of "a - b" "x - b"] by (simp add: algebra_simps)
+  then have "(norm ((a - b) + (b - x)))\<^sup>2 = (norm (a - b))\<^sup>2 + (norm (b - x))\<^sup>2"
+    by (rule norm_add_Pythagorean)
+  then have "(norm (a - x))\<^sup>2 \<ge> (norm (a - b))\<^sup>2"
+    by (simp add: algebra_simps)
+  then have "norm (a - x) \<ge> norm (a - b)"
+    by (simp add: power2_le_iff_abs_le)
+  then show "dist a b \<le> dist a x"
+    by (simp add: dist_norm)
+qed
+
+lemma closest_point_affine_orthogonal:
+  fixes S :: "('a::euclidean_space) set"
+  assumes "affine S" "S \<noteq> {}" "x \<in> S"
+  shows "orthogonal (x - closest_point S a) (a - closest_point S a)"
+proof -
+  have "closed S" using assms(1) affine_closed by blast
+  have "closest_point S a \<in> S"
+    using closest_point_in_set[OF \<open>closed S\<close> assms(2)] .
+  have "\<And>y. y \<in> S \<Longrightarrow> dist a (closest_point S a) \<le> dist a y"
+    using closest_point_le[OF \<open>closed S\<close>] by (simp add: dist_commute)
+  then show ?thesis
+    using any_closest_point_affine_orthogonal[OF assms(1) \<open>closest_point S a \<in> S\<close>] assms(3)
+    by blast
+qed
+
+lemma closest_point_affine_orthogonal_eq:
+  fixes S :: "('a::euclidean_space) set"
+  assumes "affine S" "b \<in> S"
+  shows "(closest_point S a = b) \<longleftrightarrow> (\<forall>x. x \<in> S \<longrightarrow> orthogonal (x - b) (a - b))"
+proof
+  assume eq: "closest_point S a = b"
+  show "\<forall>x. x \<in> S \<longrightarrow> orthogonal (x - b) (a - b)"
+    using \<open>affine S\<close> closest_point_affine_orthogonal eq by blast
+next
+  assume orth: "\<forall>x. x \<in> S \<longrightarrow> orthogonal (x - b) (a - b)"
+  have "\<forall>z\<in>S. dist a b \<le> dist a z"
+    using orthogonal_any_closest_point[OF \<open>b \<in> S\<close>] orth by blast
+  then have "b = closest_point S a"
+    by (simp add: affine_closed affine_imp_convex assms closest_point_unique)
+  then show "closest_point S a = b" by simp
+qed
+
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Various point-to-set separating/supporting hyperplane theorems\<close>
 

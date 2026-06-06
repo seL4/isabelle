@@ -28,6 +28,7 @@ theory Analysis
   (* Measure and Integration Theory *)
   Absolute_Continuity
   Rectifiable_Path
+  Lebesgue_Differentiation
   Ball_Volume
   Integral_Test
   Improper_Integral
