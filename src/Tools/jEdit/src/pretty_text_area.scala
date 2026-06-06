@@ -362,12 +362,27 @@ class Pretty_Text_Area(
           if (Isabelle.dismissed_popups(view)) evt.consume()
           else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 
+        case KeyEvent.VK_LEFT if !propagate_keys =>
+          pretty_text_area.goToPrevCharacter(false)
+          evt.consume()
+        case KeyEvent.VK_RIGHT if !propagate_keys =>
+          pretty_text_area.goToNextCharacter(false)
+          evt.consume()
+        case KeyEvent.VK_UP if !propagate_keys =>
+          pretty_text_area.goToPrevLine(false)
+          evt.consume()
+        case KeyEvent.VK_DOWN if !propagate_keys =>
+          pretty_text_area.goToNextLine(false)
+          evt.consume()
+
         case _ =>
       }
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+      else evt.consume()
     },
     key_typed = { (evt: KeyEvent) =>
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+      else evt.consume()
     })
   )
 
