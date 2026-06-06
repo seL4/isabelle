@@ -205,7 +205,10 @@ class Pretty_Tooltip private(
   /* text area */
 
   val pretty_text_area: Pretty_Text_Area =
-    new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(pretty_tooltip), true) {
+    new Pretty_Text_Area(view,
+      close_action = () => Pretty_Tooltip.dismiss(pretty_tooltip),
+      propagate_keys = true
+    ) {
       override def get_background(): Option[Color] = Some(rendering.tooltip_background_color)
     }
 
