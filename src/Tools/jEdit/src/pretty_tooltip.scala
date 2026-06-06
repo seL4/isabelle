@@ -48,7 +48,8 @@ object Pretty_Tooltip {
     rendering: JEdit_Rendering,
     results: Command.Results,
     output: List[XML.Elem],
-    focus: Boolean
+    focus: Boolean,
+    propagate_keys: Boolean = false
   ): Unit = {
     GUI_Thread.require {}
 
@@ -67,7 +68,8 @@ object Pretty_Tooltip {
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
             val pretty_tooltip =
-              new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output)
+              new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output,
+                propagate_keys = propagate_keys)
             stack = pretty_tooltip :: rest
             pretty_tooltip.show_popup(focus = focus)
         }
@@ -168,7 +170,8 @@ class Pretty_Tooltip private(
   location: Point,
   rendering: JEdit_Rendering,
   private val results: Command.Results,
-  private val output: List[XML.Elem]
+  private val output: List[XML.Elem],
+  propagate_keys: Boolean
 ) extends JPanel(new BorderLayout) {
   pretty_tooltip =>
 
@@ -207,7 +210,7 @@ class Pretty_Tooltip private(
   val pretty_text_area: Pretty_Text_Area =
     new Pretty_Text_Area(view,
       close_action = () => Pretty_Tooltip.dismiss(pretty_tooltip),
-      propagate_keys = true
+      propagate_keys = propagate_keys
     ) {
       override def get_background(): Option[Color] = Some(rendering.tooltip_background_color)
     }
