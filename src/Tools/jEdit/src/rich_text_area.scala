@@ -30,11 +30,11 @@ import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea, 
 class Rich_Text_Area(
   editor_context: JEdit_Editor.Static_Context,
   get_rendering: () => JEdit_Rendering,
-  close_action: () => Unit,
-  get_search_pattern: () => Option[Regex],
-  caret_update: () => Unit,
-  caret_visible: Boolean,
-  enable_hovering: Boolean
+  close_action: () => Unit = () => (),
+  get_search_pattern: () => Option[Regex] = () => None,
+  caret_update: () => Unit = () => (),
+  caret_visible: Boolean = false,
+  enable_hovering: Boolean = false
 ) {
   private val view = editor_context.view
   private val view_editor_context: JEdit_Editor.Dynamic_Context = JEdit_Editor.Context(view)
