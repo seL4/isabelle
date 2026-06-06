@@ -92,7 +92,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
                 val rendering = new JEdit_Rendering(snapshot, model, options)
                 val loc = new Point(x, y)
                 Pretty_Tooltip(view, parent, loc, rendering, Command.Results.empty, List(tip),
-                  focus = true, propagate_keys = true)
+                  focus = true)
               })
             null
           }
