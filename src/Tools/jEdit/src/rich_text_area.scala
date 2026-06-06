@@ -319,7 +319,7 @@ class Rich_Text_Area(
                   JEdit_Lib.pixel_range(text_area, x, y) match {
                     case None =>
                     case Some(range) =>
-                      rendering.tooltip(range, control) match {
+                      rendering.tooltip(range, control = control) match {
                         case None =>
                         case Some(tip) =>
                           val painter = text_area.getPainter

@@ -542,7 +542,7 @@ object Isabelle {
     val caret_range = editor_context.caret_range
     for {
       rendering <- Document_View.get_rendering(text_area)
-      tip <- rendering.tooltip(caret_range, control)
+      tip <- rendering.tooltip(caret_range, control = control)
       loc0 <- proper_value(text_area.offsetToXY(caret_range.start))
     } {
       val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
