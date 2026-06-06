@@ -113,15 +113,10 @@ object JEdit_Accessible {
       }
     }
 
-    override def getAccessibleContext: Accessible_Context =
-      accessibleContext match {
-        case accessible_context: Accessible_Context => accessible_context
-        case _ =>
-          val accessible_context = new Accessible_Context
-          accessibleContext = accessible_context
-          text_area.addCaretListener(accessible_context)
-          accessible_context
-      }
+    override def getAccessibleContext: AccessibleContext = {
+      if (accessibleContext == null) { accessibleContext = new Accessible_Context }
+      accessibleContext
+    }
 
     protected class Accessible_Context
     extends AccessibleJPanel with AccessibleEditableText with AccessibleExtendedText
@@ -150,6 +145,7 @@ object JEdit_Accessible {
         firePropertyChange(AccessibleContext.ACCESSIBLE_SELECTION_PROPERTY,
           null, getSelectedText)
       }
+      text_area.addCaretListener(this)
 
       private def get_text(range: Text.Range): Option[Text.Info[String]] =
         JEdit_Lib.get_text(buffer, range).map(Text.Info(range, _))
@@ -401,9 +397,7 @@ object JEdit_Accessible {
 
   class Painter(text_area: TextArea_JEdit) extends TextAreaPainter(text_area) {
     override def getAccessibleContext: AccessibleContext = {
-      if (accessibleContext == null) {
-        accessibleContext = new Accessible_Context
-      }
+      if (accessibleContext == null) { accessibleContext = new Accessible_Context }
       accessibleContext
     }
 
