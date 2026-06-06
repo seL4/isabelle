@@ -121,9 +121,9 @@ object JEdit_Accessible {
     protected class Accessible_Context extends AccessibleJPanel with TextArea_Context {
       override def view: jedit.View = TextArea.this.view
       override def text_area: TextArea_JEdit = TextArea.this
+
       override def getAccessibleText: AccessibleText = this
       override def getAccessibleEditableText: AccessibleEditableText = this
-
       override def getAccessibleName: String = make_title("editor text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleStateSet: AccessibleStateSet =
@@ -145,9 +145,9 @@ object JEdit_Accessible {
     protected class Accessible_Context extends AccessibleJPanel with TextArea_Context {
       override def view: jedit.View = EmbeddedTextArea.this.view
       override def text_area: TextArea_JEdit = EmbeddedTextArea.this
+
       override def getAccessibleText: AccessibleText = this
       override def getAccessibleEditableText: AccessibleEditableText = this
-
       override def getAccessibleName: String = make_title("embedded text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleStateSet: AccessibleStateSet =
