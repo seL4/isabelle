@@ -161,7 +161,7 @@ object JEdit_Accessible {
           if (n == text_length) Some(Text.Info(Text.Range(n, n + 1), "\n"))
           else if (offset < 0 || offset >= text_length) None
           else {
-            val it = JEdit_Lib.grapheme_iterator(getBuffer)
+            val it = JEdit_Lib.grapheme_iterator(buffer)
             val i = if (it.isBoundary(offset)) offset else it.preceding(offset)
             if (i == BreakIterator.DONE) None
             else {
@@ -252,7 +252,7 @@ object JEdit_Accessible {
         }
 
       override def getIndexAtPoint(p: Point): Int = {
-        val q = SwingUtilities.convertPoint(text_area, p, painter)
+        val q = SwingUtilities.convertPoint(text_area, p, text_area.getPainter)
         if (q == null) 0 else text_area.xyToOffset(q.x, q.y)
       }
 
@@ -262,8 +262,8 @@ object JEdit_Accessible {
           gfx <- JEdit_Lib.gfx_range(text_area)(info.range)
         }
         yield {
-          val r = new Rectangle(gfx.x, gfx.y, gfx.length, painter.getLineHeight)
-          SwingUtilities.convertRectangle(painter, r, text_area)
+          val r = new Rectangle(gfx.x, gfx.y, gfx.length, text_area.getPainter.getLineHeight)
+          SwingUtilities.convertRectangle(text_area.getPainter, r, text_area)
         }).orNull
 
       override def getTextBounds(start: Int, end: Int): Rectangle = {
