@@ -48,7 +48,7 @@ class Mutator_Dialog(
 
   minimumSize = new Dimension(700, 200)
   preferredSize = new Dimension(1000, 300)
-  peer.setFocusTraversalPolicy(Focus_Traveral_Policy)
+  peer.setFocusTraversalPolicy(Focus_Traversal_Policy)
 
   private def get_panels(m: List[Mutator.Info]): List[Mutator_Panel] =
     m.filter({ case Mutator.Info(_, _, Mutator.Identity()) => false case _ => true })
@@ -86,18 +86,18 @@ class Mutator_Dialog(
   }
 
   def paint_panels(): Unit = {
-    Focus_Traveral_Policy.clear()
+    Focus_Traversal_Policy.clear()
     filter_panel.contents.clear()
     panels.map { x =>
       filter_panel.contents += x
-      Focus_Traveral_Policy.addAll(x.focusList)
+      Focus_Traversal_Policy.addAll(x.focusList)
     }
     filter_panel.contents += Swing.VGlue
 
-    Focus_Traveral_Policy.add(mutator_box.peer.asInstanceOf[java.awt.Component])
-    Focus_Traveral_Policy.add(add_button.peer)
-    Focus_Traveral_Policy.add(apply_button.peer)
-    Focus_Traveral_Policy.add(cancel_button.peer)
+    Focus_Traversal_Policy.add(mutator_box.peer.asInstanceOf[java.awt.Component])
+    Focus_Traversal_Policy.add(add_button.peer)
+    Focus_Traversal_Policy.add(apply_button.peer)
+    Focus_Traversal_Policy.add(cancel_button.peer)
     filter_panel.revalidate()
     filter_panel.repaint()
   }
@@ -335,7 +335,7 @@ class Mutator_Dialog(
     def bool = selected
   }
 
-  private object Focus_Traveral_Policy extends FocusTraversalPolicy {
+  private object Focus_Traversal_Policy extends FocusTraversalPolicy {
     private var items = Vector.empty[java.awt.Component]
 
     def add(c: java.awt.Component): Unit = { items = items :+ c }
