@@ -148,7 +148,7 @@ object JEdit_Accessible {
       override def getAccessibleText: AccessibleText = this
       override def getAccessibleEditableText: AccessibleEditableText = this
 
-      override def getAccessibleName: String = make_title("editor text", buffer)
+      override def getAccessibleName: String = make_title("embedded text", buffer)
       override def getAccessibleRole: AccessibleRole = AccessibleRole.TEXT
       override def getAccessibleStateSet: AccessibleStateSet =
         init_states(super.getAccessibleStateSet)
