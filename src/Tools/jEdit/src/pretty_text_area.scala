@@ -110,7 +110,8 @@ object Pretty_Text_Area {
 class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
-  propagate_keys: Boolean = false
+  propagate_keys: Boolean = false,
+  caret_visible: Boolean = false
 ) extends JEdit_Accessible.EmbeddedTextArea(view) {
   pretty_text_area =>
 
@@ -135,7 +136,8 @@ class Pretty_Text_Area(
 
   private val rich_text_area =
     new Rich_Text_Area(editor_context, () => current_rendering, close_action = close_action,
-      get_search_pattern = get_search_pattern, enable_hovering = true)
+      get_search_pattern = get_search_pattern, caret_visible = caret_visible,
+      enable_hovering = true)
 
   private var current_search_results =
     Pretty_Text_Area.Search_Results(getBuffer, Pretty_Text_Area.make_highlight_style())
