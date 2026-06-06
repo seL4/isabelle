@@ -258,7 +258,7 @@ object Completion_Popup {
         view.setKeyEventInterceptor(panel.inner_key_listener)
         JEdit_Lib.invalidate_range(text_area, range)
         Pretty_Tooltip.dismissed_all()
-        panel.show_popup(focus)
+        panel.show_popup(focus = focus)
       }
     }
 
@@ -467,7 +467,7 @@ object Completion_Popup {
                 }
               dismissed()
               completion_popup = Some(completion)
-              completion.show_popup(true)
+              completion.show_popup(focus = true)
 
             case None =>
           }
