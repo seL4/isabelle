@@ -48,7 +48,7 @@ object Pretty_Tooltip {
     rendering: JEdit_Rendering,
     results: Command.Results,
     output: List[XML.Elem],
-    focus: Boolean,
+    focus: Boolean = false,
     propagate_keys: Boolean = false
   ): Unit = {
     GUI_Thread.require {}
