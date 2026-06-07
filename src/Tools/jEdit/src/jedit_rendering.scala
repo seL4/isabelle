@@ -289,7 +289,7 @@ extends Rendering(snapshot, options, PIDE.session) {
 
   def tooltip_margin: Int = options.int("jedit_tooltip_margin")
 
-  def tooltip(range: Text.Range, control: Boolean): Option[Text.Info[List[XML.Elem]]] =
+  def tooltip(range: Text.Range, control: Boolean = false): Option[Text.Info[List[XML.Elem]]] =
     tooltips(if (control) Rendering.tooltip_elements else Rendering.tooltip_message_elements,
       range)
 

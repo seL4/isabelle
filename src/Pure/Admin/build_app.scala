@@ -73,8 +73,8 @@ object Build_App {
           }
         val dist_parent = Isabelle_System.new_directory(tmp_dir + Path.explode("dist"))
         if (dist_archive.endsWith(".exe")) {
-          Isabelle_System.bash(
-            "7z x -y " + File.bash_platform_path(dist_archive_path), cwd = dist_parent).check
+          Isabelle_System.copy_file(dist_archive_path, tmp_dir + Path.basic("archive.exe"))
+          Isabelle_System.bash("7z x -y ../archive.exe", cwd = dist_parent).check
         }
         else Isabelle_System.extract(dist_archive_path, dist_parent)
         File.get_dir(dist_parent, title = dist_archive)
@@ -157,7 +157,7 @@ mac.CFBundleTypeRole=Editor
         mac_sign_options +
         " --input " + File.bash_platform_path(dummy_dir) +
         " --main-jar " + File.bash_platform_path(dist_dir + Path.explode("lib/classes/isabelle.jar")) +
-        " --copyright 'Isabelle contributors: various open-source lincenses'" +
+        " --copyright 'Isabelle contributors: various open-source licenses'" +
         " --description 'Isabelle prover platform'" +
         " --vendor 'Isabelle'" +
         if_proper(platform.is_macos,
@@ -293,16 +293,17 @@ mac.CFBundleTypeRole=Editor
 
       /* macOS packaging */
 
-      if (platform.is_macos && codesign_user.nonEmpty) {
-        progress.echo("Building signed dmg ...")
+      if (platform.is_macos && codesign_user.nonEmpty || platform.is_windows) {
+        progress.echo("Building app bundle ...")
+        val ext = if (platform.is_macos) "dmg" else "exe"
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
-          " --type dmg" +
-          mac_sign_options +
+          " --type " + Bash.string(ext) +
+          if_proper(platform.is_macos, mac_sign_options) +
           if_proper(progress.verbose, " --verbose"))
         Isabelle_System.move_file(
-          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext("dmg"),
-          app_target.ext("dmg"))
+          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext(ext),
+          app_target.ext(ext))
       }
     }
   }
@@ -331,6 +332,10 @@ Usage: isabelle build_app [OPTIONS] ARCHIVE
     -v           verbose
 
   Build standalone desktop app from Isabelle distribution archive (file or URL).
+
+  Windows prerequisites:
+    - 7z (e.g. from Cygwin)
+    - WiX Toolset v5, see https://github.com/wixtoolset/wix/releases/tag/v5.0.2
 """,
             "D:" -> (arg => target_dir = Path.explode(arg)),
             "K:" -> (arg => codesign_keychain = arg),

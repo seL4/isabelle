@@ -39,12 +39,13 @@ object Rich_Text {
     msgs: List[XML.Elem],
     margin: Double,
     metric: Font_Metric,
+    unicode_symbols: Boolean,
     cache: Cache = Cache.none
   ): List[Formatted] = {
     val result = new mutable.ListBuffer[Formatted]
     for (msg <- msgs) {
       if (result.nonEmpty) result += Formatted(Document_ID.make(), Pretty.Separator)
-      result += cache.format(msg, margin, metric)
+      result += cache.format(msg, margin, metric, unicode_symbols)
       Exn.Interrupt.expose()
     }
     result.toList
@@ -73,21 +74,29 @@ object Rich_Text {
 
     val none: Cache = make(max_string = 0)
 
-    sealed case class Args(msg: XML.Elem, margin: Double, metric: Font_Metric)
+    sealed case class Args(
+      msg: XML.Elem, margin: Double, metric: Font_Metric, unicode_symbols: Boolean)
   }
 
   class Cache(compress: Compress.Cache, max_string: Int, initial_size: Int)
   extends Term.Cache(compress, max_string, initial_size) {
     cache =>
 
-    def format(msg: XML.Elem, margin: Double, metric: Font_Metric): Formatted = {
+    def format(
+      msg: XML.Elem,
+      margin: Double,
+      metric: Font_Metric,
+      unicode_symbols: Boolean
+    ): Formatted = {
+      def recode(s: String): String = Symbol.output(unicode_symbols, s)
+
       def run: Formatted =
         Formatted(Protocol_Message.get_serial(msg),
-          cache.body(Pretty.formatted(List(msg), margin = margin, metric = metric)))
+          cache.body(Pretty.formatted(List(msg), recode = recode, margin = margin, metric = metric)))
 
       if (cache.table == null) run
       else {
-        val x = Cache.Args(msg, margin, metric)
+        val x = Cache.Args(msg, margin, metric, unicode_symbols)
 
         def get: Option[Formatted] =
           cache.table.get(x) match {

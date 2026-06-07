@@ -71,9 +71,8 @@ class Document_View(val model: Buffer_Model, val text_area: JEditTextArea) {
   val editor_context: JEdit_Editor.Static_Context = JEdit_Editor.Context(text_area)
 
   val rich_text_area: Rich_Text_Area =
-    new Rich_Text_Area(editor_context,
-      () => Document_View.rendering(doc_view), () => (), () => None,
-      () => delay_caret_update.invoke(), caret_visible = true, enable_hovering = false)
+    new Rich_Text_Area(editor_context, () => Document_View.rendering(doc_view),
+      caret_update = () => delay_caret_update.invoke(), caret_visible = true)
 
 
   /* perspective */

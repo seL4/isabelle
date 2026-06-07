@@ -82,7 +82,7 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
   def completion(node_pos: Line.Node_Position, caret: Text.Offset): List[LSP.CompletionItem] = {
     val doc = model.content.doc
     val line = node_pos.line
-    val unicode = resources.unicode_symbols_edits
+    val unicode_symbols = resources.unicode_symbols_edits
     doc.offset(Line.Position(line)) match {
       case None => Nil
       case Some(line_start) =>
@@ -91,13 +91,13 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
 
         val syntax = model.syntax()
         val syntax_completion =
-          syntax.complete(history, unicode, explicit = false,
+          syntax.complete(history, unicode_symbols, explicit = false,
             line_start, doc.lines(line).text, caret - line_start,
             language_context(caret_range) getOrElse syntax.language_context)
 
         val (no_completion, semantic_completion) =
           rendering.semantic_completion_result(
-            history, unicode, syntax_completion.map(_.range), caret_range)
+            history, unicode_symbols, syntax_completion.map(_.range), caret_range)
 
         if (no_completion) Nil
         else {

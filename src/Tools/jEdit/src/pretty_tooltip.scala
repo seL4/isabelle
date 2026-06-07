@@ -47,7 +47,11 @@ object Pretty_Tooltip {
     location: Point,
     rendering: JEdit_Rendering,
     results: Command.Results,
-    output: List[XML.Elem]
+    output: List[XML.Elem],
+    focus: Boolean = false,
+    propagate_keys: Boolean = false,
+    caret_visible: Boolean = false,
+    unicode_symbols: Boolean = Isabelle_Encoding.is_active()
   ): Unit = {
     GUI_Thread.require {}
 
@@ -66,9 +70,11 @@ object Pretty_Tooltip {
 
             val loc = SwingUtilities.convertPoint(parent, location, layered)
             val pretty_tooltip =
-              new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output)
+              new Pretty_Tooltip(view, layered, parent, loc, rendering, results, output,
+                propagate_keys = propagate_keys, caret_visible = caret_visible,
+                unicode_symbols = unicode_symbols)
             stack = pretty_tooltip :: rest
-            pretty_tooltip.show_popup()
+            pretty_tooltip.show_popup(focus = focus)
         }
     }
   }
@@ -167,7 +173,10 @@ class Pretty_Tooltip private(
   location: Point,
   rendering: JEdit_Rendering,
   private val results: Command.Results,
-  private val output: List[XML.Elem]
+  private val output: List[XML.Elem],
+  propagate_keys: Boolean,
+  caret_visible: Boolean,
+  unicode_symbols: Boolean
 ) extends JPanel(new BorderLayout) {
   pretty_tooltip =>
 
@@ -204,7 +213,12 @@ class Pretty_Tooltip private(
   /* text area */
 
   val pretty_text_area: Pretty_Text_Area =
-    new Pretty_Text_Area(view, () => Pretty_Tooltip.dismiss(pretty_tooltip), true) {
+    new Pretty_Text_Area(view,
+      close_action = () => Pretty_Tooltip.dismiss(pretty_tooltip),
+      propagate_keys = propagate_keys,
+      caret_visible = caret_visible,
+      unicode_symbols = unicode_symbols
+    ) {
       override def get_background(): Option[Color] = Some(rendering.tooltip_background_color)
     }
 
@@ -254,7 +268,8 @@ class Pretty_Tooltip private(
           Rich_Text.make_margin(metric, rendering.tooltip_margin,
             limit = ((w_max - geometry.deco_width) / metric.average_width).toInt)
 
-        val formatted = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
+        val formatted =
+          Rich_Text.format(output, margin, metric, unicode_symbols, cache = PIDE.session.cache)
         val lines = Rich_Text.formatted_lines(formatted)
 
         val h = painter.getLineHeight * lines + geometry.deco_height
@@ -267,9 +282,9 @@ class Pretty_Tooltip private(
       }
     }
 
-  private def show_popup(): Unit = {
+  private def show_popup(focus: Boolean = false): Unit = {
     popup.show
-    pretty_text_area.requestFocus()
+    if (focus) pretty_text_area.requestFocus()
     pretty_text_area.update(rendering.snapshot, results, output)
   }
 

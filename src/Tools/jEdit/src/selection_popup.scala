@@ -231,7 +231,7 @@ class Selection_Popup(
       }
     }
 
-  def show_popup(focus: Boolean): Unit = {
+  def show_popup(focus: Boolean = false): Unit = {
     popup.show
     if (focus) list_view.requestFocus()
   }

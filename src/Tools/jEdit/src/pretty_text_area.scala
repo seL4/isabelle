@@ -23,7 +23,6 @@ import scala.util.matching.Regex
 import org.gjt.sp.jedit.{jEdit, View, Registers, JEditBeanShellAction}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.input.{DefaultInputHandlerProvider, TextAreaInputHandler}
-import org.gjt.sp.jedit.textarea.JEditEmbeddedTextArea
 import org.gjt.sp.jedit.search.HyperSearchResults
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.jedit.gui.KeyEventTranslator
@@ -111,8 +110,10 @@ object Pretty_Text_Area {
 class Pretty_Text_Area(
   view: View,
   close_action: () => Unit = () => (),
-  propagate_keys: Boolean = false
-) extends JEditEmbeddedTextArea {
+  propagate_keys: Boolean = false,
+  caret_visible: Boolean = false,
+  unicode_symbols: Boolean = Isabelle_Encoding.is_active()
+) extends JEdit_Accessible.EmbeddedTextArea(view) {
   pretty_text_area =>
 
   GUI_Thread.require {}
@@ -135,8 +136,9 @@ class Pretty_Text_Area(
     JEdit_Editor.Context(view, pretty_text_area)
 
   private val rich_text_area =
-    new Rich_Text_Area(editor_context, () => current_rendering, close_action,
-      get_search_pattern _, () => (), caret_visible = false, enable_hovering = true)
+    new Rich_Text_Area(editor_context, () => current_rendering, close_action = close_action,
+      get_search_pattern = get_search_pattern, caret_visible = caret_visible,
+      enable_hovering = true)
 
   private var current_search_results =
     Pretty_Text_Area.Search_Results(getBuffer, Pretty_Text_Area.make_highlight_style())
@@ -188,7 +190,8 @@ class Pretty_Text_Area(
         {
           val (rich_texts, rendering) =
             try {
-              val rich_texts = Rich_Text.format(output, margin, metric, cache = PIDE.session.cache)
+              val rich_texts =
+                Rich_Text.format(output, margin, metric, unicode_symbols, cache = PIDE.session.cache)
               val rendering =
                 JEdit_Rendering.make(snapshot, rich_texts = rich_texts, results = results)
               (rich_texts, rendering)
@@ -361,12 +364,33 @@ class Pretty_Text_Area(
           if (Isabelle.dismissed_popups(view)) evt.consume()
           else if (getSelectionCount != 0) { selectNone(); evt.consume() }
 
+        case KeyEvent.VK_LEFT if !propagate_keys =>
+          pretty_text_area.goToPrevCharacter(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_RIGHT if !propagate_keys =>
+          pretty_text_area.goToNextCharacter(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_UP if !propagate_keys =>
+          pretty_text_area.goToPrevLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_DOWN if !propagate_keys =>
+          pretty_text_area.goToNextLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_HOME if !propagate_keys =>
+          pretty_text_area.goToStartOfLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+        case KeyEvent.VK_END if !propagate_keys =>
+          pretty_text_area.goToEndOfLine(GUI.shift_modifier(evt, only = true))
+          evt.consume()
+
         case _ =>
       }
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+      else evt.consume()
     },
     key_typed = { (evt: KeyEvent) =>
       if (propagate_keys) JEdit_Lib.propagate_key(view, evt)
+      else evt.consume()
     })
   )
 
