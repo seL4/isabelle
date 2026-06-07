@@ -823,17 +823,6 @@ lemma subpath_translation: "subpath u v ((\<lambda>x. a + x) \<circ> g) = (\<lam
 lemma subpath_image: "subpath u v (f \<circ> g) = f \<circ> subpath u v g"
   by (rule ext) (simp add: subpath_def)
 
-lemma affine_ineq:
-  fixes x :: "'a::linordered_idom"
-  assumes "x \<le> 1" "v \<le> u"
-    shows "v + x * u \<le> u + x * v"
-proof -
-  have "(1-x)*(u-v) \<ge> 0"
-    using assms by auto
-  then show ?thesis
-    by (simp add: algebra_simps)
-qed
-
 lemma sum_le_prod1:
   fixes a::real shows "\<lbrakk>a \<le> 1; b \<le> 1\<rbrakk> \<Longrightarrow> a + b \<le> 1 + a * b"
   by (metis add.commute affine_ineq mult.right_neutral)

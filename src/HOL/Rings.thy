@@ -2832,6 +2832,16 @@ lemma mult_right_le_one_le: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightar
 lemma mult_left_le_one_le: "0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> y \<le> 1 \<Longrightarrow> y * x \<le> x"
   by (auto simp add: mult_le_cancel_right2)
 
+lemma affine_ineq:
+  assumes "x \<le> 1" "v \<le> u"
+    shows "v + x * u \<le> u + x * v"
+proof -
+  have "(1-x)*(u-v) \<ge> 0"
+    using assms by auto
+  then show ?thesis
+    by (simp add: algebra_simps)
+qed
+
 end
 
 text \<open>Absolute Value\<close>
