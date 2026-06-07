@@ -452,7 +452,6 @@ proof -
   finally show ?thesis .
 qed
 
-
 subsection \<open>Borel measurability\<close>
 
 lemma borel_measurable_if_I:
@@ -966,6 +965,47 @@ proof cases
 next
   assume "\<not> integrable lborel f" with c show ?thesis
     by (simp add: lborel_integrable_real_affine_iff not_integrable_integral_eq)
+qed
+
+lemma lborel_distr_complex_pair:
+  "distr lborel borel (\<lambda>(x,y). Complex x y) = (lborel :: complex measure)"
+proof (rule lborel_eqI[symmetric])
+  let ?C = "\<lambda>(x::real, y::real). Complex x y"
+  show "sets (distr lborel borel ?C) = sets borel"
+    by simp
+  fix l u :: complex
+  assume basis: "\<And>b. b \<in> Basis \<Longrightarrow> l \<bullet> b \<le> u \<bullet> b"
+  have meas_C: "?C \<in> lborel \<rightarrow>\<^sub>M borel"
+  proof -
+    have "continuous_on UNIV (\<lambda>p. Complex (fst p) (snd p))"
+      by (intro continuous_on_Complex continuous_on_fst continuous_on_snd continuous_on_id)
+    then have "?C \<in> borel_measurable borel"
+      by (simp add: borel_measurable_continuous_onI case_prod_unfold)
+    then show ?thesis by (simp add: measurable_lborel1)
+  qed
+  have "emeasure (distr lborel borel ?C) (box l u) = emeasure lborel (?C -` box l u)"
+    using emeasure_distr[OF meas_C] by simp
+  also have "?C -` box l u = box (Re l, Im l) (Re u, Im u)"
+    by (auto simp: mem_box Basis_complex_def Basis_prod_def inner_complex_def
+          inner_Pair_0 complex.sel split: prod.splits)
+  also have "emeasure lborel (box (Re l, Im l) (Re u, Im u)) = ennreal (\<Prod>b\<in>Basis. (u - l) \<bullet> b)"
+  proof -
+    have "emeasure lborel (box (Re l, Im l) (Re u, Im u)) =
+          ennreal (\<Prod>b\<in>Basis. ((Re u, Im u) - (Re l, Im l)) \<bullet> b)"
+    proof (rule emeasure_lborel_box)
+      fix b :: "real \<times> real"
+      assume "b \<in> Basis"
+      then show "(Re l, Im l) \<bullet> b \<le> (Re u, Im u) \<bullet> b"
+        using basis
+        by (metis Pair_mono complex_Basis_1 complex_Basis_i complex_inner_1_right complex_inner_i_right inner_Basis_mono)
+    qed
+    also have "(\<Prod>b\<in>(Basis :: (real \<times> real) set). ((Re u, Im u) - (Re l, Im l)) \<bullet> b) =
+              (\<Prod>b\<in>(Basis :: complex set). (u - l) \<bullet> b)"
+      by (simp add: Basis_complex_def Basis_prod_def inner_complex_def inner_Pair_0
+            complex.sel)
+    finally show ?thesis .
+  qed
+  finally show "emeasure (distr lborel borel ?C) (box l u) = ennreal (\<Prod>b\<in>Basis. (u - l) \<bullet> b)" .
 qed
 
 lemma

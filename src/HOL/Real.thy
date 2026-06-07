@@ -1212,6 +1212,11 @@ lemma of_rat_dense:
   using Rats_dense_in_real [OF \<open>x < y\<close>]
   by (auto elim: Rats_cases)
 
+lemma le_iff_forall_rat_less_imp:
+  fixes x y :: real
+  shows "x \<le> y \<longleftrightarrow> (\<forall>q \<in> \<rat>. y < q \<longrightarrow> x < q)"
+  by (meson Rats_dense_in_real less_asym less_le_trans not_less)
+
 
 subsection \<open>Numerals and Arithmetic\<close>
 

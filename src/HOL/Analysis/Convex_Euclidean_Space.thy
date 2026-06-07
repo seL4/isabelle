@@ -1760,6 +1760,17 @@ lemma connected_imp_perfect_aff_dim:
      "\<lbrakk>connected S; aff_dim S \<noteq> 0; a \<in> S\<rbrakk> \<Longrightarrow> a islimpt S"
   using aff_dim_sing connected_imp_perfect by blast
 
+lemma limpt_of_convex:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "convex S" "x \<in> S"
+  shows "x islimpt S \<longleftrightarrow> S \<noteq> {x}"
+proof -
+  have "\<And>u. \<lbrakk>\<not> x islimpt S; u \<in> S\<rbrakk> \<Longrightarrow> u = x"
+  using assms connected_imp_perfect convex_connected by blast
+  with assms show ?thesis
+    by (auto simp: islimpt_finite)
+qed
+
 subsection\<^marker>\<open>tag unimportant\<close> \<open>On \<open>real\<close>, \<open>is_interval\<close>, \<open>convex\<close> and \<open>connected\<close> are all equivalent\<close>
 
 lemma mem_is_interval_1_I:

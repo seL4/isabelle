@@ -916,6 +916,72 @@ proof (intro allI impI)
   qed
 qed
 
+text \<open>Composition of Lipschitz with absolutely continuous is absolutely continuous.\<close>
+lemma absolutely_continuous_on_Lipschitz_compose: 
+  fixes g :: "real \<Rightarrow> 'a::euclidean_space" and \<phi> :: "real \<Rightarrow> real"
+  assumes ac: "absolutely_continuous_on {a..b} \<phi>"
+    and lip: "\<And>x y. x \<in> \<phi> ` {a..b} \<Longrightarrow> y \<in> \<phi> ` {a..b} \<Longrightarrow> norm (g x - g y) \<le> L * \<bar>x - y\<bar>"
+    and "0 \<le> L"
+  shows "absolutely_continuous_on {a..b} (g \<circ> \<phi>)"
+proof -
+  have ac_\<phi>: "absolutely_setcontinuous_on (\<lambda>k. \<phi> (Sup k) - \<phi> (Inf k)) {a..b}"
+    using ac unfolding absolutely_continuous_on_def .
+  show ?thesis unfolding absolutely_continuous_on_def
+    unfolding absolutely_setcontinuous_on_def
+  proof (intro allI impI)
+    fix \<epsilon> :: real assume "0 < \<epsilon>"
+    have pos: "0 < \<epsilon> / (L + 1)" using \<open>0 < \<epsilon>\<close> \<open>0 \<le> L\<close> by (auto intro: divide_pos_pos)
+    then obtain \<delta> where "0 < \<delta>" and \<delta>:
+      "\<And>d T. d division_of T \<Longrightarrow> T \<subseteq> {a..b} \<Longrightarrow>
+        (\<Sum>k\<in>d. content k) < \<delta> \<Longrightarrow>
+        (\<Sum>k\<in>d. norm (\<phi> (Sup k) - \<phi> (Inf k))) < \<epsilon> / (L + 1)"
+      using ac_\<phi>[unfolded absolutely_setcontinuous_on_def] by meson
+    show "\<exists>\<delta>>0. \<forall>d T. d division_of T \<and> T \<subseteq> {a..b} \<and>
+      (\<Sum>k\<in>d. content k) < \<delta> \<longrightarrow>
+      (\<Sum>k\<in>d. norm ((g \<circ> \<phi>) (Sup k) - (g \<circ> \<phi>) (Inf k))) < \<epsilon>"
+    proof (intro exI conjI allI impI)
+      show "0 < \<delta>" by fact
+    next
+      fix d :: "real set set" and T
+      assume hyp: "d division_of T \<and> T \<subseteq> {a..b} \<and> (\<Sum>k\<in>d. content k) < \<delta>"
+      then have divi: "d division_of T" and sub: "T \<subseteq> {a..b}"
+        and cont: "(\<Sum>k\<in>d. content k) < \<delta>"
+        by auto
+      have K_in: "Sup K \<in> {a..b}" "Inf K \<in> {a..b}" if Kd: "K \<in> d" for K
+      proof -
+        obtain u v where Kuv: "K = cbox u v" and ne: "u \<le> v"
+          by (metis Kd atLeastatMost_empty_iff box_real(2) cbox_division_memE divi)
+        then obtain uv_in: "u \<in> {a..b}" "v \<in> {a..b}" 
+          by (smt (verit, best) Kd divi division_of_def in_mono mem_box_real(2) sub)
+        moreover have "Sup K = v" "Inf K = u"
+          unfolding Kuv box_real using ne interval_bounds_real by auto
+        ultimately show "Sup K \<in> {a..b}" "Inf K \<in> {a..b}" by auto
+      qed
+      have term_bound: "norm ((g \<circ> \<phi>) (Sup K) - (g \<circ> \<phi>) (Inf K)) \<le> L * norm (\<phi> (Sup K) - \<phi> (Inf K))"
+        if "K \<in> d" for K
+        using K_in lip that by auto
+      have "(\<Sum>k\<in>d. norm ((g \<circ> \<phi>) (Sup k) - (g \<circ> \<phi>) (Inf k)))
+        \<le> (\<Sum>k\<in>d. L * norm (\<phi> (Sup k) - \<phi> (Inf k)))"
+        using term_bound by (intro sum_mono)
+      also have "\<dots> = L * (\<Sum>k\<in>d. norm (\<phi> (Sup k) - \<phi> (Inf k)))"
+        by (simp add: sum_distrib_left)
+      also have "\<dots> < \<epsilon>"
+      proof (cases "L = 0")
+        case True then show ?thesis using \<open>0 < \<epsilon>\<close> by simp
+      next
+        case False
+        then have "0 < L" using \<open>0 \<le> L\<close> by linarith
+        have "L * (\<Sum>k\<in>d. norm (\<phi> (Sup k) - \<phi> (Inf k))) < L * (\<epsilon> / (L + 1))"
+          using \<delta>[OF divi sub cont] \<open>0 < L\<close> by (intro mult_strict_left_mono) auto
+        also have "\<dots> \<le> \<epsilon>"
+          using \<open>0 < \<epsilon>\<close> \<open>0 \<le> L\<close> by (simp add: field_simps)
+        finally show ?thesis .
+      qed
+      finally show "(\<Sum>k\<in>d. norm ((g \<circ> \<phi>) (Sup k) - (g \<circ> \<phi>) (Inf k))) < \<epsilon>" .
+    qed
+  qed
+qed
+
 subsection \<open>Combining intervals\<close>
 
 lemma absolutely_continuous_on_combine:
@@ -1405,7 +1471,7 @@ proof (intro fundamental_theorem_of_calculus_Bartle)
     using \<open>0 < \<epsilon>\<close> absolutely_continuous_on_imp_Henstock_Sacks assms(1,3) by fastforce
 qed (use assms in auto)
 
-lemma fundamental_theorem_of_calculus_strong:
+theorem fundamental_theorem_of_calculus_strong:
   fixes f :: "real \<Rightarrow> 'a::banach" and f' :: "real \<Rightarrow> 'a"
   assumes "countable S"
     and "a \<le> b"
@@ -1452,7 +1518,6 @@ next
     and d_bound: "\<And>x. x \<in> {a..b} \<Longrightarrow> x \<in> \<sigma> ` T \<Longrightarrow>
       (\<forall>y. \<bar>y - x\<bar> < d x \<and> y \<in> {a..b} \<longrightarrow> norm (f y - f x) \<le> \<epsilon> / 2^(4 + n x))"
     by metis
-
   show "\<exists>g. gauge g \<and> (\<forall>p. p tagged_partial_division_of cbox a b \<and> g fine p \<and> fst ` p \<subseteq> S \<longrightarrow> norm (\<Sum>(x, k)\<in>p. f (Sup k) - f (Inf k)) < \<epsilon>)"
   proof (intro exI conjI allI impI)
     show "gauge (\<lambda>x. ball x (d x))"
@@ -1467,7 +1532,6 @@ next
       using tagged_partial_division_ofD(1)[OF p_div] .
     then have finite_snd: "finite {k. (x,k) \<in> p \<and> P x k}" for P x
       by (metis (mono_tags, lifting) Range.RangeI finite_Range mem_Collect_eq rev_finite_subset subsetI)
-
     show "norm (\<Sum>(x, k)\<in>p. f (Sup k) - f (Inf k)) < \<epsilon>"
     proof -
       let ?S' = "{(x,k). (x,k) \<in> p \<and> x \<in> \<sigma> ` T \<and> content k \<noteq> 0}"
@@ -1706,6 +1770,130 @@ proof -
   then show ?thesis .
 qed
 
+text \<open>1D substitution for absolutely continuous monotone functions.\<close>
+proposition has_integral_substitution_ac:
+  fixes \<phi> :: "real \<Rightarrow> real" and \<phi>' :: "real \<Rightarrow> real" and f :: "real \<Rightarrow> real"
+  assumes "a \<le> b" "\<phi> a \<le> \<phi> b"
+    and \<phi>: "absolutely_continuous_on {a..b} \<phi>"
+    and "negligible S"
+    and vec: "\<And>t. t \<in> {a..b} - S \<Longrightarrow> (\<phi> has_vector_derivative \<phi>' t) (at t)"
+    and contf: "continuous_on {\<phi> a..\<phi> b} f"
+    and mono: "\<And>x y. x \<in> {a..b} \<Longrightarrow> y \<in> {a..b} \<Longrightarrow> x \<le> y \<Longrightarrow> \<phi> x \<le> \<phi> y"
+  shows "((\<lambda>t. \<phi>' t * f (\<phi> t)) has_integral (integral {\<phi> a..\<phi> b} f)) {a..b}"
+proof -
+  define ff where "ff \<equiv> \<lambda>x. integral {\<phi> a..x} f"
+  have f_int: "f integrable_on {\<phi> a..\<phi> b}"
+    using integrable_continuous_real contf by blast
+  \<comment> \<open>f is bounded — needed for Lipschitz property of ff\<close>
+  obtain M where M_pos: "0 \<le> M" and M_bound: "\<And>t. t \<in> {\<phi> a..\<phi> b} \<Longrightarrow> \<bar>f t\<bar> \<le> M"
+    using continuous_on_compact_bound[of "{\<phi> a..\<phi> b}" f, OF _ contf]
+    by (auto simp: norm_real)
+  \<comment> \<open>ff is Lipschitz\<close>
+  have ff_lip_half: "norm (ff x - ff y) \<le> M * \<bar>x - y\<bar>"
+    if x: "x \<in> {\<phi> a..\<phi> b}" and y: "y \<in> {\<phi> a..\<phi> b}" "x \<le> y" for x y
+  proof -
+    obtain f_int: "f integrable_on {x..y}" "f integrable_on {\<phi> a..y}"
+      using integrable_on_subinterval[OF f_int] x y by auto
+    then have "ff y - ff x = integral {x..y} f"
+      unfolding ff_def
+      using Henstock_Kurzweil_Integration.integral_combine that by fastforce
+    also have "norm \<dots> \<le> M * (y - x)"
+      using integral_bound[OF \<open>x \<le> y\<close> continuous_on_subset[OF contf]]
+              that M_bound by (auto simp: norm_real)
+    finally show ?thesis
+      by (simp add: \<open>x \<le> y\<close>)
+  qed
+  have ff_lip: "norm (ff x - ff y) \<le> M * \<bar>x - y\<bar>"
+    if "x \<in> {\<phi> a..\<phi> b}" "y \<in> {\<phi> a..\<phi> b}" for x y
+    by (metis ff_lip_half linorder_class.linear norm_minus_commute real_norm_def that)
+  have \<phi>_range: "\<phi> t \<in> {\<phi> a..\<phi> b}" if "t \<in> {a..b}" for t
+    using mono[of a t] mono[of t b] that by auto
+  have ac_comp: "absolutely_continuous_on {a..b} (ff \<circ> \<phi>)"
+  proof (rule absolutely_continuous_on_Lipschitz_compose[OF \<phi> _ M_pos])
+  qed (use \<phi>_range ff_lip in auto)
+  have deriv: "((ff \<circ> \<phi>) has_vector_derivative \<phi>' t *\<^sub>R f (\<phi> t)) (at t within {a..b})" 
+    if "t \<in> {a..b} - S" for t
+  proof -
+    have \<phi>_deriv: "(\<phi> has_vector_derivative \<phi>' t) (at t within {a..b})"
+      using vec[OF that] has_vector_derivative_at_within by blast
+    have \<phi>t_in: "\<phi> t \<in> {\<phi> a..\<phi> b}"
+      using \<phi>_range that by auto
+    have f_cont: "continuous (at (\<phi> t) within {\<phi> a..\<phi> b}) f"
+      using contf \<phi>t_in continuous_on_eq_continuous_within by blast
+    have ff_deriv: "(ff has_vector_derivative f (\<phi> t)) (at (\<phi> t) within {\<phi> a..\<phi> b})"
+      unfolding ff_def
+      using integral_has_vector_derivative_pointwise[OF f_int \<phi>t_in f_cont] .
+    have "\<phi> ` {a..b} \<subseteq> {\<phi> a..\<phi> b}"
+      using \<phi>_range by auto
+    then show ?thesis using vector_diff_chain_within[OF \<phi>_deriv]
+      by (metis ff_deriv has_vector_derivative_within_subset) 
+  qed
+  have ftc: "((\<lambda>t. \<phi>' t *\<^sub>R f (\<phi> t)) has_integral ((ff \<circ> \<phi>) b - (ff \<circ> \<phi>) a)) {a..b}"
+    using fundamental_theorem_of_calculus_absolutely_continuous [OF \<open>negligible S\<close> \<open>a \<le> b\<close> ac_comp] 
+    using deriv by auto
+  have "(ff \<circ> \<phi>) b - (ff \<circ> \<phi>) a = integral {\<phi> a..\<phi> b} f"
+    using ff_def by auto
+
+  with ftc show ?thesis by (simp add: real_scaleR_def)
+qed
+
+lemma has_integral_substitution_strong:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g g' :: "real \<Rightarrow> real"
+  assumes "countable k"
+    and intf: "f integrable_on {c..d}"
+    and contg: "continuous_on {a..b} g"
+    and g: "g \<in> {a..b} \<rightarrow> {c..d}"
+    and derg: "\<And>x. x \<in> {a..b} - k \<Longrightarrow>
+      (g has_vector_derivative g' x) (at x within {a..b}) \<and> continuous (at (g x) within {c..d}) f"
+    and "a \<le> b" and "c \<le> d" and "g a \<le> g b"
+  shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral integral {g a..g b} f) {a..b}"
+proof -
+  define ff where "ff \<equiv> \<lambda>x. integral {c..x} f"
+  have ff_cont: "continuous_on {c..d} ff"
+    unfolding ff_def using indefinite_integral_continuous_1[OF assms(2)] .
+  have fg_cont: "continuous_on {a..b} (ff \<circ> g)"
+    using continuous_on_compose2[OF ff_cont contg] g unfolding comp_def by blast
+  have ftc: "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral ((ff \<circ> g) b - (ff \<circ> g) a)) {a..b}"
+  proof (rule fundamental_theorem_of_calculus_interior_strong[where S = k])
+    show "countable k" by fact
+    show "a \<le> b" by fact
+    show "continuous_on {a..b} (ff \<circ> g)" by fact
+    fix x assume xk: "x \<in> {a<..<b} - k"
+    have g_deriv: "(g has_vector_derivative g' x) (at x within {a..b})"
+      and f_cont: "continuous (at (g x) within {c..d}) f"
+      using derg xk by auto
+    have ff_deriv: "(ff has_vector_derivative f (g x)) (at (g x) within {c..d})"
+      unfolding ff_def
+      using integral_has_vector_derivative_pointwise[OF assms(2) _ f_cont] 
+      using g xk by (auto simp: Pi_iff)
+    have ff_deriv': "(ff has_vector_derivative f (g x)) (at (g x) within g ` {a..b})"
+      using has_vector_derivative_within_subset[OF ff_deriv] g by (simp add: funcset_image)
+
+    have chain: "((ff \<circ> g) has_vector_derivative g' x *\<^sub>R f (g x)) (at x within {a..b})"
+      using vector_diff_chain_within[OF g_deriv ff_deriv'] .
+    \<comment> \<open>x is in the interior, so at x within {a..b} = at x\<close>
+    have "x \<in> interior {a..b}"
+      using xk by (simp add: interior_atLeastAtMost_real)
+    with chain at_within_interior 
+    show "((ff \<circ> g) has_vector_derivative g' x *\<^sub>R f (g x)) (at x)"
+      by metis
+  qed
+  have "(ff \<circ> g) b - (ff \<circ> g) a = integral {g a..g b} f"
+  proof -
+    obtain c_ga: "c \<le> g a" and "c \<le> g b" "g b \<le> d"
+      by (metis Pi_mem g \<open>a \<le> b\<close> atLeastAtMost_iff nle_le)
+    then have "f integrable_on {c..g b}"
+      using integrable_on_subinterval[OF assms(2), of c "g b"] by auto
+    then have combine: "integral {c..g a} f + integral {g a..g b} f = integral {c..g b} f"
+      using Henstock_Kurzweil_Integration.integral_combine[OF c_ga \<open>g a \<le> g b\<close>] by auto
+    have "(ff \<circ> g) b - (ff \<circ> g) a = integral {c..g b} f - integral {c..g a} f"
+      by (simp add: ff_def)
+    also have "\<dots> = integral {g a..g b} f"
+      using combine by (simp add: algebra_simps)
+    finally show ?thesis .
+  qed
+  with ftc show ?thesis by simp
+qed
 
 subsection \<open>Integration by parts\<close>
 
@@ -1792,7 +1980,7 @@ subsection \<open>Integration by substitution\<close>
 lemma has_integral_substitution_general:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
   assumes s: "countable s" and le: "a \<le> b"
-      and subset: "g ` {a..b} \<subseteq> {c..d}"
+      and gfun: "g \<in> {a..b} \<rightarrow> {c..d}"
       and f [continuous_intros]: "continuous_on {c..d} f"
       and g [continuous_intros]: "continuous_on {a..b} g"
       and deriv [derivative_intros]:
@@ -1800,6 +1988,8 @@ lemma has_integral_substitution_general:
     shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f - integral {g b..g a} f)) {a..b}"
 proof -
   let ?F = "\<lambda>x. integral {c..g x} f"
+  have subset: "g ` {a..b} \<subseteq> {c..d}"
+    using gfun by blast
   have cont_int: "continuous_on {a..b} ?F"
     by (rule continuous_on_compose2[OF _ g subset] indefinite_integral_continuous_1
           f integrable_continuous_real)+
@@ -1842,25 +2032,25 @@ proof -
   finally show ?thesis .
 qed
 
-lemma has_integral_substitution_strong:
+lemma has_integral_substitution_strong_alt:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
   assumes s: "countable s" and le: "a \<le> b" "g a \<le> g b"
-    and subset: "g ` {a..b} \<subseteq> {c..d}"
+    and gfun: "g \<in> {a..b} \<rightarrow> {c..d}"
     and f [continuous_intros]: "continuous_on {c..d} f"
     and g [continuous_intros]: "continuous_on {a..b} g"
     and deriv [derivative_intros]:
     "\<And>x. x \<in> {a..b} - s \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
   shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
-  using has_integral_substitution_general[OF s le(1) subset f g deriv] le(2)
+  using has_integral_substitution_general[OF s le(1) gfun f g deriv] le(2)
   by (cases "g a = g b") auto
 
 lemma has_integral_substitution:
   fixes f :: "real \<Rightarrow> 'a::euclidean_space" and g :: "real \<Rightarrow> real"
-  assumes "a \<le> b" "g a \<le> g b" "g ` {a..b} \<subseteq> {c..d}"
+  assumes "a \<le> b" "g a \<le> g b" "g \<in> {a..b} \<rightarrow> {c..d}"
       and "continuous_on {c..d} f"
       and "\<And>x. x \<in> {a..b} \<Longrightarrow> (g has_field_derivative g' x) (at x within {a..b})"
     shows "((\<lambda>x. g' x *\<^sub>R f (g x)) has_integral (integral {g a..g b} f)) {a..b}"
-proof (intro has_integral_substitution_strong[of "{}" a b g c d] assms)
+proof (intro has_integral_substitution_strong_alt[of "{}" a b g c d] assms)
 qed (auto intro: DERIV_continuous_on assms)
 
 lemma integral_shift:

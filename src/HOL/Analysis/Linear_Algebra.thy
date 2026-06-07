@@ -230,6 +230,18 @@ next
     by (simp add: pairwise_insert norm_add_Pythagorean)
 qed
 
+lemma norm_le_norm_add_orthogonal:
+  assumes "orthogonal x y"
+  shows "norm x \<le> norm (x + y)"
+proof -
+  have "(norm x)\<^sup>2 \<le> (norm x)\<^sup>2 + (norm y)\<^sup>2"
+    by simp
+  also have "\<dots> = (norm (x + y))\<^sup>2"
+    using norm_add_Pythagorean[OF assms] by simp
+  finally show ?thesis
+    by (rule power2_le_imp_le) simp
+qed
+
 
 subsection  \<open>Orthogonality of a transformation\<close>
 
