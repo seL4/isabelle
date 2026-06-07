@@ -25,7 +25,8 @@ object Export {
   val PROOFS_PREFIX: String = "proofs/"
 
   def explode_name(s: String): List[String] = space_explode('/', s)
-  def implode_name(elems: Iterable[String]): String = elems.mkString("/")
+  def implode_name(elems: Iterable[String], terminate: Boolean = false): String =
+    elems.mkString("", "/", if (terminate) "/" else "")
 
 
   /* SQL data model */
