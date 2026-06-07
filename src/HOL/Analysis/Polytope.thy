@@ -2523,7 +2523,7 @@ next
         obtain d where "d \<noteq> 0"
               and dle: "\<And>y. y \<in> closure S \<Longrightarrow> d \<bullet> x \<le> d \<bullet> y"
               and dless: "\<And>y. y \<in> rel_interior S \<Longrightarrow> d \<bullet> x < d \<bullet> y"
-          by (metis supporting_hyperplane_relative_frontier [OF \<open>convex S\<close> xclo xnot])
+          by (metis supporting_hyperplane_rel_interior [OF \<open>convex S\<close> xclo xnot])
         have sex: "S \<inter> {y. d \<bullet> y = d \<bullet> x} exposed_face_of S"
           by (simp add: \<open>closed S\<close> dle exposed_face_of_Int_supporting_hyperplane_ge [OF \<open>convex S\<close>])
         have sne: "S \<inter> {y. d \<bullet> y = d \<bullet> x} \<noteq> {}"

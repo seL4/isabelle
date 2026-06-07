@@ -1084,4 +1084,69 @@ lemma between_1:
   shows "between (a,b) x \<longleftrightarrow> (a \<le> x \<and> x \<le> b) \<or> (b \<le> x \<and> x \<le> a)"
   by (auto simp: between_mem_segment closed_segment_eq_real_ivl)
 
+lemma dist_scaleR_ge_min:
+  fixes x y :: "'a::real_inner"
+  assumes "0 \<le> a" "0 \<le> b" "x \<bullet> y \<le> 0"
+  shows "min a b * dist x y \<le> dist (a *\<^sub>R x) (b *\<^sub>R y)"
+proof -
+  have minab: "0 \<le> min a b" using assms by simp
+  have sq: "(min a b)\<^sup>2 * ((x - y) \<bullet> (x - y)) \<le> (a *\<^sub>R x - b *\<^sub>R y) \<bullet> (a *\<^sub>R x - b *\<^sub>R y)"
+  proof -
+    have expand_rhs: "(a *\<^sub>R x - b *\<^sub>R y) \<bullet> (a *\<^sub>R x - b *\<^sub>R y) =
+        a\<^sup>2 * (x \<bullet> x) + b\<^sup>2 * (y \<bullet> y) - 2 * a * b * (x \<bullet> y)"
+      by (simp add: inner_commute inner_diff_right power2_eq_square)
+    have expand_lhs: "(min a b)\<^sup>2 * ((x - y) \<bullet> (x - y)) =
+        (min a b)\<^sup>2 * (x \<bullet> x) + (min a b)\<^sup>2 * (y \<bullet> y) - 2 * (min a b)\<^sup>2 * (x \<bullet> y)"
+      by (simp add: inner_diff_left inner_diff_right
+                    inner_commute[of y x] power2_eq_square algebra_simps)
+    have 1: "(min a b)\<^sup>2 * (x \<bullet> x) \<le> a\<^sup>2 * (x \<bullet> x)"
+      by (intro mult_right_mono power_mono minab min.cobounded1 assms inner_ge_zero)
+    have 2: "(min a b)\<^sup>2 * (y \<bullet> y) \<le> b\<^sup>2 * (y \<bullet> y)"
+      by (intro mult_right_mono power_mono minab min.cobounded2 assms inner_ge_zero)
+    have ab_ge: "(min a b)\<^sup>2 \<le> a * b"
+      using assms(1,2) by (auto simp: power2_eq_square min_def intro: mult_mono)
+    have nxy: "0 \<le> - (x \<bullet> y)" using assms(3) by simp
+    have 3: "(min a b)\<^sup>2 * (- (x \<bullet> y)) \<le> a * b * (- (x \<bullet> y))"
+      by (intro mult_right_mono ab_ge nxy)
+    show ?thesis
+      unfolding expand_lhs expand_rhs
+      using 1 2 3 by (simp add: algebra_simps)
+  qed
+  have "(min a b * dist x y)\<^sup>2 = (min a b)\<^sup>2 * (dist x y)\<^sup>2"
+    by (simp add: power_mult_distrib)
+  also have "\<dots> = (min a b)\<^sup>2 * ((x - y) \<bullet> (x - y))"
+    by (simp add: dist_norm power2_norm_eq_inner)
+  also have "\<dots> \<le> (a *\<^sub>R x - b *\<^sub>R y) \<bullet> (a *\<^sub>R x - b *\<^sub>R y)"
+    by (rule sq)
+  also have "\<dots> = (dist (a *\<^sub>R x) (b *\<^sub>R y))\<^sup>2"
+    by (simp add: dist_norm power2_norm_eq_inner)
+  finally show ?thesis
+    by (rule power2_le_imp_le) (simp add: minab)
+qed
+
+lemma dist_scaleR_ge_min_between:
+  fixes x y w :: "'a::real_inner"
+  assumes "0 \<le> a" "0 \<le> b" and bet: "between (x, y) w" and orth: "orthogonal w (x - y)"
+  shows "min a b * dist x y \<le> dist (a *\<^sub>R x) (b *\<^sub>R y)"
+proof -
+  from bet obtain u where "0 \<le> u" "u \<le> 1" and u: "w = (1 - u) *\<^sub>R x + u *\<^sub>R y"
+    by (auto simp: between_mem_segment closed_segment_def)
+  have \<section>: "x - w = u *\<^sub>R (x - y)" "y - w = (u - 1) *\<^sub>R (x - y)"
+    by (simp_all add: u algebra_simps)
+  have dot_le: "(x - w) \<bullet> (y - w) \<le> 0"
+    by (simp add: "\<section>"(1,2) \<open>0 \<le> u\<close> \<open>u \<le> 1\<close> mult_nonpos_nonneg)
+  have dist_eq: "dist (x - w) (y - w) = dist x y"
+    by (simp add: dist_norm)
+  have step1: "min a b * dist x y \<le> dist (a *\<^sub>R (x - w)) (b *\<^sub>R (y - w))"
+    using dist_scaleR_ge_min[OF assms(1,2) dot_le] dist_eq by simp
+  have decomp: "a *\<^sub>R x - b *\<^sub>R y = (a *\<^sub>R (x - w) - b *\<^sub>R (y - w)) + (a - b) *\<^sub>R w"
+    by (simp add: algebra_simps)
+  have "orthogonal (a *\<^sub>R (x - w) - b *\<^sub>R (y - w)) ((a - b) *\<^sub>R w)"
+    using orthogonal_clauses orth
+    by (metis "\<section>" orthogonal_commute)
+  then have "dist (a *\<^sub>R (x - w)) (b *\<^sub>R (y - w)) \<le> dist (a *\<^sub>R x) (b *\<^sub>R y)"
+    by (simp add: decomp dist_norm norm_le_norm_add_orthogonal)
+  with step1 show ?thesis by linarith
+qed
+
 end

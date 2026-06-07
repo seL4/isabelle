@@ -1465,12 +1465,8 @@ proof (cases "aff_dim S = int DIM('n)")
           x1 x2 z affine_affine_hull[of S]
         by auto
     }
-    then have "affine hull S = UNIV"
-      by auto
-    then have "aff_dim S = int DIM('n)"
-      using aff_dim_affine_hull[of S] by (simp)
     then have False
-      using False by auto
+      using False aff_dim_eq_full by blast
   }
   ultimately show ?thesis by auto
 next
@@ -5141,15 +5137,51 @@ proof -
   show ?thesis
     by (rule that [OF \<open>a \<noteq> 0\<close> le_ay 3])
 qed
+lemma supporting_hyperplane_rel_frontier:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "x \<in> rel_frontier S"
+  shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>y \<in> closure S. a \<bullet> x \<le> a \<bullet> y) \<and>
+             (\<forall>y \<in> rel_interior S. a \<bullet> x < a \<bullet> y)"
+proof -
+  have "x \<in> closure S" "x \<notin> rel_interior S"
+    using assms(2) unfolding rel_frontier_def by auto
+  then show ?thesis
+    using supporting_hyperplane_rel_boundary[OF convex_closure[OF assms(1)]]
+    by (metis convex_rel_interior_closure[OF assms(1)])
+qed
 
-lemma supporting_hyperplane_relative_frontier:
+lemma supporting_hyperplane_frontier:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "x \<in> frontier S"
+  shows "\<exists>a. a \<noteq> 0 \<and> (\<forall>y \<in> closure S. a \<bullet> x \<le> a \<bullet> y)"
+proof (cases "interior S = {}")
+  case True
+  then obtain a b where "a \<noteq> 0" "S \<subseteq> {x. a \<bullet> x = b}"
+    using empty_interior_subset_hyperplane[OF assms(1)] by blast
+  then have "closure S \<subseteq> {x. a \<bullet> x = b}"
+    by (simp add: closed_hyperplane closure_minimal)
+  moreover have "x \<in> closure S"
+    using assms(2) unfolding frontier_def by auto
+  ultimately have "\<forall>y \<in> closure S. a \<bullet> x \<le> a \<bullet> y"
+    by (simp add: subset_eq)
+  then show ?thesis using \<open>a \<noteq> 0\<close> by blast
+next
+  case False
+  then have "x \<in> rel_frontier S"
+    by (simp add: assms(2) rel_frontier_nonempty_interior)
+  then obtain a where "a \<noteq> 0" "\<forall>y \<in> closure S. a \<bullet> x \<le> a \<bullet> y"
+    using supporting_hyperplane_rel_frontier[OF assms(1)] by blast
+  then show ?thesis by blast
+qed
+
+lemma supporting_hyperplane_rel_interior:
   fixes S :: "'a::euclidean_space set"
   assumes "convex S" "x \<in> closure S" "x \<notin> rel_interior S"
   obtains a where "a \<noteq> 0"
               and "\<And>y. y \<in> closure S \<Longrightarrow> a \<bullet> x \<le> a \<bullet> y"
               and "\<And>y. y \<in> rel_interior S \<Longrightarrow> a \<bullet> x < a \<bullet> y"
-using supporting_hyperplane_rel_boundary [of "closure S" x]
-by (metis assms convex_closure convex_rel_interior_closure)
+  using supporting_hyperplane_rel_boundary [of "closure S" x]
+  by (metis assms convex_closure convex_rel_interior_closure)
 
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
@@ -6394,6 +6426,52 @@ proof -
       using Un_closed_segment [OF b] *
       by (simp add: closed_segment_eq_open insert_commute)
   qed
+qed
+
+lemma convex_open_segment_cases:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "x \<in> closure S" "y \<in> closure S"
+  shows "open_segment x y \<subseteq> rel_frontier S \<or> open_segment x y \<subseteq> rel_interior S"
+proof -
+  have seg_in_clos: "open_segment x y \<subseteq> closure S"
+    using convex_closure[OF assms(1)] assms(2,3)
+    by (meson convex_contains_segment segment_open_subset_closed subset_trans)
+  show ?thesis
+  proof (cases "open_segment x y \<inter> rel_interior S = {}")
+    case True
+    then show ?thesis
+      using seg_in_clos by (auto simp: rel_frontier_def)
+  next
+    case False
+    then obtain c where c: "c \<in> open_segment x y" "c \<in> rel_interior S"
+      by auto
+    have "open_segment x y \<subseteq> rel_interior S"
+    proof -
+      have xc: "open_segment x c \<subseteq> rel_interior S"
+        using rel_interior_closure_convex_segment[OF assms(1) c(2) assms(2)]
+        by (simp add: open_segment_commute)
+      have cy: "open_segment c y \<subseteq> rel_interior S"
+        using rel_interior_closure_convex_segment[OF assms(1) c(2) assms(3)]
+        by simp
+      from Un_open_segment[OF c(1)] xc c(2) cy
+      show ?thesis by auto
+    qed
+    then show ?thesis by simp
+  qed
+qed
+
+lemma convex_open_segment_cases_alt:
+  fixes S :: "'a::euclidean_space set"
+  assumes "convex S" "x \<in> closure S" "y \<in> closure S"
+  shows "open_segment x y \<subseteq> frontier S \<or> open_segment x y \<subseteq> interior S"
+proof (cases "interior S = {}")
+  case True then show ?thesis
+    by (metis Diff_empty assms convex_closure convex_contains_open_segment frontier_def)
+next
+  case False
+  then have "rel_interior S = interior S" "rel_frontier S = frontier S"
+    using rel_interior_nonempty_interior rel_frontier_nonempty_interior by auto
+  with convex_open_segment_cases[OF assms] show ?thesis by simp
 qed
 
 subsection\<open>Covering an open set by a countable chain of compact sets\<close>

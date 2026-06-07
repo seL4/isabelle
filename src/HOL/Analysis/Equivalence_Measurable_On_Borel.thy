@@ -1316,8 +1316,6 @@ proof -
   qed auto
 qed
 
-
-
 lemma diff_null_sets_lebesgue: "\<lbrakk>N \<in> null_sets (lebesgue_on S); X-N \<in> sets (lebesgue_on S); N \<subseteq> X\<rbrakk>
     \<Longrightarrow> X \<in> sets (lebesgue_on S)"
   by (metis Int_Diff_Un inf.commute inf.orderE null_setsD2 sets.Un)
@@ -1358,7 +1356,35 @@ lemma lebesgue_measurable_diff_null:
   shows "f \<in> borel_measurable (lebesgue_on (-N)) \<longleftrightarrow> f \<in> borel_measurable lebesgue"
   by (simp add: Compl_eq_Diff_UNIV assms borel_measurable_diff_null lebesgue_on_UNIV_eq)
 
-
+lemma measurable_bounded_by_integrable_imp_absolutely_integrable_ae:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes f_meas: "f \<in> borel_measurable (lebesgue_on S)"
+    and S_meas: "S \<in> sets lebesgue"
+    and g_int: "g integrable_on S"
+    and neg_T: "negligible T"
+    and bound: "\<And>x. x \<in> S - T \<Longrightarrow> norm (f x) \<le> g x"
+  shows "f absolutely_integrable_on S"
+proof -
+  have ST_meas: "S - T \<in> sets lebesgue"
+    using S_meas neg_T negligible_imp_sets by (metis sets.Diff)
+  have neg_ST: "negligible (S \<inter> T)"
+    using neg_T by (meson Int_lower2 negligible_subset)
+  have null_ST: "S \<inter> T \<in> null_sets (lebesgue_on S)"
+    using null_sets_restrict_space[of S lebesgue "S \<inter> T"] S_meas neg_ST
+    by (simp add: Int_commute negligible_iff_null_sets)
+  have f_meas_ST: "f \<in> borel_measurable (lebesgue_on (S - T))"
+    using borel_measurable_diff_null[OF null_ST S_meas] f_meas
+    by (metis Diff_Diff_Int Diff_subset Int_absorb1)
+  have g_int_ST: "g integrable_on (S - T)"
+    using integrable_spike_set_eq[of "S - T" S g] g_int neg_ST
+    by (simp add: Diff_Diff_Int)
+  have "f absolutely_integrable_on (S - T)"
+    by (rule measurable_bounded_by_integrable_imp_absolutely_integrable
+        [OF f_meas_ST ST_meas g_int_ST bound])
+  then show "f absolutely_integrable_on S"
+    using absolutely_integrable_spike_set_eq[of "S - T" S f] neg_ST
+    by (simp add: negligible_subset subset_iff)
+qed
 
 proposition measurable_on_imp_borel_measurable_lebesgue_UNIV:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"

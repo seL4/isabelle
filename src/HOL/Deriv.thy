@@ -993,6 +993,23 @@ proof -
   qed
 qed
 
+lemma norm_vector_derivatives_le_within:
+  fixes f :: "real \<Rightarrow> 'a::real_normed_vector" and g :: "real \<Rightarrow> 'b::real_normed_vector"
+  assumes fderiv: "(f has_vector_derivative f') (at x within S)"
+      and gderiv: "(g has_vector_derivative g') (at x within S)"
+      and ev: "eventually (\<lambda>y. norm (f y - f x) \<le> norm (g y - g x)) (at x within S)"
+      and nontrivial: "at x within S \<noteq> bot"
+  shows "norm f' \<le> norm g'"
+proof (rule tendsto_le [OF nontrivial])
+  let ?f = "\<lambda>y. norm(inverse(y - x) *\<^sub>R (f y - f x))"
+  let ?g = "\<lambda>y. norm(inverse(y - x) *\<^sub>R (g y - g x))"
+  show "(?f \<longlongrightarrow> norm f') (at x within S)" 
+       "(?g \<longlongrightarrow> norm g') (at x within S)"
+    using fderiv gderiv has_vector_derivative_within_1D tendsto_norm by blast+
+  show "\<forall>\<^sub>F x in at x within S. ?f x \<le> ?g x"
+    using eventually_mono [OF ev] by (simp add: mult_left_mono)
+qed
+
 subsection \<open>Derivatives\<close>
 
 lemma DERIV_D: "DERIV f x :> D \<Longrightarrow> (\<lambda>h. (f (x + h) - f x) / h) \<midarrow>0\<rightarrow> D"

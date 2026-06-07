@@ -3237,6 +3237,13 @@ proof -
     by (simp add: has_vector_derivative_def has_derivative_within_alt bounded_linear_scaleR_left)
 qed
 
+lemma integral_has_vector_derivative_pointwise:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "f integrable_on {a..b}"
+    and "x \<in> {a..b}"
+    and "continuous (at x within {a..b}) f"
+  shows "((\<lambda>u. integral {a..u} f) has_vector_derivative f x) (at x within {a..b})"
+  using integral_has_vector_derivative_continuous_at[where S="{}", simplified] assms by auto
 
 lemma integral_has_vector_derivative:
   fixes f :: "real \<Rightarrow> 'a::banach"
