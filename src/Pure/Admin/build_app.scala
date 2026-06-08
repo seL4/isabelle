@@ -181,12 +181,13 @@ mac.CFBundleTypeRole=Editor
       val isabelle_components = Components.Directory(isabelle_home).read_components()
 
       for { path <-
-        List(
-          Build_Release.isabelle_options_path(platform_family, isabelle_home, isabelle_identifier),
-          isabelle_home + Path.basic(isabelle_identifier).exe_if(platform.is_windows)) :::
-        (if (platform.is_windows)
-          List(isabelle_home + Path.explode(isabelle_identifier).exe.ext("manifest"))
-         else List(isabelle_home + Build_Release.ISABELLE_APP))
+        Build_Release.isabelle_options_path(platform_family, isabelle_home, isabelle_identifier) ::
+        (if (platform.is_windows) Nil
+         else {
+           List(
+            isabelle_home + Path.basic(isabelle_identifier),
+            isabelle_home + Build_Release.ISABELLE_APP)
+         })
       } yield path.check_file.file.delete
 
       if (platform.is_macos) {
@@ -293,17 +294,16 @@ mac.CFBundleTypeRole=Editor
 
       /* macOS packaging */
 
-      if (platform.is_macos && codesign_user.nonEmpty || platform.is_windows) {
-        progress.echo("Building app bundle ...")
-        val ext = if (platform.is_macos) "dmg" else "exe"
+      if (platform.is_macos && codesign_user.nonEmpty) {
+        progress.echo("Building signed dmg ...")
         jpackage(
           " --app-image " + File.bash_platform_path(app_root) +
-          " --type " + Bash.string(ext) +
-          if_proper(platform.is_macos, mac_sign_options) +
+          " --type dmg" +
+          mac_sign_options +
           if_proper(progress.verbose, " --verbose"))
         Isabelle_System.move_file(
-          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext(ext),
-          app_target.ext(ext))
+          app_target.dir + Path.basic(app_target.file_name + "-1.0").ext("dmg"),
+          app_target.ext("dmg"))
       }
     }
   }
@@ -332,10 +332,6 @@ Usage: isabelle build_app [OPTIONS] ARCHIVE
     -v           verbose
 
   Build standalone desktop app from Isabelle distribution archive (file or URL).
-
-  Windows prerequisites:
-    - 7z (e.g. from Cygwin)
-    - WiX Toolset v5, see https://github.com/wixtoolset/wix/releases/tag/v5.0.2
 """,
             "D:" -> (arg => target_dir = Path.explode(arg)),
             "K:" -> (arg => codesign_keychain = arg),
