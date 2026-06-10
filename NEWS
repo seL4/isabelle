@@ -187,6 +187,10 @@ For example:
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
 
+* Sledgehammer:
+  - Tuned output of proof reconstruction to detect more duplicate
+    proofs.
+
 * Theory "HOL.Finite_Set"
   - Added lemmas.
       card_Domain_le
