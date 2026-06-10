@@ -78,7 +78,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             in
               (xref, [])
             end
-        val xrefs = map xref_of_fact non_chained
+        val xrefs = map xref_of_fact (sort_by (fst o fst) non_chained)
         val facts : Try0.facts = {usings = xrefs, simps = [], intros = [], elims = [], dests = []}
       in
         Try0.get_proof_method_or_noop name (SOME run_timeout) facts state
