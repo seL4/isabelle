@@ -164,13 +164,20 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
     val multiple_goals = all_goals andalso num_before > 1
     val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
     val num_after = num_goals st'
-    val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
-    val unused = implode_space (unused |> map string_of_xref)
     val command =
-      (if unused <> "" then "using " ^ unused ^ " " else "") ^
-      (if num_after = 0 then "by " else "apply ") ^
-      (name ^ attrs |> attrs <> "" ? enclose "(" ")") ^
-      (if multiple_goals andalso num_after > 0 then select else "")
+      let
+        val unused = map (Pretty.str o string_of_xref) unused
+        val using_clause = if null unused then [] else Pretty.str "using" :: unused
+        val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
+        val command_clause =
+          [Pretty.str ((if num_after = 0 then "by " else "apply ") ^
+              (name ^ attrs |> attrs <> "" ? enclose "(" ")"))] @
+          (if multiple_goals andalso num_after > 0 then [Pretty.str select] else [])
+      in
+        using_clause @ command_clause
+        |> Pretty.block o Pretty.breaks
+        |> Pretty.symbolic_string_of (* markup string *)
+      end
   in
     if num_before > num_after then
       SOME {name = name, command = command, time = time, state = st'}
