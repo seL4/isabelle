@@ -586,7 +586,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
             s
 
         fun massage_message proof_or_inconsistency s =
-          let val s' = strip_time s in
+          let val s' = strip_time (Protocol_Message.clean_output s) in
             if member (op =) (Synchronized.value seen_messages) s' then
               "Duplicate " ^ proof_or_inconsistency
             else
