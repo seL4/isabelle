@@ -179,9 +179,9 @@ sealed case class VSCode_Model(
   }
 
   def flush_edits(
-      doc_blobs: Document.Blobs,
-      file: JFile,
-      caret: Option[Line.Position]
+    doc_blobs: Document.Blobs,
+    file: JFile,
+    caret: Option[Line.Position]
   ): Option[(List[Document.Edit_Text], VSCode_Model)] = {
     val (reparse, perspective) = node_perspective(doc_blobs, caret)
     if (reparse || pending_edits.nonEmpty || last_perspective != perspective) {
