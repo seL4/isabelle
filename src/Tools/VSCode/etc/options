@@ -30,8 +30,5 @@ option vscode_unicode_symbols_edits : bool = false for vscode
 option vscode_caret_perspective : int = 50 for vscode
   -- "number of visible lines above and below the caret (0: unrestricted)"
 
-option vscode_caret_preview : bool = false for vscode
-  -- "dynamic preview of caret document node"
-
 option vscode_html_output : bool = false for vscode
   -- "output State and Output in HTML"
