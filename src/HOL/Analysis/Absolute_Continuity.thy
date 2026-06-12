@@ -1,5 +1,5 @@
 theory Absolute_Continuity
-  imports Bounded_Variation Equivalence_Measurable_On_Borel
+  imports Bounded_Variation Equivalence_Measurable_On_Borel Rectifiable_Path Lipschitz
 
 begin
 
@@ -4717,6 +4717,810 @@ proof -
       unfolding F_def G_def by (simp add: algebra_simps)
     show "((\<lambda>x. f x * g' x + f' x * g x) has_integral (f x * g x - f a * g a)) {a..x}"
       using hi_sum unfolding eq_fn eq_val .
+  qed
+qed
+
+section \<open>Lipschitz and distance bounds\<close>
+
+lemma lipschitz_imp_rectifiable_path:
+  assumes "\<And>x y. x \<in> {0..1} \<Longrightarrow> y \<in> {0..1} \<Longrightarrow>
+    norm (g x - g y) \<le> B * norm (x - y)"
+  shows "rectifiable_path g"
+  unfolding rectifiable_path_def
+proof
+  show "path g"
+    unfolding path_def
+  proof (rule continuous_onI)
+    fix x e :: real assume "x \<in> {0..1}" "e > 0"
+    define d where "d = (if B \<le> 0 then 1 else e / B)"
+    have "d > 0" using \<open>e > 0\<close> unfolding d_def by (auto simp: field_simps)
+    moreover have "\<And>x'. x' \<in> {0..1} \<Longrightarrow> dist x' x < d \<Longrightarrow> dist (g x') (g x) < e"
+    proof -
+      fix x' assume "x' \<in> {0..1}" "dist x' x < d"
+      have "dist (g x') (g x) = norm (g x' - g x)" by (simp add: dist_norm)
+      also have "\<dots> \<le> B * norm (x' - x)" using assms[OF \<open>x' \<in> {0..1}\<close> \<open>x \<in> {0..1}\<close>] .
+      also have "\<dots> \<le> B * dist x' x" by (simp add: dist_norm)
+      also have "\<dots> < e"
+      proof (cases "B \<le> 0")
+        case True
+        then have "B * dist x' x \<le> 0" by (simp add: mult_nonpos_nonneg)
+        also have "0 < e" using \<open>e > 0\<close> .
+        finally show ?thesis .
+      next
+        case False
+        then have "B > 0" by auto
+        then have "B * dist x' x < B * d"
+          using \<open>dist x' x < d\<close> by auto
+        also have "\<dots> = e" using \<open>B > 0\<close> unfolding d_def by auto
+        finally show ?thesis .
+      qed
+      finally show "dist (g x') (g x) < e" .
+    qed
+    ultimately show "\<exists>d>0. \<forall>x'\<in>{0..1}. dist x' x < d \<longrightarrow> dist (g x') (g x) \<le> e"
+      using less_le_not_le by blast 
+  qed
+next
+  show "has_bounded_variation_on g {0..1}"
+    using Lipschitz_imp_has_bounded_variation[of "{0..1}" g B] assms
+    by auto
+qed
+
+lemma path_length_lipschitz:
+  assumes "\<And>x y. x \<in> {0..1} \<Longrightarrow> y \<in> {0..1} \<Longrightarrow> norm (g x - g y) \<le> B * norm (x - y)"
+  shows "path_length g \<le> B"
+  unfolding path_length_def
+proof (rule has_bounded_variation_works(2)[OF Lipschitz_imp_has_bounded_variation[of "{0..1}" g B]])
+  show "bounded {0..1::real}" by simp
+  show "\<And>x y. x \<in> {0..1} \<Longrightarrow> y \<in> {0..1} \<Longrightarrow> norm (g x - g y) \<le> B * norm (x - y)"
+    using assms by auto
+next
+  fix d t assume dt: "d division_of t" "t \<subseteq> {(0::real)..1}"
+  have \<open>B \<ge> 0\<close>
+    using assms [of 0 1] norm_ge_zero by (fastforce elim: order_trans)
+  have "(\<Sum>k\<in>d. norm (g (Sup k) - g (Inf k))) \<le> (\<Sum>k\<in>d. B * content k)"
+  proof (rule sum_mono)
+    fix k assume kd: "k \<in> d"
+    from division_ofD(2,3,4)[OF dt(1) kd] obtain l u where
+      k_eq: "k = cbox l u" and ksub: "k \<subseteq> t" and kne: "k \<noteq> {}" by auto
+    then have lu: "l \<le> u" by fastforce
+    obtain ls: "l \<in> {0..1}" and us: "u \<in> {0..1}"
+      using ksub dt(2) lu k_eq cbox_interval atLeastAtMost_iff by blast
+    have "norm (g (Sup k) - g (Inf k)) = norm (g u - g l)"
+      using lu k_eq by (simp add: cbox_interval)
+    also have "\<dots> \<le> B * norm (u - l)"
+      using assms[OF us ls] by (simp add: norm_minus_commute)
+    also have "\<dots> = B * (u - l)" using lu by (simp add: real_norm_def)
+    also have "\<dots> = B * content k"
+      using lu k_eq by (simp add: cbox_interval)
+    finally show "norm (g (Sup k) - g (Inf k)) \<le> B * content k" .
+  qed
+  also have "\<dots> = B * (\<Sum>k\<in>d. content k)" by (simp add: sum_distrib_left)
+  also have "\<dots> \<le> B * 1"
+  proof (intro mult_left_mono \<open>B\<ge>0\<close>)
+    have "(\<Sum>k\<in>d. content k) \<le> content {0..1::real}"
+      using subadditive_content_division[OF dt(1)] dt(2) by force
+    then show "(\<Sum>k\<in>d. content k) \<le> 1" by simp
+  qed
+  finally show "(\<Sum>k\<in>d. norm (g (Sup k) - g (Inf k))) \<le> B" by simp
+qed
+
+
+lemma dist_points_le_path_length:
+  "\<lbrakk>rectifiable_path g; a \<in> {0..1}; b \<in> {0..1}\<rbrakk> \<Longrightarrow>
+    dist (g a) (g b) \<le> path_length g"
+  unfolding rectifiable_path_def path_length_def dist_norm
+  using vector_variation_ge_norm_function by blast
+
+lemma dist_endpoints_le_path_length:
+  "rectifiable_path g \<Longrightarrow> dist (pathstart g) (pathfinish g) \<le> path_length g"
+  using dist_points_le_path_length[of g 0 1]
+  by (simp add: pathstart_def pathfinish_def)
+
+lemma path_length_eq_line_segment:
+  assumes rect: "rectifiable_path g"
+    and len: "path_length g = dist (pathstart g) (pathfinish g)"
+  shows "path_image g = closed_segment (pathstart g) (pathfinish g)"
+proof (rule equalityI)
+  have pg: "path g" and bv: "has_bounded_variation_on g {0..1}"
+    using rect unfolding rectifiable_path_def by auto
+  have vv_eq: "vector_variation {0..1} g = norm (g 1 - g 0)"
+    using len unfolding path_length_def pathstart_def pathfinish_def dist_norm
+    by (simp add: norm_minus_commute)
+  show sub: "path_image g \<subseteq> closed_segment (pathstart g) (pathfinish g)"
+  proof
+    fix x assume "x \<in> path_image g"
+    then obtain t where t: "t \<in> {0..1}" "x = g t"
+      unfolding path_image_def by auto
+    have t01: "0 \<le> t" "t \<le> 1" using t(1) by auto
+    have bv_0t: "has_bounded_variation_on g {0..t}"
+      using has_bounded_variation_on_subset[OF bv] t(1) by auto
+    have bv_t1: "has_bounded_variation_on g {t..1}"
+      using has_bounded_variation_on_subset[OF bv] t(1) by auto
+    have n1: "norm (g t - g 0) \<le> vector_variation {0..t} g"
+      using vector_variation_ge_norm_function[OF bv_0t] t01 by auto
+    have n2: "norm (g 1 - g t) \<le> vector_variation {t..1} g"
+      using vector_variation_ge_norm_function[OF bv_t1] t01 by auto
+    have split: "vector_variation {0..t} g + vector_variation {t..1} g =
+      vector_variation {0..1} g"
+      using vector_variation_combine[OF bv] t(1) by auto
+    have tri: "norm (g 1 - g 0) \<le> norm (g t - g 0) + norm (g 1 - g t)"
+      using norm_triangle_ineq[of "g t - g 0" "g 1 - g t"] by simp
+    have "norm (g t - g 0) + norm (g 1 - g t) = norm (g 1 - g 0)"
+      using n1 n2 split vv_eq tri by linarith
+    then have "dist (g 0) (g 1) = dist (g 0) (g t) + dist (g t) (g 1)"
+      by (simp add: dist_norm norm_minus_commute)
+    then have "between (g 0, g 1) (g t)"
+      unfolding between by simp
+    then show "x \<in> closed_segment (pathstart g) (pathfinish g)"
+      unfolding t(2) pathstart_def pathfinish_def between_mem_segment by simp
+  qed
+  show "closed_segment (pathstart g) (pathfinish g) \<subseteq> path_image g"
+  proof -
+    have ne: "path_image g \<noteq> {}"
+      unfolding path_image_def by auto
+    have compact: "compact (path_image g)"
+      using compact_path_image[OF pg] .
+    have conn: "connected (path_image g)"
+      using connected_path_image[OF pg] .
+    have col: "collinear (path_image g)"
+    proof -
+      from sub have "path_image g \<subseteq> closed_segment (pathstart g) (pathfinish g)" .
+      moreover have "collinear (closed_segment (pathstart g) (pathfinish g))"
+        by (rule collinear_closed_segment)
+      ultimately show ?thesis
+        unfolding collinear_def by (meson subsetD)
+    qed
+    obtain p q where pq: "path_image g = closed_segment p q"
+      using compact_convex_collinear_segment_alt[OF ne compact conn col] by auto
+    have "pathstart g \<in> path_image g"
+      unfolding path_image_def pathstart_def by auto
+    moreover have "pathfinish g \<in> path_image g"
+      unfolding path_image_def pathfinish_def by auto
+    ultimately have "pathstart g \<in> closed_segment p q" "pathfinish g \<in> closed_segment p q"
+      using pq by auto
+    then have "closed_segment (pathstart g) (pathfinish g) \<subseteq> closed_segment p q"
+      using subset_closed_segment by blast
+    then show ?thesis using pq by simp
+  qed
+qed
+
+section \<open>Linepath\<close>
+
+lemma rectifiable_path_linepath:
+  "rectifiable_path (linepath a b)"
+proof (rule lipschitz_imp_rectifiable_path[where B="dist a b"])
+  fix x y :: real assume "x \<in> {0..1}" "y \<in> {0..1}"
+  have "linepath a b x - linepath a b y = (x - y) *\<^sub>R (b - a)"
+    by (simp add: linepath_def algebra_simps)
+  then have "norm (linepath a b x - linepath a b y) = \<bar>x - y\<bar> * norm (b - a)"
+    by simp
+  also have "\<dots> = norm (b - a) * norm (x - y)"
+    by (simp add: abs_real_def real_norm_def mult.commute)
+  also have "\<dots> = dist a b * norm (x - y)"
+    by (simp add: dist_norm norm_minus_commute)
+  finally show "norm (linepath a b x - linepath a b y) \<le> dist a b * norm (x - y)"
+    by simp
+qed
+
+lemma path_length_linepath:
+  "path_length (linepath a b) = dist a b"
+proof (rule antisym)
+  show "path_length (linepath a b) \<le> dist a b"
+  proof (rule path_length_lipschitz)
+    fix x y :: real assume "x \<in> {0..1}" "y \<in> {0..1}"
+    have "linepath a b x - linepath a b y = (x - y) *\<^sub>R (b - a)"
+      by (simp add: linepath_def algebra_simps)
+    then have "norm (linepath a b x - linepath a b y) = \<bar>x - y\<bar> * norm (b - a)"
+      by simp
+    also have "\<dots> = dist a b * norm (x - y)"
+      by (simp add: dist_norm norm_minus_commute abs_real_def real_norm_def mult.commute)
+    finally show "norm (linepath a b x - linepath a b y) \<le> dist a b * norm (x - y)"
+      by simp
+  qed
+next
+  have "dist a b = dist (pathstart (linepath a b)) (pathfinish (linepath a b))"
+    by (simp add: pathstart_def pathfinish_def linepath_def dist_norm)
+  also have "\<dots> \<le> path_length (linepath a b)"
+    by (rule dist_endpoints_le_path_length[OF rectifiable_path_linepath])
+  finally show "dist a b \<le> path_length (linepath a b)" .
+qed
+
+section \<open>Rectifiable path image bound\<close>
+
+lemma rectifiable_path_image_subset_cball:
+  assumes "rectifiable_path g"
+  shows "path_image g \<subseteq> cball (pathstart g) (path_length g)"
+proof
+  fix x assume "x \<in> path_image g"
+  then obtain t where t: "t \<in> {0..1}" "x = g t"
+    unfolding path_image_def by auto
+  have "dist (pathstart g) x = dist (g 0) (g t)"
+    by (simp add: t(2) pathstart_def)
+  also have "\<dots> \<le> path_length g"
+    using dist_points_le_path_length[OF assms _ t(1)] by simp
+  finally show "x \<in> cball (pathstart g) (path_length g)"
+    by (simp add: mem_cball)
+qed
+
+section \<open>Absolutely continuous paths\<close>
+
+lemma rectifiable_path_differentiable:
+  fixes g :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "negligible S"
+    "absolutely_continuous_on {0..1} g"
+    "\<And>t. t \<in> {0..1} - S \<Longrightarrow> (g has_vector_derivative g' t) (at t)"
+  shows "rectifiable_path g"
+  unfolding rectifiable_path_def
+proof
+  show "path g"
+    unfolding path_def
+    using absolutely_continuous_on_imp_continuous[OF assms(2) is_interval_cc] .
+  show "has_bounded_variation_on g {0..1}"
+    using absolutely_continuous_on_imp_has_bounded_variation_on[OF assms(2) bounded_closed_interval] .
+qed
+
+lemma vector_variation_integral_norm_derivative:
+  fixes f :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes neg: "negligible S" and ab: "a \<le> b"
+    and ac: "absolutely_continuous_on {a..b} f"
+    and deriv: "\<And>x. x \<in> {a..b} - S \<Longrightarrow> (f has_vector_derivative f' x) (at x)"
+  shows "vector_variation {a..b} f = integral {a..b} (\<lambda>t. norm (f' t))"
+proof -
+  \<comment> \<open>Bounded variation from absolute continuity\<close>
+  have bv: "has_bounded_variation_on f {a..b}"
+    using absolutely_continuous_on_imp_has_bounded_variation_on[OF ac bounded_closed_interval] .
+      \<comment> \<open>FTC on subintervals\<close>
+  have ftc_sub: "(f' has_integral (f v - f u)) {u..v}"
+    if "u \<le> v" "{u..v} \<subseteq> {a..b}" for u v
+  proof (rule fundamental_theorem_of_calculus_absolutely_continuous[OF neg that(1)])
+    show "absolutely_continuous_on {u..v} f"
+      using absolutely_continuous_on_subset[OF ac that(2)] .
+  next
+    fix x assume "x \<in> {u..v} - S"
+    then show "(f has_vector_derivative f' x) (at x within {u..v})"
+      using deriv[of x] that(2) has_vector_derivative_at_within by blast
+  qed
+  have integral_sub: "integral {u..v} f' = f v - f u"
+    if "u \<le> v" "{u..v} \<subseteq> {a..b}" for u v
+    using integral_unique[OF ftc_sub[OF that]] .
+  have f'_int: "f' integrable_on {a..b}"
+    using ftc_sub[OF ab subset_refl] by (auto simp: integrable_on_def)
+      \<comment> \<open>f' is absolutely integrable: use bounded variation characterization\<close>
+  have f'_abs_int: "f' absolutely_integrable_on {a..b}"
+  proof (rule bounded_variation_absolutely_integrable_real_interval[OF f'_int])
+    fix d assume d: "d division_of {a..b}"
+    show "(\<Sum>K\<in>d. norm (integral K f')) \<le> vector_variation {a..b} f"
+    proof -
+      have "(\<Sum>K\<in>d. norm (integral K f')) = (\<Sum>K\<in>d. norm (f (Sup K) - f (Inf K)))"
+      proof (rule sum.cong[OF refl])
+        fix K assume "K \<in> d"
+        then obtain u v where uv: "K = {u..v}" "u \<le> v"
+          by (metis atLeastatMost_empty_iff cbox_division_memE cbox_interval d)
+        have sub: "{u..v} \<subseteq> {a..b}"
+          using division_ofD(2)[OF d \<open>K \<in> d\<close>] uv(1) by auto
+        have "integral K f' = f v - f u"
+          unfolding uv(1) using integral_sub[OF uv(2) sub] .
+        moreover have "Sup K = v" "Inf K = u"
+          using uv by auto
+        ultimately show "norm (integral K f') = norm (f (Sup K) - f (Inf K))"
+          by simp
+      qed
+      also have "\<dots> \<le> vector_variation {a..b} f"
+        using has_bounded_variation_works(1)[OF bv d] by auto
+      finally show ?thesis .
+    qed
+  qed
+    \<comment> \<open>Norm of f' is integrable\<close>
+  have norm_f'_int: "(\<lambda>t. norm (f' t)) integrable_on {a..b}"
+    using f'_abs_int unfolding absolutely_integrable_on_def by simp
+      \<comment> \<open>Direction \<le>: vector_variation \<le> integral of norm\<close>
+  have le_dir: "vector_variation {a..b} f \<le> integral {a..b} (\<lambda>t. norm (f' t))"
+    unfolding vector_variation_def
+  proof (rule has_bounded_setvariation_works(2)[OF bv[unfolded has_bounded_variation_on_def]])
+    fix d t assume dt: "d division_of t" "t \<subseteq> {a..b}"
+    have "(\<Sum>k\<in>d. norm (f (Sup k) - f (Inf k))) = (\<Sum>k\<in>d. norm (integral k f'))"
+    proof (rule sum.cong[OF refl])
+      fix k assume "k \<in> d"
+      then obtain u v where k: "k = {u..v}" "u \<le> v"
+        by (metis atLeastatMost_empty' box_real(2) cbox_division_memE dt(1))
+      have sub: "{u..v} \<subseteq> {a..b}"
+        using division_ofD(2)[OF dt(1) \<open>k \<in> d\<close>] dt(2) k(1) by blast
+      have "integral k f' = f v - f u"
+        unfolding k(1) using integral_sub[OF k(2) sub] .
+      moreover have "Sup k = v" "Inf k = u"
+        using k by auto
+      ultimately show "norm (f (Sup k) - f (Inf k)) = norm (integral k f')"
+        by simp
+    qed
+    also have "\<dots> \<le> (\<Sum>k\<in>d. integral k (\<lambda>t. norm (f' t)))"
+    proof (rule sum_mono)
+      fix k assume kd: "k \<in> d"
+      then obtain u v where k: "k = {u..v}" "u \<le> v"
+        by (metis atLeastatMost_empty_iff cbox_division_memE dt(1) interval_cbox)
+      have sub: "{u..v} \<subseteq> {a..b}"
+        using dt k(1) kd by blast
+      show "norm (integral k f') \<le> integral k (\<lambda>t. norm (f' t))"
+        unfolding k(1)
+        by (rule integral_norm_bound_integral
+            [OF integrable_on_subinterval[OF f'_int sub]
+              integrable_on_subinterval[OF norm_f'_int sub]])
+          auto
+    qed
+    also have "\<dots> \<le> integral {a..b} (\<lambda>t. norm (f' t))"
+    proof -
+      have sum_int: "((\<lambda>t. norm (f' t)) has_integral (\<Sum>k\<in>d. integral k (\<lambda>t. norm (f' t)))) (\<Union>d)"
+      proof (rule has_integral_Union)
+        show "finite d" using division_of_finite[OF dt(1)] .
+      next
+        fix S assume Sd: "S \<in> d"
+        then obtain u v where uv: "S = {u..v}" "u \<le> v"
+          by (metis atLeastatMost_empty_iff cbox_division_memE dt(1) interval_cbox)
+        have "{u..v} \<subseteq> {a..b}"
+          using division_ofD(2)[OF dt(1) Sd] dt(2) uv(1) by blast
+        then show "((\<lambda>t. norm (f' t)) has_integral integral S (\<lambda>t. norm (f' t))) S"
+          unfolding uv(1)
+          using integrable_on_subinterval[OF norm_f'_int] has_integral_integral by blast
+      next
+        show "pairwise (\<lambda>S S'. negligible (S \<inter> S')) d"
+          unfolding pairwise_def
+        proof (intro ballI impI)
+          fix K1 K2 assume "K1 \<in> d" "K2 \<in> d" "K1 \<noteq> K2"
+          then have disj: "interior K1 \<inter> interior K2 = {}"
+            using division_ofD(5)[OF dt(1)] by blast
+          obtain a1 b1 where K1: "K1 = cbox a1 b1"
+            using division_ofD(4)[OF dt(1) \<open>K1 \<in> d\<close>] by auto
+          obtain a2 b2 where K2: "K2 = cbox a2 b2"
+            using division_ofD(4)[OF dt(1) \<open>K2 \<in> d\<close>] by auto
+          have "K1 \<inter> K2 = cbox (\<Sum>i\<in>Basis. max (a1 \<bullet> i) (a2 \<bullet> i) *\<^sub>R i)
+                               (\<Sum>i\<in>Basis. min (b1 \<bullet> i) (b2 \<bullet> i) *\<^sub>R i)"
+            unfolding K1 K2 by (rule Int_interval)
+          moreover have "box (\<Sum>i\<in>Basis. max (a1 \<bullet> i) (a2 \<bullet> i) *\<^sub>R i)
+                              (\<Sum>i\<in>Basis. min (b1 \<bullet> i) (b2 \<bullet> i) *\<^sub>R i) = {}"
+            using disj unfolding K1 K2 Int_interval interior_cbox by simp
+          ultimately show "negligible (K1 \<inter> K2)"
+            using negligible_interval(1) by (metis (mono_tags, lifting))
+        qed
+      qed
+      have eq: "(\<Sum>k\<in>d. integral k (\<lambda>t. norm (f' t))) = integral (\<Union>d) (\<lambda>t. norm (f' t))"
+        using integral_unique[OF sum_int] by simp
+      have "integral (\<Union>d) (\<lambda>t. norm (f' t)) \<le> integral {a..b} (\<lambda>t. norm (f' t))"
+      proof (rule integral_subset_le)
+        show "\<Union>d \<subseteq> {a..b}" using dt(2) division_ofD(6)[OF dt(1)] by auto
+        show "(\<lambda>t. norm (f' t)) integrable_on \<Union>d"
+          using sum_int by (auto simp: integrable_on_def)
+        show "(\<lambda>t. norm (f' t)) integrable_on {a..b}" by fact
+        show "\<forall>x\<in>{a..b}. 0 \<le> norm (f' x)" by simp
+      qed
+      then show ?thesis using eq by linarith
+    qed
+    finally show "(\<Sum>k\<in>d. norm (f (Sup k) - f (Inf k))) \<le> integral {a..b} (\<lambda>t. norm (f' t))" .
+  qed
+    \<comment> \<open>Direction \<ge>: integral of norm \<le> vector_variation\<close>
+    \<comment> \<open>Key idea: use gauge characterization of the integral combined with the derivative condition\<close>
+  have ge_dir: "integral {a..b} (\<lambda>t. norm (f' t)) \<le> vector_variation {a..b} f"
+  proof (rule field_le_epsilon)
+    fix \<epsilon> :: real assume "\<epsilon> > 0"
+      \<comment> \<open>Get gauge from Henstock's lemma for f'\<close>
+    define e where "e = \<epsilon> / (2 * real DIM('a) + 1)"
+    have "e > 0" using \<open>\<epsilon> > 0\<close> unfolding e_def by (simp add: field_simps)
+    then obtain \<gamma> where "gauge \<gamma>" and \<gamma>:
+      "\<And>\<D>. \<D> tagged_division_of cbox a b \<Longrightarrow> \<gamma> fine \<D> \<Longrightarrow>
+        norm ((\<Sum>(x,k)\<in>\<D>. content k *\<^sub>R f' x) - integral {a..b} f') < e"
+      using has_integral_real[THEN iffD1, OF integrable_integral[OF f'_int], rule_format, of e]
+      by auto
+        \<comment> \<open>Get gauge for the norm integral\<close>
+    obtain \<gamma>' where "gauge \<gamma>'" and \<gamma>':
+      "\<And>\<D>. \<D> tagged_division_of cbox a b \<Longrightarrow> \<gamma>' fine \<D> \<Longrightarrow>
+        norm ((\<Sum>(x,k)\<in>\<D>. content k *\<^sub>R (\<lambda>t. norm (f' t)) x) -
+              integral {a..b} (\<lambda>t. norm (f' t))) < e"
+      using has_integral_real[THEN iffD1, OF integrable_integral[OF norm_f'_int], rule_format, of e]
+        \<open>e > 0\<close>
+      by auto
+        \<comment> \<open>Combine gauges and get a fine tagged division\<close>
+    define \<Gamma> where "\<Gamma> = (\<lambda>x. \<gamma> x \<inter> \<gamma>' x)"
+    have "gauge \<Gamma>" unfolding \<Gamma>_def using \<open>gauge \<gamma>\<close> \<open>gauge \<gamma>'\<close> by (rule gauge_Int)
+    then obtain p where td: "p tagged_division_of {a..b}" and fine: "\<Gamma> fine p"
+      using fine_division_exists_real by blast
+    have \<gamma>_fine: "\<gamma> fine p" and \<gamma>'_fine: "\<gamma>' fine p"
+      using fine unfolding \<Gamma>_def fine_Int by auto
+        \<comment> \<open>Riemann sum for norm(f') is close to the integral\<close>
+    have rs_norm: "norm ((\<Sum>(x,k)\<in>p. content k * norm (f' x)) -
+                          integral {a..b} (\<lambda>t. norm (f' t))) < e"
+      using \<gamma>'[OF td[unfolded interval_cbox] \<gamma>'_fine] by simp
+        \<comment> \<open>Henstock bound: sum of pointwise errors is small\<close>
+    have td_partial: "p tagged_partial_division_of cbox a b"
+      using td unfolding interval_cbox tagged_division_of_def by simp
+    have henstock: "(\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x - integral k f')) \<le> 2 * real DIM('a) * e"
+    proof (rule Henstock_lemma_part2)
+      show "f' integrable_on cbox a b" using f'_int by force
+      show "0 < e" by fact
+      show "gauge \<gamma>" by fact
+      show "\<And>\<D>. \<D> tagged_division_of cbox a b \<Longrightarrow> \<gamma> fine \<D> \<Longrightarrow>
+              norm ((\<Sum>(x, k)\<in>\<D>. content k *\<^sub>R f' x) - integral (cbox a b) f') < e"
+        using \<gamma> by force
+      show "p tagged_partial_division_of cbox a b" by fact
+      show "\<gamma> fine p" by fact
+    qed
+      \<comment> \<open>The underlying division from the tagged division\<close>
+    have div_p: "snd ` p division_of {a..b}"
+      using division_of_tagged_division[OF td] .
+        \<comment> \<open>In 1D, snd is injective on tagged partial divisions\<close>
+    have inj_snd: "inj_on snd p"
+    proof (rule inj_onI)
+      fix xk yk assume xk_in: "xk \<in> p" and yk_in: "yk \<in> p" and eq: "snd xk = snd yk"
+      obtain x k where xk: "xk = (x, k)" by (cases xk)
+      obtain y l where yk: "yk = (y, l)" by (cases yk)
+      from eq have kl: "k = l" using xk yk by simp
+      show "xk = yk"
+      proof (rule ccontr)
+        assume neq: "xk \<noteq> yk"
+        then have xy: "x \<noteq> y" using xk yk kl by auto
+        have x_in: "x \<in> k" using tagged_division_ofD(2)[OF td xk_in[unfolded xk]] by simp
+        have y_in: "y \<in> k" using tagged_division_ofD(2)[OF td yk_in[unfolded yk]] kl by simp
+        have "interior k \<inter> interior l = {}"
+          using tagged_partial_division_ofD(5)[OF td_partial xk_in[unfolded xk] yk_in[unfolded yk]
+                neq[unfolded xk yk]] by auto
+        then have int_empty: "interior k = {}" using kl by simp
+        obtain a' b' where ab': "k = cbox a' b'"
+          using tagged_partial_division_ofD(4)[OF td_partial xk_in[unfolded xk]] by auto
+        then have k_eq: "k = {a'..b'}" by simp
+        from x_in y_in have "a' \<le> x" "x \<le> b'" "a' \<le> y" "y \<le> b'" by (simp_all add: k_eq)
+        with xy have "a' < b'" by linarith
+        then have "{a'<..<b'} \<noteq> {}" by auto
+        moreover have "interior k = {a'<..<b'}"
+          unfolding k_eq by (rule interior_atLeastAtMost_real)
+        ultimately show False using int_empty by auto
+      qed
+    qed
+      \<comment> \<open>Sum over tagged division = sum over underlying division\<close>
+    have sum_eq: "(\<Sum>(x,k)\<in>p. g k) = (\<Sum>K\<in>snd ` p. g K)" for g :: "real set \<Rightarrow> real"
+    proof -
+      have "sum g (snd ` p) = sum (g \<circ> snd) p"
+        using Groups_Big.comm_monoid_add_class.sum.reindex[OF inj_snd] by simp
+      also have "\<dots> = (\<Sum>(x,k)\<in>p. g k)"
+        by (simp add: case_prod_unfold comp_def)
+      finally show ?thesis by simp
+    qed
+        \<comment> \<open>Sum of norm of integrals over subintervals \<le> vector variation\<close>
+    have int_sum_le_vv: "(\<Sum>(x,k)\<in>p. norm (integral k f')) \<le> vector_variation {a..b} f"
+    proof -
+      have "(\<Sum>(x,k)\<in>p. norm (integral k f')) = (\<Sum>K\<in>snd ` p. norm (integral K f'))"
+        using sum_eq .
+      also have "\<dots> = (\<Sum>K\<in>snd ` p. norm (f (Sup K) - f (Inf K)))"
+      proof (rule sum.cong[OF refl])
+        fix K assume "K \<in> snd ` p"
+        then obtain u v where uv: "K = {u..v}" "u \<le> v"
+          by (metis atLeastatMost_empty_iff cbox_division_memE div_p interval_cbox)
+        have sub: "{u..v} \<subseteq> {a..b}"
+          using division_ofD(2)[OF div_p \<open>K \<in> snd ` p\<close>] uv(1) by auto
+        have "integral K f' = f v - f u"
+          unfolding uv(1) using integral_sub[OF uv(2) sub] .
+        moreover have "Sup K = v" "Inf K = u" using uv by auto
+        ultimately show "norm (integral K f') = norm (f (Sup K) - f (Inf K))" by simp
+      qed
+      also have "\<dots> \<le> vector_variation {a..b} f"
+        using has_bounded_variation_works(1)[OF bv div_p] by auto
+      finally show ?thesis .
+    qed
+    \<comment> \<open>Triangle inequality: Riemann sum \<le> sum of integral norms + Henstock error\<close>
+    have tri: "(\<Sum>(x,k)\<in>p. content k * norm (f' x)) \<le>
+              (\<Sum>(x,k)\<in>p. norm (integral k f')) + (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x - integral k f'))"
+    proof -
+      have "(\<Sum>(x,k)\<in>p. content k * norm (f' x)) = (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x))"
+      proof (rule sum.cong[OF refl])
+        fix xk assume "xk \<in> p"
+        then obtain x k where xk: "xk = (x, k)" by (cases xk)
+        have "content k \<ge> 0"
+          using tagged_partial_division_ofD(4)[OF td_partial \<open>xk \<in> p\<close>[unfolded xk]]
+          by (auto simp: xk intro: content_pos_le)
+        then show "(case xk of (x, k) \<Rightarrow> content k * norm (f' x)) =
+                   (case xk of (x, k) \<Rightarrow> norm (content k *\<^sub>R f' x))"
+          by (simp add: xk)
+      qed
+      also have "\<dots> \<le> (\<Sum>(x,k)\<in>p. norm (integral k f') + norm (content k *\<^sub>R f' x - integral k f'))"
+      proof (rule sum_mono)
+        fix xk assume "xk \<in> p"
+        obtain x k where xk: "xk = (x, k)" by (cases xk)
+        show "(case xk of (x, k) \<Rightarrow> norm (content k *\<^sub>R f' x)) \<le>
+              (case xk of (x, k) \<Rightarrow> norm (integral k f') + norm (content k *\<^sub>R f' x - integral k f'))"
+          unfolding xk split by (rule norm_triangle_sub)
+      qed
+      also have "\<dots> = (\<Sum>(x,k)\<in>p. norm (integral k f')) + (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x - integral k f'))"
+        by (simp add: sum.distrib case_prod_unfold)
+      finally show ?thesis .
+    qed
+    \<comment> \<open>Combine all bounds\<close>
+    have "(\<Sum>(x,k)\<in>p. content k * norm (f' x)) \<le> vector_variation {a..b} f + 2 * real DIM('a) * e"
+      using tri int_sum_le_vv henstock by linarith
+    moreover have "integral {a..b} (\<lambda>t. norm (f' t)) - (\<Sum>(x,k)\<in>p. content k * norm (f' x)) < e"
+      using rs_norm by (simp add: abs_less_iff norm_minus_commute)
+    ultimately have "integral {a..b} (\<lambda>t. norm (f' t)) < vector_variation {a..b} f + 2 * real DIM('a) * e + e"
+      by linarith
+    then have "integral {a..b} (\<lambda>t. norm (f' t)) < vector_variation {a..b} f + (2 * real DIM('a) + 1) * e"
+      by (simp add: algebra_simps)
+    also have "(2 * real DIM('a) + 1) * e = \<epsilon>"
+      unfolding e_def by simp
+    finally show "integral {a..b} (\<lambda>t. norm (f' t)) \<le> vector_variation {a..b} f + \<epsilon>"
+      by linarith
+  qed
+  show ?thesis using le_dir ge_dir by linarith
+qed
+
+lemma path_length_differentiable:
+  fixes g :: "real \<Rightarrow> 'a::euclidean_space"
+  assumes "negligible S"
+    "absolutely_continuous_on {0..1} g"
+    "\<And>t. t \<in> {0..1} - S \<Longrightarrow> (g has_vector_derivative g' t) (at t)"
+  shows "path_length g = integral {0..1} (\<lambda>t. norm (g' t))"
+  unfolding path_length_def
+  using vector_variation_integral_norm_derivative[OF assms(1) _ assms(2,3)] by simp
+
+\<comment> \<open>HOL Light: RECTIFIABLE_LOOP_RELATIVE_FRONTIER_CONVEX\<close>
+lemma rectifiable_loop_rel_frontier_convex:
+  fixes S :: "complex set"
+  assumes "bounded S" "convex S" "aff_dim S = 2"
+  shows "\<exists>g. simple_path g \<and> rectifiable_path g \<and>
+             pathfinish g = pathstart g \<and>
+             path_image g = rel_frontier S"
+proof -
+  \<comment> \<open>The unit disk in \<complex> has aff_dim = 2\<close>
+  have int_cball: "interior (cball (0::complex) 1) \<noteq> {}"
+    by (auto simp: interior_cball)
+  have aff_cball: "aff_dim (cball (0::complex) 1) = 2"
+    using aff_dim_nonempty_interior[OF int_cball] DIM_complex by simp
+  have fr_cball: "rel_frontier (cball (0::complex) 1) = sphere 0 1"
+    using rel_frontier_nonempty_interior[OF int_cball] frontier_cball by simp
+  \<comment> \<open>Apply bilipschitz homeomorphism between relative frontiers\<close>
+  obtain f g where homeo: "homeomorphism (sphere 0 1) (rel_frontier S) f g"
+    and lip_f: "\<exists>B. \<forall>x y. x \<in> sphere (0::complex) 1 \<longrightarrow> y \<in> sphere 0 1 \<longrightarrow>
+                    norm (f x - f y) \<le> B * norm (x - y)"
+    and lip_g: "\<exists>B. \<forall>x y. x \<in> rel_frontier S \<longrightarrow> y \<in> rel_frontier S \<longrightarrow>
+                    norm (g x - g y) \<le> B * norm (x - y)"
+  proof -
+    have eq: "aff_dim (cball (0::complex) 1) = aff_dim S"
+      using aff_cball assms(3) by simp
+    obtain f g where h: "homeomorphism (rel_frontier (cball (0::complex) 1)) (rel_frontier S) f g"
+      and lf: "\<exists>B. \<forall>x y. x \<in> rel_frontier (cball (0::complex) 1) \<longrightarrow>
+                      y \<in> rel_frontier (cball (0::complex) 1) \<longrightarrow>
+                      norm (f x - f y) \<le> B * norm (x - y)"
+      and lg: "\<exists>B. \<forall>x y. x \<in> rel_frontier S \<longrightarrow> y \<in> rel_frontier S \<longrightarrow>
+                      norm (g x - g y) \<le> B * norm (x - y)"
+      using bilipschitz_homeomorphism_rel_frontiers
+              [OF convex_cball bounded_cball assms(2) assms(1) eq]
+      by blast
+    show thesis using that[of f g] h lf lg fr_cball by simp
+  qed
+  \<comment> \<open>Define the unit circle parametrization\<close>
+  define \<gamma> :: "real \<Rightarrow> complex" where "\<gamma> \<equiv> \<lambda>t. cis (2 * pi * t)"
+  \<comment> \<open>Basic properties of \<gamma>\<close>
+  have \<gamma>_img: "\<gamma> ` {0..1} = sphere 0 1"
+  proof (intro set_eqI iffI)
+    fix z :: complex assume "z \<in> \<gamma> ` {0..1}"
+    then show "z \<in> sphere 0 1" unfolding \<gamma>_def by (auto simp: norm_cis)
+  next
+    fix z :: complex assume z: "z \<in> sphere 0 1"
+    then have "z \<noteq> 0" by auto
+    define t where "t = (if Arg z \<ge> 0 then Arg z else Arg z + 2*pi) / (2*pi)"
+    have "t \<in> {0..1}"
+      using Arg_correct [of z] \<open>z \<noteq> 0\<close> by (auto simp: t_def)
+    moreover have "\<gamma> t = z"
+    proof -
+      have nz: "cmod z = 1" using z by simp
+      have "sgn z = z" using nz by (simp add: complex_sgn_def)
+      moreover have "cis (Arg z) = sgn z" using \<open>z \<noteq> 0\<close> by (rule cis_Arg)
+      ultimately have cis_arg: "cis (Arg z) = z" by simp
+      show ?thesis
+      proof (cases "0 \<le> Arg z")
+        case True
+        then have "\<gamma> t = cis (2 * pi * (Arg z / (2 * pi)))" by (simp add: t_def \<gamma>_def)
+        also have "\<dots> = z" using pi_gt_zero by (simp add: cis_arg)
+        finally show ?thesis .
+      next
+        case False
+        then have "\<gamma> t = cis (2 * pi * ((Arg z + 2 * pi) / (2 * pi)))" by (simp add: t_def \<gamma>_def)
+        also have "\<dots> = cis (Arg z) * cis (2 * pi)" by (simp add: cis_mult mult.commute)
+        also have "\<dots> = z" by (simp add: cis_arg)
+        finally show ?thesis .
+      qed
+    qed
+    ultimately show "z \<in> \<gamma> ` {0..1}" by auto
+  qed
+  have \<gamma>_start: "\<gamma> 0 = 1" unfolding \<gamma>_def by simp
+  have \<gamma>_end: "\<gamma> 1 = 1" unfolding \<gamma>_def using cis_2pi by simp
+  have \<gamma>_cont: "continuous_on {0..1} \<gamma>"
+    unfolding \<gamma>_def by (intro continuous_on_cis continuous_intros)
+  have \<gamma>_loop_free: "loop_free \<gamma>"
+  proof (unfold loop_free_def, intro ballI impI)
+    fix x y assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}" and eq: "\<gamma> x = \<gamma> y"
+    have cis_eq: "cis (2 * pi * x) = cis (2 * pi * y)" using eq unfolding \<gamma>_def .
+    have cos_eq: "cos (2 * pi * x) = cos (2 * pi * y)"
+      using arg_cong[OF cis_eq, of Re] by simp
+    have sin_eq: "sin (2 * pi * x) = sin (2 * pi * y)"
+      using arg_cong[OF cis_eq, of Im] by simp
+    have "cos (2 * pi * x - 2 * pi * y) = 
+          cos (2 * pi * x) * cos (2 * pi * y) + sin (2 * pi * x) * sin (2 * pi * y)"
+      by (rule cos_diff)
+    also have "\<dots> = (cos (2 * pi * x))\<^sup>2 + (sin (2 * pi * x))\<^sup>2"
+      using cos_eq sin_eq by (simp add: power2_eq_square)
+    also have "\<dots> = 1" by (rule sin_cos_squared_add2)
+    finally have "cos (2 * pi * (x - y)) = 1"
+      by (simp add: algebra_simps)
+    then obtain n :: int where n: "2 * pi * (x - y) = real_of_int n * 2 * pi"
+      using cos_one_2pi_int by blast
+    then have xy: "x - y = real_of_int n"
+      by auto
+    have "real_of_int n \<in> {-1..1}" using x y xy by auto
+    then have "n \<in> {-1..1}" by auto
+    then have "n = 0 \<or> n = 1 \<or> n = -1" by auto
+    then show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+      using xy x y by auto
+  qed
+  \<comment> \<open>\<gamma> is Lipschitz on {0..1}\<close>
+  have \<gamma>_lip: "\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. norm (\<gamma> x - \<gamma> y) \<le> (2*pi) * norm (x - y)"
+  proof (intro ballI)
+    fix x y :: real assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}"
+    have deriv: "\<forall>t\<in>{0..1}. (\<gamma> has_derivative (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t)))) (at t within {0..1})"
+    proof (intro ballI)
+      fix t :: real assume "t \<in> {0..1}"
+      have "((\<lambda>t. 2*pi*t) has_derivative (\<lambda>h. 2*pi*h)) (at t within {0..1})"
+        by (auto intro!: derivative_eq_intros)
+      then show "(\<gamma> has_derivative (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t)))) (at t within {0..1})"
+        unfolding \<gamma>_def using has_derivative_cis by blast
+    qed
+    have bound: "\<forall>t\<in>{0..1}. onorm (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t))) \<le> 2*pi"
+    proof (intro ballI)
+      fix t :: real assume "t \<in> {0..1}"
+      show "onorm (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t))) \<le> 2*pi"
+      proof (rule onorm_le)
+        fix h :: real
+        have "norm ((2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t))) = \<bar>2*pi*h\<bar> * norm (\<i> * cis (2*pi*t))"
+          by (simp add: norm_scaleR)
+        also have "\<dots> = 2*pi * \<bar>h\<bar>" by (simp add: abs_mult norm_mult norm_cis)
+        also have "\<dots> = 2*pi * norm h" by simp
+        finally show "norm ((2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t))) \<le> 2*pi * norm h" by simp
+      qed
+    qed
+    show "norm (\<gamma> x - \<gamma> y) \<le> (2*pi) * norm (x - y)"
+    proof -
+      have d: "\<And>t. t \<in> {0..1} \<Longrightarrow> (\<gamma> has_derivative (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t)))) (at t within {0..1})"
+        using deriv by auto
+      have b: "\<And>t. t \<in> {0..1} \<Longrightarrow> onorm (\<lambda>h. (2*pi*h) *\<^sub>R (\<i> * cis (2*pi*t))) \<le> 2*pi"
+        using bound by auto
+      show ?thesis using differentiable_bound[OF convex_real_interval(5) d b x y] .
+    qed
+  qed
+  \<comment> \<open>\<gamma> is rectifiable\<close>
+  have \<gamma>_rect: "has_bounded_variation_on \<gamma> {0..1}"
+  proof (rule Lipschitz_imp_has_bounded_variation)
+    show "bounded {0::real..1}" using bounded_cbox[of 0 1] by (simp add: cbox_interval)
+  next
+    fix x y :: real assume "x \<in> {0..1}" "y \<in> {0..1}"
+    then show "norm (\<gamma> x - \<gamma> y) \<le> (2*pi) * norm (x - y)" using \<gamma>_lip by auto
+  qed
+  \<comment> \<open>Compose f with \<gamma>\<close>
+  define p where "p \<equiv> f \<circ> \<gamma>"
+  \<comment> \<open>p is a path\<close>
+  have p_path: "path p"
+    unfolding path_def p_def
+    using continuous_on_compose[OF \<gamma>_cont] homeo
+    unfolding homeomorphism_def using \<gamma>_img by auto
+  \<comment> \<open>p is a closed loop\<close>
+  have p_loop: "pathfinish p = pathstart p"
+    unfolding pathfinish_def pathstart_def p_def comp_def \<gamma>_start \<gamma>_end by simp
+  \<comment> \<open>path_image p = rel_frontier S\<close>
+  have p_img: "path_image p = rel_frontier S"
+    unfolding path_image_def p_def image_comp \<gamma>_img
+    using homeo unfolding homeomorphism_def
+    by (metis \<gamma>_img image_comp)
+  \<comment> \<open>p is loop_free (hence simple_path)\<close>
+  have p_loop_free: "loop_free p"
+  proof (unfold loop_free_def, intro ballI impI)
+    fix x y assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}" and eq: "p x = p y"
+    have "f (\<gamma> x) = f (\<gamma> y)" using eq unfolding p_def comp_def .
+    moreover have "\<gamma> x \<in> sphere 0 1" "\<gamma> y \<in> sphere 0 1"
+      using x y \<gamma>_img by auto
+    ultimately have "\<gamma> x = \<gamma> y"
+      using homeo unfolding homeomorphism_def by metis
+    then show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
+      using \<gamma>_loop_free x y unfolding loop_free_def by auto
+  qed
+  have p_simple: "simple_path p"
+    unfolding simple_path_def using p_path p_loop_free by auto
+  \<comment> \<open>p is rectifiable\<close>
+  have p_rect: "rectifiable_path p"
+  proof -
+    obtain B where B: "\<And>x y. x \<in> sphere (0::complex) 1 \<longrightarrow> y \<in> sphere 0 1 \<longrightarrow>
+                         norm (f x - f y) \<le> B * norm (x - y)"
+      using lip_f by blast
+    have "\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. norm (p x - p y) \<le> (B * (2*pi)) * norm (x - y)"
+    proof (intro ballI)
+      fix x y :: real assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}"
+      have gx: "\<gamma> x \<in> sphere 0 1" and gy: "\<gamma> y \<in> sphere 0 1"
+        using x y \<gamma>_img by auto
+      have "norm (p x - p y) = norm (f (\<gamma> x) - f (\<gamma> y))"
+        unfolding p_def comp_def by simp
+      also have "\<dots> \<le> B * norm (\<gamma> x - \<gamma> y)"
+        using B gx gy by auto
+      also have "\<dots> \<le> B * (2*pi * norm (x - y))"
+      proof (intro mult_left_mono)
+        show "norm (\<gamma> x - \<gamma> y) \<le> 2*pi * norm (x - y)"
+          using \<gamma>_lip x y by auto
+        show "0 \<le> B"
+          using B[of 1 "-1"] by simp (smt (verit) norm_ge_zero)
+      qed
+      also have "\<dots> = (B * (2*pi)) * norm (x - y)" by (simp add: algebra_simps)
+      finally show "norm (p x - p y) \<le> (B * (2*pi)) * norm (x - y)" .
+    qed
+    then show ?thesis
+      using lipschitz_imp_rectifiable_path by metis
+  qed
+  show ?thesis
+    using p_simple p_rect p_loop p_img by blast
+qed
+
+lemma rectifiable_loop_frontier_convex:
+  fixes S :: "complex set"
+  assumes "bounded S" "convex S" "interior S \<noteq> {}"
+  shows "\<exists>g. simple_path g \<and> rectifiable_path g \<and>
+             pathfinish g = pathstart g \<and>
+             path_image g = frontier S"
+  using rectifiable_loop_rel_frontier_convex[OF assms(1,2)]
+        rel_frontier_nonempty_interior[OF assms(3)]
+        aff_dim_nonempty_interior[OF assms(3)]
+  by simp
+
+lemma rectifiable_path_frontier_convex:
+  fixes S :: "complex set"
+  assumes "bounded S" "convex S" "S \<noteq> {}"
+  shows "\<exists>g. rectifiable_path g \<and>
+             pathfinish g = pathstart g \<and>
+             path_image g = frontier S"
+proof -
+  have fr_eq: "frontier S = frontier (closure S)"
+    using convex_interior_closure[OF assms(2)] closure_closure[of S]
+    by (simp add: frontier_def)
+  have cS: "bounded (closure S)" "convex (closure S)" "closure S \<noteq> {}"
+    using assms by (auto simp: convex_closure compact_closure closure_eq_empty
+                         intro: bounded_closure)
+  show ?thesis
+  proof (cases "interior (closure S) = {}")
+    case False
+    then obtain g where "simple_path g" "rectifiable_path g"
+      "pathfinish g = pathstart g" "path_image g = frontier (closure S)"
+      using rectifiable_loop_frontier_convex[OF cS(1,2)] by auto
+    then show ?thesis using fr_eq by blast
+  next
+    case True
+    have compact_cS: "compact (closure S)"
+      using assms(1) compact_closure by auto
+    have "aff_dim (closure S) \<noteq> int DIM(complex)"
+    proof
+      assume "aff_dim (closure S) = int DIM(complex)"
+      then have "interior (closure S) = rel_interior (closure S)"
+        using interior_rel_interior[of "closure S"] by simp
+      moreover have "rel_interior (closure S) \<noteq> {}"
+        using rel_interior_eq_empty cS(2,3) by auto
+      ultimately show False using True by auto
+    qed
+    then have "aff_dim (closure S) \<le> 1"
+      using aff_dim_le_DIM[of "closure S"] by (simp add: DIM_complex)
+    then have col: "collinear (closure S)"
+      by (simp add: collinear_aff_dim)
+    obtain a b where ab: "closure S = closed_segment a b"
+      using compact_convex_collinear_segment[OF cS(3) compact_cS cS(2) col]
+      by auto
+    have "frontier (closure S) = closed_segment a b"
+      using interior_closed_segment_ge2[of a b]
+            closure_closed_segment[of a b]
+      by (simp add: frontier_def ab)
+    moreover have "rectifiable_path (linepath a b +++ linepath b a)"
+      by (simp add: rectifiable_path_join rectifiable_path_linepath)
+    moreover have "pathfinish (linepath a b +++ linepath b a) =
+                   pathstart (linepath a b +++ linepath b a)"
+      by simp
+    moreover have "path_image (linepath a b +++ linepath b a) = closed_segment a b"
+      by (simp add: path_image_join path_image_linepath closed_segment_commute)
+    ultimately show ?thesis using fr_eq by blast
   qed
 qed
 
