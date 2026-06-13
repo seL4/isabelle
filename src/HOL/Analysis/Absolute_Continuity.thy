@@ -5013,7 +5013,6 @@ proof -
     \<comment> \<open>Norm of f' is integrable\<close>
   have norm_f'_int: "(\<lambda>t. norm (f' t)) integrable_on {a..b}"
     using f'_abs_int unfolding absolutely_integrable_on_def by simp
-      \<comment> \<open>Direction \<le>: vector_variation \<le> integral of norm\<close>
   have le_dir: "vector_variation {a..b} f \<le> integral {a..b} (\<lambda>t. norm (f' t))"
     unfolding vector_variation_def
   proof (rule has_bounded_setvariation_works(2)[OF bv[unfolded has_bounded_variation_on_def]])
@@ -5095,7 +5094,6 @@ proof -
     qed
     finally show "(\<Sum>k\<in>d. norm (f (Sup k) - f (Inf k))) \<le> integral {a..b} (\<lambda>t. norm (f' t))" .
   qed
-    \<comment> \<open>Direction \<ge>: integral of norm \<le> vector_variation\<close>
     \<comment> \<open>Key idea: use gauge characterization of the integral combined with the derivative condition\<close>
   have ge_dir: "integral {a..b} (\<lambda>t. norm (f' t)) \<le> vector_variation {a..b} f"
   proof (rule field_le_epsilon)
@@ -5181,7 +5179,6 @@ proof -
         by (simp add: case_prod_unfold comp_def)
       finally show ?thesis by simp
     qed
-        \<comment> \<open>Sum of norm of integrals over subintervals \<le> vector variation\<close>
     have int_sum_le_vv: "(\<Sum>(x,k)\<in>p. norm (integral k f')) \<le> vector_variation {a..b} f"
     proof -
       have "(\<Sum>(x,k)\<in>p. norm (integral k f')) = (\<Sum>K\<in>snd ` p. norm (integral K f'))"
@@ -5202,29 +5199,14 @@ proof -
         using has_bounded_variation_works(1)[OF bv div_p] by auto
       finally show ?thesis .
     qed
-    \<comment> \<open>Triangle inequality: Riemann sum \<le> sum of integral norms + Henstock error\<close>
     have tri: "(\<Sum>(x,k)\<in>p. content k * norm (f' x)) \<le>
               (\<Sum>(x,k)\<in>p. norm (integral k f')) + (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x - integral k f'))"
     proof -
       have "(\<Sum>(x,k)\<in>p. content k * norm (f' x)) = (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x))"
-      proof (rule sum.cong[OF refl])
-        fix xk assume "xk \<in> p"
-        then obtain x k where xk: "xk = (x, k)" by (cases xk)
-        have "content k \<ge> 0"
-          using tagged_partial_division_ofD(4)[OF td_partial \<open>xk \<in> p\<close>[unfolded xk]]
-          by (auto simp: xk intro: content_pos_le)
-        then show "(case xk of (x, k) \<Rightarrow> content k * norm (f' x)) =
-                   (case xk of (x, k) \<Rightarrow> norm (content k *\<^sub>R f' x))"
-          by (simp add: xk)
-      qed
+        using tagged_partial_division_ofD(4)[OF td_partial]
+        by simp
       also have "\<dots> \<le> (\<Sum>(x,k)\<in>p. norm (integral k f') + norm (content k *\<^sub>R f' x - integral k f'))"
-      proof (rule sum_mono)
-        fix xk assume "xk \<in> p"
-        obtain x k where xk: "xk = (x, k)" by (cases xk)
-        show "(case xk of (x, k) \<Rightarrow> norm (content k *\<^sub>R f' x)) \<le>
-              (case xk of (x, k) \<Rightarrow> norm (integral k f') + norm (content k *\<^sub>R f' x - integral k f'))"
-          unfolding xk split by (rule norm_triangle_sub)
-      qed
+        by (smt (verit) norm_triangle_ineq2 split_def sum_mono)
       also have "\<dots> = (\<Sum>(x,k)\<in>p. norm (integral k f')) + (\<Sum>(x,k)\<in>p. norm (content k *\<^sub>R f' x - integral k f'))"
         by (simp add: sum.distrib case_prod_unfold)
       finally show ?thesis .
@@ -5255,7 +5237,6 @@ lemma path_length_differentiable:
   unfolding path_length_def
   using vector_variation_integral_norm_derivative[OF assms(1) _ assms(2,3)] by simp
 
-\<comment> \<open>HOL Light: RECTIFIABLE_LOOP_RELATIVE_FRONTIER_CONVEX\<close>
 lemma rectifiable_loop_rel_frontier_convex:
   fixes S :: "complex set"
   assumes "bounded S" "convex S" "aff_dim S = 2"
@@ -5263,7 +5244,7 @@ lemma rectifiable_loop_rel_frontier_convex:
              pathfinish g = pathstart g \<and>
              path_image g = rel_frontier S"
 proof -
-  \<comment> \<open>The unit disk in \<complex> has aff_dim = 2\<close>
+  \<comment> \<open>The unit disk in the complex plane has affine dimension 2\<close>
   have int_cball: "interior (cball (0::complex) 1) \<noteq> {}"
     by (auto simp: interior_cball)
   have aff_cball: "aff_dim (cball (0::complex) 1) = 2"
@@ -5292,7 +5273,6 @@ proof -
   qed
   \<comment> \<open>Define the unit circle parametrization\<close>
   define \<gamma> :: "real \<Rightarrow> complex" where "\<gamma> \<equiv> \<lambda>t. cis (2 * pi * t)"
-  \<comment> \<open>Basic properties of \<gamma>\<close>
   have \<gamma>_img: "\<gamma> ` {0..1} = sphere 0 1"
   proof (intro set_eqI iffI)
     fix z :: complex assume "z \<in> \<gamma> ` {0..1}"
@@ -5355,7 +5335,7 @@ proof -
     then show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
       using xy x y by auto
   qed
-  \<comment> \<open>\<gamma> is Lipschitz on {0..1}\<close>
+  \<comment> \<open>Proving Lipschitz continuity\<close>
   have \<gamma>_lip: "\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. norm (\<gamma> x - \<gamma> y) \<le> (2*pi) * norm (x - y)"
   proof (intro ballI)
     fix x y :: real assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}"
@@ -5389,7 +5369,7 @@ proof -
       show ?thesis using differentiable_bound[OF convex_real_interval(5) d b x y] .
     qed
   qed
-  \<comment> \<open>\<gamma> is rectifiable\<close>
+  \<comment> \<open>The path is rectifiable\<close>
   have \<gamma>_rect: "has_bounded_variation_on \<gamma> {0..1}"
   proof (rule Lipschitz_imp_has_bounded_variation)
     show "bounded {0::real..1}" using bounded_cbox[of 0 1] by (simp add: cbox_interval)
@@ -5397,22 +5377,17 @@ proof -
     fix x y :: real assume "x \<in> {0..1}" "y \<in> {0..1}"
     then show "norm (\<gamma> x - \<gamma> y) \<le> (2*pi) * norm (x - y)" using \<gamma>_lip by auto
   qed
-  \<comment> \<open>Compose f with \<gamma>\<close>
   define p where "p \<equiv> f \<circ> \<gamma>"
-  \<comment> \<open>p is a path\<close>
   have p_path: "path p"
     unfolding path_def p_def
     using continuous_on_compose[OF \<gamma>_cont] homeo
     unfolding homeomorphism_def using \<gamma>_img by auto
-  \<comment> \<open>p is a closed loop\<close>
   have p_loop: "pathfinish p = pathstart p"
     unfolding pathfinish_def pathstart_def p_def comp_def \<gamma>_start \<gamma>_end by simp
-  \<comment> \<open>path_image p = rel_frontier S\<close>
   have p_img: "path_image p = rel_frontier S"
     unfolding path_image_def p_def image_comp \<gamma>_img
     using homeo unfolding homeomorphism_def
     by (metis \<gamma>_img image_comp)
-  \<comment> \<open>p is loop_free (hence simple_path)\<close>
   have p_loop_free: "loop_free p"
   proof (unfold loop_free_def, intro ballI impI)
     fix x y assume x: "x \<in> {0..1}" and y: "y \<in> {0..1}" and eq: "p x = p y"
@@ -5426,7 +5401,6 @@ proof -
   qed
   have p_simple: "simple_path p"
     unfolding simple_path_def using p_path p_loop_free by auto
-  \<comment> \<open>p is rectifiable\<close>
   have p_rect: "rectifiable_path p"
   proof -
     obtain B where B: "\<And>x y. x \<in> sphere (0::complex) 1 \<longrightarrow> y \<in> sphere 0 1 \<longrightarrow>
