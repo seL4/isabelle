@@ -35,6 +35,7 @@ imports
   FSet
   FuncSet
   Function_Division
+  Function_Real_Vectors
   Fun_Lexorder
   Going_To_Filter
   Groups_Big_Fun
