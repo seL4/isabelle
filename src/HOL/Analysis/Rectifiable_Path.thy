@@ -1022,7 +1022,7 @@ proof -
     moreover have "?\<phi> ((y-d)/c) = y" using cne by (simp add: field_simps)
     ultimately show "y \<in> ?\<phi> ` {\<alpha>..\<beta>}" by force
   qed
-  \<comment> \<open>Key: the variation sums over divisions of any T equal those over \<phi>(T)\<close>
+  \<comment> \<open>Key: the variation sums over divisions of any @{term T} equal those over @{term \<open>\<phi>(T)\<close>}\<close>
   have sum_transform: "(\<Sum>k\<in>D. norm ((g \<circ> ?\<phi>) (Sup k) - (g \<circ> ?\<phi>) (Inf k)))
     = (\<Sum>k\<in>((`) ?\<phi>) ` D. norm (g (Sup k) - g (Inf k)))"
     if "D division_of T" for D :: "real set set" and T :: "real set"
@@ -1051,7 +1051,7 @@ proof -
     finally show "(\<Sum>k\<in>D. norm ((g \<circ> ?\<phi>) (Sup k) - (g \<circ> ?\<phi>) (Inf k)))
       = (\<Sum>k\<in>((`) ?\<phi>) ` D. norm (g (Sup k) - g (Inf k)))" .
   qed
-  \<comment> \<open>Now show the Sup sets in the vector_variation definition are equal\<close>
+  \<comment> \<open>Now show the Sup sets in the vector variation definition are equal\<close>
   have sets_eq: "{\<Sum>k\<in>D. norm ((g \<circ> ?\<phi>) (Sup k) - (g \<circ> ?\<phi>) (Inf k)) |D.
       \<exists>T. D division_of T \<and> T \<subseteq> {a..b}}
     = {\<Sum>k\<in>D. norm (g (Sup k) - g (Inf k)) |D.
@@ -1072,7 +1072,7 @@ proof -
       using sum_eq div' sub' by blast
   next
     fix D T assume div: "D division_of T" and sub: "T \<subseteq> {c*a+d..c*b+d}"
-    \<comment> \<open>Map back via the inverse affine map (1/c)*x + (-d/c)\<close>
+    \<comment> \<open>Map back via the inverse affine map @{term \<open>(1/c)*x + (-d/c)\<close>}\<close>
     let ?c' = "1/c" and ?d' = "-d/c"
     have cpos': "?c' > 0" using cpos by auto
     have div': "((`) (\<lambda>x. ?c' * x + ?d')) ` D division_of ((\<lambda>x. ?c' * x + ?d') ` T)"
@@ -1081,7 +1081,7 @@ proof -
       using division_of_affine_image(2)[OF cpos' div sub] .
     have endpoints: "?c'*(c*a+d)+?d' = a" "?c'*(c*b+d)+?d' = b"
       using cne by (auto simp: field_simps)
-    \<comment> \<open>The inverse map equals \<psi>\<close>
+    \<comment> \<open>The inverse map equals @{term\<open>\<psi>\<close>}\<close>
     have inv_eq: "(\<lambda>x::real. ?c' * x + ?d') = ?\<psi>"
       by (rule ext) (simp add: diff_divide_distrib)
     have div'': "((`) ?\<psi>) ` D division_of (?\<psi> ` T)"
@@ -1092,7 +1092,6 @@ proof -
         using sub' endpoints by auto
       then show ?thesis unfolding inv_eq .
     qed
-    \<comment> \<open>Show the sum over D equals the sum over \<psi>-image composed with \<phi>\<close>
     have sum_eq: "(\<Sum>k\<in>((`) ?\<psi>) ` D. norm ((g \<circ> ?\<phi>) (Sup k) - (g \<circ> ?\<phi>) (Inf k)))
       = (\<Sum>k\<in>((`) ?\<phi>) ` ((`) ?\<psi>) ` D. norm (g (Sup k) - g (Inf k)))"
       using sum_transform[OF div''] .
@@ -1266,10 +1265,8 @@ lemma rectifiable_path_join:
     rectifiable_path g1 \<and> rectifiable_path g2"
 proof -
   have half: "(0::real) \<le> 1/2" "1/2 \<le> (1::real)" by auto
-  \<comment> \<open>On {0..1/2}, the joinpath agrees with g1 \<circ> (\<lambda>x. 2*x)\<close>
   have eq1: "(g1 +++ g2) x = (g1 \<circ> (\<lambda>x. 2 * x)) x" if "x \<in> {0..1/2}" for x
     using that by (auto simp: joinpaths_def)
-  \<comment> \<open>On {1/2..1}, the joinpath agrees with g2 \<circ> (\<lambda>x. 2*x - 1)\<close>
   have eq2: "(g1 +++ g2) x = (g2 \<circ> (\<lambda>x. 2 * x + (-1))) x" if "x \<in> {1/2..1}" for x
   proof -
     from that have "x = 1/2 \<or> x > 1/2" by auto
@@ -1323,10 +1320,8 @@ proof -
   have half: "(0::real) \<le> 1/2" "1/2 \<le> (1::real)" by auto
   have bvj: "has_bounded_variation_on (g1 +++ g2) {0..1}"
     using rectifiable_path_def assms rectifiable_path_join by blast
-  \<comment> \<open>On {0..1/2}, the joinpath agrees with g1 \<circ> (\<lambda>x. 2*x)\<close>
   have eq1: "(g1 +++ g2) x = (g1 \<circ> (\<lambda>x. 2 * x)) x" if "x \<in> {0..1/2}" for x
     using that by (auto simp: joinpaths_def)
-  \<comment> \<open>On {1/2..1}, the joinpath agrees with g2 \<circ> (\<lambda>x. 2*x - 1)\<close>
   have eq2: "(g1 +++ g2) x = (g2 \<circ> (\<lambda>x. 2 * x + (-1))) x" if "x \<in> {1/2..1}" for x
   proof -
     from that have "x = 1/2 \<or> x > 1/2" by auto
@@ -1383,10 +1378,8 @@ proof -
   from rg have pg: "path g" and bvg: "has_bounded_variation_on g {0..1}"
     unfolding rectifiable_path_def by auto
   from t01 have t0: "0 \<le> t" and t1: "t \<le> 1" and mt: "0 \<le> 1 - t" and mt1: "1 - t \<le> 1" by auto
-  \<comment> \<open>On {0..1-t}, shiftpath t g agrees with g \<circ> (\<lambda>x. x + t)\<close>
   have eq1: "shiftpath t g x = (g \<circ> (\<lambda>x. 1 * x + t)) x" if "x \<in> {0..1-t}" for x
     by (metis add.commute atLeastAtMost_iff comp_def mult_1 shiftpath_alt_def that)
-  \<comment> \<open>On {1-t..1}, shiftpath t g agrees with g \<circ> (\<lambda>x. x + (t-1))\<close>
   have eq2: "shiftpath t g x = (g \<circ> (\<lambda>x. 1 * x + (t - 1))) x" if "x \<in> {1-t..1}" for x
   proof -
     from that have "x = 1-t \<or> x > 1-t" by auto
@@ -1445,24 +1438,11 @@ proof -
     using rectifiable_path_shiftpath[OF rg loop t01]
     unfolding rectifiable_path_def by auto
   from t01 have t0: "0 \<le> t" and t1: "t \<le> 1" and mt: "0 \<le> 1 - t" and mt1: "1 - t \<le> 1" by auto
-  \<comment> \<open>Pointwise agreements (reuse from rectifiable_path_shiftpath proof)\<close>
+  \<comment> \<open>Pointwise agreements (reuse from rectifiable path shiftpath proof)\<close>
   have eq1: "shiftpath t g x = (g \<circ> (\<lambda>x. 1 * x + t)) x" if "x \<in> {0..1-t}" for x
     using that t1 by (auto simp: shiftpath_def algebra_simps)
   have eq2: "shiftpath t g x = (g \<circ> (\<lambda>x. 1 * x + (t - 1))) x" if "x \<in> {1-t..1}" for x
-  proof -
-    from that have "x = 1-t \<or> x > 1-t" by auto
-    then show ?thesis
-    proof
-      assume "x = 1-t"
-      then show ?thesis
-        using loop t1 by (simp add: shiftpath_def pathfinish_def pathstart_def algebra_simps)
-    next
-      assume "x > 1-t"
-      then have "t + x > 1" by auto
-      then show ?thesis by (auto simp: shiftpath_def comp_def algebra_simps)
-    qed
-  qed
-  \<comment> \<open>Variation on {0..1-t}\<close>
+    using that loop t1 by (auto simp add: shiftpath_def pathfinish_def pathstart_def algebra_simps)
   have vv1: "vector_variation {0..1-t} (shiftpath t g) = vector_variation {t..1} g"
   proof -
     have "vector_variation {0..1-t} (shiftpath t g) =
@@ -1473,7 +1453,6 @@ proof -
     also have "{1*0+t..1*(1-t)+t} = {t..1::real}" by auto
     finally show ?thesis .
   qed
-  \<comment> \<open>Variation on {1-t..1}\<close>
   have vv2: "vector_variation {1-t..1} (shiftpath t g) = vector_variation {0..t} g"
   proof -
     have "vector_variation {1-t..1} (shiftpath t g) =

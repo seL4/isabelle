@@ -923,7 +923,6 @@ proof -
   have inj: "inj_on (\<lambda>x. x /\<^sub>R norm x) (rel_frontier S)"
     using \<open>0 < b\<close> b
     by (smt (verit) dist_le_zero_iff divide_inverse inj_on_def mult_le_0_iff scaleR_scaleR)
-  \<comment> \<open>Apply homeomorphism_compact\<close>
   have "compact (rel_frontier S)"
     using compact_rel_frontier_bounded assms(2) by blast
   then obtain g where homeo: "homeomorphism (rel_frontier S)
@@ -991,13 +990,12 @@ proof -
   \<comment> \<open>Since affine hull S = affine hull t, the intermediate spaces are the same\<close>
   have mid_eq: "sphere 0 1 \<inter> affine hull S = sphere 0 1 \<inter> affine hull t"
     using assms(7) by simp
-  \<comment> \<open>Flip the t-homeomorphism: gt maps sphere \<inter> aff to rel_frontier t\<close>
+  \<comment> \<open>Flip the t-homeomorphism\<close>
   have homeo_t': "homeomorphism (sphere 0 1 \<inter> affine hull S) (rel_frontier t) gt ?n"
     using homeomorphism_symD[OF homeo_t] mid_eq by simp
-  \<comment> \<open>Compose: gt \<circ> n maps rel_frontier S \<rightarrow> rel_frontier t\<close>
   have homeo_comp: "homeomorphism (rel_frontier S) (rel_frontier t) (gt \<circ> ?n) (gs \<circ> ?n)"
     using homeomorphism_compose[OF homeo_s homeo_t'] by simp
-  \<comment> \<open>Lipschitz bound for gt \<circ> n on rel_frontier S\<close>
+  \<comment> \<open>Lipschitz bound\<close>
   have lip_f: "\<exists>B. \<forall>x y. x \<in> rel_frontier S \<longrightarrow> y \<in> rel_frontier S \<longrightarrow>
         norm ((gt \<circ> ?n) x - (gt \<circ> ?n) y) \<le> B * norm (x - y)"
   proof -
@@ -1010,7 +1008,6 @@ proof -
       using lip_gt mid_eq by auto
     have img_s: "?n ` rel_frontier S = sphere 0 1 \<inter> affine hull S"
       using homeomorphism_image1[OF homeo_s] .
-    \<comment> \<open>Convert to lipschitz_on form\<close>
     have lip_n: "(max Bn 0)-lipschitz_on (rel_frontier S) ?n"
     proof (rule lipschitz_onI)
       fix x y assume "x \<in> rel_frontier S" "y \<in> rel_frontier S"
@@ -1041,7 +1038,7 @@ proof -
         using lipschitz_onD[OF lip_comp] by (simp add: dist_norm)
     qed
   qed
-  \<comment> \<open>Lipschitz bound for gs \<circ> n on rel_frontier t\<close>
+  \<comment> \<open>Lipschitz bound for @{term\<open>gs \<circ> ?n\<close>} on @{term\<open>rel_frontier t\<close>}\<close>
   have lip_g: "\<exists>B. \<forall>x y. x \<in> rel_frontier t \<longrightarrow> y \<in> rel_frontier t \<longrightarrow>
         norm ((gs \<circ> ?n) x - (gs \<circ> ?n) y) \<le> B * norm (x - y)"
   proof -
@@ -1054,7 +1051,6 @@ proof -
       using lip_gs by blast
     have img_t: "?n ` rel_frontier t = sphere 0 1 \<inter> affine hull t"
       using homeomorphism_image1[OF homeo_t] .
-    \<comment> \<open>Convert to lipschitz_on form\<close>
     have lip_n: "(max Bn 0)-lipschitz_on (rel_frontier t) ?n"
     proof (rule lipschitz_onI)
       fix x y assume "x \<in> rel_frontier t" "y \<in> rel_frontier t"
