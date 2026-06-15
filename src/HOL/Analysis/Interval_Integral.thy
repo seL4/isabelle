@@ -1116,6 +1116,481 @@ next
     using le by (simp add: interval_integral_norm)
 qed
 
+subsection \<open>Fubini theorems\<close>
+
+lemma gauge_integral_Fubini_universe_x:
+  fixes f :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::euclidean_space"
+  assumes fun_lesbegue_integrable: "integrable lborel f" and
+    x_axis_integral_measurable: "(\<lambda>x. integral UNIV (\<lambda>y. f(x, y))) \<in> borel_measurable lborel"
+  shows "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x,y)))"
+    "(\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) integrable_on UNIV"
+proof -
+  have f_is_measurable: "f \<in> borel_measurable lborel"
+    using fun_lesbegue_integrable and borel_measurable_integrable
+    by auto
+  have fun_lborel_prod_integrable:
+    "integrable (lborel \<Otimes>\<^sub>M lborel) f"
+    using fun_lesbegue_integrable
+    by (simp add: lborel_prod)
+  then have region_integral_is_one_twoD_integral:
+    "(LBINT x. LBINT y. f (x, y)) = integral\<^sup>L (lborel \<Otimes>\<^sub>M lborel) f"
+    using lborel_pair.integral_fst'
+    by auto
+  then have AE_one_D_integrals_eq: "AE x in lborel. (LBINT y. f (x, y)) = integral UNIV (\<lambda>y. f(x,y))"
+  proof -
+    have "AE x in lborel. integrable lborel (\<lambda>y. f(x,y))"
+      using lborel_pair.AE_integrable_fst' and fun_lborel_prod_integrable
+      by blast
+    then show ?thesis
+      using integral_lborel  and always_eventually
+        and AE_mp
+      by fastforce
+  qed
+  have one_D_integral_measurable:
+    "(\<lambda>x. LBINT y. f (x, y)) \<in> borel_measurable lborel"
+    using f_is_measurable and lborel.borel_measurable_lebesgue_integral
+    by auto
+  then have second_lesbegue_integral_eq:
+    "(LBINT x. LBINT y. f (x, y)) = (LBINT x. integral UNIV (\<lambda>y. f(x,y)))"
+    using x_axis_integral_measurable and integral_cong_AE and AE_one_D_integrals_eq
+    by blast
+  have "integrable lborel (\<lambda>x. LBINT y. f (x, y))"
+    using fun_lborel_prod_integrable and lborel_pair.integrable_fst'
+    by auto
+  then have oneD_gauge_integral_lesbegue_integrable:
+    "integrable lborel (\<lambda>x. integral UNIV (\<lambda>y. f(x,y)))"
+    using x_axis_integral_measurable and AE_one_D_integrals_eq and integrable_cong_AE_imp
+    by blast
+  then show one_D_gauge_integral_integrable:
+    "(\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) integrable_on UNIV"
+    using integrable_on_lborel
+    by auto
+  have "(LBINT x. integral UNIV (\<lambda>y. f(x,y))) = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x, y)))"
+    using integral_lborel oneD_gauge_integral_lesbegue_integrable
+    by fastforce
+  then have twoD_lesbeuge_eq_twoD_gauge:
+    "(LBINT x. LBINT y. f (x, y)) = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x, y)))"
+    using second_lesbegue_integral_eq
+    by auto
+  then show "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x,y)))"
+    using fun_lesbegue_integrable and integral_lborel and region_integral_is_one_twoD_integral
+    by (metis lborel_prod)
+qed
+
+lemma gauge_integral_Fubini_universe_y:
+  fixes f :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::euclidean_space"
+  assumes fun_lesbegue_integrable: "integrable lborel f" and
+    y_axis_integral_measurable: "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) \<in> borel_measurable lborel"
+  shows "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) integrable_on UNIV"
+proof -
+  have f_is_measurable: "f \<in> borel_measurable lborel"
+    using fun_lesbegue_integrable and borel_measurable_integrable
+    by auto
+  have fun_lborel_prod_integrable:
+    "integrable (lborel \<Otimes>\<^sub>M lborel) f"
+    using fun_lesbegue_integrable
+    by (simp add: lborel_prod)
+  then have region_integral_is_one_twoD_integral:
+    "(LBINT x. LBINT y. f (y, x)) = integral\<^sup>L (lborel \<Otimes>\<^sub>M lborel) f"
+    by (simp add: lborel_pair.integrable_product_swap_iff lborel_pair.integral_fst lborel_pair.integral_product_swap)
+  then have AE_one_D_integrals_eq: "AE x in lborel. (LBINT y. f (y, x)) = integral UNIV (\<lambda>y. f(y,x))"
+  proof -
+    have "AE x in lborel. integrable lborel (\<lambda>y. f(y,x))"
+      using lborel_pair.AE_integrable_fst' and fun_lborel_prod_integrable
+        lborel_pair.AE_integrable_fst lborel_pair.integrable_product_swap
+      by blast
+    then show ?thesis
+      using integral_lborel always_eventually AE_mp by fastforce
+  qed
+  have one_D_integral_measurable:
+    "(\<lambda>x. LBINT y. f (y, x)) \<in> borel_measurable lborel"
+    using f_is_measurable and lborel.borel_measurable_lebesgue_integral
+    by auto
+  then have second_lesbegue_integral_eq:
+    "(LBINT x. LBINT y. f (y, x)) = (LBINT x. integral UNIV (\<lambda>y. f(y, x)))"
+    using y_axis_integral_measurable and integral_cong_AE and AE_one_D_integrals_eq
+    by blast
+  have "integrable lborel (\<lambda>x. LBINT y. f (y, x))"
+    using fun_lborel_prod_integrable and lborel_pair.integrable_fst'
+    by (simp add: lborel_pair.integrable_fst lborel_pair.integrable_product_swap)
+  then have oneD_gauge_integral_lesbegue_integrable:
+    "integrable lborel (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    using y_axis_integral_measurable and AE_one_D_integrals_eq and integrable_cong_AE_imp
+    by blast
+  then show one_D_gauge_integral_integrable:
+    "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) integrable_on UNIV"
+    using integrable_on_lborel by auto
+  have "(LBINT x. integral UNIV (\<lambda>y. f(y, x))) = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    using integral_lborel oneD_gauge_integral_lesbegue_integrable
+    by fastforce
+  then have twoD_lesbeuge_eq_twoD_gauge:
+    "(LBINT x. LBINT y. f (y, x)) = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    using second_lesbegue_integral_eq by auto
+  then show "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    using fun_lesbegue_integrable and integral_lborel and region_integral_is_one_twoD_integral
+    by (metis lborel_prod)
+qed
+
+lemma gauge_integral_Fubini_curve_bounded_region_x:
+  fixes f g :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::euclidean_space" and
+    g1 g2:: "'a \<Rightarrow> 'b" and
+    s:: "('a * 'b) set"
+  assumes fun_lesbegue_integrable: "integrable lborel f" and
+    x_axis_gauge_integrable: "\<And>x. (\<lambda>y. f(x, y)) integrable_on UNIV" and
+    (*IS THIS redundant? NO IT IS NOT*)
+    x_axis_integral_measurable: "(\<lambda>x. integral UNIV (\<lambda>y. f(x, y))) \<in> borel_measurable lborel" and
+    f_is_g_indicator: "f = (\<lambda>x. if x \<in> s then g x else 0)" and
+    s_is_bounded_by_g1_and_g2: "s = {(x,y). (\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i) \<and>
+                                      (\<forall>i\<in>Basis. (g1 x) \<bullet> i \<le> y \<bullet> i \<and> y \<bullet> i \<le> (g2 x) \<bullet> i)}"
+  shows "integral s g = integral (cbox a b) (\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(x,y)))"
+proof -
+  have two_D_integral_to_one_D: "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x,y)))"
+    using gauge_integral_Fubini_universe_x and fun_lesbegue_integrable and x_axis_integral_measurable
+    by auto
+  have one_d_integral_integrable: "(\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) integrable_on UNIV"
+    using gauge_integral_Fubini_universe_x(2) and assms
+    by blast
+  have case_x_in_range:
+    "\<forall> x \<in> cbox a b. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(x,y)) = integral UNIV (\<lambda>y. f(x,y))"
+  proof
+    fix x:: 'a
+    assume within_range: "x \<in> (cbox a b)"
+    let ?f_one_D_spec = "(\<lambda>y. if y \<in> (cbox (g1 x) (g2 x)) then g(x,y) else 0)"
+    have f_one_D_region: "(\<lambda>y. f(x,y)) = (\<lambda>y. if y \<in> cbox (g1 x) (g2 x) then g(x,y) else 0)"
+    proof
+      fix y::'b
+      show "f (x, y) = (if y \<in> (cbox (g1 x) (g2 x)) then g (x, y) else 0)"
+        using within_range
+        by (force simp add: cbox_def f_is_g_indicator s_is_bounded_by_g1_and_g2)
+    qed
+    have zero_out_of_bound: "\<forall> y.  y \<notin> cbox (g1 x) (g2 x) \<longrightarrow> f (x,y) = 0"
+      using f_is_g_indicator and s_is_bounded_by_g1_and_g2
+      by (auto simp add: cbox_def)
+    have "(\<lambda>y. f(x,y)) integrable_on cbox (g1 x)  (g2 x)"
+    proof -
+      have "?f_one_D_spec integrable_on UNIV"
+        using f_one_D_region and x_axis_gauge_integrable
+        by metis
+      then have "?f_one_D_spec integrable_on cbox(g1 x) (g2 x)"
+        using integrable_on_subcbox by blast
+      then show ?thesis using f_one_D_region  by auto
+    qed
+    then have f_integrale_x: "((\<lambda>y. f(x,y)) has_integral (integral (cbox (g1 x) (g2 x)) (\<lambda>y. f(x,y)))) (cbox (g1 x) (g2 x))"
+      using integrable_integral and within_range and x_axis_gauge_integrable
+      by auto
+    have "integral (cbox (g1 x)  (g2 x)) (\<lambda>y. f (x, y)) = integral UNIV (\<lambda>y. f (x, y))"
+      using has_integral_on_superset[OF f_integrale_x _ Set.subset_UNIV] zero_out_of_bound
+      by (simp add: integral_unique)
+    then have "((\<lambda>y. f(x, y)) has_integral integral UNIV (\<lambda>y. f (x, y))) (cbox (g1 x) (g2 x))"
+      using f_integrale_x
+      by simp
+    then have "((\<lambda>y. g(x, y)) has_integral integral UNIV (\<lambda>y. f (x, y))) (cbox (g1 x)(g2 x))"
+      by (simp add: f_one_D_region)
+    then show "integral (cbox (g1 x) (g2 x)) (\<lambda>y. g (x, y)) = integral UNIV (\<lambda>y. f (x, y))"
+      by auto
+  qed
+  have case_x_not_in_range:
+    "\<forall> x. x \<notin> cbox a  b \<longrightarrow> integral UNIV (\<lambda>y. f(x,y)) = 0"
+  proof
+    fix x::'a
+    have "x \<notin> (cbox a b) \<longrightarrow> (\<forall>y. f(x,y) = 0)"
+      by (auto simp add: s_is_bounded_by_g1_and_g2 f_is_g_indicator cbox_def)
+    then show "x \<notin> cbox a b \<longrightarrow> integral UNIV (\<lambda>y. f (x, y)) = 0"
+      by (simp)
+  qed
+  have RHS: "integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) = integral (cbox a b) (\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(x,y)))"
+  proof -
+    let ?first_integral = "(\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(x,y)))"
+    let ?x_integral_cases = "(\<lambda>x. if x \<in> cbox a b then  ?first_integral x else 0)"
+    have x_integral_cases_integral: "(\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) = ?x_integral_cases"
+      using case_x_in_range and case_x_not_in_range
+      by auto
+    have "((\<lambda>x. integral UNIV (\<lambda>y. f(x,y))) has_integral (integral UNIV f)) UNIV"
+      using two_D_integral_to_one_D one_d_integral_integrable by auto
+    then have "(?x_integral_cases has_integral (integral UNIV f)) UNIV"
+      using x_integral_cases_integral by auto
+    then have "(?first_integral has_integral (integral UNIV f)) (cbox a b)"
+      using  has_integral_restrict_UNIV[of "cbox a b" "?first_integral" "integral UNIV f"]
+      by auto
+    then show ?thesis
+      using two_D_integral_to_one_D by (simp add: integral_unique)
+  qed
+  have f_integrable:"f integrable_on UNIV"
+    using fun_lesbegue_integrable and integrable_on_lborel
+    by auto
+  then have LHS: "integral UNIV f = integral s g"
+    using assms(4) integrable_integral by fastforce
+  then show ?thesis
+    using RHS and two_D_integral_to_one_D
+    by auto
+qed
+
+lemma gauge_integral_Fubini_curve_bounded_region_y:
+  fixes f g :: "('a::euclidean_space * 'b::euclidean_space) \<Rightarrow> 'c::euclidean_space" and
+    g1 g2:: "'b \<Rightarrow> 'a" and
+    s:: "('a * 'b) set"
+  assumes fun_lesbegue_integrable: "integrable lborel f" and
+    y_axis_gauge_integrable: "\<And>x. (\<lambda>y. f(y, x)) integrable_on UNIV" and
+    (*IS THIS redundant? NO IT IS NOT*)
+    y_axis_integral_measurable: "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) \<in> borel_measurable lborel" and
+    f_is_g_indicator: "f = (\<lambda>x. if x \<in> s then g x else 0)" and
+    s_is_bounded_by_g1_and_g2: "s = {(y, x). (\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i) \<and>
+                                                   (\<forall>i\<in>Basis. (g1 x) \<bullet> i \<le> y \<bullet> i \<and> y \<bullet> i \<le> (g2 x) \<bullet> i)}"
+  shows "integral s g = integral (cbox a b) (\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(y, x)))"
+proof -
+  have two_D_integral_to_one_D: "integral UNIV f = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x)))"
+    using gauge_integral_Fubini_universe_y and fun_lesbegue_integrable and y_axis_integral_measurable
+    by auto
+  have one_d_integral_integrable: "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) integrable_on UNIV"
+    using gauge_integral_Fubini_universe_y(2) and assms
+    by blast
+  have case_y_in_range:
+    "\<forall> x \<in> cbox a b. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(y, x)) = integral UNIV (\<lambda>y. f(y, x))"
+  proof
+    fix x:: 'b
+    assume within_range: "x \<in> (cbox a b)"
+    let ?f_one_D_spec = "(\<lambda>y. if y \<in> (cbox (g1 x) (g2 x)) then g(y, x) else 0)"
+    have f_one_D_region: "(\<lambda>y. f(y, x)) = (\<lambda>y. if y \<in> cbox (g1 x) (g2 x) then g(y, x) else 0)"
+    proof
+      fix y::'a
+      show "f (y, x) = (if y \<in> (cbox (g1 x) (g2 x)) then g (y, x) else 0)"
+        using within_range
+        by (force simp add: cbox_def f_is_g_indicator s_is_bounded_by_g1_and_g2)
+    qed
+    have zero_out_of_bound: "\<forall> y.  y \<notin> cbox (g1 x) (g2 x) \<longrightarrow> f (y, x) = 0"
+      using f_is_g_indicator and s_is_bounded_by_g1_and_g2
+      by (auto simp add: cbox_def)
+    have "(\<lambda>y. f(y, x)) integrable_on cbox (g1 x)  (g2 x)"
+    proof -
+      have "?f_one_D_spec integrable_on UNIV"
+        using f_one_D_region and y_axis_gauge_integrable
+        by metis
+      then have "?f_one_D_spec integrable_on cbox(g1 x) (g2 x)"
+        using integrable_on_subcbox
+        by blast
+      then show ?thesis using f_one_D_region  by auto
+    qed
+    then have f_integrale_y: "((\<lambda>y. f(y, x)) has_integral (integral (cbox (g1 x) (g2 x)) (\<lambda>y. f(y,x)))) (cbox (g1 x) (g2 x))"
+      using integrable_integral and within_range and y_axis_gauge_integrable
+      by auto
+    have "integral (cbox (g1 x)  (g2 x)) (\<lambda>y. f (y, x)) = integral UNIV (\<lambda>y. f (y, x))"
+      using has_integral_on_superset[OF f_integrale_y _ Set.subset_UNIV] zero_out_of_bound
+      by (simp add: integral_unique)
+    then have "((\<lambda>y. f(y, x)) has_integral integral UNIV (\<lambda>y. f (y, x))) (cbox (g1 x) (g2 x))"
+      using f_integrale_y
+      by simp
+    then have "((\<lambda>y. g(y, x)) has_integral integral UNIV (\<lambda>y. f (y, x))) (cbox (g1 x)(g2 x))"
+      using f_one_D_region by fastforce
+    then show "integral (cbox (g1 x) (g2 x)) (\<lambda>y. g (y, x)) = integral UNIV (\<lambda>y. f (y, x))"
+      by auto
+  qed
+  have case_y_not_in_range:
+    "\<forall> x. x \<notin> cbox a  b \<longrightarrow> integral UNIV (\<lambda>y. f(y, x)) = 0"
+  proof
+    fix x::'b
+    have "x \<notin> (cbox a b) \<longrightarrow> (\<forall>y. f(y, x) = 0)"
+      apply  (simp add: s_is_bounded_by_g1_and_g2 f_is_g_indicator cbox_def)
+      by auto
+    then show "x \<notin> cbox a b \<longrightarrow> integral UNIV (\<lambda>y. f (y, x)) = 0"
+      by (simp)
+  qed
+  have RHS: "integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) = integral (cbox a b) (\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(y, x)))"
+  proof -
+    let ?first_integral = "(\<lambda>x. integral (cbox (g1 x) (g2 x)) (\<lambda>y. g(y, x)))"
+    let ?x_integral_cases = "(\<lambda>x. if x \<in> cbox a b then  ?first_integral x else 0)"
+    have y_integral_cases_integral: "(\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) = ?x_integral_cases"
+      using case_y_in_range and case_y_not_in_range
+      by auto
+    have "((\<lambda>x. integral UNIV (\<lambda>y. f(y, x))) has_integral (integral UNIV f)) UNIV"
+      using two_D_integral_to_one_D
+        one_d_integral_integrable
+      by auto
+    then have "(?x_integral_cases has_integral (integral UNIV f)) UNIV"
+      using y_integral_cases_integral by auto
+    then have "(?first_integral has_integral (integral UNIV f)) (cbox a b)"
+      using has_integral_restrict_UNIV[of "cbox a b" "?first_integral" "integral UNIV f"]
+      by auto
+    then show ?thesis
+      using two_D_integral_to_one_D
+      by (simp add: integral_unique)
+  qed
+  have f_integrable:"f integrable_on UNIV"
+    using fun_lesbegue_integrable and integrable_on_lborel
+    by auto
+  then have LHS: "integral UNIV f = integral s g"
+    apply (simp add: f_is_g_indicator)
+    using integrable_restrict_UNIV
+      integral_restrict_UNIV
+    by auto
+  then show ?thesis
+    using RHS and two_D_integral_to_one_D
+    by auto
+qed
+
+lemma gauge_integral_by_substitution:
+  fixes f::"(real \<Rightarrow> real)" and
+    g::"(real \<Rightarrow> real)" and
+    g'::"real \<Rightarrow> real" and
+    a::"real" and
+    b::"real"
+  assumes a_le_b: "a \<le> b" and
+    ga_le_gb: "g a \<le> g b" and
+    g'_derivative: "\<forall>x \<in> {a..b}. (g has_vector_derivative (g' x)) (at x within {a..b})" and
+    g'_continuous: "continuous_on {a..b} g'" and
+    f_continuous: "continuous_on (g ` {a..b}) f"
+  shows "integral {g a..g b} (f) = integral {a..b} (\<lambda>x. f(g x) * (g' x))"
+proof -
+  have "\<forall>x \<in> {a..b}. (g has_real_derivative (g' x)) (at x within {a..b})"
+    using has_real_derivative_iff_has_vector_derivative[of "g"] and g'_derivative
+    by auto
+  then have 2: "interval_lebesgue_integral lborel (ereal (a)) (ereal (b)) (\<lambda>x. g' x *\<^sub>R f (g x))
+                    = interval_lebesgue_integral lborel (ereal (g a)) (ereal (g b)) f"
+    using interval_integral_substitution_finite[of "a" "b" "g" "g'" "f"] and g'_continuous and a_le_b and f_continuous
+    by auto
+  have g_continuous: "continuous_on {a .. b}  g"
+    using Derivative.differentiable_imp_continuous_on
+    apply (simp add: differentiable_on_def differentiable_def)
+    by (metis continuous_on_vector_derivative g'_derivative)
+  have "set_integrable lborel {a .. b} (\<lambda>x. g' x *\<^sub>R f (g x))"
+  proof -
+    have "continuous_on {a .. b} (\<lambda>x. g' x *\<^sub>R f (g x))"
+    proof -
+      have "continuous_on {a .. b} (\<lambda>x. f (g x))"
+      proof -
+        show ?thesis
+          using Topological_Spaces.continuous_on_compose f_continuous g_continuous
+          by auto
+      qed
+      then show ?thesis
+        using Limits.continuous_on_mult g'_continuous
+        by auto
+    qed
+    then show ?thesis
+      using borel_integrable_atLeastAtMost' by blast
+  qed
+  then have 0: "interval_lebesgue_integral lborel (ereal (a)) (ereal (b)) (\<lambda>x. g' x *\<^sub>R f (g x))
+                      = integral {a .. b} (\<lambda>x. g' x *\<^sub>R f (g x))"
+    using a_le_b and interval_integral_eq_integral
+    by (metis (no_types))
+  have "set_integrable lborel {g a .. g b} f"
+  proof -
+    have "continuous_on {g a .. g b} f"
+    proof -
+      have "{g a .. g b} \<subseteq> g ` {a .. b}"
+        using g_continuous
+        by (metis a_le_b atLeastAtMost_iff atLeastatMost_subset_iff continuous_image_closed_interval imageI order_refl)
+      then show "continuous_on {g a .. g b} f"
+        using f_continuous continuous_on_subset
+        by blast
+    qed
+    then show ?thesis
+      using borel_integrable_atLeastAtMost'
+      by blast
+  qed
+  then have 1: "interval_lebesgue_integral lborel (ereal (g a)) (ereal (g b)) f
+                      = integral {g a .. g b} f"
+    using ga_le_gb and interval_integral_eq_integral
+    by (metis (no_types))
+  then show ?thesis
+    using 0 and 1 and 2
+    by (metis (no_types, lifting)  Henstock_Kurzweil_Integration.integral_cong mult.commute real_scaleR_def)
+qed
+
+text \<open>Cavalieri principle (general, on the plane \<^typ>\<open>real \<times> real\<close>): the subgraph of a
+  nonnegative continuous function is Lebesgue measurable, with measure equal to its integral.\<close>
+
+lemma has_integral_area_under_curve_real:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "a \<le> b"
+    and cont: "continuous_on {a..b} f"
+    and fge0: "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x"
+  shows "{(x,y). a \<le> x \<and> x \<le> b \<and> 0 \<le> y \<and> y \<le> f x} \<in> lmeasurable" (is "?S \<in> _")
+    and "measure lebesgue {(x,y). a \<le> x \<and> x \<le> b \<and> 0 \<le> y \<and> y \<le> f x} = integral {a..b} f"
+proof -
+  \<comment> \<open>The subgraph is the continuous image of the compact \<open>{a..b} \<times> {0..1}\<close> under \<open>(x,t) \<mapsto> (x, t * f x)\<close>.\<close>
+  have cphi: "continuous_on ({a..b} \<times> {0..1}) (\<lambda>(x,t). (x, t * f x) :: real \<times> real)"
+    unfolding split_def
+    by (intro continuous_intros continuous_on_compose2[OF cont] continuous_on_fst) auto
+  have img: "(\<lambda>(x,t). (x, t * f x)) ` ({a..b} \<times> {0..1}) = ?S"
+  proof -
+    have "\<exists>y\<in>{0..1}. t = y * f x"
+      if "a \<le> x" and "x \<le> b" and t: "0 \<le> t" "t \<le> f x" for x t
+    proof (cases "f x = 0")
+      case False
+      with t show ?thesis by (rule_tac x = "t / f x" in bexI) auto
+    qed (use t in auto)
+    then show ?thesis
+      by (auto simp: mult_left_le_one_le fge0 image_iff split: prod.splits)
+  qed
+  have S'_compact: "compact ?S"
+  proof -
+    have "compact (({a..b}::real set) \<times> ({0..1}::real set))"
+      by (simp add: compact_Times)
+    then have "compact ((\<lambda>(x,t). (x, t * f x)) ` ({a..b} \<times> {0..1}))"
+      using cphi compact_continuous_image by blast
+    then show ?thesis using img by simp
+  qed
+  show S'_meas: "?S \<in> lmeasurable"
+    using S'_compact lmeasurable_compact by blast
+  \<comment> \<open>The measure equals the integral, by Fubini on the indicator and the vertical slice \<open>{0..f x}\<close>.\<close>
+  have integ: "integrable lborel (indicat_real ?S)"
+    using S'_compact fmeasurable_compact fmeasurable_def by blast
+  have slice_eq: "integral UNIV (\<lambda>y. indicat_real ?S (x, y)) = (if x \<in> {a..b} then f x else 0)" for x
+  proof (cases "x \<in> {a..b}")
+    case True
+    then have "{y. (x,y) \<in> ?S} = {0..f x}" by auto
+    then have "integral UNIV (\<lambda>y. indicat_real ?S (x, y)) = integral {0..f x} (\<lambda>_. 1)"
+      by (smt (verit, ccfv_SIG) integral_cong integral_restrict_UNIV indicator_eq_0_iff
+              indicator_eq_1_iff mem_Collect_eq)
+    then show ?thesis using True fge0 by simp
+  qed auto
+  have "measure lebesgue ?S = integral UNIV (indicat_real ?S)"
+    using lmeasure_integral_UNIV[OF S'_meas] by simp
+  also have "\<dots> = integral UNIV (\<lambda>x. integral UNIV (\<lambda>y. indicat_real ?S (x, y)))"
+  proof (rule gauge_integral_Fubini_universe_x(1)[OF integ])
+    have "(\<lambda>x. if x \<in> {a..b} then f x else 0) \<in> borel_measurable borel"
+      by (intro borel_measurable_continuous_on_if continuous_on_const cont) auto
+    then show "(\<lambda>x. integral UNIV (\<lambda>y. indicat_real ?S (x, y))) \<in> borel_measurable lborel"
+      using slice_eq by auto
+  qed
+  also have "\<dots> = integral UNIV (\<lambda>x. if x \<in> {a..b} then f x else 0)"
+    by (rule integral_cong) (use slice_eq in auto)
+  also have "\<dots> = integral {a..b} f"
+    by (rule integral_restrict_UNIV)
+  finally show "measure lebesgue ?S = integral {a..b} f" .
+qed
+
+text \<open>The version used in this development phrases the subgraph in the complex plane; it is a
+  direct corollary via @{thm [source] measure_Complex_image}.\<close>
+
+lemma has_integral_area_under_curve:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "a \<le> b"
+    and "continuous_on {a..b} f"
+    and fge0: "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x"
+  shows "{z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)} \<in> lmeasurable"
+    and "measure lebesgue {z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)}
+       = integral {a..b} f"
+proof -
+  let ?S' = "{(x,y). a \<le> x \<and> x \<le> b \<and> 0 \<le> y \<and> y \<le> f x}"
+  have S_eq: "{z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)}
+                = (\<lambda>(x,y). Complex x y) ` ?S'"
+    by (force simp: image_iff complex.sel split: prod.splits)
+  have meas': "?S' \<in> lmeasurable"
+    using has_integral_area_under_curve_real(1)[OF assms] .
+  show "{z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)} \<in> lmeasurable"
+    unfolding S_eq using measure_Complex_image(1)[OF meas'] .
+  have "measure lebesgue {z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)}
+          = measure lebesgue ?S'"
+    unfolding S_eq using measure_Complex_image(2)[OF meas'] .
+  also have "\<dots> = integral {a..b} f"
+    using has_integral_area_under_curve_real(2)[OF assms] .
+  finally show "measure lebesgue {z::complex. a \<le> Re z \<and> Re z \<le> b \<and> 0 \<le> Im z \<and> Im z \<le> f (Re z)}
+       = integral {a..b} f" .
+qed
+
+
 (* TODO: should we have a library of facts like these? *)
 lemma integral_cos: "t \<noteq> 0 \<Longrightarrow> LBINT x=a..b. cos (t * x) = sin (t * b) / t - sin (t * a) / t"
   apply (intro interval_integral_FTC_finite continuous_intros)
