@@ -1332,19 +1332,29 @@ lemma diameter_bounded_bound:
 proof -
   from S obtain z \<delta> where z: "\<And>x. x \<in> S \<Longrightarrow> dist z x \<le> \<delta>"
     unfolding bounded_def by auto
-  have "bdd_above (case_prod dist ` (S\<times>S))"
-  proof (intro bdd_aboveI, safe)
-    fix a b
-    assume "a \<in> S" "b \<in> S"
-    with z[of a] z[of b] dist_triangle[of a b z]
-    show "dist a b \<le> 2 * \<delta>"
-      by (simp add: dist_commute)
-  qed
+  have "dist a b \<le> 2 * \<delta>" if "a \<in> S" "b \<in> S" for a b
+    by (smt (verit) dist_triangle3 that z)
+  then have "bdd_above (case_prod dist ` (S\<times>S))"
+    by (force simp: bdd_above.I2)
   moreover have "(x,y) \<in> S\<times>S" using S by auto
   ultimately have "dist x y \<le> (SUP (x,y)\<in>S\<times>S. dist x y)"
     by (rule cSUP_upper2) simp
   with \<open>x \<in> S\<close> show ?thesis
     by (auto simp: diameter_def)
+qed
+
+lemma diameter_eq_0:
+  fixes S :: "'a::metric_space set"
+  assumes "bounded S"
+  shows "diameter S = 0 \<longleftrightarrow> S = {} \<or> (\<exists>a. S = {a})"
+proof
+  assume "diameter S = 0"
+  then show "S = {} \<or> (\<exists>a. S = {a})"
+    using assms diameter_bounded_bound by fastforce
+next
+  assume "S = {} \<or> (\<exists>a. S = {a})"
+  then show "diameter S = 0"
+    using diameter_empty diameter_singleton by auto
 qed
 
 lemma diameter_lower_bounded:

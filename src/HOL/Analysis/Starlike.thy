@@ -66,7 +66,7 @@ proof
     by (meson hull_mono inf_mono subset_insertI subset_refl)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Shrinking towards the interior of a convex set\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Shrinking towards the interior of a convex set\<close>
 
 lemma mem_interior_convex_shrink:
   fixes S :: "'a::euclidean_space set"
@@ -389,7 +389,7 @@ next
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Some obvious but surprisingly hard simplex lemmas\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Some obvious but surprisingly hard simplex lemmas\<close>
 
 lemma simplex:
   assumes "finite S"
@@ -755,7 +755,7 @@ proof -
   qed
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Relative interior of convex set\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Relative interior of convex set\<close>
 
 lemma rel_interior_convex_nonempty_aux:
   fixes S :: "'n::euclidean_space set"
@@ -1174,7 +1174,7 @@ lemma convex_same_rel_interior_closure_straddle:
              rel_interior S \<subseteq> T \<and> T \<subseteq> closure S"
 by (simp add: closure_eq_between convex_same_rel_interior_closure)
 
-subsection\<open>Relative frontier of a convex set\<close>
+section\<open>Relative frontier of a convex set\<close>
 
 lemma convex_rel_frontier_aff_dim:
   fixes S1 S2 :: "'n::euclidean_space set"
@@ -2495,7 +2495,7 @@ next
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity on direct sums\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Convexity on direct sums\<close>
 
 lemma closure_sum:
   fixes S T :: "'a::real_normed_vector set"
@@ -2794,7 +2794,7 @@ next
     using \<open>y < x\<close> by (simp add: field_simps)
 qed simp
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Explicit formulas for interior and relative interior of convex hull\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Explicit formulas for interior and relative interior of convex hull\<close>
 
 lemma at_within_cbox_finite:
   assumes "x \<in> box a b" "x \<notin> S" "finite S"
@@ -3157,7 +3157,7 @@ next
     by (metis Diff_cancel convex_hull_singleton insert_absorb2 open_segment_def segment_convex_hull)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Similar results for closure and (relative or absolute) frontier\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Similar results for closure and (relative or absolute) frontier\<close>
 
 lemma closure_convex_hull [simp]:
   fixes S :: "'a::euclidean_space set"
@@ -3317,7 +3317,7 @@ next
 qed
 
 
-subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
+section \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
 definition\<^marker>\<open>tag important\<close> coplanar  where
    "coplanar S \<equiv> \<exists>u v w. S \<subseteq> affine hull {u,v,w}"
@@ -3766,7 +3766,7 @@ proof
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about hyperplanes and halfspaces\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
 lemma halfspace_Int_eq:
      "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"
@@ -3818,7 +3818,7 @@ lemma halfspace_eq_empty_ge:
   "{x. a \<bullet> x \<ge> b} = {} \<longleftrightarrow> a = 0 \<and> b > 0"
   using halfspace_eq_empty_le [of "-a" "-b"] by simp
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Use set distance for an easy proof of separation properties\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Use set distance for an easy proof of separation properties\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> separation_closures:
   fixes S :: "'a::euclidean_space set"
@@ -3905,7 +3905,7 @@ proof -
     using that by auto
 qed
 
-subsection\<open>Connectedness of the intersection of a chain\<close>
+section\<open>Connectedness of the intersection of a chain\<close>
 
 proposition connected_chain:
   fixes \<F> :: "'a :: euclidean_space set set"
@@ -4040,7 +4040,7 @@ proof (rule connected_chain_gen [of "S k"])
     by (metis imageE le_cases nest)
 qed (use S in auto)
 
-subsection\<open>Proper maps, including projections out of compact sets\<close>
+section\<open>Proper maps, including projections out of compact sets\<close>
 
 lemma finite_indexed_bound:
   assumes A: "finite A" "\<And>x. x \<in> A \<Longrightarrow> \<exists>n::'a::linorder. P x n"
@@ -4110,7 +4110,7 @@ proof -
     by (force simp: closedin_limpt)
 qed
 
-subsection \<open>Closure of conic hulls\<close>
+section \<open>Closure of conic hulls\<close>
 proposition closedin_conic_hull:
   fixes S :: "'a::euclidean_space set"
   assumes "compact T" "0 \<notin> T" "T \<subseteq> S"
@@ -4267,7 +4267,7 @@ next
     by (simp add: continuous_on_closed * closedin_imp_subset)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
 
 lemma convex_connected_collinear:
   fixes S :: "'a::euclidean_space set"
@@ -4715,7 +4715,7 @@ corollary aff_dim_hyperplane [simp]:
   shows "a \<noteq> 0 \<Longrightarrow> aff_dim {x. a \<bullet> x = r} = DIM('a) - 1"
 by (metis aff_dim_eq_hyperplane affine_hull_eq affine_hyperplane)
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Some stepping theorems\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Some stepping theorems\<close>
 
 lemma aff_dim_insert:
   fixes a :: "'a::euclidean_space"
@@ -4841,7 +4841,7 @@ proof -
     by (auto simp: bounded_hyperplane_eq_trivial_0)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>General case without assuming closure and getting non-strict separation\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>General case without assuming closure and getting non-strict separation\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> separating_hyperplane_closed_point_inset:
   fixes S :: "'a::euclidean_space set"
@@ -5061,7 +5061,7 @@ lemma supporting_hyperplane_rel_interior:
   by (metis assms convex_closure convex_rel_interior_closure)
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
 
 lemma
   fixes S :: "'a::euclidean_space set"
@@ -5613,7 +5613,7 @@ next
   finally show "dim T \<le> dim S" by simp
 qed
 
-subsection\<open>Lower-dimensional affine subsets are nowhere dense\<close>
+section\<open>Lower-dimensional affine subsets are nowhere dense\<close>
 
 proposition dense_complement_subspace:
   fixes S :: "'a :: euclidean_space set"
@@ -5725,7 +5725,7 @@ corollary\<^marker>\<open>tag unimportant\<close> dense_complement_convex_closed
   by (simp add: assms dense_complement_convex)
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Parallel slices, etc\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Parallel slices, etc\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
@@ -5919,7 +5919,7 @@ next
     by (rule that)
 qed
 
-subsection\<open>Paracompactness\<close>
+section\<open>Paracompactness\<close>
 
 proposition paracompact:
   fixes S :: "'a :: {metric_space,second_countable_topology} set"
@@ -6061,7 +6061,7 @@ corollary\<^marker>\<open>tag unimportant\<close> paracompact_closed:
   by (rule paracompact_closedin [of UNIV S \<C>]) (auto simp: assms)
 
   
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Closed-graph characterization of continuity\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Closed-graph characterization of continuity\<close>
 
 lemma continuous_closed_graph_gen:
   fixes T :: "'b::real_normed_vector set"
@@ -6133,7 +6133,7 @@ proof -
     by (rule continuous_on_Un_local_open [OF opS opT])
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>The union of two collinear segments is another segment\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>The union of two collinear segments is another segment\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> in_convex_hull_exchange:
   fixes a :: "'a::euclidean_space"
@@ -6351,7 +6351,7 @@ next
   with convex_open_segment_cases[OF assms] show ?thesis by simp
 qed
 
-subsection\<open>Covering an open set by a countable chain of compact sets\<close>
+section\<open>Covering an open set by a countable chain of compact sets\<close>
   
 proposition open_Union_compact_subsets:
   fixes S :: "'a::euclidean_space set"
@@ -6451,7 +6451,7 @@ next
 qed
 
 
-subsection\<open>Orthogonal complement\<close>
+section\<open>Orthogonal complement\<close>
 
 definition\<^marker>\<open>tag important\<close> orthogonal_comp (\<open>(\<open>open_block notation=\<open>postfix \<bottom>\<close>\<close>_\<^sup>\<bottom>)\<close> [80] 80)
   where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"
@@ -6570,7 +6570,7 @@ proof -
     by (auto simp: orthogonal_comp_def orthogonal_def adjoint_works inner_commute)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>A non-injective linear function maps into a hyperplane.\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>A non-injective linear function maps into a hyperplane.\<close>
 
 lemma linear_surj_adj_imp_inj:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
