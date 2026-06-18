@@ -37,6 +37,7 @@ session "HOL-Examples" in Examples = HOL +
     "ML"
     Peirce
     Records
+    Reflection_Examples
     Rewrite_Examples
     Seq
     Sqrt
@@ -756,7 +757,6 @@ session "HOL-ex" (timing) in ex = "HOL-Library" +
     Pythagoras
     Quicksort
     Radix_Sort
-    Reflection_Examples
     Refute_Examples
     Residue_Ring
     SOS
