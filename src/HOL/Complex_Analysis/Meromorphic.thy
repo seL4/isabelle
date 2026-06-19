@@ -390,6 +390,11 @@ lemma meromorphic_at_iff: "f meromorphic_on {z} \<longleftrightarrow> isolated_s
   by (metis has_laurent_expansion_isolated has_laurent_expansion_not_essential
             insertI1 singletonD not_essential_has_laurent_expansion)
 
+lemma meromorphic_at_cong_ev:
+  assumes "eventually (\<lambda>w. f w = g w) (at z)"
+  shows   "f meromorphic_on {z} \<longleftrightarrow> g meromorphic_on {z}"
+  unfolding meromorphic_on_def using assms has_laurent_expansion_cong' by blast
+
 named_theorems meromorphic_intros
 
 lemma meromorphic_on_empty [simp, intro]: "f meromorphic_on {}"
@@ -1158,7 +1163,6 @@ next
     unfolding constant_on_def by blast
 qed
 
-
 text \<open>
   A meromorphic function on a connected domain takes any given value either almost everywhere
   or almost nowhere.
@@ -1280,7 +1284,54 @@ lemma meromorphic_on_cong':
   by (rule meromorphic_on_cong eventually_cosparse_imp_eventually_at assms)+ auto
 
 
-subsection \<open>Meromorphic functions and zorder\<close>
+lemma meromorphic_on_Gamma [meromorphic_intros]: "Gamma meromorphic_on A"
+proof -
+  have 1: "Gamma meromorphic_on {1 - of_nat n}" for n
+  proof (induction n)
+    case 0
+    thus ?case by (auto intro!: analytic_on_imp_meromorphic_on analytic_intros)
+  next
+    case (Suc n)
+    have *: "(\<lambda>w. w + 1) analytic_on {-complex_of_nat n}"
+      by (auto intro!: analytic_intros)
+    have "(\<lambda>w. Gamma (w + 1)) meromorphic_on {-complex_of_nat n}"
+      using meromorphic_on_compose[OF Suc.IH *] by auto
+    hence "(\<lambda>w. Gamma (w + 1) / w) meromorphic_on {1 - of_nat (Suc n)}"
+      by (auto intro!: meromorphic_intros)
+    also have "?this \<longleftrightarrow> Gamma meromorphic_on {1 - of_nat (Suc n)}"
+    proof (rule meromorphic_at_cong_ev)
+      have "\<int>\<^sub>\<le>\<^sub>0 sparse_in (UNIV :: complex set)"
+        by (rule sparse_subset_Ints) auto
+      hence "eventually (\<lambda>w. w \<notin> \<int>\<^sub>\<le>\<^sub>0) (at (1 - complex_of_nat (Suc n)))"
+        by (auto simp: sparse_in_eventually_iff)
+      thus "\<forall>\<^sub>F w in at (1 - complex_of_nat (Suc n)). Gamma (w + 1) / w = Gamma w"
+        by eventually_elim (auto simp: Gamma_plus1)
+    qed
+    finally show ?case .
+  qed
+
+  have "Gamma meromorphic_on {z}" for z
+  proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
+    case False
+    thus ?thesis by (auto intro!: analytic_on_imp_meromorphic_on analytic_intros)
+  next
+    case True
+    then obtain n where [simp]: "z = -of_nat n"
+      by (elim nonpos_Ints_cases')
+    show ?thesis
+      using 1[of "n + 1"] by simp
+  qed
+  thus ?thesis
+    using meromorphic_on_meromorphic_at by blast
+qed
+
+lemma meromorphic_on_Gamma' [meromorphic_intros]:
+  assumes "f analytic_on A"
+  shows   "(\<lambda>z. Gamma (f z)) meromorphic_on A"
+  using meromorphic_on_compose[OF meromorphic_on_Gamma[of UNIV] assms] by simp
+
+
+subsection \<open>Meromorphic functions and zero order\<close>
 
 lemma zorder_power_int:
   assumes "f meromorphic_on {z}" "frequently (\<lambda>z. f z \<noteq> 0) (at z)"
@@ -1891,5 +1942,396 @@ proof
   thus False
     by simp
 qed
+
+
+subsection \<open>A relation for the zero order of a function\<close>
+
+text \<open>
+  The following is a relational version of the statement \<^prop>\<open>zorder f z = n\<close>, i.e.\ the fact that
+  a complex-valued function $f$ has a zero of multiplicity $n$ at $z$, where $n = 0$ means that
+  $f$ does not in fact have a zero there, and $n < 0$ means that $f$ has a pole of multiplicity 
+  $-n$ there.
+
+  The difference to the mere statement that \<^prop>\<open>zorder f z = n\<close> is that this also includes
+  the fact that $f$ is in fact meromorphci at $z$ and that it is not identically zero in the
+  pointed neighbourhood of $z$, i.e.\ that the \<^const>\<open>zorder\<close> is in fact well-defined.
+  This is very useful when proving that the \<^const>\<open>zorder\<close> of a function built by multiplying 
+  together other functions has a certain value.
+
+  Note that (just like \<^const>\<open>zorder\<close>), our relation does not care about the value $f(z)$ itself,
+  but only about the behaviour of $f$ in the pointed neighbourhood of $z$.
+\<close>
+definition has_zorder :: "(complex \<Rightarrow> complex) \<Rightarrow> complex \<Rightarrow> int \<Rightarrow> bool" where
+  "has_zorder f z n \<longleftrightarrow> f meromorphic_on {z} \<and> eventually (\<lambda>z. f z \<noteq> 0) (at z) \<and> zorder f z = n"
+
+lemma has_zorderI:
+  assumes "f meromorphic_on {z}" "eventually (\<lambda>z. f z \<noteq> 0) (at z)" "n = zorder f z"
+  shows   "has_zorder f z n"
+  using assms unfolding has_zorder_def by auto
+
+lemma
+  assumes "has_zorder f z n"
+  shows has_zorder_imp_meromorphic_at: "f meromorphic_on {z}"
+  and   has_zorder_imp_eventually_nonzero: "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+  and   has_zorder_imp_zorder_eq: "zorder f z = n"
+  using assms unfolding has_zorder_def by blast+
+
+lemma has_laurent_expansion_imp_has_zorder:
+  assumes "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+  shows   "has_zorder f z n"
+  unfolding has_zorder_def
+proof safe
+  show "f meromorphic_on {z}"
+    using assms(1) unfolding meromorphic_on_def by auto
+  have "\<not>frequently (\<lambda>z. f z = 0) (at z)"
+    using assms by (subst has_laurent_expansion_frequently_zero_iff)
+  thus "eventually (\<lambda>z. f z \<noteq> 0) (at z)"
+    by (auto simp: frequently_def)
+  show "zorder f z = n"
+    using assms has_laurent_expansion_zorder by blast
+qed
+
+lemma has_zorder_altdef:
+  "has_zorder f z n \<longleftrightarrow> (\<exists>F. (\<lambda>w. f (z + w)) has_laurent_expansion F \<and> F \<noteq> 0 \<and> fls_subdegree F = n)"
+proof
+  assume "has_zorder f z n"
+  then obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F"
+    and f: "eventually (\<lambda>z. f z \<noteq> 0) (at z)" "zorder f z = n"
+    by (auto simp: has_zorder_def meromorphic_on_def)
+  from f(1) and F have "F \<noteq> 0"
+    using has_laurent_expansion_eventually_nonzero_iff by blast
+  have "fls_subdegree F = n" using F f 
+    by (simp add: has_laurent_expansion_eventually_nonzero_iff has_laurent_expansion_zorder)
+  thus "(\<exists>F. (\<lambda>w. f (z + w)) has_laurent_expansion F \<and> F \<noteq> 0 \<and> fls_subdegree F = n)"
+    using F and \<open>F \<noteq> 0\<close> by blast
+qed (use has_laurent_expansion_imp_has_zorder in auto)
+
+lemma has_zorder_shift:
+  "has_zorder f z n \<longleftrightarrow> has_zorder (\<lambda>w. f (z + w)) 0 n"
+  unfolding has_zorder_def 
+  by (simp add: has_zorder_def meromorphic_on_def at_to_0' zorder_shift' eventually_filtermap add_ac)
+
+lemma has_zorder_shift':
+  "NO_MATCH 0 z \<Longrightarrow> has_zorder f z n \<longleftrightarrow> has_zorder (\<lambda>w. f (z + w)) 0 n"
+  by (rule has_zorder_shift)
+
+lemma has_zorder_transfer_eventually_at:
+  assumes "has_zorder f z n" "eventually (\<lambda>w. f w = g w) (at z)"
+  shows   "has_zorder g z n"
+proof -
+  from assms obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    by (auto simp: has_zorder_altdef)
+  show ?thesis
+  proof (rule has_laurent_expansion_imp_has_zorder)
+    have "(\<lambda>w. f (z + w)) has_laurent_expansion F \<longleftrightarrow> (\<lambda>w. g (z + w)) has_laurent_expansion F"
+      by (rule has_laurent_expansion_cong') (use assms in auto)
+    with F show "(\<lambda>w. g (z + w)) has_laurent_expansion F"
+      by auto
+  qed (use F in auto)
+qed  
+
+lemma has_zorder_cong_ev:
+  assumes "eventually (\<lambda>w. f w = g w) (at z)" "z = z'" "m = n"
+  shows   "has_zorder f z m \<longleftrightarrow> has_zorder g z' n"
+  using has_zorder_transfer_eventually_at[of f z n g] has_zorder_transfer_eventually_at[of g z n f] assms
+  by (auto simp: eq_commute)
+
+
+lemma has_zorder_imp_is_pole_iff:
+  assumes "has_zorder f z n"
+  shows   "is_pole f z \<longleftrightarrow> n < 0"
+proof -
+  obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    using assms by (auto simp: has_zorder_altdef)
+  thus ?thesis
+    by (simp add: has_laurent_expansion_imp_is_pole_iff)
+qed
+
+lemma has_zorder_imp_isolated_zero_iff:
+  assumes "has_zorder f z n"
+  shows   "isolated_zero f z \<longleftrightarrow> n > 0"
+proof -
+  obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    using assms by (auto simp: has_zorder_altdef)
+  thus ?thesis
+    by (metis isolated_zero_fls_subdegree_iff)
+qed
+
+lemma has_zorder_analytic_imp_isolated_zero_iff:
+  assumes "has_zorder f z n" "f analytic_on {z}"
+  shows   "f z = 0 \<longleftrightarrow> n > 0"
+proof -
+  obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    using assms by (auto simp: has_zorder_altdef)
+  from F and assms have "fls_subdegree F \<ge> 0"
+    using analytic_at_imp_no_pole has_zorder_imp_is_pole_iff by fastforce
+  with \<open>F \<noteq> 0\<close> have "fls_nth F 0 = 0 \<longleftrightarrow> fls_subdegree F > 0"
+    by (metis fls_eq0_below_subdegree nth_fls_subdegree_nonzero not_le order_antisym_conv)
+  also have "fls_nth F 0 = f z"
+    by (rule has_laurent_expansion_analytic_imp_fls_nth_0_eq[OF assms(2)]) fact
+  finally show ?thesis
+    by (auto simp: F(3))
+qed
+
+lemma has_zorder_compose:
+  assumes "has_zorder f (g z) n" "(\<lambda>w. g (z + w) - g z) has_fps_expansion G" "G \<noteq> 0"
+  assumes "k = int (subdegree G) * n"
+  shows   "has_zorder (f \<circ> g) z k"
+proof -
+  obtain F where F: "(\<lambda>w. f (g z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    using assms(1) by (auto simp: has_zorder_altdef)
+  have [simp]: "fps_nth G 0 = 0"
+    using assms(2) has_fps_expansion_imp_0_eq_fps_nth_0 by fastforce
+
+  show ?thesis
+  proof (rule has_laurent_expansion_imp_has_zorder)
+    have "((\<lambda>w. f (g z + w)) \<circ> (\<lambda>w. g (z + w) - g z)) has_laurent_expansion 
+            fls_compose_fps F G" using assms
+      by (intro laurent_expansion_intros F has_laurent_expansion_fps assms fps_expansion_intros) auto
+    thus "(\<lambda>x. (f \<circ> g) (z + x)) has_laurent_expansion fls_compose_fps F G"
+      by (simp add: o_def)
+  next
+    show "fls_compose_fps F G \<noteq> 0"
+      by (subst fls_compose_fps_eq_0_iff) (use assms F in auto)
+  next
+    show "fls_subdegree (fls_compose_fps F G) = k"
+      by (auto simp: \<open>k = _\<close> \<open>fls_subdegree F = _\<close>)
+  qed
+qed
+
+lemma has_zorder_compose_scale:
+  assumes "has_zorder f (c * z) n" "c \<noteq> 0"
+  shows   "has_zorder (\<lambda>z. f (c * z)) z n"
+proof -
+  have "has_zorder (f \<circ> (\<lambda>z. c * z)) z n"
+    using assms(1)
+  proof (rule has_zorder_compose)
+    have "(\<lambda>w. c * w) has_fps_expansion (fps_const c * fps_X)"
+      by (intro fps_expansion_intros)
+    thus "(\<lambda>w. c * (z + w) - c * z) has_fps_expansion (fps_const c * fps_X)"
+      by (auto simp: algebra_simps)
+  qed (auto simp: \<open>c \<noteq> 0\<close>)
+  thus ?thesis
+    by (simp add: o_def)
+qed
+
+lemma has_zorder_compose_shift:
+  assumes "has_zorder f (z + c) n"
+  shows   "has_zorder (\<lambda>z. f (z + c)) z n"
+  using assms by (simp add: has_zorder_shift' add_ac)
+
+
+named_theorems zorder_intros
+
+lemma has_zorder_remove_sings [zorder_intros]:
+  assumes "has_zorder f z n"
+  shows   "has_zorder (remove_sings f) z n"
+  using assms
+proof (rule has_zorder_transfer_eventually_at)
+  from assms have mero: "f meromorphic_on {z}"
+    by (rule has_zorder_imp_meromorphic_at)
+  show "eventually (\<lambda>w. f w = remove_sings f w) (at z)"
+    using eventually_remove_sings_eq[OF mero] by (simp add: eq_commute)
+qed
+
+lemma analytic_imp_has_zorder_0:
+  assumes "f analytic_on {z}" "f z \<noteq> 0"
+  shows   "has_zorder f z 0"
+  unfolding has_zorder_def
+proof safe
+  from assms(1) show "f meromorphic_on {z}"
+    by (simp add: analytic_on_imp_meromorphic_on)
+  show "eventually (\<lambda>w. f w \<noteq> 0) (at z)"
+    using assms analytic_at_neq_imp_eventually_neq by blast
+  show "zorder f z = 0"
+    using assms zorder_eq_0I by blast
+qed
+
+lemma has_zorder_const [zorder_intros]:
+  assumes "c \<noteq> 0"
+  shows   "has_zorder (\<lambda>_. c) z 0"
+  by (rule has_laurent_expansion_imp_has_zorder[of _ _ "fls_const c"]) (use assms in auto)
+
+lemma has_zorder_ident_0 [zorder_intros]: "has_zorder (\<lambda>z. z) 0 1"
+  by (rule has_laurent_expansion_imp_has_zorder[of _ _ fls_X])
+     (auto intro!: laurent_expansion_intros)
+
+lemma has_zorder_linear [zorder_intros]:
+  assumes "n = (if z = w then 1 else 0)"
+  shows   "has_zorder (\<lambda>z. z - w) z n"
+proof (cases "z = w")
+  case False
+  thus ?thesis
+    by (auto intro!: analytic_imp_has_zorder_0 analytic_intros simp: assms)
+next
+  case [simp]: True
+  show ?thesis
+    by (simp add: assms has_zorder_shift' has_zorder_ident_0)
+qed
+
+lemma has_zorder_ident [zorder_intros]: "n = (if w = 0 then 1 else 0) \<Longrightarrow> has_zorder (\<lambda>z. z) w n"
+  using has_zorder_linear[of n w 0] by simp
+
+lemma has_zorder_mult [zorder_intros]:
+  assumes "has_zorder f z m" "has_zorder g z n" "k = m + n"
+  shows   "has_zorder (\<lambda>z. f z * g z) z k"
+proof -
+  obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = m"
+    using assms(1) by (auto simp: has_zorder_altdef)
+  obtain G where G: "(\<lambda>w. g (z + w)) has_laurent_expansion G" "G \<noteq> 0" "fls_subdegree G = n"
+    using assms(2) by (auto simp: has_zorder_altdef)
+  show ?thesis
+  proof (rule has_laurent_expansion_imp_has_zorder)
+    show "(\<lambda>w. f (z + w) * g (z + w)) has_laurent_expansion (F * G)"
+      by (intro laurent_expansion_intros F G)
+  qed (use F G \<open>k = m + n\<close> in simp_all)
+qed
+
+lemma has_zorder_cmult_iff: "c \<noteq> 0 \<Longrightarrow> has_zorder (\<lambda>z. c * f z) z n \<longleftrightarrow> has_zorder f z n"
+  using has_zorder_mult[OF _ has_zorder_const refl, of f z n c]
+        has_zorder_mult[OF _ has_zorder_const refl, of "\<lambda>z. c * f z" z n "inverse c"]
+  by (auto simp: field_simps)
+
+lemma has_zorder_uminus [zorder_intros]:
+  assumes "has_zorder f z n"
+  shows   "has_zorder (\<lambda>z. -f z) z n"
+  using has_zorder_mult[OF assms has_zorder_const[of "-1"] refl] by simp
+
+lemma has_zorder_uminus_iff: "has_zorder (\<lambda>z. -f z) z n \<longleftrightarrow> has_zorder f z n"
+  using has_zorder_cmult_iff[of "-1" f z n] by simp
+
+lemma has_zorder_power_int [zorder_intros]:
+  assumes "has_zorder f z n" "k = m * n"
+  shows   "has_zorder (\<lambda>z. f z powi m) z k"
+proof -
+  obtain F where F: "(\<lambda>w. f (z + w)) has_laurent_expansion F" "F \<noteq> 0" "fls_subdegree F = n"
+    using assms(1) by (auto simp: has_zorder_altdef)
+  show ?thesis
+  proof (rule has_laurent_expansion_imp_has_zorder)
+    show "(\<lambda>w. f (z + w) powi m) has_laurent_expansion (F powi m)"
+      by (intro laurent_expansion_intros F)
+  qed (use F \<open>k = m * n\<close> in simp_all)
+qed
+
+lemma has_zorder_power [zorder_intros]:
+  assumes "has_zorder f z n" "k = int m * n"
+  shows   "has_zorder (\<lambda>z. f z ^ m) z k"
+  using has_zorder_power_int[OF assms] by simp
+
+lemma has_zorder_inverse [zorder_intros]:
+  assumes "has_zorder f z n" "k = -n"
+  shows   "has_zorder (\<lambda>z. inverse (f z)) z k"
+  using has_zorder_power_int[OF assms(1), of "-n" "-1"] assms(2) by simp
+
+lemma has_zorder_divide [zorder_intros]:
+  assumes "has_zorder f z m" "has_zorder g z n" "k = m - n"
+  shows   "has_zorder (\<lambda>z. f z / g z) z k"
+  using has_zorder_mult[OF assms(1) has_zorder_inverse[OF assms(2) refl] refl]
+  by (simp add: field_simps assms(3))
+
+lemma has_zorder_prod [zorder_intros]:
+  assumes "\<And>x. x \<in> A \<Longrightarrow> has_zorder (f x) z (g x)"
+  shows   "has_zorder (\<lambda>z. \<Prod>x\<in>A. f x z) z (\<Sum>x\<in>A. g x)"
+  using assms
+  by (induction A rule: infinite_finite_induct) (auto intro!: zorder_intros)
+
+lemma has_zorder_prod_list [zorder_intros]:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> has_zorder (f x) z (g x)"
+  shows   "has_zorder (\<lambda>z. \<Prod>x\<leftarrow>xs. f x z) z (\<Sum>x\<leftarrow>xs. g x)"
+  using assms by (induction xs) (auto intro!: zorder_intros)
+
+lemma has_zorder_prod_mset [zorder_intros]:
+  assumes "\<And>x. x \<in># A \<Longrightarrow> has_zorder (f x) z (g x)"
+  shows   "has_zorder (\<lambda>z. \<Prod>x\<in>#A. f x z) z (\<Sum>x\<in>#A. g x)"
+  using assms by (induction A) (auto intro!: zorder_intros)
+
+
+lemma has_zorder_sin_0: "has_zorder sin 0 1"
+proof (rule has_laurent_expansion_imp_has_zorder[of _ _ "fps_to_fls (fps_sin 1)"])
+  have "subdegree (fps_sin 1 :: complex fps) = 1"
+    by (rule subdegreeI) auto
+  thus "fls_subdegree (fps_to_fls (fps_sin 1 :: complex fps)) = 1"
+    by (simp add: fls_subdegree_fls_to_fps)
+next
+  have "fps_nth (fps_sin 1 :: complex fps) 1 \<noteq> fps_nth (0 :: complex fps) 1"
+    by auto
+  hence "(fps_sin 1 :: complex fps) \<noteq> 0"
+    by metis
+  thus "fps_to_fls (fps_sin 1 :: complex fps) \<noteq> 0"
+    by simp    
+qed (auto intro!: has_laurent_expansion_fps fps_expansion_intros)
+
+lemma has_zorder_sin_1: "has_zorder sin (of_int n * of_real pi) 1"
+proof -
+  have [simp]: "sin (complex_of_int n * complex_of_real pi) = 0"
+    by (induction n) (auto simp: algebra_simps sin_diff)
+  have [simp]: "cos (complex_of_int n * complex_of_real pi) = (-1) powi n"
+    by (induction n) (auto simp: algebra_simps cos_diff power_int_diff field_simps)
+  have "has_zorder (\<lambda>w. (-1) powi n * sin w) 0 1"
+    by (auto intro!: zorder_intros has_zorder_sin_0)
+  thus ?thesis
+    by (simp add: has_zorder_shift' sin_add)
+qed
+
+lemma has_zorder_cos_1: "has_zorder cos (of_real (pi/2) + of_int n * of_real pi) 1"
+proof -
+  have "has_zorder (\<lambda>w. -sin w) (of_int n * of_real pi) 1"
+    unfolding has_zorder_uminus_iff by (rule has_zorder_sin_1)
+  also have "?this \<longleftrightarrow> has_zorder cos (of_real (pi/2) + of_int n * of_real pi) 1"
+    by (simp add: has_zorder_shift' cos_sin_eq flip: sin_minus)
+  finally show ?thesis .
+qed 
+
+lemma has_zorder_Gamma [zorder_intros]:
+  assumes "n = (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then -1 else 0)"
+  shows   "has_zorder Gamma z n"
+proof (cases "z \<in> \<int>\<^sub>\<le>\<^sub>0")
+  case False
+  thus ?thesis
+    by (auto simp: assms Gamma_nonzero intro!: analytic_imp_has_zorder_0 analytic_intros)
+next
+  case True
+  then obtain n where z_eq: "z = -of_nat n"
+    by (elim nonpos_Ints_cases')
+  have [simp]: "1 - z \<notin> \<int>\<^sub>\<le>\<^sub>0"
+    by (auto elim!: nonpos_Ints_cases simp: z_eq complex_eq_iff)
+
+  have 1: "complex_of_real pi \<noteq> 0"
+    by auto
+  have 2: "has_zorder (\<lambda>z. rGamma (1 - z)) z 0"
+    by (rule analytic_imp_has_zorder_0)
+       (use True in \<open>auto intro!: analytic_intros rGamma_nonzero simp: nonpos_Ints_altdef\<close>)
+  have 3: "has_zorder (\<lambda>z. sin (complex_of_real pi * z)) z 1"
+    by (rule has_zorder_compose_scale)
+       (use has_zorder_sin_1[of "-n"] in \<open>simp_all add: z_eq mult_ac\<close>)
+  have "has_zorder (\<lambda>z. of_real pi * rGamma (1 - z) / sin (of_real pi * z)) z (-1)"
+    by (rule zorder_intros 1 2 3 refl)+ auto
+  also have "?this \<longleftrightarrow> has_zorder Gamma z (-1)"
+  proof (rule has_zorder_cong_ev)
+    have "\<int> sparse_in (UNIV :: complex set)"
+      by (rule sparse_subset_Ints) auto
+    hence "eventually (\<lambda>w. w \<notin> \<int>) (at z)"
+      by (auto simp: sparse_in_eventually_iff)
+    thus "\<forall>\<^sub>F w in at z. of_real pi * rGamma (1 - w) / sin (of_real pi * w) = Gamma w"
+    proof eventually_elim
+      case (elim w)
+      have "1 - w \<notin> \<int>\<^sub>\<le>\<^sub>0"
+        using elim by auto
+      hence "Gamma (1 - w) \<noteq> 0"
+        by (auto simp: Gamma_nonzero)
+      moreover have "sin (w * complex_of_real pi) \<noteq> 0"
+        using elim sin_eq_0 by auto
+      ultimately show ?case
+        using Gamma_reflection_complex[of w] by (auto simp: field_simps rGamma_inverse_Gamma)
+    qed
+  qed auto
+  finally show ?thesis
+    using True by (auto simp: assms)
+qed
+
+lemma has_zorder_rGamma [zorder_intros]:
+  assumes "n = (if z \<in> \<int>\<^sub>\<le>\<^sub>0 then 1 else 0)"
+  shows   "has_zorder rGamma z n"
+  unfolding rGamma_inverse_Gamma by (rule zorder_intros refl)+ (use assms in auto)
 
 end

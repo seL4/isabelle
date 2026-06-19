@@ -662,6 +662,13 @@ next
     by auto
 qed
 
+lemma limpt_of_limpts: "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S"
+  for x :: "'a::t1_space"
+  by (metis islimpt_def islimpt_eq_acc_point mem_Collect_eq)
+
+lemma closed_limpts:  "closed {x::'a::t1_space. x islimpt S}"
+  using closed_limpt limpt_of_limpts by blast
+
 lemma acc_point_range_imp_convergent_subsequence:
   fixes l :: "'a :: first_countable_topology"
   assumes l: "\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> range f)"
@@ -1079,6 +1086,10 @@ proof
   with * show "x \<in> closure (S \<inter> T)"
     unfolding closure_def by blast
 qed
+
+lemma limpt_of_closure: "x islimpt closure S \<longleftrightarrow> x islimpt S"
+  for x :: "'a::t1_space"
+  by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
 
 lemma closure_complement: "closure (- S) = - interior S"
   by (simp add: closure_interior)

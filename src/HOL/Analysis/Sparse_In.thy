@@ -22,7 +22,7 @@ lemma finite_imp_sparse:
   shows "finite pts \<Longrightarrow> pts sparse_in S"
   by (meson UNIV_I islimpt_finite open_UNIV sparse_in_def)
 
-lemma sparse_in_singleton[simp]: "{x} sparse_in (A::'a:: t1_space set)"
+lemma singleton_sparse_in [simp]: "{x} sparse_in (A::'a:: t1_space set)"
   by (rule finite_imp_sparse) auto
 
 lemma sparse_in_ball_def:
@@ -48,6 +48,38 @@ lemma sparse_in_open:
   assumes "open A"
   shows "pts sparse_in A \<longleftrightarrow> (\<forall>y\<in>A. \<not>y islimpt pts)"
   using assms unfolding sparse_in_def by auto
+
+lemma sparse_in_singleton_iff: "A sparse_in {x} \<longleftrightarrow> \<not>x islimpt closure A"
+proof
+  assume "\<not>x islimpt closure A"
+  then obtain B where B: "x \<in> B" "open B" "\<forall>y\<in>closure A. y \<in> B \<longrightarrow> y = x"
+    by (auto simp: islimpt_def)
+  note B(3)
+  also have "closure A = A \<union> {y. y islimpt A}"
+    by (auto simp: closure_def)
+  finally have "(A \<union> {y. y islimpt A}) \<inter> B \<subseteq> {x}"
+    by blast
+  hence "(\<forall>y\<in>B. y islimpt A \<longrightarrow> y = x)"
+    by auto
+  moreover have "\<not>x islimpt A"
+    using \<open>\<not>x islimpt closure A\<close> by (simp add: closure_def islimpt_Un)
+  ultimately have "(\<forall>y\<in>B. \<not>y islimpt A)"
+    by blast
+  with B show "A sparse_in {x}"
+    unfolding sparse_in_def by blast
+next
+  assume "A sparse_in {x}"
+  then obtain B where B: "x \<in> B" "open B" "\<forall>y\<in>B. \<not>y islimpt A"
+    by (auto simp: sparse_in_def)
+  have "\<not>x islimpt A"
+    using B by auto
+  then obtain C where C: "x \<in> C" "open C" "A \<inter> (C - {x}) = {}"
+    unfolding islimpt_def by blast
+  hence "\<exists>T. x \<in> T \<and> open T \<and> (\<forall>y\<in>closure A. y \<in> T \<longrightarrow> y = x)"
+    by (intro exI[of _ "B \<inter> C"]) (use B C in \<open>auto simp: closure_def\<close>)
+  thus "\<not>x islimpt closure A"
+    unfolding islimpt_def by blast
+qed
 
 lemma sparse_in_not_in:
   assumes "pts sparse_in A" "x\<in>A"
@@ -79,10 +111,20 @@ lemma sparse_in_Union_finite:
   shows   "\<Union>A sparse_in B"
   using assms(2,1) by (induction rule: finite_induct) (auto intro!: sparse_in_union')
 
+lemma sparse_in_Union_finite_iff:
+  assumes "finite A"
+  shows   "\<Union>A sparse_in B \<longleftrightarrow> (\<forall>A'\<in>A. A' sparse_in B)"
+  using assms sparse_in_Union_finite sparse_in_subset2 by (metis Union_upper)
+
 lemma sparse_in_UN_finite:
   assumes "(\<And>x. x \<in> A \<Longrightarrow> f x sparse_in B)" "finite A"
   shows   "(\<Union>x\<in>A. f x) sparse_in B"
   by (rule sparse_in_Union_finite) (use assms in auto)
+
+lemma sparse_in_UN_finite_iff:
+  assumes "finite A"
+  shows   "(\<Union>x\<in>A. f  x) sparse_in B \<longleftrightarrow> (\<forall>x\<in>A. f x sparse_in B)"
+  using assms sparse_in_UN_finite sparse_in_subset2 by (metis SUP_upper)
 
 lemma sparse_in_compact_finite:
   assumes "pts sparse_in A" "compact A"
@@ -283,6 +325,16 @@ qed
 
 lemma cosparse_empty [simp]: "cosparse {} = bot"
   by (rule filter_eqI) (auto simp: eventually_cosparse sparse_in_def)
+
+lemma cosparse_singleton [simp]: "cosparse {x::'a::t1_space} = at x"
+proof (rule filter_eqI)
+  fix P :: "'a \<Rightarrow> bool"
+  have "eventually P (cosparse {x}) \<longleftrightarrow> (\<not> x islimpt {x. \<not> P x})"
+    by (simp add: eventually_cosparse sparse_in_singleton_iff limpt_of_closure)
+  also have "\<dots> \<longleftrightarrow> eventually P (at x)"
+    by (simp add: islimpt_iff_eventually)
+  finally show "eventually P (cosparse {x}) \<longleftrightarrow> \<dots>" .
+qed
 
 lemma cosparse_eq_bot_iff' [simp]: "cosparse (A :: 'a :: perfect_space set) = bot \<longleftrightarrow> A = {}"
   by (auto simp: cosparse_eq_bot_iff not_open_singleton)

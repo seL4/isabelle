@@ -348,17 +348,6 @@ lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>\<ep
   using approachable_lt_le2 [where f="\<lambda>y. dist y x" and P="\<lambda>y. y \<notin> S \<or> y = x" and Q="\<lambda>x. True"]
   by auto
 
-lemma limpt_of_limpts: "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S"
-  for x :: "'a::metric_space"
-  by (metis islimpt_def islimpt_eq_acc_point mem_Collect_eq)
-
-lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt S}"
-  using closed_limpt limpt_of_limpts by blast
-
-lemma limpt_of_closure: "x islimpt closure S \<longleftrightarrow> x islimpt S"
-  for x :: "'a::metric_space"
-  by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
-
 lemma islimpt_eq_infinite_ball: "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. infinite(S \<inter> ball x \<epsilon>))"
   unfolding islimpt_eq_acc_point
   by (metis open_ball Int_commute Int_mono finite_subset open_contains_ball_eq subset_eq)
