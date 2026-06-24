@@ -6,10 +6,8 @@ Isabelle symbols panel as web view.
 
 "use strict";
 
-import {
-  WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
-  CancellationToken, window, Position, Selection, Webview
-} from "vscode"
+import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
+  CancellationToken, window, Position, Selection, Webview } from "vscode"
 import { text_colors } from "./decorations"
 import * as vscode_lib from "./vscode_lib"
 import * as path from "path"
@@ -29,52 +27,35 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     private readonly _language_client: LanguageClient
   ) { }
 
-  request( language_client: LanguageClient) {
-    if (language_client) {
-      this._language_client.sendNotification(lsp.abbrevs_request_type);
-    }
+  request(language_client: LanguageClient) {
+    if (language_client) { this._language_client.sendNotification(lsp.abbrevs_request_type); }
   }
 
   setup(language_client: LanguageClient) {
     language_client.onNotification(lsp.abbrevs_response_type, params => {
       this._grouped_symbols = this._group_symbols(symbol.symbols.entries);
       this._abbrevs = params.abbrevs ?? [];
-      if (this._view) {
-        this._update_webview();
-      }
+      if (this._view) { this._update_webview(); }
     });
   }
 
   public resolveWebviewView(
     view: WebviewView,
     context: WebviewViewResolveContext,
-    _token: CancellationToken) {
+    _token: CancellationToken
+  ) {
     this._view = view
 
-    view.webview.options = {
-      enableScripts: true,
-
-      localResourceRoots: [
-        this._extension_uri
-      ]
-    }
+    view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri] }
 
     view.webview.html = this._get_html()
 
-    if (Object.keys(this._grouped_symbols).length > 0) {
-      this._update_webview();
-    }
+    if (Object.keys(this._grouped_symbols).length > 0) { this._update_webview(); }
 
     this._view.webview.onDidReceiveMessage(message => {
-      if (message.command === "insert_symbol") {
-        this._insert_symbol(message.symbol);
-      }
-      else if (message.command === "reset_control") {
-        this._reset_control();
-      }
-      else if (message.command === "apply_control") {
-        this._apply_control(message.action);
-      }
+      if (message.command === "insert_symbol") { this._insert_symbol(message.symbol); }
+      else if (message.command === "reset_control") { this._reset_control(); }
+      else if (message.command === "apply_control") { this._apply_control(message.action); }
     });
   }
 
@@ -95,7 +76,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     const control_symbol = control_symbols[action];
     const all_control_symbols = Object.values(control_symbols);
 
-
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
         let new_text = selected_text
@@ -114,9 +94,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
         edit_builder.insert(selection.active, control_symbol);
       }
     }).then(success => {
-      if (!success) {
-        window.showErrorMessage("Failed to apply control effect.");
-      }
+      if (!success) { window.showErrorMessage("Failed to apply control effect."); }
     });
   }
 
@@ -129,9 +107,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   private _reset_control(): void {
     const editor = window.activeTextEditor;
-    if (!editor) {
-      return;
-    }
+    if (!editor) { return; }
 
     const document = editor.document;
     const selection = editor.selection;
@@ -154,8 +130,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
         edit_builder.replace(selection, new_text);
       }
     }).then(success => {
-      if (!success) {
-      }
+      if (!success) { }
     });
   }
 
@@ -172,9 +147,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     for (const symbol of symbols) {
       if (symbol.groups && Array.isArray(symbol.groups)) {
         for (const group of symbol.groups) {
-          if (!grouped_symbols[group]) {
-            grouped_symbols[group] = [];
-          }
+          if (!grouped_symbols[group]) { grouped_symbols[group] = []; }
           grouped_symbols[group].push(symbol);
         }
       }
@@ -191,10 +164,8 @@ function open_webview_link(link: string) {
   const uri = Uri.parse(link)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
-  window.showTextDocument(uri.with({ fragment: "" }), {
-    preserveFocus: false,
-    selection: new Selection(pos, pos)
-  })
+  window.showTextDocument(uri.with({ fragment: "" }),
+    { preserveFocus: false, selection: new Selection(pos, pos) })
 }
 
 function get_webview_html(webview: Webview, extension_path: string): string {

@@ -117,9 +117,7 @@ export function setup(context: ExtensionContext) {
 
   types.forEach(typ =>
     {
-      for (const editor of window.visibleTextEditors) {
-        editor.setDecorations(typ, [])
-      }
+      for (const editor of window.visibleTextEditors) { editor.setDecorations(typ, []) }
       const i = context.subscriptions.indexOf(typ)
       if (i >= 0) context.subscriptions.splice(i, 1)
       typ.dispose()
@@ -149,9 +147,7 @@ export function setup(context: ExtensionContext) {
 
   /* update editors */
 
-  for (const editor of window.visibleTextEditors) {
-    update_editor(editor)
-  }
+  for (const editor of window.visibleTextEditors) { update_editor(editor) }
 }
 
 

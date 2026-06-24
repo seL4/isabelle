@@ -13,8 +13,7 @@ import * as lsp from './lsp'
 
 let language_client: LanguageClient
 
-class Panel
-{
+class Panel {
   private webview_panel: WebviewPanel
 
   public set_content(title: string, body: string) {
@@ -28,10 +27,7 @@ class Panel
 
   constructor(column: ViewColumn) {
     this.webview_panel =
-      window.createWebviewPanel("isabelle-preview", "Preview", column,
-        {
-          enableScripts: true
-        })
+      window.createWebviewPanel("isabelle-preview", "Preview", column, { enableScripts: true })
     this.webview_panel.onDidDispose(() => { panel = null })
   }
 }

@@ -3,7 +3,7 @@
 Misc library functions for VSCode.
 */
 
-import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
+import { TextEditor, Uri, ViewColumn, window, workspace } from 'vscode'
 
 
 /* files */
@@ -15,7 +15,7 @@ export function is_file(uri: Uri): boolean {
 }
 
 export function find_file_editor(uri: Uri): TextEditor | undefined {
-  function check(editor: TextEditor): boolean { 
+  function check(editor: TextEditor): boolean {
     return editor && is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath
   }
 

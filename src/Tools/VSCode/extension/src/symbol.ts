@@ -59,8 +59,7 @@ export interface Entry {
   code?: number;
 }
 
-export class Symbols
-{
+export class Symbols {
   entries: Entry[]
   private entries_map: Map<Symbol, Entry>
 
@@ -106,15 +105,10 @@ export interface Control {
   esup: Entry
 }
 
-export const control: Control = {
-  sub: symbols.get("\\<^sub>"),
-  sup: symbols.get("\\<^sup>"),
-  bold: symbols.get("\\<^bold>"),
-  emph: symbols.get("\\<^emph>"),
-  bsub: symbols.get("\\<^bsub>"),
-  esub: symbols.get("\\<^esub>"),
-  bsup: symbols.get("\\<^bsup>"),
-  esup: symbols.get("\\<^esup>")
+export const control: Control =
+  { sub: symbols.get("\\<^sub>"), sup: symbols.get("\\<^sup>"), bold: symbols.get("\\<^bold>"),
+    emph: symbols.get("\\<^emph>"), bsub: symbols.get("\\<^bsub>"), esub: symbols.get("\\<^esub>"),
+    bsup: symbols.get("\\<^bsup>"), esup: symbols.get("\\<^esup>")
 }
 
 export const control_render: Entry[] =

@@ -7,9 +7,9 @@ State panel via HTML webview inside VSCode.
 
 import * as vscode_lib from './vscode_lib'
 import * as lsp from './lsp'
-import {LanguageClient} from 'vscode-languageclient/node'
-import {ExtensionContext, Uri, ViewColumn, WebviewPanel, window} from 'vscode'
-import {get_webview_html, open_webview_link} from './output_view'
+import { LanguageClient } from 'vscode-languageclient/node'
+import { ExtensionContext, Uri, ViewColumn, WebviewPanel, window } from 'vscode'
+import { get_webview_html, open_webview_link } from './output_view'
 
 
 let language_client: LanguageClient
@@ -18,8 +18,7 @@ function panel_column(): ViewColumn {
   return vscode_lib.adjacent_editor_column(window.activeTextEditor, true)
 }
 
-class Panel
-{
+class Panel {
   private state_id: number
   private webview_panel: WebviewPanel
   private _extension_path: string
@@ -38,8 +37,8 @@ class Panel
 
   constructor(extension_path: string) {
     this._extension_path = extension_path
-    this.webview_panel = window.createWebviewPanel("isabelle-state", "State",
-      panel_column(), { enableScripts: true })
+    this.webview_panel =
+      window.createWebviewPanel("isabelle-state", "State", panel_column(), { enableScripts: true })
     this.webview_panel.onDidDispose(exit_panel)
     this.webview_panel.webview.onDidReceiveMessage(message =>
       {
@@ -102,9 +101,7 @@ export function setup(context: ExtensionContext, client: LanguageClient) {
   language_client = client
   language_client.onNotification(lsp.state_output_type, params =>
     {
-      if (!panel) {
-        panel = new Panel(context.extensionPath)
-      }
+      if (!panel) { panel = new Panel(context.extensionPath) }
       panel.set_content(params)
     })
 }

@@ -16,9 +16,7 @@ import * as library from './library'
 /* Windows/Cygwin */
 
 export function cygwin_root(): string {
-  if (platform.is_windows()) {
-    return library.getenv_strict("CYGWIN_ROOT")
-  }
+  if (platform.is_windows()) { return library.getenv_strict("CYGWIN_ROOT") }
   else { return "" }
 }
 
@@ -66,12 +64,9 @@ export function platform_path(standard_path: string): string {
 
   function clear(): void { _result = [] }
   function add(s: string): void { _result.push(s) }
-  function separator(): void
-  {
+  function separator(): void {
     const n = _result.length
-    if (n > 0 && _result[n - 1] !== path.sep) {
-      add(path.sep)
-    }
+    if (n > 0 && _result[n - 1] !== path.sep) { add(path.sep) }
   }
 
 

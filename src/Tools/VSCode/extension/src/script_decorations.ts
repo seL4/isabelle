@@ -9,6 +9,7 @@ import { DecorationRangeBehavior, ExtensionContext, Range,
   TextDocument, TextEditor, window, workspace } from 'vscode'
 import * as symbol from './symbol'
 
+
 const arrows = {
   sub: symbol.control.sub.decoded,
   sup: symbol.control.sup.decoded,
@@ -33,17 +34,11 @@ function find_closing(close: string, text: string, open_index: number): number |
 
     if (c === undefined) return
 
-    if (c === open) {
-      counter++
-    }
-    else if (c === close) {
-      counter--
-    }
+    if (c === open) { counter++ }
+    else if (c === close) { counter-- }
   }
   return close_index
 }
-
-
 
 function extract_ranges(doc: TextDocument) {
   const text = doc.getText()
@@ -76,8 +71,7 @@ function extract_ranges(doc: TextDocument) {
           const pos_end = doc.positionAt(close_index)
           hide_ranges.push(
             new Range(doc.positionAt(i), pos_start),
-            new Range(pos_end, doc.positionAt(close_index + 1))
-          )
+            new Range(pos_end, doc.positionAt(close_index + 1)))
           script_ranges.push(new Range(pos_start, pos_end))
           i = close_index
         }
@@ -87,7 +81,8 @@ function extract_ranges(doc: TextDocument) {
     }
   }
 
-  return { hide_ranges: hide_ranges, superscript_ranges: sup_ranges, subscript_ranges: sub_ranges, bold_ranges: bold_ranges }
+  return { hide_ranges: hide_ranges, superscript_ranges: sup_ranges,
+    subscript_ranges: sub_ranges, bold_ranges: bold_ranges }
 }
 
 export function register_script_decorations(context: ExtensionContext) {
@@ -110,7 +105,9 @@ export function register_script_decorations(context: ExtensionContext) {
 
   const set_editor_decorations = (editor: TextEditor, doc: TextDocument) =>
     {
-      const { hide_ranges: hideRanges, superscript_ranges: superscriptRanges, subscript_ranges: subscriptRanges, bold_ranges: boldRanges } = extract_ranges(doc)
+      const 
+        { hide_ranges: hideRanges, superscript_ranges: superscriptRanges,
+          subscript_ranges: subscriptRanges, bold_ranges: boldRanges } = extract_ranges(doc)
 
       editor.setDecorations(hide, hideRanges)
       editor.setDecorations(superscript, superscriptRanges)
@@ -123,9 +120,7 @@ export function register_script_decorations(context: ExtensionContext) {
 
     window.onDidChangeActiveTextEditor(editor =>
       {
-        if (!editor) {
-          return
-        }
+        if (!editor) { return }
 
         const doc = editor.document
         set_editor_decorations(editor, doc)

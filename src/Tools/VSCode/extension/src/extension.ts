@@ -30,8 +30,7 @@ let last_caret_update: lsp.Caret_Update = {}
 
 /* command-line arguments from "isabelle vscode" */
 
-interface Args
-{
+interface Args {
   options?: string[],
   logic?: string,
   logic_ancestor?: string,
@@ -56,9 +55,7 @@ function isabelle_options(args: Args): string[] {
   }
   function add_values(opt: string, slot: string) {
     const xs: any[] = args[slot]
-    if (xs) {
-      for (const x of xs) { add(opt); add(print_value(x)) }
-    }
+    if (xs) { for (const x of xs) { add(opt); add(print_value(x)) } }
   }
 
   add_value("-A", "logic_ancestor")
@@ -74,8 +71,7 @@ function isabelle_options(args: Args): string[] {
   Object.keys(config).forEach(key =>
     {
       const value = config[key]
-      if (typeof value == "string" && value !== "")
-      {
+      if (typeof value == "string" && value !== "") {
         add("-o"); add(`${key}=${value}`)
       }
     })
@@ -118,9 +114,7 @@ export async function activate(context: ExtensionContext) {
     window.withProgress({location: ProgressLocation.Notification, cancellable: false},
       async (progress) =>
         {
-          progress.report({
-            message: "Waiting for Isabelle language server..."
-          })
+          progress.report({ message: "Waiting for Isabelle language server..." })
           await language_client.onReady()
         })
 
@@ -163,19 +157,18 @@ export async function activate(context: ExtensionContext) {
     }
 
     function goto_file(caret_update: lsp.Caret_Update) {
-      function move_cursor(editor: TextEditor)
-      {
+      function move_cursor(editor: TextEditor) {
         const pos = new Position(caret_update.line || 0, caret_update.character || 0)
         editor.selections = [new Selection(pos, pos)]
       }
 
       if (caret_update.uri) {
         workspace.openTextDocument(Uri.parse(caret_update.uri)).then(document =>
-        {
-          const editor = vscode_lib.find_file_editor(document.uri)
-          const column = editor ? editor.viewColumn : ViewColumn.One
-          window.showTextDocument(document, column, !caret_update.focus).then(move_cursor)
-        })
+          {
+            const editor = vscode_lib.find_file_editor(document.uri)
+            const column = editor ? editor.viewColumn : ViewColumn.One
+            window.showTextDocument(document, column, !caret_update.focus).then(move_cursor)
+          })
       }
     }
 
@@ -185,7 +178,7 @@ export async function activate(context: ExtensionContext) {
           window.onDidChangeActiveTextEditor(update_caret),
           window.onDidChangeTextEditorSelection(update_caret))
         update_caret()
-  
+
         language_client.onNotification(lsp.caret_update_type, goto_file)
       })
 
@@ -281,9 +274,7 @@ export async function activate(context: ExtensionContext) {
 
     context.subscriptions.push(language_client.start())
   }
-  catch (exn) {
-    window.showErrorMessage(exn)
-  }
+  catch (exn) { window.showErrorMessage(exn) }
 }
 
 

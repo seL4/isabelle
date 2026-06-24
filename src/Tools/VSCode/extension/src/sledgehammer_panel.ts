@@ -29,10 +29,7 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     _token: CancellationToken
   ): void {
     this._view = view;
-    this._view.webview.options = {
-      enableScripts: true,
-      localResourceRoots: [this._extension_uri]
-    };
+    this._view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri] };
     this._view.webview.html = this._get_html();
     this._setup_message_handler();
   }
@@ -49,19 +46,13 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
         const editor = window.activeTextEditor;
         const pos = editor?.selection.active;
         if (editor && pos) {
-          this._language_client.sendNotification(lsp.caret_update_type, {
-            uri: editor.document.uri.toString(),
-            line: pos.line,
-            character: pos.character
-          });
+          this._language_client.sendNotification(lsp.caret_update_type,
+            { uri: editor.document.uri.toString(), line: pos.line, character: pos.character });
         }
         switch (message.command) {
           case "apply":
-            this._language_client.sendNotification(lsp.sledgehammer_request_type, {
-              provers: message.provers,
-              isar: message.isar,
-              try0: message.try0
-            });
+            this._language_client.sendNotification(lsp.sledgehammer_request_type,
+              { provers: message.provers, isar: message.isar, try0: message.try0 });
             break;
           case "cancel":
             this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
@@ -79,15 +70,11 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
   }
 
   public update_status(message: string): void {
-    if (this._view) {
-      this._view.webview.postMessage({ command: "status", message });
-    }
+    if (this._view) { this._view.webview.postMessage({ command: "status", message }); }
   }
 
   public update_provers(provers: string): void {
-    if (this._view) {
-      this._view.webview.postMessage({ command: "provers", provers });
-    }
+    if (this._view) { this._view.webview.postMessage({ command: "provers", provers }); }
   }
 
   public insert(arg: { uri: string; line: number; character: number; text: string }): void {

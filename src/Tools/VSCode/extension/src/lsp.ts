@@ -19,8 +19,7 @@ export interface Decoration_Options {
   hover_message?: MarkdownString | MarkdownString[]
 }
 
-export interface Decoration
-{
+export interface Decoration {
   "type": string
   content: Decoration_Options[]
 }
@@ -34,8 +33,7 @@ export const decoration_type =
   new NotificationType<Document_Decorations>("PIDE/decoration")
 
 
-export interface Decoration_Request
-{
+export interface Decoration_Request {
   uri: string
 }
 
@@ -45,8 +43,7 @@ export const decoration_request_type =
 
 /* caret handling */
 
-export interface Caret_Update
-{
+export interface Caret_Update {
   uri?: string
   line?: number
   character?: number
@@ -59,16 +56,14 @@ export const caret_update_type =
 
 /* dynamic output */
 
-export interface Dynamic_Output
-{
+export interface Dynamic_Output {
   content: string
 }
 
 export const dynamic_output_type =
   new NotificationType<Dynamic_Output>("PIDE/dynamic_output")
 
-export interface Output_Set_Margin
-{
+export interface Output_Set_Margin {
   margin: number
 }
 
@@ -78,8 +73,7 @@ export const output_set_margin_type =
 
 /* state */
 
-export interface State_Output
-{
+export interface State_Output {
   id: number
   content: string
   auto_update: boolean
@@ -88,8 +82,7 @@ export interface State_Output
 export const state_output_type =
   new NotificationType<State_Output>("PIDE/state_output")
 
-export interface State_Set_Margin
-{
+export interface State_Set_Margin {
   id: number
   margin: number
 }
@@ -97,13 +90,11 @@ export interface State_Set_Margin
 export const state_set_margin_type =
   new NotificationType<State_Set_Margin>("PIDE/state_set_margin")
 
-export interface State_Id
-{
+export interface State_Id {
   id: number
 }
 
-export interface Auto_Update
-{
+export interface Auto_Update {
   id: number
   enabled: boolean
 }
@@ -117,14 +108,12 @@ export const state_auto_update_type = new NotificationType<Auto_Update>("PIDE/st
 
 /* preview */
 
-export interface Preview_Request
-{
+export interface Preview_Request {
   uri: string
   column: number
 }
 
-export interface Preview_Response
-{
+export interface Preview_Response {
   uri: string
   column: number
   label: string

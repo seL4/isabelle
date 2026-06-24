@@ -14,8 +14,7 @@ import * as lsp from './lsp'
 import { LanguageClient } from 'vscode-languageclient/node';
 
 
-class Output_View_Provider implements WebviewViewProvider
-{
+class Output_View_Provider implements WebviewViewProvider {
 
   public static readonly view_type = 'isabelle-output'
 
@@ -34,14 +33,8 @@ class Output_View_Provider implements WebviewViewProvider
   ) {
     this._view = view
 
-    view.webview.options = {
-      // Allow scripts in the webview
-      enableScripts: true,
-
-      localResourceRoots: [
-        this._extension_uri
-      ]
-    }
+    // Allow scripts in the webview
+    view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri]}
 
     view.webview.html = this._get_html(this.content)
     view.webview.onDidReceiveMessage(async message =>
@@ -76,10 +69,9 @@ function open_webview_link(link: string) {
   const uri = Uri.parse(link)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
-  window.showTextDocument(uri.with({ fragment: '' }), {
-    preserveFocus: false,
-    selection: new Selection(pos, pos)
-  })
+  window.showTextDocument(
+    uri.with({ fragment: '' }),
+    { preserveFocus: false, selection: new Selection(pos, pos) })
 }
 
 function get_webview_html(content: string, webview: Webview, extension_path: string): string {
