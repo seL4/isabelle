@@ -5,7 +5,7 @@ Control panel for Sledgehammer.
 */
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken,
-  window, Webview, Selection, Range, TextDocument, TextDocumentContentChangeEvent } from "vscode";
+  window, Webview } from "vscode";
 import * as path from "path";
 import { text_colors } from "./decorations";
 import * as vscode_lib from "./vscode_lib"

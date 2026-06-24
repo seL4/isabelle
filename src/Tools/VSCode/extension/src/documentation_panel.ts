@@ -6,7 +6,7 @@ Isabelle documentation panel as web view.
 'use strict';
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
-  CancellationToken, window, workspace, Webview, env } from 'vscode'
+  CancellationToken, window, workspace, Webview } from 'vscode'
 import { text_colors } from './decorations'
 import * as vscode_lib from './vscode_lib'
 import * as path from 'path'

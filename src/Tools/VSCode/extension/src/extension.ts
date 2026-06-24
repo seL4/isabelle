@@ -16,7 +16,7 @@ import * as preview_panel from './preview_panel'
 import * as lsp from './lsp'
 import * as state_panel from './state_panel'
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
-  commands, ProgressLocation, Range } from 'vscode'
+  commands, ProgressLocation } from 'vscode'
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node'
 import { Output_View_Provider } from './output_view'
 import { Symbols_Panel_Provider } from './symbol_panel'
