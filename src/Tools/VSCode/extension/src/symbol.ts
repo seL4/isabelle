@@ -50,13 +50,13 @@ export function is_ascii_identifier(s: Symbol): boolean {
 /* defined symbols */
 
 export interface Entry {
-  symbol: string;
-  name: string;
-  decoded: string;
-  argument: string;
-  abbrevs: string[];
-  groups: string[];
-  code?: number;
+  symbol: string,
+  name: string,
+  decoded: string,
+  argument: string,
+  abbrevs: string[],
+  groups: string[],
+  code?: number
 }
 
 export class Symbols {

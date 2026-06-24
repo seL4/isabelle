@@ -130,14 +130,14 @@ export const preview_response_type =
 /* abbrevs */
 
 export interface Abbrevs_Response {
-  abbrevs: [string, string][];
+  abbrevs: [string, string][]
 }
 
 export const abbrevs_request_type =
   new NotificationType<void>("PIDE/abbrevs_request")
 
 export const abbrevs_response_type =
-  new NotificationType<Abbrevs_Response>("PIDE/abbrevs_response");
+  new NotificationType<Abbrevs_Response>("PIDE/abbrevs_response")
 
 
 /* documentation */
@@ -146,92 +146,92 @@ export const documentation_request_type =
   new NotificationType<void>("PIDE/documentation_request")
 
 export interface Doc_Entry {
-  print_html: string;
-  platform_path: string;
+  print_html: string,
+  platform_path: string
 }
 
 export interface Doc_Section {
-  title: string;
-  important: boolean;
-  entries: Array<Doc_Entry>;
+  title: string,
+  important: boolean,
+  entries: Array<Doc_Entry>
 }
 
 export interface Documentation_Response {
-  sections: Array<Doc_Section>;
+  sections: Array<Doc_Section>
 }
 
 export const documentation_response_type =
-  new NotificationType<Documentation_Response>("PIDE/documentation_response");
+  new NotificationType<Documentation_Response>("PIDE/documentation_response")
 
 
 /* Sledgehammer */
 
 export interface Sledgehammer_Request {
-  provers: string;
-  isar: boolean;
-  try0: boolean;
+  provers: string,
+  isar: boolean,
+  try0: boolean
 }
 
 export interface Sledgehammer_Status {
-  message: string;
+  message: string
 }
 
 export interface Sledgehammer_Output {
-  content: string;
+  content: string,
   position: {
-    uri: string;
-    line: number;
-    character: number;
-  };
-  sendback_id: number;
+    uri: string,
+    line: number,
+    character: number
+  },
+  sendback_id: number,
   state_location: {
-    uri: string;
-    line: number;
-    character: number;
-  };
+    uri: string,
+    line: number,
+    character: number
+  }
 }
 
 export interface Sledgehammer_Sendback {
-  text: string;
+  text: string
 }
 
 export interface Sledgehammer_Insert {
-  uri: string;
-  line: number;
-  character: number;
-  text: string;
+  uri: string,
+  line: number,
+  character: number,
+  text: string
 }
 
 export interface Sledgehammer_Provers {
-  provers: string;
+  provers: string
 }
 
 export const sledgehammer_request_type =
-  new NotificationType<Sledgehammer_Request>("PIDE/sledgehammer_request");
+  new NotificationType<Sledgehammer_Request>("PIDE/sledgehammer_request")
 
 export const sledgehammer_cancel_type =
-  new NotificationType<void>("PIDE/sledgehammer_cancel");
+  new NotificationType<void>("PIDE/sledgehammer_cancel")
 
 export const sledgehammer_locate_type =
-  new NotificationType<void>("PIDE/sledgehammer_locate");
+  new NotificationType<void>("PIDE/sledgehammer_locate")
 
 export const sledgehammer_sendback_type =
-  new NotificationType<Sledgehammer_Sendback>("PIDE/sledgehammer_sendback");
+  new NotificationType<Sledgehammer_Sendback>("PIDE/sledgehammer_sendback")
 
 export const sledgehammer_insert_type =
-  new NotificationType<Sledgehammer_Insert>("PIDE/sledgehammer_insert");
+  new NotificationType<Sledgehammer_Insert>("PIDE/sledgehammer_insert")
 
 export const sledgehammer_provers_request_type =
-  new NotificationType<void>("PIDE/sledgehammer_provers_request");
+  new NotificationType<void>("PIDE/sledgehammer_provers_request")
 
 export const sledgehammer_provers_response_type =
-  new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response");
+  new NotificationType<Sledgehammer_Provers>("PIDE/sledgehammer_provers_response")
 
 export const sledgehammer_status_type =
-  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status");
+  new NotificationType<Sledgehammer_Status>("PIDE/sledgehammer_status")
 
 export const sledgehammer_output_type =
-  new NotificationType<Sledgehammer_Output>("PIDE/sledgehammer_output");
+  new NotificationType<Sledgehammer_Output>("PIDE/sledgehammer_output")
 
 
 /* spell checker */

@@ -12,14 +12,14 @@ import * as vscode_lib from './vscode_lib'
 import * as path from 'path'
 import * as lsp from './lsp'
 import { commands } from 'vscode'
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient } from 'vscode-languageclient/node'
 
 
 class Documentation_Panel_Provider implements WebviewViewProvider {
-  public static readonly view_type = 'isabelle-documentation';
+  public static readonly view_type = 'isabelle-documentation'
 
-  private _view?: WebviewView;
-  private _documentation_sections: any[] = [];
+  private _view?: WebviewView
+  private _documentation_sections: any[] = []
 
   constructor(
     private readonly _extension_uri: Uri,
@@ -33,10 +33,10 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
   setupDocumentation(language_client: LanguageClient) {
     language_client.onNotification(lsp.documentation_response_type, params =>
       {
-        if (!params || !params.sections || !Array.isArray(params.sections)) return;
-        this._documentation_sections = params.sections;
-        if (this._view) this._update_webview();
-      });
+        if (!params || !params.sections || !Array.isArray(params.sections)) return
+        this._documentation_sections = params.sections
+        if (this._view) this._update_webview()
+      })
   }
 
   public resolveWebviewView(
@@ -44,41 +44,41 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
     context: WebviewViewResolveContext,
     _token: CancellationToken
   ): void {
-    this._view = view;
+    this._view = view
     this._view.webview.options =
-      { enableScripts: true, localResourceRoots: [ this._extension_uri ] };
+      { enableScripts: true, localResourceRoots: [ this._extension_uri ] }
 
-    this._view.webview.html = this._get_html();
+    this._view.webview.html = this._get_html()
 
-    if (Object.keys(this._documentation_sections).length > 0) this._update_webview();
+    if (Object.keys(this._documentation_sections).length > 0) this._update_webview()
 
     this._view.webview.onDidReceiveMessage(async message => {
       if (message.command === 'open_document') {
-        this._open_document(message.platform_path);
+        this._open_document(message.platform_path)
       }
-    });
+    })
   }
 
   private _update_webview(): void {
-    if (!this._view) { return; }
+    if (!this._view) { return }
 
-    this._view.webview.postMessage({ command: 'update', sections: this._documentation_sections, });
+    this._view.webview.postMessage({ command: 'update', sections: this._documentation_sections, })
   }
 
   private _open_document(platform_path: string): void {
-    const uri = Uri.file(platform_path);
+    const uri = Uri.file(platform_path)
 
     if (platform_path.endsWith(".pdf")) { commands.executeCommand("vscode.open", uri) }
     else {
       workspace.openTextDocument(uri).then(document => {
-        window.showTextDocument(document);
-      });
+        window.showTextDocument(document)
+      })
     }
   }
 
 
   private _get_html(): string {
-    return get_webview_html(this._view?.webview, this._extension_uri.fsPath);
+    return get_webview_html(this._view?.webview, this._extension_uri.fsPath)
   }
 }
 
@@ -110,7 +110,7 @@ function get_webview_html(webview: Webview | undefined, extension_path: string):
         <div id="documentation-container">Loading documentation...</div>
         <script src="${script_uri}"></script>
       </body>
-    </html>`;
+    </html>`
 }
 
 function _get_decorations(): string {
@@ -122,4 +122,4 @@ function _get_decorations(): string {
   return style.join("")
 }
 
-export { Documentation_Panel_Provider, get_webview_html };
+export { Documentation_Panel_Provider, get_webview_html }

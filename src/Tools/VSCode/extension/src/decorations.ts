@@ -6,7 +6,7 @@ PIDE document decorations.
 'use strict';
 
 import * as timers from 'timers'
-import {window, OverviewRulerLane, Uri} from 'vscode';
+import {window, OverviewRulerLane, Uri} from 'vscode'
 import { Range, DecorationOptions, DecorationRenderOptions,
   TextDocument, TextEditor, TextEditorDecorationType, ExtensionContext } from 'vscode'
 import { Document_Decorations } from './lsp'

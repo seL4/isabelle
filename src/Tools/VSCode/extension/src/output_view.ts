@@ -11,7 +11,7 @@ import { text_colors } from './decorations'
 import * as vscode_lib from './vscode_lib'
 import * as path from 'path'
 import * as lsp from './lsp'
-import { LanguageClient } from 'vscode-languageclient/node';
+import { LanguageClient } from 'vscode-languageclient/node'
 
 
 class Output_View_Provider implements WebviewViewProvider {

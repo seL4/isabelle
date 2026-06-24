@@ -5,18 +5,18 @@ Control panel for Sledgehammer.
 */
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext, CancellationToken,
-  window, Webview } from "vscode";
-import * as path from "path";
-import { text_colors } from "./decorations";
+  window, Webview } from "vscode"
+import * as path from "path"
+import { text_colors } from "./decorations"
 import * as vscode_lib from "./vscode_lib"
-import * as lsp from "./lsp";
-import { LanguageClient } from "vscode-languageclient/node";
-import { Position } from "vscode";
+import * as lsp from "./lsp"
+import { LanguageClient } from "vscode-languageclient/node"
+import { Position } from "vscode"
 
 
-class Sledgehammer_Panel_Provider implements WebviewViewProvider {
-  public static readonly view_type = "isabelle-sledgehammer";
-  private _view?: WebviewView;
+class Sledgehammer_Panel_Provider implements WebviewViewProvider{
+  public static readonly view_type = "isabelle-sledgehammer"
+  private _view?: WebviewView
 
   constructor(
     private readonly _extension_uri: Uri,
@@ -28,82 +28,82 @@ class Sledgehammer_Panel_Provider implements WebviewViewProvider {
     context: WebviewViewResolveContext,
     _token: CancellationToken
   ): void {
-    this._view = view;
-    this._view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri] };
-    this._view.webview.html = this._get_html();
-    this._setup_message_handler();
+    this._view = view
+    this._view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri] }
+    this._view.webview.html = this._get_html()
+    this._setup_message_handler()
   }
 
   request_provers(language_client: LanguageClient) {
     if (language_client) {
-      this._language_client.sendNotification(lsp.sledgehammer_provers_request_type);
+      this._language_client.sendNotification(lsp.sledgehammer_provers_request_type)
     }
   }
 
   private _setup_message_handler(): void {
     if (this._view) {
       this._view.webview.onDidReceiveMessage(async message => {
-        const editor = window.activeTextEditor;
-        const pos = editor?.selection.active;
+        const editor = window.activeTextEditor
+        const pos = editor?.selection.active
         if (editor && pos) {
           this._language_client.sendNotification(lsp.caret_update_type,
-            { uri: editor.document.uri.toString(), line: pos.line, character: pos.character });
+            { uri: editor.document.uri.toString(), line: pos.line, character: pos.character })
         }
         switch (message.command) {
           case "apply":
             this._language_client.sendNotification(lsp.sledgehammer_request_type,
-              { provers: message.provers, isar: message.isar, try0: message.try0 });
-            break;
+              { provers: message.provers, isar: message.isar, try0: message.try0 })
+            break
           case "cancel":
-            this._language_client.sendNotification(lsp.sledgehammer_cancel_type);
-            break;
+            this._language_client.sendNotification(lsp.sledgehammer_cancel_type)
+            break
           case "locate":
-            this._language_client.sendNotification(lsp.sledgehammer_locate_type);
-            break;
+            this._language_client.sendNotification(lsp.sledgehammer_locate_type)
+            break
           case "sendback":
             this._language_client.sendNotification(lsp.sledgehammer_sendback_type,
-              { text: message.text });
-            break;
+              { text: message.text })
+            break
         }
-      });
+      })
     }
   }
 
   public update_status(message: string): void {
-    if (this._view) { this._view.webview.postMessage({ command: "status", message }); }
+    if (this._view) { this._view.webview.postMessage({ command: "status", message }) }
   }
 
   public update_provers(provers: string): void {
-    if (this._view) { this._view.webview.postMessage({ command: "provers", provers }); }
+    if (this._view) { this._view.webview.postMessage({ command: "provers", provers }) }
   }
 
-  public insert(arg: { uri: string; line: number; character: number; text: string }): void {
-    const uri = Uri.parse(arg.uri);
-    const editor = window.activeTextEditor;
+  public insert(arg: { uri: string, line: number, character: number, text: string }): void {
+    const uri = Uri.parse(arg.uri)
+    const editor = window.activeTextEditor
     if (editor && editor.document.uri.toString() === uri.toString()) {
-      const pos = new Position(arg.line, arg.character);
-      const line_text = editor.document.lineAt(pos.line).text;
+      const pos = new Position(arg.line, arg.character)
+      const line_text = editor.document.lineAt(pos.line).text
       editor.edit(edit_builder =>
-        edit_builder.insert(pos, line_text.trim() === "" ? arg.text : "\n" + arg.text));
+        edit_builder.insert(pos, line_text.trim() === "" ? arg.text : "\n" + arg.text))
     }
   }
 
   public update_output(result: lsp.Sledgehammer_Output): void {
     if (this._view) {
-      this._view.webview.postMessage({ command: "result", content: result.content });
+      this._view.webview.postMessage({ command: "result", content: result.content })
     }
   }
 
   private _get_html(): string {
-    return get_webview_html(this._view?.webview, this._extension_uri.fsPath);
+    return get_webview_html(this._view?.webview, this._extension_uri.fsPath)
   }
 }
 
 function get_webview_html(webview: Webview | undefined, extension_path: string): string {
   const script_uri =
-    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.js")));
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.js")))
   const css_uri =
-    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")));
+    webview?.asWebviewUri(Uri.file(path.join(extension_path, "media", "sledgehammer.css")))
   const font_uri =
     webview.asWebviewUri(Uri.file(path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
 
@@ -126,7 +126,7 @@ function get_webview_html(webview: Webview | undefined, extension_path: string):
       <body>
         <script src="${script_uri}"></script>
       </body>
-    </html>`;
+    </html>`
 }
 
 function _get_decorations(): string {
@@ -138,4 +138,4 @@ function _get_decorations(): string {
   return style.join("")
 }
 
-export { Sledgehammer_Panel_Provider, get_webview_html };
+export { Sledgehammer_Panel_Provider, get_webview_html }
