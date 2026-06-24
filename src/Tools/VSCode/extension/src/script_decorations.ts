@@ -20,13 +20,11 @@ const arrows = {
 }
 const no_hide_list = [' ', '\n', '\r', ...Object.values(arrows)]
 
-function should_hide(next_char: string): boolean
-{
+function should_hide(next_char: string): boolean {
   return !no_hide_list.includes(next_char)
 }
 
-function find_closing(close: string, text: string, open_index: number): number | undefined
-{
+function find_closing(close: string, text: string, open_index: number): number | undefined {
   let close_index = open_index
   let counter = 1
   const open = text[open_index]
@@ -47,8 +45,7 @@ function find_closing(close: string, text: string, open_index: number): number |
 
 
 
-function extract_ranges(doc: TextDocument)
-{
+function extract_ranges(doc: TextDocument) {
   const text = doc.getText()
   const hide_ranges: Range[] = []
   const sup_ranges: Range[] = []
@@ -93,8 +90,7 @@ function extract_ranges(doc: TextDocument)
   return { hide_ranges: hide_ranges, superscript_ranges: sup_ranges, subscript_ranges: sub_ranges, bold_ranges: bold_ranges }
 }
 
-export function register_script_decorations(context: ExtensionContext)
-{
+export function register_script_decorations(context: ExtensionContext) {
   const hide = window.createTextEditorDecorationType({
     textDecoration: 'none; font-size: 0.001em',
     rangeBehavior: DecorationRangeBehavior.ClosedClosed

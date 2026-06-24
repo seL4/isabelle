@@ -10,15 +10,14 @@ import {TextEditor, Uri, ViewColumn, window, workspace} from 'vscode'
 
 export const file_scheme: string = "file"
 
-export function is_file(uri: Uri): boolean
-{
+export function is_file(uri: Uri): boolean {
   return uri.scheme === file_scheme
 }
 
-export function find_file_editor(uri: Uri): TextEditor | undefined
-{
-  function check(editor: TextEditor): boolean
-  { return editor && is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath }
+export function find_file_editor(uri: Uri): TextEditor | undefined {
+  function check(editor: TextEditor): boolean { 
+    return editor && is_file(editor.document.uri) && editor.document.uri.fsPath === uri.fsPath
+  }
 
   if (is_file(uri)) {
     if (check(window.activeTextEditor)) return window.activeTextEditor
@@ -30,8 +29,7 @@ export function find_file_editor(uri: Uri): TextEditor | undefined
 
 /* GUI */
 
-export function adjacent_editor_column(editor: TextEditor, split: boolean): ViewColumn
-{
+export function adjacent_editor_column(editor: TextEditor, split: boolean): ViewColumn {
   if (!editor) return ViewColumn.One
   else if (!split) return editor.viewColumn
   else if (editor.viewColumn === ViewColumn.One || editor.viewColumn === ViewColumn.Three)
@@ -42,23 +40,19 @@ export function adjacent_editor_column(editor: TextEditor, split: boolean): View
 
 /* Isabelle configuration */
 
-export function get_configuration<T>(name: string): T
-{
+export function get_configuration<T>(name: string): T {
   return workspace.getConfiguration("isabelle").get<T>(name)
 }
 
-export function set_configuration<T>(name: string, configuration: T)
-{
+export function set_configuration<T>(name: string, configuration: T) {
   workspace.getConfiguration("isabelle").update(name, configuration)
 }
 
-export function get_replacement_mode()
-{
+export function get_replacement_mode() {
   return get_configuration<"none" | "non-alphanumeric" | "all">("replacement")
 }
 
-export function get_color(color: string, light: boolean): string
-{
+export function get_color(color: string, light: boolean): string {
   const colors = get_configuration<object>("text_color")
   return colors[color + (light ? "_light" : "_dark")]
 }

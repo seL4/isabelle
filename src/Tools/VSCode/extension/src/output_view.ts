@@ -30,8 +30,8 @@ class Output_View_Provider implements WebviewViewProvider
   public resolveWebviewView(
     view: WebviewView,
     context: WebviewViewResolveContext,
-    _token: CancellationToken)
-  {
+    _token: CancellationToken
+  ) {
     this._view = view
 
     view.webview.options = {
@@ -45,21 +45,20 @@ class Output_View_Provider implements WebviewViewProvider
 
     view.webview.html = this._get_html(this.content)
     view.webview.onDidReceiveMessage(async message =>
-    {
-      switch (message.command) {
-        case "open":
-          open_webview_link(message.link)
-          break
-        case "resize":
-          this._language_client.sendNotification(
-            lsp.output_set_margin_type, { margin: message.margin })
-          break
-      }
-    })
+      {
+        switch (message.command) {
+          case "open":
+            open_webview_link(message.link)
+            break
+          case "resize":
+            this._language_client.sendNotification(
+              lsp.output_set_margin_type, { margin: message.margin })
+            break
+        }
+      })
   }
 
-  public update_content(content: string)
-  {
+  public update_content(content: string) {
     if (!this._view) {
       this.content = content
       return
@@ -68,14 +67,12 @@ class Output_View_Provider implements WebviewViewProvider
     this._view.webview.html = this._get_html(content)
   }
 
-  private _get_html(content: string): string
-  {
+  private _get_html(content: string): string {
     return get_webview_html(content, this._view.webview, this._extension_uri.fsPath)
   }
 }
 
-function open_webview_link(link: string)
-{
+function open_webview_link(link: string) {
   const uri = Uri.parse(link)
   const line = Number(uri.fragment) || 0
   const pos = new Position(line, 0)
@@ -85,8 +82,7 @@ function open_webview_link(link: string)
   })
 }
 
-function get_webview_html(content: string, webview: Webview, extension_path: string): string
-{
+function get_webview_html(content: string, webview: Webview, extension_path: string): string {
   const script_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'main.js')))
   const css_uri = webview.asWebviewUri(Uri.file(path.join(extension_path, 'media', 'vscode.css')))
   const font_uri =
@@ -114,8 +110,7 @@ function get_webview_html(content: string, webview: Webview, extension_path: str
     </html>`
 }
 
-function _get_decorations(): string
-{
+function _get_decorations(): string {
   let style: string[] = []
   for (const key of text_colors) {
     style.push(`body.vscode-light .${key} { color: ${vscode_lib.get_color(key, true)} }\n`)

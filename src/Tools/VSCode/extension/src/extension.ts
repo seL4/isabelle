@@ -43,22 +43,18 @@ interface Args
   verbose?: boolean
 }
 
-function print_value(x: any): string
-{
+function print_value(x: any): string {
   return typeof(x) === "string" ? x : JSON.stringify(x)
 }
 
-function isabelle_options(args: Args): string[]
-{
+function isabelle_options(args: Args): string[] {
   var result: string[] = []
   function add(s: string) { result.push(s) }
-  function add_value(opt: string, slot: string)
-  {
+  function add_value(opt: string, slot: string) {
     const x = args[slot]
     if (x) { add(opt); add(print_value(x)) }
   }
-  function add_values(opt: string, slot: string)
-  {
+  function add_values(opt: string, slot: string) {
     const xs: any[] = args[slot]
     if (xs) {
       for (const x of xs) { add(opt); add(print_value(x)) }
@@ -76,13 +72,13 @@ function isabelle_options(args: Args): string[]
 
   const config = workspace.getConfiguration("isabelle.options")
   Object.keys(config).forEach(key =>
-  {
-    const value = config[key]
-    if (typeof value == "string" && value !== "")
     {
-      add("-o"); add(`${key}=${value}`)
-    }
-  })
+      const value = config[key]
+      if (typeof value == "string" && value !== "")
+      {
+        add("-o"); add(`${key}=${value}`)
+      }
+    })
   add_values("-o", "options")
 
   return result
@@ -91,8 +87,7 @@ function isabelle_options(args: Args): string[]
 
 /* activate extension */
 
-export async function activate(context: ExtensionContext)
-{
+export async function activate(context: ExtensionContext) {
   /* server */
 
   try {
@@ -150,8 +145,7 @@ export async function activate(context: ExtensionContext)
 
     /* caret handling */
 
-    function update_caret()
-    {
+    function update_caret() {
       const editor = window.activeTextEditor
       let caret_update: lsp.Caret_Update = {}
       if (editor) {
@@ -168,8 +162,7 @@ export async function activate(context: ExtensionContext)
       }
     }
 
-    function goto_file(caret_update: lsp.Caret_Update)
-    {
+    function goto_file(caret_update: lsp.Caret_Update) {
       function move_cursor(editor: TextEditor)
       {
         const pos = new Position(caret_update.line || 0, caret_update.character || 0)
@@ -187,14 +180,14 @@ export async function activate(context: ExtensionContext)
     }
 
     language_client.onReady().then(() =>
-    {
-      context.subscriptions.push(
-        window.onDidChangeActiveTextEditor(update_caret),
-        window.onDidChangeTextEditorSelection(update_caret))
-      update_caret()
-
-      language_client.onNotification(lsp.caret_update_type, goto_file)
-    })
+      {
+        context.subscriptions.push(
+          window.onDidChangeActiveTextEditor(update_caret),
+          window.onDidChangeTextEditorSelection(update_caret))
+        update_caret()
+  
+        language_client.onNotification(lsp.caret_update_type, goto_file)
+      })
 
 
     /* dynamic output */
@@ -204,10 +197,10 @@ export async function activate(context: ExtensionContext)
       window.registerWebviewViewProvider(Output_View_Provider.view_type, provider))
 
     language_client.onReady().then(() =>
-    {
-      language_client.onNotification(lsp.dynamic_output_type,
-        params => provider.update_content(params.content))
-    })
+      {
+        language_client.onNotification(lsp.dynamic_output_type,
+          params => provider.update_content(params.content))
+      })
 
     const documentation_provider =
       new Documentation_Panel_Provider(context.extensionUri, language_client);
@@ -215,10 +208,11 @@ export async function activate(context: ExtensionContext)
       window.registerWebviewViewProvider(
         Documentation_Panel_Provider.view_type, documentation_provider));
 
-    language_client.onReady().then(() => {
-      documentation_provider.request(language_client);
-      documentation_provider.setupDocumentation(language_client);
-    });
+    language_client.onReady().then(() =>
+      {
+        documentation_provider.request(language_client);
+        documentation_provider.setupDocumentation(language_client);
+      });
 
     const symbols_provider = new Symbols_Panel_Provider(context.extensionUri, language_client);
     context.subscriptions.push(
@@ -235,16 +229,17 @@ export async function activate(context: ExtensionContext)
     );
     language_client.onReady().then(() => sledgehammer_provider.request_provers(language_client))
 
-    language_client.onReady().then(() => {
-      language_client.onNotification(lsp.sledgehammer_status_type, msg =>
-        sledgehammer_provider.update_status(msg.message))
-      language_client.onNotification(lsp.sledgehammer_output_type, msg =>
-        sledgehammer_provider.update_output(msg))
-      language_client.onNotification(lsp.sledgehammer_insert_type, msg =>
-        sledgehammer_provider.insert(msg))
-      language_client.onNotification(lsp.sledgehammer_provers_response_type, msg =>
-        sledgehammer_provider.update_provers(msg.provers))
-    })
+    language_client.onReady().then(() =>
+      {
+        language_client.onNotification(lsp.sledgehammer_status_type, msg =>
+          sledgehammer_provider.update_status(msg.message))
+        language_client.onNotification(lsp.sledgehammer_output_type, msg =>
+          sledgehammer_provider.update_output(msg))
+        language_client.onNotification(lsp.sledgehammer_insert_type, msg =>
+          sledgehammer_provider.insert(msg))
+        language_client.onNotification(lsp.sledgehammer_provers_response_type, msg =>
+          sledgehammer_provider.update_provers(msg.provers))
+      })
 
 
     /* state panel */
@@ -267,19 +262,19 @@ export async function activate(context: ExtensionContext)
     /* spell checker */
 
     language_client.onReady().then(() =>
-    {
-      context.subscriptions.push(
-        commands.registerCommand("isabelle.include-word", uri =>
-          language_client.sendNotification(lsp.include_word_type)),
-        commands.registerCommand("isabelle.include-word-permanently", uri =>
-          language_client.sendNotification(lsp.include_word_permanently_type)),
-        commands.registerCommand("isabelle.exclude-word", uri =>
-          language_client.sendNotification(lsp.exclude_word_type)),
-        commands.registerCommand("isabelle.exclude-word-permanently", uri =>
-          language_client.sendNotification(lsp.exclude_word_permanently_type)),
-        commands.registerCommand("isabelle.reset-words", uri =>
-          language_client.sendNotification(lsp.reset_words_type)))
-    })
+      {
+        context.subscriptions.push(
+          commands.registerCommand("isabelle.include-word", uri =>
+            language_client.sendNotification(lsp.include_word_type)),
+          commands.registerCommand("isabelle.include-word-permanently", uri =>
+            language_client.sendNotification(lsp.include_word_permanently_type)),
+          commands.registerCommand("isabelle.exclude-word", uri =>
+            language_client.sendNotification(lsp.exclude_word_type)),
+          commands.registerCommand("isabelle.exclude-word-permanently", uri =>
+            language_client.sendNotification(lsp.exclude_word_permanently_type)),
+          commands.registerCommand("isabelle.reset-words", uri =>
+            language_client.sendNotification(lsp.reset_words_type)))
+      })
 
 
     /* start server */

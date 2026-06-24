@@ -79,39 +79,33 @@ const text_overview_colors = [
 
 const types = new Map<string, TextEditorDecorationType>()
 
-export function setup(context: ExtensionContext)
-{
-  function decoration(options: DecorationRenderOptions): TextEditorDecorationType
-  {
+export function setup(context: ExtensionContext) {
+  function decoration(options: DecorationRenderOptions): TextEditorDecorationType {
     const typ = window.createTextEditorDecorationType(options)
     context.subscriptions.push(typ)
     return typ
   }
 
-  function background(color: string): TextEditorDecorationType
-  {
+  function background(color: string): TextEditorDecorationType {
     return decoration(
       { light: { backgroundColor: vscode_lib.get_color(color, true) },
         dark: { backgroundColor: vscode_lib.get_color(color, false) } })
   }
 
-  function text_color(color: string): TextEditorDecorationType
-  {
+  function text_color(color: string): TextEditorDecorationType {
     return decoration(
       { light: { color: vscode_lib.get_color(color, true) },
         dark: { color: vscode_lib.get_color(color, false) } })
   }
 
-  function text_overview_color(color: string): TextEditorDecorationType
-  {
+  function text_overview_color(color: string): TextEditorDecorationType {
     return decoration(
       { overviewRulerLane: OverviewRulerLane.Right,
         light: { overviewRulerColor: vscode_lib.get_color(color, true) },
         dark: { overviewRulerColor: vscode_lib.get_color(color, false) } })
   }
 
-  function bottom_border(width: string, style: string, color: string): TextEditorDecorationType
-  {
+  function bottom_border(width: string, style: string, color: string): TextEditorDecorationType {
     const border = `${width} none; border-bottom-style: ${style}; border-color: `
     return decoration(
       { light: { border: border + vscode_lib.get_color(color, true) },
@@ -122,14 +116,14 @@ export function setup(context: ExtensionContext)
   /* reset */
 
   types.forEach(typ =>
-  {
-    for (const editor of window.visibleTextEditors) {
-      editor.setDecorations(typ, [])
-    }
-    const i = context.subscriptions.indexOf(typ)
-    if (i >= 0) context.subscriptions.splice(i, 1)
-    typ.dispose()
-  })
+    {
+      for (const editor of window.visibleTextEditors) {
+        editor.setDecorations(typ, [])
+      }
+      const i = context.subscriptions.indexOf(typ)
+      if (i >= 0) context.subscriptions.splice(i, 1)
+      typ.dispose()
+    })
   types.clear()
 
 
@@ -166,13 +160,11 @@ export function setup(context: ExtensionContext)
 type Content = Range[] | DecorationOptions[]
 const document_decorations = new Map<string, Map<string, Content>>()
 
-export function close_document(document: TextDocument)
-{
+export function close_document(document: TextDocument) {
   document_decorations.delete(document.uri.toString())
 }
 
-export function apply_decoration(decorations: Document_Decorations)
-{
+export function apply_decoration(decorations: Document_Decorations) {
   const uri = Uri.parse(decorations.uri)
 
   for (const decoration of decorations.entries) {
@@ -200,8 +192,7 @@ export function apply_decoration(decorations: Document_Decorations)
   }
 }
 
-export function update_editor(editor: TextEditor)
-{
+export function update_editor(editor: TextEditor) {
   if (editor) {
     const decorations = document_decorations.get(editor.document.uri.toString())
     if (decorations) {
@@ -218,8 +209,7 @@ export function update_editor(editor: TextEditor)
 const touched_documents = new Set<TextDocument>()
 let touched_timer: NodeJS.Timer
 
-function update_touched_documents()
-{
+function update_touched_documents() {
   const touched_editors: TextEditor[] = []
   for (const editor of window.visibleTextEditors) {
     if (touched_documents.has(editor.document)) {
@@ -230,8 +220,7 @@ function update_touched_documents()
   touched_editors.forEach(update_editor)
 }
 
-export function touch_document(document: TextDocument)
-{
+export function touch_document(document: TextDocument) {
   if (touched_timer) timers.clearTimeout(touched_timer)
   touched_documents.add(document)
   touched_timer = timers.setTimeout(update_touched_documents, 1000)
