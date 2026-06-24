@@ -257,15 +257,15 @@ export async function activate(context: ExtensionContext) {
     language_client.onReady().then(() =>
       {
         context.subscriptions.push(
-          commands.registerCommand("isabelle.include-word", uri =>
+          commands.registerCommand("isabelle.include-word", _uri =>
             language_client.sendNotification(lsp.include_word_type)),
-          commands.registerCommand("isabelle.include-word-permanently", uri =>
+          commands.registerCommand("isabelle.include-word-permanently", _uri =>
             language_client.sendNotification(lsp.include_word_permanently_type)),
-          commands.registerCommand("isabelle.exclude-word", uri =>
+          commands.registerCommand("isabelle.exclude-word", _uri =>
             language_client.sendNotification(lsp.exclude_word_type)),
-          commands.registerCommand("isabelle.exclude-word-permanently", uri =>
+          commands.registerCommand("isabelle.exclude-word-permanently", _uri =>
             language_client.sendNotification(lsp.exclude_word_permanently_type)),
-          commands.registerCommand("isabelle.reset-words", uri =>
+          commands.registerCommand("isabelle.reset-words", _uri =>
             language_client.sendNotification(lsp.reset_words_type)))
       })
 

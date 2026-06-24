@@ -28,7 +28,7 @@ class Output_View_Provider implements WebviewViewProvider {
 
   public resolveWebviewView(
     view: WebviewView,
-    context: WebviewViewResolveContext,
+    _context: WebviewViewResolveContext,
     _token: CancellationToken
   ) {
     this._view = view

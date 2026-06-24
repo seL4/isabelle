@@ -43,7 +43,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
   public resolveWebviewView(
     view: WebviewView,
-    context: WebviewViewResolveContext,
+    _context: WebviewViewResolveContext,
     _token: CancellationToken
   ) {
     this._view = view
@@ -82,7 +82,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
       if (!selection.isEmpty) {
         let new_text = selected_text
           .split("")
-          .map((char, index, arr) => {
+          .map((char, _index, _arr) => {
             if (char.trim() === "") return char
             if (all_control_symbols.includes(char)) return ""
 

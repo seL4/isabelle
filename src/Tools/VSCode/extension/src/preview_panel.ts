@@ -34,7 +34,7 @@ class Panel {
 
 let panel: Panel
 
-export function setup(context: ExtensionContext, client: LanguageClient) {
+export function setup(_context: ExtensionContext, client: LanguageClient) {
   language_client = client
   language_client.onNotification(lsp.preview_response_type, params =>
     {

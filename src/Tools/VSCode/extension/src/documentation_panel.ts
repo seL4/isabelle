@@ -41,7 +41,7 @@ class Documentation_Panel_Provider implements WebviewViewProvider {
 
   public resolveWebviewView(
     view: WebviewView,
-    context: WebviewViewResolveContext,
+    _context: WebviewViewResolveContext,
     _token: CancellationToken
   ): void {
     this._view = view

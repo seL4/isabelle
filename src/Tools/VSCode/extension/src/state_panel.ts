@@ -21,7 +21,7 @@ function panel_column(): ViewColumn {
 class Panel {
   private state_id: number
   private webview_panel: WebviewPanel
-  private _extension_path: string
+  private readonly _extension_path: string
 
   public get_id(): number { return this.state_id }
   public check_id(id: number): boolean { return this.state_id === id }
@@ -90,7 +90,7 @@ function exit_panel() {
   }
 }
 
-export function init(uri: Uri) {
+export function init(_uri: Uri) {
   if (language_client) {
     if (panel) panel.reveal()
     else language_client.sendRequest(lsp.state_init_type, null)
