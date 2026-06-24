@@ -33,8 +33,11 @@ object Component_Scala {
         ":\n    " + make_url(url)
   }
 
+  val scala_version = "3.3.8"
+  val scalajs_version = "1.21.0"
+
   val main_download: Download =
-    Download("scala", "3.3.5", base_version = "",
+    Download("scala", scala_version, base_version = "",
       url = "https://github.com/lampepfl/dotty/releases/download/{V}/scala3-{V}.tar.gz")
 
   val lib_downloads: List[Download] = List(
@@ -49,7 +52,47 @@ object Component_Scala {
       physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-swing_{B}/{V}/scala-swing_{B}-{V}.jar"),
     Download("scala-xml", "2.3.0",
       "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-xml_{B}/{V}",
-      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_{B}/{V}/scala-xml_{B}-{V}.jar")
+      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_{B}/{V}/scala-xml_{B}-{V}.jar"),
+    Download("scalajs-linker", scalajs_version,
+       "https://mvnrepository.com/artifact/org.scala-js/scalajs-linker_{B}/{V}",
+       physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-linker_{B}/{V}/scalajs-linker_{B}-{V}.jar",
+       base_version = "2.13"),
+    Download("scalajs-linker-interface", scalajs_version,
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-linker-interface_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-linker-interface_{B}/{V}/scalajs-linker-interface_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scalajs-ir", scalajs_version,
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-ir_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-ir_{B}/{V}/scalajs-ir_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scalajs-logging", "1.2.0",
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-logging_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-logging_{B}/{V}/scalajs-logging_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scala-parallel-collections", "0.2.0",
+      "https://mvnrepository.com/artifact/org.scala-lang.modules/scala-parallel-collections_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_{B}/{V}/scala-parallel-collections_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scalajs-library", scalajs_version,
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-library_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-library_{B}/{V}/scalajs-library_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scalajs-javalib", scalajs_version,
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-javalib/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-javalib/{V}/scalajs-javalib-{V}.jar",
+      base_version = ""),
+    Download("scalajs-scalalib", "2.13.18+1.21.0",
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-scalalib_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_{B}/{V}/scalajs-scalalib_{B}-{V}.jar",
+      base_version = "2.13"),
+    Download("scala3-library", scala_version,
+      "https://mvnrepository.com/artifact/org.scala-lang/scala3-library_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-lang/scala3-library_{B}/{V}/scala3-library_{B}-{V}.jar",
+      base_version = "sjs1_3"),
+    Download("scalajs-dom_sjs1", "2.8.1",
+      "https://mvnrepository.com/artifact/org.scala-js/scalajs-dom_{B}/{V}",
+      physical_url = "https://repo1.maven.org/maven2/org/scala-js/scalajs-dom_{B}/{V}/scalajs-dom_{B}-{V}.jar",
+      base_version = "sjs1_3"),
   )
 
 
