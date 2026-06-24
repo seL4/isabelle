@@ -131,8 +131,6 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
         edit_builder.replace(selection, new_text);
       }
-    }).then(success => {
-      if (!success) { }
     });
   }
 

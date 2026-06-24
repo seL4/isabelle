@@ -139,9 +139,3 @@ function _get_decorations(): string {
 }
 
 export { Sledgehammer_Panel_Provider, get_webview_html };
-
-export interface PositionInfo {
-  uri: string;
-  line: number;
-  character: number;
-}
