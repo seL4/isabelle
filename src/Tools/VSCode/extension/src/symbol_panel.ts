@@ -4,7 +4,7 @@
 Isabelle symbols panel as web view.
 */
 
-"use strict";
+'use strict';
 
 import { WebviewViewProvider, WebviewView, Uri, WebviewViewResolveContext,
   CancellationToken, window, Position, Selection, Webview } from "vscode"
