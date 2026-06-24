@@ -785,7 +785,7 @@ object Bibtex {
             ant match {
               case Antiquote.Control(source) =>
                 for {
-                  head <- Symbol.iterator(source).nextOption
+                  head <- Symbol.iterator(source).nextOption()
                   kind <- Symbol.control_name(Symbol.encode(head))
                 } {
                   val rest = source.drop(head.length)

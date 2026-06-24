@@ -569,7 +569,7 @@ object SQL {
     }
 
     def execute_query_statementO[A](sql: Source, get: Result => A): Option[A] =
-      execute_query_statement[A, Option[A]](sql, _.nextOption, get)
+      execute_query_statement[A, Option[A]](sql, _.nextOption(), get)
 
     def execute_query_statementB(sql: Source): Boolean =
       using_statement(sql)(stmt => using(stmt.execute_query())(_.next()))
