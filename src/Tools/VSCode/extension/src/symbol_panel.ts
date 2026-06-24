@@ -14,12 +14,14 @@ import * as path from "path"
 import * as lsp from "./lsp"
 import { LanguageClient } from "vscode-languageclient/node";
 import * as symbol from './symbol'
+import { Entry } from './symbol'
+
 
 class Symbols_Panel_Provider implements WebviewViewProvider {
   public static readonly view_type = "isabelle-symbols"
 
   private _view?: WebviewView
-  private _grouped_symbols: { [key: string]: symbol.Entry[] } = {}
+  private _grouped_symbols: { [key: string]: Entry[] } = {}
   private _abbrevs: [string, string][] = [];
 
   constructor(
@@ -142,8 +144,8 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     });
   }
 
-  private _group_symbols(symbols: symbol.Entry[]): { [key: string]: symbol.Entry[] } {
-    const grouped_symbols: { [key: string]: symbol.Entry[] } = {};
+  private _group_symbols(symbols: Entry[]): { [key: string]: Entry[] } {
+    const grouped_symbols: { [key: string]: Entry[] } = {};
     for (const symbol of symbols) {
       if (symbol.groups && Array.isArray(symbol.groups)) {
         for (const group of symbol.groups) {
