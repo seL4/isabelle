@@ -68,7 +68,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     const document = editor.document
     const selection = editor.selection
 
-    let selected_text = document.getText(selection)
+    const selected_text = document.getText(selection)
     if (!selected_text.trim() && !selection.isEmpty) return
 
     const control_symbols: { [key: string]: string } = {}
@@ -80,7 +80,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
-        let new_text = selected_text
+        const new_text = selected_text
           .split("")
           .map((char, _index, _arr) => {
             if (char.trim() === "") return char
@@ -114,7 +114,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
     const document = editor.document
     const selection = editor.selection
 
-    let selected_text = document.getText(selection)
+    const selected_text = document.getText(selection)
     if (!selected_text.trim() && !selection.isEmpty) return
 
     const control_symbols: { [key: string]: string } = {}
@@ -124,7 +124,7 @@ class Symbols_Panel_Provider implements WebviewViewProvider {
 
     editor.edit(edit_builder => {
       if (!selection.isEmpty) {
-        let new_text = selected_text
+        const new_text = selected_text
           .split("")
           .map(char => (all_control_symbols.includes(char) ? "" : char))
           .join("")

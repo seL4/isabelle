@@ -59,7 +59,7 @@ export function standard_path(platform_path: string): string {
 /* platform path (Windows or Posix) */
 
 export function platform_path(standard_path: string): string {
-  var _result = []
+  let _result = []
   function result(): string { return _result.join("") }
 
   function clear(): void { _result = [] }
@@ -72,7 +72,7 @@ export function platform_path(standard_path: string): string {
 
   // check root
 
-  var rest = standard_path
+  let rest = standard_path
   const is_root = standard_path.startsWith("/")
 
   if (platform.is_windows()) {

@@ -47,7 +47,7 @@ function print_value(x: any): string {
 }
 
 function isabelle_options(args: Args): string[] {
-  var result: string[] = []
+  let result: string[] = []
   function add(s: string) { result.push(s) }
   function add_value(opt: string, slot: string) {
     const x = args[slot]

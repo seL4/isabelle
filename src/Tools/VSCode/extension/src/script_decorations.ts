@@ -30,7 +30,7 @@ function find_closing(close: string, text: string, open_index: number): number |
   let counter = 1
   const open = text[open_index]
   while (counter > 0) {
-    let c = text[++close_index]
+    const c = text[++close_index]
 
     if (c === undefined) return
 
