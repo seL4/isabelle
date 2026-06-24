@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Reflection_Examples.thy
+(*  Title:      HOL/Examples/Reflection_Examples.thy
     Author:     Amine Chaieb, TU Muenchen
 *)
 

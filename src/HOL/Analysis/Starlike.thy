@@ -66,7 +66,7 @@ proof
     by (meson hull_mono inf_mono subset_insertI subset_refl)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Shrinking towards the interior of a convex set\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Shrinking towards the interior of a convex set\<close>
 
 lemma mem_interior_convex_shrink:
   fixes S :: "'a::euclidean_space set"
@@ -389,7 +389,7 @@ next
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Some obvious but surprisingly hard simplex lemmas\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Some obvious but surprisingly hard simplex lemmas\<close>
 
 lemma simplex:
   assumes "finite S"
@@ -755,7 +755,7 @@ proof -
   qed
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Relative interior of convex set\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Relative interior of convex set\<close>
 
 lemma rel_interior_convex_nonempty_aux:
   fixes S :: "'n::euclidean_space set"
@@ -1161,100 +1161,6 @@ qed
 
 lemmas rel_interior_segment = rel_interior_closed_segment rel_interior_open_segment
 
-subsection\<open>The relative frontier of a set\<close>
-
-definition\<^marker>\<open>tag important\<close> "rel_frontier S = closure S - rel_interior S"
-
-lemma rel_frontier_empty [simp]: "rel_frontier {} = {}"
-  by (simp add: rel_frontier_def)
-
-lemma rel_frontier_eq_empty:
-    fixes S :: "'n::euclidean_space set"
-    shows "rel_frontier S = {} \<longleftrightarrow> affine S"
-  unfolding rel_frontier_def
-  using rel_interior_subset_closure  by (auto simp add: rel_interior_eq_closure [symmetric])
-
-lemma rel_frontier_sing [simp]:
-    fixes a :: "'n::euclidean_space"
-    shows "rel_frontier {a} = {}"
-  by (simp add: rel_frontier_def)
-
-lemma rel_frontier_affine_hull:
-  fixes S :: "'a::euclidean_space set"
-  shows "rel_frontier S \<subseteq> affine hull S"
-using closure_affine_hull rel_frontier_def by fastforce
-
-lemma rel_frontier_cball [simp]:
-    fixes a :: "'n::euclidean_space"
-    shows "rel_frontier(cball a r) = (if r = 0 then {} else sphere a r)"
-proof (cases rule: linorder_cases [of r 0])
-  case less then show ?thesis
-    by (force simp: sphere_def)
-next
-  case equal then show ?thesis by simp
-next
-  case greater then show ?thesis
-    by simp (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
-qed
-
-lemma rel_frontier_translation:
-  fixes a :: "'a::euclidean_space"
-  shows "rel_frontier((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (rel_frontier S)"
-  by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
-
-lemma rel_frontier_nonempty_interior:
-  fixes S :: "'n::euclidean_space set"
-  shows "interior S \<noteq> {} \<Longrightarrow> rel_frontier S = frontier S"
-  by (metis frontier_def interior_rel_interior_gen rel_frontier_def)
-
-lemma rel_frontier_frontier:
-  fixes S :: "'n::euclidean_space set"
-  shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
-  by (simp add: frontier_def rel_frontier_def rel_interior_interior)
-
-lemma closest_point_in_rel_frontier:
-   "\<lbrakk>closed S; S \<noteq> {}; x \<in> affine hull S - rel_interior S\<rbrakk>
-   \<Longrightarrow> closest_point S x \<in> rel_frontier S"
-  by (simp add: closest_point_in_rel_interior closest_point_in_set rel_frontier_def)
-
-lemma closed_rel_frontier [iff]:
-  fixes S :: "'n::euclidean_space set"
-  shows "closed (rel_frontier S)"
-proof -
-  have *: "closedin (top_of_set (affine hull S)) (closure S - rel_interior S)"
-    by (simp add: closed_subset closedin_diff closure_affine_hull openin_rel_interior)
-  show ?thesis
-  proof (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
-    show "closedin (top_of_set (affine hull S)) (rel_frontier S)"
-      by (simp add: "*" rel_frontier_def)
-  qed simp
-qed
-
-lemma closed_rel_boundary:
-  fixes S :: "'n::euclidean_space set"
-  shows "closed S \<Longrightarrow> closed(S - rel_interior S)"
-  by (metis closed_rel_frontier closure_closed rel_frontier_def)
-
-lemma compact_rel_boundary:
-  fixes S :: "'n::euclidean_space set"
-  shows "compact S \<Longrightarrow> compact(S - rel_interior S)"
-  by (metis bounded_diff closed_rel_boundary closure_eq compact_closure compact_imp_closed)
-
-lemma bounded_rel_frontier:
-  fixes S :: "'n::euclidean_space set"
-  shows "bounded S \<Longrightarrow> bounded(rel_frontier S)"
-by (simp add: bounded_closure bounded_diff rel_frontier_def)
-
-lemma compact_rel_frontier_bounded:
-  fixes S :: "'n::euclidean_space set"
-  shows "bounded S \<Longrightarrow> compact(rel_frontier S)"
-using bounded_rel_frontier closed_rel_frontier compact_eq_bounded_closed by blast
-
-lemma compact_rel_frontier:
-  fixes S :: "'n::euclidean_space set"
-  shows "compact S \<Longrightarrow> compact(rel_frontier S)"
-by (meson compact_eq_bounded_closed compact_rel_frontier_bounded)
-
 lemma convex_same_rel_interior_closure:
   fixes S :: "'n::euclidean_space set"
   shows "\<lbrakk>convex S; convex T\<rbrakk>
@@ -1267,6 +1173,8 @@ lemma convex_same_rel_interior_closure_straddle:
          \<Longrightarrow> rel_interior S = rel_interior T \<longleftrightarrow>
              rel_interior S \<subseteq> T \<and> T \<subseteq> closure S"
 by (simp add: closure_eq_between convex_same_rel_interior_closure)
+
+section\<open>Relative frontier of a convex set\<close>
 
 lemma convex_rel_frontier_aff_dim:
   fixes S1 S2 :: "'n::euclidean_space set"
@@ -1514,24 +1422,10 @@ next
   ultimately show ?thesis by auto
 qed
 
-
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Relative interior and closure under common operations\<close>
 
 lemma rel_interior_inter_aux: "\<Inter>{rel_interior S |S. S \<in> I} \<subseteq> \<Inter>I"
-proof -
-  { fix y
-    assume "y \<in> \<Inter>{rel_interior S |S. S \<in> I}"
-    then have y: "\<forall>S \<in> I. y \<in> rel_interior S"
-      by auto
-    { fix S
-      assume "S \<in> I"
-      then have "y \<in> S"
-        using rel_interior_subset y by auto
-    }
-    then have "y \<in> \<Inter>I" by auto
-  }
-  then show ?thesis by auto
-qed
+  using rel_interior_subset by fastforce 
 
 lemma convex_closure_rel_interior_Int:
   assumes "\<And>S. S\<in>\<F> \<Longrightarrow> convex (S :: 'n::euclidean_space set)"
@@ -2601,7 +2495,7 @@ next
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>Convexity on direct sums\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>Convexity on direct sums\<close>
 
 lemma closure_sum:
   fixes S T :: "'a::real_normed_vector set"
@@ -2900,7 +2794,7 @@ next
     using \<open>y < x\<close> by (simp add: field_simps)
 qed simp
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Explicit formulas for interior and relative interior of convex hull\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Explicit formulas for interior and relative interior of convex hull\<close>
 
 lemma at_within_cbox_finite:
   assumes "x \<in> box a b" "x \<notin> S" "finite S"
@@ -3263,7 +3157,7 @@ next
     by (metis Diff_cancel convex_hull_singleton insert_absorb2 open_segment_def segment_convex_hull)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Similar results for closure and (relative or absolute) frontier\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Similar results for closure and (relative or absolute) frontier\<close>
 
 lemma closure_convex_hull [simp]:
   fixes S :: "'a::euclidean_space set"
@@ -3423,7 +3317,7 @@ next
 qed
 
 
-subsection \<open>Coplanarity, and collinearity in terms of affine hull\<close>
+section \<open>Coplanarity, and collinearity in terms of affine hull\<close>
 
 definition\<^marker>\<open>tag important\<close> coplanar  where
    "coplanar S \<equiv> \<exists>u v w. S \<subseteq> affine hull {u,v,w}"
@@ -3715,23 +3609,6 @@ lemma affine_dependent_imp_collinear_3:
   "affine_dependent {a,b,c} \<Longrightarrow> collinear{a,b,c}"
   by (simp add: collinear_3_eq_affine_dependent)
 
-lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftrightarrow> collinear {0, x-y, z-y}"
-  by (auto simp add: collinear_def)
-
-lemma collinear_3_expand:
-   "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
-proof -
-  have "collinear{a,b,c} = collinear{a,c,b}"
-    by (simp add: insert_commute)
-  also have "... = collinear {0, a - c, b - c}"
-    by (simp add: collinear_3)
-  also have "... \<longleftrightarrow> (a = c \<or> b = c \<or> (\<exists>ca. b - c = ca *\<^sub>R (a - c)))"
-    by (simp add: collinear_lemma)
-  also have "... \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
-    by (cases "a = c \<or> b = c") (auto simp: algebra_simps)
-  finally show ?thesis .
-qed
-
 lemma collinear_aff_dim: "collinear S \<longleftrightarrow> aff_dim S \<le> 1"
 proof
   assume "collinear S"
@@ -3889,7 +3766,7 @@ proof
 qed
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about hyperplanes and halfspaces\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Basic lemmas about hyperplanes and halfspaces\<close>
 
 lemma halfspace_Int_eq:
      "{x. a \<bullet> x \<le> b} \<inter> {x. b \<le> a \<bullet> x} = {x. a \<bullet> x = b}"
@@ -3941,7 +3818,7 @@ lemma halfspace_eq_empty_ge:
   "{x. a \<bullet> x \<ge> b} = {} \<longleftrightarrow> a = 0 \<and> b > 0"
   using halfspace_eq_empty_le [of "-a" "-b"] by simp
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Use set distance for an easy proof of separation properties\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Use set distance for an easy proof of separation properties\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> separation_closures:
   fixes S :: "'a::euclidean_space set"
@@ -4028,7 +3905,7 @@ proof -
     using that by auto
 qed
 
-subsection\<open>Connectedness of the intersection of a chain\<close>
+section\<open>Connectedness of the intersection of a chain\<close>
 
 proposition connected_chain:
   fixes \<F> :: "'a :: euclidean_space set set"
@@ -4163,7 +4040,7 @@ proof (rule connected_chain_gen [of "S k"])
     by (metis imageE le_cases nest)
 qed (use S in auto)
 
-subsection\<open>Proper maps, including projections out of compact sets\<close>
+section\<open>Proper maps, including projections out of compact sets\<close>
 
 lemma finite_indexed_bound:
   assumes A: "finite A" "\<And>x. x \<in> A \<Longrightarrow> \<exists>n::'a::linorder. P x n"
@@ -4233,7 +4110,7 @@ proof -
     by (force simp: closedin_limpt)
 qed
 
-subsection \<open>Closure of conic hulls\<close>
+section \<open>Closure of conic hulls\<close>
 proposition closedin_conic_hull:
   fixes S :: "'a::euclidean_space set"
   assumes "compact T" "0 \<notin> T" "T \<subseteq> S"
@@ -4390,7 +4267,7 @@ next
     by (simp add: continuous_on_closed * closedin_imp_subset)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Trivial fact: convexity equals connectedness for collinear sets\<close>
 
 lemma convex_connected_collinear:
   fixes S :: "'a::euclidean_space set"
@@ -4838,7 +4715,7 @@ corollary aff_dim_hyperplane [simp]:
   shows "a \<noteq> 0 \<Longrightarrow> aff_dim {x. a \<bullet> x = r} = DIM('a) - 1"
 by (metis aff_dim_eq_hyperplane affine_hull_eq affine_hyperplane)
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Some stepping theorems\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Some stepping theorems\<close>
 
 lemma aff_dim_insert:
   fixes a :: "'a::euclidean_space"
@@ -4964,7 +4841,7 @@ proof -
     by (auto simp: bounded_hyperplane_eq_trivial_0)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>General case without assuming closure and getting non-strict separation\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>General case without assuming closure and getting non-strict separation\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> separating_hyperplane_closed_point_inset:
   fixes S :: "'a::euclidean_space set"
@@ -5184,7 +5061,7 @@ lemma supporting_hyperplane_rel_interior:
   by (metis assms convex_closure convex_rel_interior_closure)
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open> Some results on decomposing convex hulls: intersections, simplicial subdivision\<close>
 
 lemma
   fixes S :: "'a::euclidean_space set"
@@ -5736,7 +5613,7 @@ next
   finally show "dim T \<le> dim S" by simp
 qed
 
-subsection\<open>Lower-dimensional affine subsets are nowhere dense\<close>
+section\<open>Lower-dimensional affine subsets are nowhere dense\<close>
 
 proposition dense_complement_subspace:
   fixes S :: "'a :: euclidean_space set"
@@ -5848,7 +5725,7 @@ corollary\<^marker>\<open>tag unimportant\<close> dense_complement_convex_closed
   by (simp add: assms dense_complement_convex)
 
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Parallel slices, etc\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Parallel slices, etc\<close>
 
 text\<open> If we take a slice out of a set, we can do it perpendicularly,
   with the normal vector to the slice parallel to the affine hull.\<close>
@@ -6042,7 +5919,7 @@ next
     by (rule that)
 qed
 
-subsection\<open>Paracompactness\<close>
+section\<open>Paracompactness\<close>
 
 proposition paracompact:
   fixes S :: "'a :: {metric_space,second_countable_topology} set"
@@ -6184,7 +6061,7 @@ corollary\<^marker>\<open>tag unimportant\<close> paracompact_closed:
   by (rule paracompact_closedin [of UNIV S \<C>]) (auto simp: assms)
 
   
-subsection\<^marker>\<open>tag unimportant\<close>\<open>Closed-graph characterization of continuity\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>Closed-graph characterization of continuity\<close>
 
 lemma continuous_closed_graph_gen:
   fixes T :: "'b::real_normed_vector set"
@@ -6256,7 +6133,7 @@ proof -
     by (rule continuous_on_Un_local_open [OF opS opT])
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close>\<open>The union of two collinear segments is another segment\<close>
+section\<^marker>\<open>tag unimportant\<close>\<open>The union of two collinear segments is another segment\<close>
 
 proposition\<^marker>\<open>tag unimportant\<close> in_convex_hull_exchange:
   fixes a :: "'a::euclidean_space"
@@ -6474,7 +6351,7 @@ next
   with convex_open_segment_cases[OF assms] show ?thesis by simp
 qed
 
-subsection\<open>Covering an open set by a countable chain of compact sets\<close>
+section\<open>Covering an open set by a countable chain of compact sets\<close>
   
 proposition open_Union_compact_subsets:
   fixes S :: "'a::euclidean_space set"
@@ -6574,7 +6451,7 @@ next
 qed
 
 
-subsection\<open>Orthogonal complement\<close>
+section\<open>Orthogonal complement\<close>
 
 definition\<^marker>\<open>tag important\<close> orthogonal_comp (\<open>(\<open>open_block notation=\<open>postfix \<bottom>\<close>\<close>_\<^sup>\<bottom>)\<close> [80] 80)
   where "orthogonal_comp W \<equiv> {x. \<forall>y \<in> W. orthogonal y x}"
@@ -6693,7 +6570,7 @@ proof -
     by (auto simp: orthogonal_comp_def orthogonal_def adjoint_works inner_commute)
 qed
 
-subsection\<^marker>\<open>tag unimportant\<close> \<open>A non-injective linear function maps into a hyperplane.\<close>
+section\<^marker>\<open>tag unimportant\<close> \<open>A non-injective linear function maps into a hyperplane.\<close>
 
 lemma linear_surj_adj_imp_inj:
   fixes f :: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space"
@@ -6772,5 +6649,76 @@ lemma linear_singular_image_hyperplane:
   assumes "linear f" "\<not>inj f"
   obtains a where "a \<noteq> 0" "\<And>S. f ` S \<subseteq> {x. a \<bullet> x = 0}"
   using assms by (fastforce simp add: linear_singular_into_hyperplane)
+
+lemma collinear_orthogonal_dist_product:
+  fixes z x x' w y :: "'a::euclidean_space"
+  assumes "collinear {z, x, x'}" "collinear {w, x, y}"
+    "orthogonal (z - w) (x - y)" "orthogonal (y - x') (z - x')"
+    "x' \<noteq> z" "y \<noteq> w"
+  shows "dist z w * dist x y = dist y x' * dist z x"
+proof -
+  \<comment> \<open>Translate so that x is at the origin. All conditions are translation-invariant.\<close>
+  define u v where "u = x' - x" and "v = y - x"
+  have col1: "collinear {0, z - x, u}" 
+    using assms(1) collinear_3[of z x x'] by (simp add: u_def)
+  have col2: "collinear {0, w - x, v}" 
+    using assms(2) collinear_3[of w x y] by (simp add: v_def)
+  have orth1: "(z - x) \<bullet> v - (w - x) \<bullet> v = 0"
+    using assms(3) by (simp add: orthogonal_def v_def algebra_simps)
+  have orth2: "v \<bullet> (z - x) - v \<bullet> u - u \<bullet> (z - x) + u \<bullet> u = 0"
+    using assms(4) by (simp add: orthogonal_def u_def v_def algebra_simps)
+  show "dist z w * dist x y = dist y x' * dist z x"
+  proof (cases "u = 0")
+    case True
+    then have xeq: "x' = x" by (simp add: u_def)
+    then show ?thesis
+      using dist_commute True col2 inner_commute[of v "z - x"]
+        norm_cauchy_schwarz_equal[of "w - x" v] orth1 orth2 v_def by force
+  next
+    case False
+    then have u_ne: "u \<noteq> 0" .
+    with col1 obtain a where za: "z - x = a *\<^sub>R u"
+      by (metis (no_types, lifting) collinear_lemma insert_commute scaleR_zero_left)
+    have v_ne: "v \<noteq> 0"
+      using \<open>x' \<noteq> z\<close> orth2 u_def za by force 
+    with col2 obtain b where wb: "w - x = b *\<^sub>R v"
+      by (metis collinear_lemma doubleton_eq_iff scaleR_zero_left)
+        \<comment> \<open>Express distances in terms of norms.\<close>
+    have dzw: "dist z w = norm (a *\<^sub>R u - b *\<^sub>R v)"
+      using za wb by (simp add: dist_norm algebra_simps)
+    have dxy: "dist x y = norm v"
+      by (simp add: dist_norm v_def norm_minus_commute)
+    have dyx': "dist y x' = norm (v - u)"
+      by (simp add: dist_norm u_def v_def algebra_simps norm_minus_commute)
+    have dzx: "dist z x = norm (a *\<^sub>R u)"
+      using za by (simp add: dist_norm norm_minus_commute)
+    define uu where "uu = u \<bullet> u"
+    define uv where "uv = u \<bullet> v"
+    define vv where "vv = v \<bullet> v"
+    have "(norm (a *\<^sub>R u - b *\<^sub>R v))\<^sup>2 = a * a * (u \<bullet> u) - 2 * (a * b) * (u \<bullet> v) + b * b * (v \<bullet> v)"
+      by (simp add: power2_norm_eq_inner inner_commute algebra_simps)
+    then have "(norm (a *\<^sub>R u - b *\<^sub>R v))\<^sup>2 = a\<^sup>2 * uu - 2 * a * b * uv + b\<^sup>2 * vv"
+      by (simp add: uu_def uv_def vv_def power2_eq_square)
+    then have lhs_sq: "(dist z w * dist x y)\<^sup>2 = (a\<^sup>2 * uu - 2 * a * b * uv + b\<^sup>2 * vv) * vv"
+      by (simp add: dxy dzw power2_norm_eq_inner power_mult_distrib vv_def)
+    have rhs_sq: "(dist y x' * dist z x)\<^sup>2 = a\<^sup>2 * uu * (vv - 2 * uv + uu)"
+      by (simp add: dyx' dzx power2_norm_eq_inner uu_def uv_def vv_def inner_commute algebra_simps)
+    have "(a - 1) * uv = (a - 1) * uu" 
+      using orth2 za by (simp add: uv_def uu_def inner_commute algebra_simps)
+    then have uv_eq: "uv = uu"
+      using orth2 za \<open>x' \<noteq> z\<close> u_def za by auto
+        \<comment> \<open>Key derived facts.\<close>
+    have 1: "a * uv = b * vv"
+      using orth1 uv_def vv_def wb za by force
+    have lhs_eq: "(dist z w * dist x y)\<^sup>2 = (a\<^sup>2 * uu - 2 * a * b * uu + b\<^sup>2 * vv) * vv"
+      using lhs_sq uv_eq by simp
+    also have "\<dots> = a\<^sup>2 * uu * (vv - uu)"
+      using 1 unfolding uv_eq by algebra
+    also have "\<dots> = (dist y x' * dist z x)\<^sup>2"
+      using rhs_sq uv_eq by simp
+    finally have "(dist z w * dist x y)\<^sup>2 = (dist y x' * dist z x)\<^sup>2" .
+    then show ?thesis by simp
+  qed
+qed
 
 end

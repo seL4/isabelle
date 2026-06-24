@@ -1381,6 +1381,100 @@ next
 qed
 
 
+subsection\<open>The relative frontier of a set\<close>
+
+definition\<^marker>\<open>tag important\<close> "rel_frontier S = closure S - rel_interior S"
+
+lemma rel_frontier_empty [simp]: "rel_frontier {} = {}"
+  by (simp add: rel_frontier_def)
+
+lemma rel_frontier_eq_empty:
+    fixes S :: "'n::euclidean_space set"
+    shows "rel_frontier S = {} \<longleftrightarrow> affine S"
+  unfolding rel_frontier_def
+  using rel_interior_subset_closure  by (auto simp add: rel_interior_eq_closure [symmetric])
+
+lemma rel_frontier_sing [simp]:
+    fixes a :: "'n::euclidean_space"
+    shows "rel_frontier {a} = {}"
+  by (simp add: rel_frontier_def)
+
+lemma rel_frontier_affine_hull:
+  fixes S :: "'a::euclidean_space set"
+  shows "rel_frontier S \<subseteq> affine hull S"
+using closure_affine_hull rel_frontier_def by fastforce
+
+lemma rel_frontier_cball [simp]:
+    fixes a :: "'n::euclidean_space"
+    shows "rel_frontier(cball a r) = (if r = 0 then {} else sphere a r)"
+proof (cases rule: linorder_cases [of r 0])
+  case less then show ?thesis
+    by (force simp: sphere_def)
+next
+  case equal then show ?thesis by simp
+next
+  case greater then show ?thesis
+    by simp (metis centre_in_ball empty_iff frontier_cball frontier_def interior_cball interior_rel_interior_gen rel_frontier_def)
+qed
+
+lemma rel_frontier_translation:
+  fixes a :: "'a::euclidean_space"
+  shows "rel_frontier((\<lambda>x. a + x) ` S) = (\<lambda>x. a + x) ` (rel_frontier S)"
+  by (simp add: rel_frontier_def translation_diff rel_interior_translation closure_translation)
+
+lemma rel_frontier_nonempty_interior:
+  fixes S :: "'n::euclidean_space set"
+  shows "interior S \<noteq> {} \<Longrightarrow> rel_frontier S = frontier S"
+  by (metis frontier_def interior_rel_interior_gen rel_frontier_def)
+
+lemma rel_frontier_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "affine hull S = UNIV \<Longrightarrow> rel_frontier S = frontier S"
+  by (simp add: frontier_def rel_frontier_def rel_interior_interior)
+
+lemma closest_point_in_rel_frontier:
+   "\<lbrakk>closed S; S \<noteq> {}; x \<in> affine hull S - rel_interior S\<rbrakk>
+   \<Longrightarrow> closest_point S x \<in> rel_frontier S"
+  by (simp add: closest_point_in_rel_interior closest_point_in_set rel_frontier_def)
+
+lemma closed_rel_frontier [iff]:
+  fixes S :: "'n::euclidean_space set"
+  shows "closed (rel_frontier S)"
+proof -
+  have *: "closedin (top_of_set (affine hull S)) (closure S - rel_interior S)"
+    by (simp add: closed_subset closedin_diff closure_affine_hull openin_rel_interior)
+  show ?thesis
+  proof (rule closedin_closed_trans[of "affine hull S" "rel_frontier S"])
+    show "closedin (top_of_set (affine hull S)) (rel_frontier S)"
+      by (simp add: "*" rel_frontier_def)
+  qed simp
+qed
+
+lemma closed_rel_boundary:
+  fixes S :: "'n::euclidean_space set"
+  shows "closed S \<Longrightarrow> closed(S - rel_interior S)"
+  by (metis closed_rel_frontier closure_closed rel_frontier_def)
+
+lemma compact_rel_boundary:
+  fixes S :: "'n::euclidean_space set"
+  shows "compact S \<Longrightarrow> compact(S - rel_interior S)"
+  by (metis bounded_diff closed_rel_boundary closure_eq compact_closure compact_imp_closed)
+
+lemma bounded_rel_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "bounded S \<Longrightarrow> bounded(rel_frontier S)"
+by (simp add: bounded_closure bounded_diff rel_frontier_def)
+
+lemma compact_rel_frontier_bounded:
+  fixes S :: "'n::euclidean_space set"
+  shows "bounded S \<Longrightarrow> compact(rel_frontier S)"
+using bounded_rel_frontier closed_rel_frontier compact_eq_bounded_closed by blast
+
+lemma compact_rel_frontier:
+  fixes S :: "'n::euclidean_space set"
+  shows "compact S \<Longrightarrow> compact(rel_frontier S)"
+by (meson compact_eq_bounded_closed compact_rel_frontier_bounded)
+
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Various point-to-set separating/supporting hyperplane theorems\<close>
 
 lemma supporting_hyperplane_closed_point:

@@ -259,6 +259,17 @@ Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
 generalised to Euclidean spaces. Stronger versions of the FTC, now for
 countable rather than finite sets. Minor INCOMPATIBILITY
 
+* Session "HOL-Analysis": Theory "Determinant_Linear_Function" provides
+"finite_dimensional_vector_space.det", i.e. the notion of the determinant of 
+a linear function from a finite-dimensional vector space into itself, 
+generalising (but not replacing) the earlier "Determinants.det", which operates
+on matrices. The related "abs_det" gives the absolute value of the determinant
+of a multiset of vectors.
+
+The interpretation for Euclidean spaces, `eucl.det`, is now the
+default meaning of "det", and the previous "Determinants.det" is available with
+the abbreviation "matrix_det". INCOMPATIBILITY
+
 
 *** ML ***
 

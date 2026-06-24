@@ -20,15 +20,18 @@ lemma discreteI: "(\<And>x. x \<in> X \<Longrightarrow> x isolated_in X ) \<Long
 lemma discreteD: "discrete X \<Longrightarrow> x \<in> X \<Longrightarrow> x isolated_in X "
   unfolding discrete_def by auto
  
-lemma uniformI1:
+lemma uniform_discreteI1:
   assumes "e>0" "\<And>x y. \<lbrakk>x\<in>S;y\<in>S;dist x y<e\<rbrakk> \<Longrightarrow> x =y "
   shows "uniform_discrete S"
 unfolding uniform_discrete_def using assms by auto
 
-lemma uniformI2:
+lemma uniform_discreteI2:
   assumes "e>0" "\<And>x y. \<lbrakk>x\<in>S;y\<in>S;x\<noteq>y\<rbrakk> \<Longrightarrow> dist x y\<ge>e "
   shows "uniform_discrete S"
 unfolding uniform_discrete_def using assms not_less by blast
+
+lemma uniform_discrete_Ints: "uniform_discrete (\<int> :: 'a :: real_normed_algebra_1 set)"
+  by (rule uniform_discreteI1[of 1]) (auto elim!: Ints_cases simp: dist_of_int)
 
 lemma isolated_in_islimpt_iff:"(x isolated_in S) \<longleftrightarrow> (\<not> (x islimpt S) \<and> x\<in>S)"
   unfolding isolated_in_def islimpt_def by auto
@@ -329,5 +332,10 @@ lemma uniform_discrete_imp_sparse:
   shows   "X sparse_in A"
   using assms unfolding uniform_discrete_def sparse_in_ball_def
   by (auto simp: discrete_imp_not_islimpt)
+
+lemma sparse_subset_Ints:
+  assumes "X \<subseteq> \<int>"
+  shows   "(X :: 'a :: real_normed_algebra_1 set) sparse_in A"
+  by (rule uniform_discrete_imp_sparse, rule uniform_discrete_subset, rule uniform_discrete_Ints) fact
 
 end

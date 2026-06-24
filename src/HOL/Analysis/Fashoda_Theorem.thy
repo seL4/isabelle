@@ -559,7 +559,7 @@ proof -
   qed
   note z=this[unfolded P1P2 path_image_linepath]
   show thesis
-  proof (rule that[of z])
+  proof 
     have "(z \<in> closed_segment (vector [a $ 1 - 2, a $ 2 - 2]) (vector [pathstart f $ 1, a $ 2 - 2]) \<or>
       z \<in> closed_segment (vector [pathstart f $ 1, a $ 2 - 2]) (pathstart f)) \<or>
       z \<in> closed_segment (pathfinish f) (vector [pathfinish f $ 1, a $ 2 - 2]) \<or>

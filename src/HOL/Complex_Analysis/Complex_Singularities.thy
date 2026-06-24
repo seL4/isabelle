@@ -2601,9 +2601,6 @@ lemma isolated_points_of_discrete:
   shows   "isolated_points_of A = A"
   using assms by (auto simp: isolated_points_of_def discrete_altdef)
 
-lemmas uniform_discreteI1 = uniformI1
-lemmas uniform_discreteI2 = uniformI2
-
 lemma zorder_zero_eqI':
   assumes "f analytic_on {z}"
   assumes "\<And>i. i < nat n \<Longrightarrow> (deriv ^^ i) f z = 0"

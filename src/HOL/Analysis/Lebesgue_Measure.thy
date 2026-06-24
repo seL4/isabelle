@@ -1320,6 +1320,55 @@ lemma integrable_const_ivl [iff]:
   shows "integrable (lebesgue_on {a..b}) (\<lambda>x. c)"
   by (metis cbox_interval finite_measure.integrable_const finite_measure_lebesgue_on lmeasurable_cbox)
 
+subsection \<open>Lebesgue measurability of ordinate sets\<close>
+
+lemma lebesgue_measurable_Times_UNIV:
+  fixes A :: "real set"
+  assumes "A \<in> sets lebesgue"
+  shows "A \<times> (UNIV :: real set) \<in> sets lebesgue"
+proof -
+  have mp_leb: "main_part lborel A \<times> (UNIV :: real set) \<in> sets lebesgue"
+    using sets_completionI_sets
+    by (metis assms borel_Times main_part_sets sets_lborel space_in_borel)
+  obtain N :: "real set" 
+    where N: "N \<in> null_sets lborel" "null_part lborel A \<subseteq> N"  "N \<times> (UNIV :: real set) \<in> null_sets lborel"
+    using null_part[OF assms]
+    by (metis lborel.times_in_null_sets1 lborel_prod sets_lborel space_in_borel)
+  then have "null_part lborel A \<times> (UNIV :: real set) \<in> sets lebesgue"
+    using completion.complete by (simp add: N(2) Sigma_mono sets_completionI_sub)
+  then show ?thesis
+    by (metis Sigma_Un_distrib1 assms main_part_null_part_Un mp_leb sets.Un)
+qed
+
+lemma prod_swap_lebesgue_measurable:
+  "prod.swap \<in> (lebesgue :: ('a::euclidean_space \<times> 'b::euclidean_space) measure)
+    \<rightarrow>\<^sub>M (lebesgue :: ('b \<times> 'a) measure)"
+proof -
+  have swap_lborel: "prod.swap \<in> (lborel :: ('a \<times> 'b) measure) \<rightarrow>\<^sub>M lborel"
+    by (simp add: borel_measurable_continuous_onI continuous_on_swap)
+  have swap_compl: "prod.swap \<in> (lebesgue :: ('a \<times> 'b) measure) \<rightarrow>\<^sub>M lborel"
+    using measurable_completion[OF swap_lborel] by simp
+  have "distr (lebesgue :: ('a \<times> 'b) measure) lborel prod.swap = distr lborel lborel prod.swap"
+    using distr_completion[OF swap_lborel] by simp
+  also have "\<dots> = distr lborel lborel (\<lambda>(x::'a, y::'b). (y, x))"
+    by (intro distr_cong) auto
+  also have "\<dots> = lborel"
+    using lborel_pair.distr_pair_swap by (simp add: lborel_prod eq_commute)
+  finally show ?thesis
+    using completion.measurable_completion2[OF swap_compl] by simp
+qed
+
+lemma lebesgue_measurable_UNIV_Times:
+  fixes B :: "real set"
+  assumes "B \<in> sets lebesgue"
+  shows "(UNIV :: real set) \<times> B \<in> sets lebesgue"
+proof -
+  have "prod.swap -` (B \<times> UNIV) \<inter> space (lebesgue :: (real \<times> real) measure) \<in> sets lebesgue"
+    using measurable_sets[OF prod_swap_lebesgue_measurable lebesgue_measurable_Times_UNIV[OF assms]] .
+  moreover have "prod.swap -` (B \<times> (UNIV :: real set)) = (UNIV :: real set) \<times> B" by auto
+  ultimately show ?thesis by simp
+qed
+
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Translation preserves Lebesgue measure\<close>
 
 lemma sigma_sets_image:
@@ -1400,6 +1449,76 @@ lemma measure_translation_subtract:
   "measure lebesgue ((\<lambda>x. x - a) ` S) = measure lebesgue S"
   using measure_translation [of "- a"] by (simp cong: image_cong_simp)
 
+
+text \<open>A general, reusable kernel: if \<open>f\<close> and \<open>g\<close> are mutually inverse maps between two
+  Euclidean spaces, \<open>g\<close> is Borel measurable, and \<open>g\<close> pushes Lebesgue measure forward to
+  Lebesgue measure (\<open>distr lborel lborel g = lborel\<close>), then taking the \<open>f\<close>-image preserves
+  Lebesgue measurability and measure.\<close>
+
+lemma measure_linear_bij_image_transfer:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes g_meas: "g \<in> lborel \<rightarrow>\<^sub>M lborel"
+    and distr_eq: "distr (lborel::'b measure) lborel g = lborel"
+    and gf: "\<And>x. g (f x) = x" and fg: "\<And>y. f (g y) = y"
+    and S: "S \<in> lmeasurable"
+  shows "f ` S \<in> lmeasurable" and "measure lebesgue (f ` S) = measure lebesgue S"
+proof -
+  have inv_compl: "g \<in> lebesgue \<rightarrow>\<^sub>M lborel"
+    using measurable_completion[OF g_meas] by simp
+  have distrL: "distr (lebesgue::'b measure) lborel g = lborel"
+    using distr_completion[OF g_meas] distr_eq by simp
+  then have null_eq: "null_sets lborel \<subseteq> null_sets (distr lebesgue lborel g)" by simp
+  have inv_lebesgue: "g \<in> (lebesgue::'b measure) \<rightarrow>\<^sub>M (lebesgue::'a measure)"
+    using completion.measurable_completion2[OF inv_compl null_eq] by simp
+  have image_eq: "f ` S = g -` S \<inter> space (lebesgue::'b measure)"
+  proof (intro set_eqI iffI)
+    fix y assume "y \<in> f ` S"
+    with gf show "y \<in> g -` S \<inter> space (lebesgue::'b measure)" by force
+  next
+    fix y assume "y \<in> g -` S \<inter> space (lebesgue::'b measure)"
+    then show "y \<in> f ` S"
+      by (metis IntE image_iff vimageE fg)
+  qed
+  have sets_S: "S \<in> sets (lebesgue::'a measure)"
+    using S by (simp add: fmeasurable_def)
+  have fS_sets: "f ` S \<in> sets (lebesgue::'b measure)"
+    using image_eq measurable_sets[OF inv_lebesgue sets_S] by simp
+  have emeas: "emeasure lebesgue (f ` S) = emeasure (lebesgue::'a measure) S"
+    using image_eq emeasure_distr[OF inv_lebesgue sets_S]
+    by (metis completion.completion_distr_eq distrL inv_compl) 
+  show "f ` S \<in> lmeasurable"
+    using fS_sets emeas S by (auto simp: fmeasurable_def)
+  show "measure lebesgue (f ` S) = measure lebesgue S"
+    using emeas by (simp add: measure_def)
+qed
+
+text \<open>The transport from pairs of reals to type \<^typ>\<open>complex\<close>.\<close>
+lemma measure_Complex_image:
+  fixes S :: "(real \<times> real) set"
+  assumes "S \<in> lmeasurable"
+  shows "(\<lambda>(x,y). Complex x y) ` S \<in> lmeasurable" (is "?C ` _ \<in> _")
+    and "measure lebesgue ((\<lambda>(x,y). Complex x y) ` S) = measure lebesgue S"
+proof -
+  let ?inv = "\<lambda>z::complex. (Re z, Im z)"
+  have inv_lborel: "?inv \<in> lborel \<rightarrow>\<^sub>M lborel" by simp
+  have "continuous_on UNIV (\<lambda>p :: real \<times> real. Complex (fst p) (snd p))"
+    by (intro continuous_on_Complex continuous_on_fst continuous_on_snd continuous_on_id)
+  then have C_meas: "?C \<in> lborel \<rightarrow>\<^sub>M borel"
+    by (simp add: borel_measurable_continuous_onI case_prod_beta)
+  have "distr (lborel::complex measure) lborel ?inv = distr (distr lborel borel ?C) lborel ?inv"
+    using lborel_distr_complex_pair by simp
+  also have "\<dots> = distr lborel lborel (?inv \<circ> ?C)"
+    using C_meas distr_distr inv_lborel measurable_lborel2 by blast
+  also have "?inv \<circ> ?C = (\<lambda>x. x)"
+    by (auto simp: fun_eq_iff split: prod.splits)
+  finally have distr_eq: "distr (lborel::complex measure) lborel ?inv = lborel" by simp
+  have gf: "?inv (?C p) = p" for p by (simp split: prod.splits)
+  have fg: "?C (?inv z) = z" for z by simp
+  show "?C ` S \<in> lmeasurable"
+    using measure_linear_bij_image_transfer(1)[OF inv_lborel distr_eq gf fg assms] .
+  show "measure lebesgue (?C ` S) = measure lebesgue S"
+    using measure_linear_bij_image_transfer(2)[OF inv_lborel distr_eq gf fg assms] .
+qed
 
 subsection \<open>A nice lemma for negligibility proofs\<close>
 
@@ -1720,13 +1839,13 @@ proof -
       using F by (simp add: fsigma.intros)
     show "(S - ?C) \<in> null_sets lebesgue"
     proof (clarsimp simp add: completion.null_sets_outer_le)
-      fix e :: "real"
-      assume "0 < e"
-      then obtain n where n: "1 / Suc n < e"
+      fix \<epsilon> :: "real"
+      assume "0 < \<epsilon>"
+      then obtain n where n: "1 / Suc n < \<epsilon>"
         using nat_approx_posE by metis
-      show "\<exists>T \<in> lmeasurable. S - (\<Union>x. F x) \<subseteq> T \<and> measure lebesgue T \<le> e"
+      show "\<exists>T \<in> lmeasurable. S - (\<Union>x. F x) \<subseteq> T \<and> measure lebesgue T \<le> \<epsilon>"
       proof (intro bexI conjI)
-        show "measure lebesgue (S - F n) \<le> e"
+        show "measure lebesgue (S - F n) \<le> \<epsilon>"
           by (meson F n less_trans not_le order.asym)
       qed (use F in auto)
     qed

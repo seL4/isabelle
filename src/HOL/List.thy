@@ -4540,7 +4540,9 @@ by (induct xs) simp_all
 
 subsubsection \<open>\<^const>\<open>count_list\<close>\<close>
 
-text \<open>This library is intentionally minimal. See the remark about multisets at the point above where @{const count_list} is defined.\<close>
+text \<open>This library is intentionally minimal.
+See the remark about multisets at the point above where @{const count_list} is defined.
+However, dragging in multisets can be overkill, so we should not be too minimal here.\<close>
 
 lemma count_list_append[simp]: "count_list (xs @ ys) x = count_list xs x + count_list ys x"
 by (induction xs) simp_all
@@ -4597,6 +4599,9 @@ qed
 
 lemma count_list_eq_length_filter: "count_list xs y = length(filter ((=) y) xs)"
 by (induction xs) auto
+
+lemma count_list_replicate[simp]: "count_list (replicate n x) y = (if x = y then n else 0)"
+by (induction n) auto
 
 lemma split_list_cycles:
   "\<exists>pref xss. xs = pref @ concat xss \<and> x \<notin> set pref \<and> (\<forall>ys \<in> set xss. \<exists>zs. ys = x # zs)"

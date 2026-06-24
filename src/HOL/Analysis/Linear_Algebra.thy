@@ -1133,12 +1133,100 @@ next
   qed
 qed
 
+lemma collinear_3: "NO_MATCH 0 x \<Longrightarrow> collinear {x,y,z} \<longleftrightarrow> collinear {0, x-y, z-y}"
+  by (auto simp: collinear_def)
+
+lemma collinear_3_expand:
+   "collinear{a,b,c} \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
+proof -
+  have "collinear{a,b,c} = collinear{a,c,b}"
+    by (simp add: insert_commute)
+  also have "... = collinear {0, a - c, b - c}"
+    by (simp add: collinear_3)
+  also have "... \<longleftrightarrow> (a = c \<or> b = c \<or> (\<exists>ca. b - c = ca *\<^sub>R (a - c)))"
+    by (simp add: collinear_lemma)
+  also have "... \<longleftrightarrow> a = c \<or> (\<exists>u. b = u *\<^sub>R a + (1 - u) *\<^sub>R c)"
+    by (cases "a = c \<or> b = c") (auto simp: algebra_simps)
+  finally show ?thesis .
+qed
+
 lemma norm_triangle_eq_imp_collinear:
   fixes x y :: "'a::real_inner"
   assumes "norm (x + y) = norm x + norm y"
   shows "collinear{0,x,y}"
   using assms norm_cauchy_schwarz_abs_eq norm_cauchy_schwarz_equal norm_triangle_eq 
   by blast
+
+lemma collinear_orthogonal_dist_product:
+  fixes z x x' w y :: "'a::euclidean_space"
+  assumes "collinear {z, x, x'}" "collinear {w, x, y}"
+    "orthogonal (z - w) (x - y)" "orthogonal (y - x') (z - x')"
+    "x' \<noteq> z" "y \<noteq> w"
+  shows "dist z w * dist x y = dist y x' * dist z x"
+proof -
+  \<comment> \<open>Translate so that x is at the origin. All conditions are translation-invariant.\<close>
+  define u v where "u = x' - x" and "v = y - x"
+  have col1: "collinear {0, z - x, u}" 
+    using assms(1) collinear_3[of z x x'] by (simp add: u_def)
+  have col2: "collinear {0, w - x, v}" 
+    using assms(2) collinear_3[of w x y] by (simp add: v_def)
+  have orth1: "(z - x) \<bullet> v - (w - x) \<bullet> v = 0"
+    using assms(3) by (simp add: orthogonal_def v_def algebra_simps)
+  have orth2: "v \<bullet> (z - x) - v \<bullet> u - u \<bullet> (z - x) + u \<bullet> u = 0"
+    using assms(4) by (simp add: orthogonal_def u_def v_def algebra_simps)
+  show "dist z w * dist x y = dist y x' * dist z x"
+  proof (cases "u = 0")
+    case True
+    then have xeq: "x' = x" by (simp add: u_def)
+    then show ?thesis
+      using dist_commute True col2 inner_commute[of v "z - x"]
+        norm_cauchy_schwarz_equal[of "w - x" v] orth1 orth2 v_def by force
+  next
+    case False
+    then have u_ne: "u \<noteq> 0" .
+    with col1 obtain a where za: "z - x = a *\<^sub>R u"
+      by (metis (no_types, lifting) collinear_lemma insert_commute scaleR_zero_left)
+    have v_ne: "v \<noteq> 0"
+      using \<open>x' \<noteq> z\<close> orth2 u_def za by force 
+    with col2 obtain b where wb: "w - x = b *\<^sub>R v"
+      by (metis collinear_lemma doubleton_eq_iff scaleR_zero_left)
+        \<comment> \<open>Express distances in terms of norms.\<close>
+    have dzw: "dist z w = norm (a *\<^sub>R u - b *\<^sub>R v)"
+      using za wb by (simp add: dist_norm algebra_simps)
+    have dxy: "dist x y = norm v"
+      by (simp add: dist_norm v_def norm_minus_commute)
+    have dyx': "dist y x' = norm (v - u)"
+      by (simp add: dist_norm u_def v_def algebra_simps norm_minus_commute)
+    have dzx: "dist z x = norm (a *\<^sub>R u)"
+      using za by (simp add: dist_norm norm_minus_commute)
+    define uu where "uu = u \<bullet> u"
+    define uv where "uv = u \<bullet> v"
+    define vv where "vv = v \<bullet> v"
+    have "(norm (a *\<^sub>R u - b *\<^sub>R v))\<^sup>2 = a * a * (u \<bullet> u) - 2 * (a * b) * (u \<bullet> v) + b * b * (v \<bullet> v)"
+      by (simp add: power2_norm_eq_inner inner_commute algebra_simps)
+    then have "(norm (a *\<^sub>R u - b *\<^sub>R v))\<^sup>2 = a\<^sup>2 * uu - 2 * a * b * uv + b\<^sup>2 * vv"
+      by (simp add: uu_def uv_def vv_def power2_eq_square)
+    then have lhs_sq: "(dist z w * dist x y)\<^sup>2 = (a\<^sup>2 * uu - 2 * a * b * uv + b\<^sup>2 * vv) * vv"
+      by (simp add: dxy dzw power2_norm_eq_inner power_mult_distrib vv_def)
+    have rhs_sq: "(dist y x' * dist z x)\<^sup>2 = a\<^sup>2 * uu * (vv - 2 * uv + uu)"
+      by (simp add: dyx' dzx power2_norm_eq_inner uu_def uv_def vv_def inner_commute algebra_simps)
+    have "(a - 1) * uv = (a - 1) * uu" 
+      using orth2 za by (simp add: uv_def uu_def inner_commute algebra_simps)
+    then have uv_eq: "uv = uu"
+      using orth2 za \<open>x' \<noteq> z\<close> u_def za by auto
+        \<comment> \<open>Key derived facts.\<close>
+    have 1: "a * uv = b * vv"
+      using orth1 uv_def vv_def wb za by force
+    have lhs_eq: "(dist z w * dist x y)\<^sup>2 = (a\<^sup>2 * uu - 2 * a * b * uu + b\<^sup>2 * vv) * vv"
+      using lhs_sq uv_eq by simp
+    also have "\<dots> = a\<^sup>2 * uu * (vv - uu)"
+      using 1 unfolding uv_eq by algebra
+    also have "\<dots> = (dist y x' * dist z x)\<^sup>2"
+      using rhs_sq uv_eq by simp
+    finally have "(dist z w * dist x y)\<^sup>2 = (dist y x' * dist z x)\<^sup>2" .
+    then show ?thesis by simp
+  qed
+qed
 
 
 subsection\<open>Properties of special hyperplanes\<close>

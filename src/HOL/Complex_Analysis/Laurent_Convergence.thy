@@ -622,6 +622,18 @@ lemma is_pole_fls_subdegree_iff:
   using assms is_pole_imp_neg_fls_subdegree has_laurent_expansion_imp_is_pole
   by auto
 
+lemma has_laurent_expansion_analytic_imp_fls_nth_0_eq:
+  assumes "f analytic_on {z}" "(\<lambda>w. f (z + w)) has_laurent_expansion F"
+  shows   "fls_nth F 0 = f z"
+proof (rule tendsto_unique)
+  from assms have "fls_subdegree F \<ge> 0"
+    using analytic_at_imp_no_pole is_pole_fls_subdegree_iff not_le by blast
+  thus "f \<midarrow>z\<rightarrow> fls_nth F 0"
+    by (intro has_laurent_expansion_imp_tendsto) (use assms in auto)
+  show "f \<midarrow>z\<rightarrow> f z"
+    by (intro analytic_at_imp_isCont isContD assms)
+qed auto
+
 lemma
   assumes "f has_laurent_expansion F"
   shows   has_laurent_expansion_isolated_0: "isolated_singularity_at f 0"

@@ -348,17 +348,6 @@ lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>\<ep
   using approachable_lt_le2 [where f="\<lambda>y. dist y x" and P="\<lambda>y. y \<notin> S \<or> y = x" and Q="\<lambda>x. True"]
   by auto
 
-lemma limpt_of_limpts: "x islimpt {y. y islimpt S} \<Longrightarrow> x islimpt S"
-  for x :: "'a::metric_space"
-  by (metis islimpt_def islimpt_eq_acc_point mem_Collect_eq)
-
-lemma closed_limpts:  "closed {x::'a::metric_space. x islimpt S}"
-  using closed_limpt limpt_of_limpts by blast
-
-lemma limpt_of_closure: "x islimpt closure S \<longleftrightarrow> x islimpt S"
-  for x :: "'a::metric_space"
-  by (auto simp: closure_def islimpt_Un dest: limpt_of_limpts)
-
 lemma islimpt_eq_infinite_ball: "x islimpt S \<longleftrightarrow> (\<forall>\<epsilon>>0. infinite(S \<inter> ball x \<epsilon>))"
   unfolding islimpt_eq_acc_point
   by (metis open_ball Int_commute Int_mono finite_subset open_contains_ball_eq subset_eq)
@@ -1332,19 +1321,29 @@ lemma diameter_bounded_bound:
 proof -
   from S obtain z \<delta> where z: "\<And>x. x \<in> S \<Longrightarrow> dist z x \<le> \<delta>"
     unfolding bounded_def by auto
-  have "bdd_above (case_prod dist ` (S\<times>S))"
-  proof (intro bdd_aboveI, safe)
-    fix a b
-    assume "a \<in> S" "b \<in> S"
-    with z[of a] z[of b] dist_triangle[of a b z]
-    show "dist a b \<le> 2 * \<delta>"
-      by (simp add: dist_commute)
-  qed
+  have "dist a b \<le> 2 * \<delta>" if "a \<in> S" "b \<in> S" for a b
+    by (smt (verit) dist_triangle3 that z)
+  then have "bdd_above (case_prod dist ` (S\<times>S))"
+    by (force simp: bdd_above.I2)
   moreover have "(x,y) \<in> S\<times>S" using S by auto
   ultimately have "dist x y \<le> (SUP (x,y)\<in>S\<times>S. dist x y)"
     by (rule cSUP_upper2) simp
   with \<open>x \<in> S\<close> show ?thesis
     by (auto simp: diameter_def)
+qed
+
+lemma diameter_eq_0:
+  fixes S :: "'a::metric_space set"
+  assumes "bounded S"
+  shows "diameter S = 0 \<longleftrightarrow> S = {} \<or> (\<exists>a. S = {a})"
+proof
+  assume "diameter S = 0"
+  then show "S = {} \<or> (\<exists>a. S = {a})"
+    using assms diameter_bounded_bound by fastforce
+next
+  assume "S = {} \<or> (\<exists>a. S = {a})"
+  then show "diameter S = 0"
+    using diameter_empty diameter_singleton by auto
 qed
 
 lemma diameter_lower_bounded:

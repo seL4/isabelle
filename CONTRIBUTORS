@@ -6,6 +6,18 @@ listed as an author in one of the source files of this Isabelle distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* June 2026: Manuel Eberl
+  HOL-Complex_Analysis: new compositional relation "has_zorder" to simplify 
+  analysis of zeros and poles of compound functions.
+
+* April 2026: Manuel Eberl
+  HOL-Analysis: Determinant of a linear function and absolute determinant 
+  of a multiset of vectors.
+  
+* April 2026: Manuel Eberl and Larry Paulson
+  HOL-Analysis: Transfer setup to lift theorems about "real ^ 'n :: finite" 
+  to "'a :: euclidean_space". Used to prove change of variables for 
+  arbitrary euclidean spaces.
 
 Contributions to Isabelle2025-1
 -------------------------------
