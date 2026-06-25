@@ -9,6 +9,7 @@ import java.io.{File => JFile}
 
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.scalajs.logging
@@ -110,12 +111,13 @@ object Scalajs {
           }
 
         val js_dir = Isabelle_System.make_directory(dir + Path.basic("js"))
+        val output = PathOutputDirectory(js_dir.java_path.nn)
 
         val futures = 
           for {
             containers <- PathIRContainer.fromClasspath(ir_dir :: classpath.jars.map(_.toPath.nn))
             ir_files <- cache.cached(containers._1)
-            result <- linker.link(ir_files, Nil, PathOutputDirectory(js_dir.java_path.nn), logger)
+            result <- linker.link(ir_files, Nil, output, logger)
           } yield result
 
         val report =
