@@ -101,8 +101,10 @@ object Scalajs {
 
         val logger =
           new logging.Logger {
-            def trace(t: => Throwable): Unit = throw t
-            def log(level: logging.Level, message: => String): Unit =  {
+            def trace(t: => Throwable): Unit = {
+              msgs += Message(Message.Phase.linking, Message.Kind.error, Exn.trace(t))
+            }
+            def log(level: logging.Level, message: => String): Unit = {
               msgs += Message.linking(level, message)
             }
           }
@@ -116,7 +118,13 @@ object Scalajs {
             result <- linker.link(ir_files, Nil, PathOutputDirectory(js_dir.java_path.nn), logger)
           } yield result
 
-        val report = scala.concurrent.Await.result(futures, scala.concurrent.duration.Duration.Inf)
+        val report =
+         Exn.capture { Await.result(futures, scala.concurrent.duration.Duration.Inf) } match {
+           case Exn.Res(res) => Some(res)
+           case Exn.Exn(t) =>
+             msgs += Message(Message.Phase.linking, Message.Kind.error, Exn.trace(t))
+             None
+         }
 
         val results =
           for (name <- File.read_dir(js_dir) if name.endsWith(".js"))
@@ -124,7 +132,7 @@ object Scalajs {
             Isabelle_System.copy_file(js_dir + Path.basic(name), output_dir)
             output_dir + Path.basic(name)
           }
-        Result(msgs.toList, Some(report), results)
+        Result(msgs.toList, report, results)
       }
     }
   }
