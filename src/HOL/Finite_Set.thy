@@ -2405,7 +2405,7 @@ lemma surj_card_le: "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrighta
 
 lemma card_le_card_if_mem_imp_ex_mem:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" and \<X> :: "'a set" and \<Y> :: "'c set"
-  defines "XY \<equiv> {(x, y)| x y. x \<in> \<X> \<and> f x y \<in> \<Y>}"
+  defines "XY \<equiv> {(x, y). x \<in> \<X> \<and> f x y \<in> \<Y>}"
   assumes "finite \<X>" and "finite \<Y>" and
     f_inj: "inj_on (\<lambda>(x, y). f x y) XY" and
     ex_in_\<Y>: "\<And>x. x \<in> \<X> \<Longrightarrow> \<exists>y. f x y \<in> \<Y>"
