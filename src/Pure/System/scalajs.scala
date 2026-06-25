@@ -50,6 +50,14 @@ object Scalajs {
   sealed case class Message(phase: Message.Phase, kind: Message.Kind, text: String) {
     def is_error: Boolean = kind == Message.Kind.error
     override def toString: String = text
+
+    def output(progress: Progress): Unit = kind match {
+      case Message.Kind.error => progress.echo_error_message(text)
+      case Message.Kind.warning => progress.echo_warning(text)
+      case Message.Kind.info => progress.echo(text)
+      case Message.Kind.debug => progress.echo(text, verbose = true)
+      case Message.Kind.other =>
+    }
   }
 
   sealed case class Result(
