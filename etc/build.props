@@ -215,6 +215,7 @@ sources = \
   src/Pure/System/progress.scala \
   src/Pure/System/registry.scala \
   src/Pure/System/scala.scala \
+  src/Pure/System/scalajs.scala \
   src/Pure/System/setup_tool.scala \
   src/Pure/System/system_channel.scala \
   src/Pure/System/tty_loop.scala \
