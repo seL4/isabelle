@@ -14,13 +14,17 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.scalajs.logging
 import org.scalajs.linker.{PathIRContainer, StandardImpl, PathOutputDirectory}
-import org.scalajs.linker.interface.{Report, StandardConfig}
+import org.scalajs.linker.interface.{Report, StandardConfig, ModuleInitializer}
 
 import dotty.tools.dotc.Driver
 import dotty.tools.dotc.interfaces.{Diagnostic, SimpleReporter}
 
 
 object Scalajs {
+  final case class Module(name: String, class_name: String, main: String = "main") {
+    def js_path: Path = Path.basic(name).ext("js")
+  }
+
   object Message {
     enum Phase { case compilation, linking }
     enum Kind { case error, warning, info, debug, other }
@@ -74,6 +78,7 @@ object Scalajs {
 
   def compile(
     sources: List[JFile],
+    modules: List[Module],
     output_dir: Path,
     more_settings: List[String] = Nil,
     classpath: Classpath = Classpath()
@@ -113,11 +118,15 @@ object Scalajs {
         val js_dir = Isabelle_System.make_directory(dir + Path.basic("js"))
         val output = PathOutputDirectory(js_dir.java_path.nn)
 
+        val initializers =
+          for (m <- modules)
+          yield ModuleInitializer.mainMethod(m.class_name, m.main).withModuleID(m.name)
+
         val futures = 
           for {
             containers <- PathIRContainer.fromClasspath(ir_dir :: classpath.jars.map(_.toPath.nn))
             ir_files <- cache.cached(containers._1)
-            result <- linker.link(ir_files, Nil, output, logger)
+            result <- linker.link(ir_files, initializers, output, logger)
           } yield result
 
         val report =
