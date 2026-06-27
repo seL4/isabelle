@@ -98,6 +98,21 @@ object Component_Scala {
 
   /* build Scala component */
 
+  val build_patch =
+"""
+diff -Nru scala-3.3.8/bin/common scala-3.3.8-patched/bin/common
+--- scala-3.3.8/bin/common	2026-06-10 15:56:37.327000000 +0200
++++ scala-3.3.8-patched/bin/common	2026-06-27 13:46:48.804966864 +0200
+@@ -55,7 +55,6 @@
+            if [ -z "$JAVA_HOME" ] ; then
+              JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/${JAVA_VERSION}/Home
+            fi
+-           JAVACMD="`which java`"
+            ;;
+ esac
+ 
+"""
+
   def build_scala(
     target_dir: Path = Path.current,
     progress: Progress = new Progress
@@ -114,6 +129,7 @@ object Component_Scala {
     Isabelle_System.with_tmp_file("archive", ext = "tar.gz") { archive_path =>
       main_download.get(archive_path, progress = progress)
       Isabelle_System.extract(archive_path, component_dir.path, strip = true)
+      Isabelle_System.apply_patch(component_dir.path, build_patch, progress = progress)
     }
 
     lib_downloads.foreach(download =>
@@ -161,6 +177,9 @@ SCALA_INTERFACES="$SCALA_HOME/lib/""" + interfaces + """"
     File.write(component_dir.README,
       "This distribution of Scala integrates the following parts:\n\n" +
       (main_download :: lib_downloads).map(_.print).mkString("\n\n") + """
+
+The following patch has been applied:
+""" + build_patch + """
 
 
         Makarius
