@@ -77,8 +77,12 @@ directory individually.
       platform match {
         case Platform.Family.linux_arm =>
           Bundle_Info(platform, "Linux (ARM)", dist_name + "_linux_arm.tar.gz")
-        case Platform.Family.linux => Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz")
-        case Platform.Family.macos => Bundle_Info(platform, "macOS", dist_name + "_macos.tar.gz")
+        case Platform.Family.linux =>
+          Bundle_Info(platform, "Linux", dist_name + "_linux.tar.gz")
+        case Platform.Family.macos =>
+          Bundle_Info(platform, "macOS (Intel)", dist_name + "_macos.tar.gz")
+        case Platform.Family.macos_arm =>
+          Bundle_Info(platform, "macOS (ARM)", dist_name + "_macos_arm.tar.gz")
         case Platform.Family.windows => Bundle_Info(platform, "Windows", dist_name + ".exe")
       }
   }
@@ -236,26 +240,26 @@ directory individually.
 
     val ssh =
       if (server.nonEmpty) SSH.open_session(options, server)
-      else if (Platform.family == platform) SSH.Local
+      else if (Platform.family == platform || Platform.is_macos && platform == Platform.Family.macos) {
+        SSH.Local
+      }
       else error("Undefined option " + server_option + ": cannot build heaps")
 
     try {
       ssh.with_tmp_dir { remote_dir =>
         ssh.write_directory(remote_dir, local_dir, direct = true)
 
-        val build_command =
-          "bin/isabelle build -o parallel_proofs=0 -o system_heaps -b -- " + Bash.strings(build_sessions)
-        def system_apple(b: Boolean): String =
-          """{ echo "ML_system_apple = """ + b + """" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
-
         ssh.bash(cwd = remote_dir, settings = false, script =
           Library.make_lines(
             "set -e",
             """mkdir -p "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc" """,
-            system_apple(false),
-            build_command,
-            system_apple(true),
-            build_command)).check
+            if (platform == Platform.Family.macos && ssh.isabelle_platform.is_arm) {
+              """{ echo "ML_system_apple = false" > "$(bin/isabelle getenv -b ISABELLE_HOME_USER)/etc/preferences"; }"""
+            }
+            else "",
+            "bin/isabelle build -o parallel_proofs=0 -o system_heaps -b -- " +
+              Bash.strings(build_sessions)
+          )).check
 
         val local_heaps = local_dir + Path.basic("heaps")
         val remote_heaps = remote_dir + Path.basic("heaps")
@@ -341,7 +345,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
     val component_dir = isabelle_target + Path.explode("contrib/Isabelle_app")
     Isabelle_System.move_file(
-      component_dir + Path.explode(Platform.Family.standard(platform)) + Path.explode("Isabelle"),
+      component_dir + Path.explode(Platform.Family.native(platform)) + Path.explode("Isabelle"),
       isabelle_target + Path.explode(isabelle_name))
     Isabelle_System.rm_tree(component_dir)
   }
@@ -698,7 +702,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Bash.string(isabelle_name))
 
 
-          case Platform.Family.macos =>
+          case Platform.Family.macos | Platform.Family.macos_arm =>
             File.change(isabelle_target + jedit_props) {
               _.replacing(
                 "lookAndFeel=.*".r -> "lookAndFeel=com.formdev.flatlaf.themes.FlatMacLightLaf",

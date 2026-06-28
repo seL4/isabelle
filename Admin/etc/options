@@ -18,6 +18,9 @@ option build_host_linux_arm : string = "" for build connection
 option build_host_linux : string = "" for build connection
   -- "SSH user@host for remote build of heaps"
 
+option build_host_macos_arm : string = "" for build connection
+  -- "SSH user@host for remote build of heaps"
+
 option build_host_macos : string = "" for build connection
   -- "SSH user@host for remote build of heaps"
 

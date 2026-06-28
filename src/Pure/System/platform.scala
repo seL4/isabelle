@@ -20,12 +20,14 @@ object Platform {
   def family: Family =
     if (is_linux && is_arm) Family.linux_arm
     else if (is_linux) Family.linux
+    else if (is_macos && is_arm) Family.macos_arm
     else if (is_macos) Family.macos
     else if (is_windows) Family.windows
     else error("Failed to determine current platform family")
 
   object Family {
-    val list: List[Family] = List(Family.linux, Family.linux_arm, Family.windows, Family.macos)
+    val list: List[Family] =
+      List(Family.linux, Family.linux_arm, Family.windows, Family.macos, Family.macos_arm)
 
     def unapply(name: String): Option[Family] =
       try { Some(Family.valueOf(name)) }
@@ -38,13 +40,13 @@ object Platform {
       {
         case Family.linux_arm => "arm64-linux"
         case Family.linux => "x86_64-linux"
-        case Family.macos => "x86_64-darwin"
+        case Family.macos | Family.macos_arm => "x86_64-darwin"
         case Family.windows => "x86_64-cygwin"
       }
 
     val native: Family => String =
       {
-        case Family.macos => "arm64-darwin"
+        case Family.macos_arm => "arm64-darwin"
         case Family.windows => "x86_64-windows"
         case platform => standard(platform)
       }
@@ -54,7 +56,7 @@ object Platform {
         .getOrElse(error("Bad platform " + quote(platform)))
   }
 
-  enum Family { case linux_arm, linux, macos, windows }
+  enum Family { case linux_arm, linux, macos, macos_arm, windows }
 
 
   /* platform identifiers */
@@ -72,7 +74,7 @@ object Platform {
   def os_name: String =
     family match {
       case Family.linux_arm => "linux"
-      case Family.macos => "darwin"
+      case Family.macos | Family.macos_arm => "darwin"
       case _ => family.toString
     }
 
@@ -104,6 +106,7 @@ object Platform {
 
     def is_linux_arm: Boolean = family == Family.linux_arm
     def is_linux: Boolean = family == Family.linux
+    def is_macos_arm: Boolean = family == Family.macos_arm
     def is_macos: Boolean = family == Family.macos
     def is_windows: Boolean = family == Family.windows
 

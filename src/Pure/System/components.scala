@@ -47,8 +47,10 @@ object Components {
           paths("arm64-linux", "arm64_32-linux"),
         Platform.Family.linux.toString ->
           paths("x86_64-linux", "x86_64_32-linux"),
+        Platform.Family.macos_arm.toString ->
+          paths("arm64-darwin", "arm64_32-darwin"),
         Platform.Family.macos.toString ->
-          paths("arm64-darwin", "arm64_32-darwin", "x86_64-darwin", "x86_64_32-darwin"),
+          paths("x86_64-darwin", "x86_64_32-darwin"),
         Platform.Family.windows.toString ->
           paths("x86_64-cygwin", "x86_64-windows", "x86_64_32-windows", "x86-windows"),
         "obsolete" -> paths("x86-linux", "x86-cygwin")
