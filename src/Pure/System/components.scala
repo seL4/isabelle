@@ -219,7 +219,7 @@ object Components {
       val props =
         if (props_path.is_file) {
           try {
-            for (case (a, b) <- File.read_properties(props_path))
+            for ((a, b) <- File.read_properties(props_path))
               yield {
                 if (!default_platforms.defined(a)) error("Bad platform family " + quote(a))
                 val ps = Word.explode(b).map(Path.explode)
