@@ -26,7 +26,7 @@ lipics-3.1.3-1
 llncs-2.25
 minisat-2.2.1-2
 mlton-20241230-1
-nunchaku-0.5
+nunchaku-0.5-1
 opam-2.0.7
 pdfjs-5.4.394
 polyml-5.9.2-3
@@ -34,7 +34,7 @@ postgresql-42.7.8
 prismjs-1.30.0
 rsync-3.2.7-2
 scala-3.3.8
-smbc-0.4.1
+smbc-0.4.1-1
 solr-9.9.0
 spass-3.8ds-2
 sqlite-3.51.0.0
