@@ -57,8 +57,8 @@ object Elm {
     def sources: List[Path] =
       for {
         src_dir <- src_dirs
-        path = dir + Path.explode(src_dir)
-        relative_path <- File.find_files(path, _.file_name.endsWith(".elm"), relative = true)
+        path <- File.find_files(dir + Path.explode(src_dir), _.file_name.endsWith(".elm"))
+        relative_path <- File.get_relative_path(dir, path)
       } yield relative_path
 
     def sources_shasum: Shasum = {
