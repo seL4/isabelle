@@ -188,6 +188,8 @@ For example:
     "cvc5_structural_induction".
 
 * Sledgehammer:
+  - Update of bundled provers:
+      . zipperposition-2.1 -- include arm64-darwin
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
 
