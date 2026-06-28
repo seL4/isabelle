@@ -44,8 +44,8 @@ object Component_Zipperposition {
 
       progress.echo("Building Zipperposition for " + platform_name + " ...")
       progress.bash(cwd = build_dir, echo = progress.verbose,
-        script = "isabelle_opam install -y --destdir=" + File.bash_path(build_dir) +
-          " zipperposition=" + Bash.string(version)).check
+        script = "export OPAMCLI=2.0; isabelle_opam install -y --unlock-base --destdir=" +
+          File.bash_path(build_dir) + " zipperposition=" + Bash.string(version)).check
 
 
       /* install */
