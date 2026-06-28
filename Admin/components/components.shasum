@@ -554,6 +554,7 @@ f132329ca1045858ef456cc08b197c9eeea6881b postgresql-9.4.1212.tar.gz
 0d992261081c0ff0a8b4e20d343a9863d6fca3ba prismjs-1.30.0.tar.gz
 f042bba5fb82c7eb8aee99f92eb6ec38c8a067f7 python-3.10.4.tar.gz
 31d84d632faa216b8f9abf8e8591695e467fbb24 rsync-3.2.7-1.tar.gz
+fa066f5ed40086f13a7afc926f815a63b847a329 rsync-3.2.7-2.tar.gz
 d144120b7cf2d2b3106632af0b98c78278c467d7 rsync-3.2.7.tar.gz
 0885e1f1d8feaca78d2f204b6487e6eec6dfab4b scala-2.10.0.tar.gz
 f7dc7a4e1aea46408fd6e44b8cfacb33af61afbc scala-2.10.1.tar.gz
