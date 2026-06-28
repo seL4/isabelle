@@ -379,10 +379,7 @@ object Solr {
     def open_database(database: String): Database =
       if (!database_dir(database).is_dir) error("Missing Solr database: " + quote(database))
       else {
-        val jprops = File.read_props(database_dir(database) + Path.basic("core.properties"))
-        val props =
-          (for (key <- jprops.stringPropertyNames().iterator().asScala)
-          yield key -> jprops.getProperty(key)).toList
+        val props = File.read_properties(database_dir(database) + Path.basic("core.properties"))
 
         val server = new EmbeddedSolrServer(solr_data.java_path, database)
   

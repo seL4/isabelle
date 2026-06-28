@@ -22,6 +22,7 @@ import org.tukaani.xz
 import com.github.luben.zstd
 
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 
 
 object File {
@@ -324,6 +325,8 @@ object File {
     props.load(Files.newBufferedReader(path.java_path))
     props
   }
+
+  def read_properties(path: Path): Properties.T = read_props(path).asScala.toList
 
 
   /* write */
