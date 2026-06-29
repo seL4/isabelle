@@ -55,7 +55,14 @@ function isabelle_opam ()
     echo "Unknown ISABELLE_OPAM -- OCaml management tools unavailable" >&2
     return 127
   else
-    env OPAMROOT="$ISABELLE_OPAM_ROOT" OPAMCOLOR="never" "$ISABELLE_OPAM" "$@"
+    case "$ISABELLE_OPAM" in
+      *x86_64-windows*)
+        env OPAMROOT="$(platform_path "$ISABELLE_OPAM_ROOT")" OPAMCOLOR="never" "$ISABELLE_OPAM" "$@"
+        ;;
+      *)
+        env OPAMROOT="$ISABELLE_OPAM_ROOT" OPAMCOLOR="never" "$ISABELLE_OPAM" "$@"
+        ;;
+    esac
   fi
 }
 export -f isabelle_opam
