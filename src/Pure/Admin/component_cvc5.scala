@@ -14,7 +14,6 @@ object Component_CVC5 {
   /* platform information */
 
   sealed case class Download_Platform(platform_name: String, download_name: String) {
-    def is_arm: Boolean = platform_name.startsWith("arm64-")
     def is_windows: Boolean = platform_name.endsWith("-windows")
   }
 
