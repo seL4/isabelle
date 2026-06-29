@@ -43,6 +43,7 @@ sources = \
   src/Pure/Admin/component_llncs.scala \
   src/Pure/Admin/component_minisat.scala \
   src/Pure/Admin/component_mlton.scala \
+  src/Pure/Admin/component_opam.scala \
   src/Pure/Admin/component_pdfjs.scala \
   src/Pure/Admin/component_polyml.scala \
   src/Pure/Admin/component_postgresql.scala \
