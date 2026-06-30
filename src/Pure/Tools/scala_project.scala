@@ -66,7 +66,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.scala-lang:scala3-library_3:scala-library:""" + scala_version + """'
+  implementation 'org.scala-lang:scala3-library_3:""" + scala_version + """'
   compileOnly files(
     """ + jars.map(jar => groovy_string(File.platform_path(jar))).mkString("", ",\n    ", ")") +
 """
