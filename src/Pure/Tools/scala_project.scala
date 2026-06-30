@@ -83,9 +83,15 @@ dependencies {
 
     override val project_root: Path = Path.explode("pom.xml")
 
+    def replace_special(c: Char): String =
+      if (Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c) || "_-.".contains(c)) c.toString
+      else "_"
+
+    def sanitize_name(name: String): String = name.iterator.map(replace_special).mkString
+
     override def init_project(dir: Path, jars: List[Path]): Unit = {
       def dependency(jar: Path): String = {
-        val name = jar.expand.drop_ext.base.implode
+        val name = sanitize_name(jar.expand.drop_ext.base.implode)
         val system_path = File.platform_path(jar.absolute)
         """  <dependency>
     <groupId>classpath</groupId>
