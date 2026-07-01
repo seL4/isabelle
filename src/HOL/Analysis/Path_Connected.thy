@@ -1139,6 +1139,11 @@ lemma simple_path_shiftpath:
   shows "simple_path (shiftpath a g)"
   using assms loop_free_shiftpath path_shiftpath simple_path_def by fastforce
 
+lemma shiftpath_reversepath_loop:
+  assumes "x \<in> {0..1}" "pathstart p = pathfinish p"
+  shows   "shiftpath c (reversepath p) x = reversepath (shiftpath (1-c) p) x"
+  using assms
+  by (auto simp: shiftpath_def reversepath_def algebra_simps pathstart_def pathfinish_def)
 
 subsection \<open>Straight-Line Paths\<close>
 
