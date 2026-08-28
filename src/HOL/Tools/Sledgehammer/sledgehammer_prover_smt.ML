@@ -67,6 +67,8 @@ fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
     | NONE => UnknownError ("Abnormal termination with exit code " ^ string_of_int code))
   | failure_of_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_of_smt_failure (SMT_Failure.Other_Failure s) = UnknownError s
+  | failure_of_smt_failure (SMT_Failure.Replay (s, _)) = UnknownError ("Replay error: " ^ s)
+  | failure_of_smt_failure SMT_Failure.Unknown = UnknownError ""
 
 val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
