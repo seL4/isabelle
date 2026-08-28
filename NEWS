@@ -182,6 +182,16 @@ For example:
     reconstruction works best if you have Reals imported, even if you are using
     only integers.
   - like veriT, cvc5 has strategies to improve the performance of reconstruction.
+  - Added options "smt_native_datatypes" and "smt_native_codatatypes" to
+    emit native SMT-LIB (co)datatype declarations. Both options are
+    honoured only by solvers that support the declaration.
+  - Datatype declarations now use the SMT-LIB 2.6 syntax, except for z3,
+    which keeps the pre-2.6 syntax.
+  - The solvers "vampire_smt_dt" and "vampire_smt_nodt" have been replaced
+    by "vampire_smt", controlled by "smt_native_datatypes".
+    INCOMPATIBILITY.
+  - Removed option "cvc_extensions"; use "smt_native_datatypes" and
+    "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
 * Sledgehammer:
   - Update of bundled provers:

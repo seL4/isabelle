@@ -26,7 +26,8 @@ fun smtlib_logic "z3" ts _ =
   | smtlib_logic "verit" _ _ = NONE
   | smtlib_logic _ ts _ =
     if exists (Term.exists_type (Term.exists_subtype is_wordT)) ts
-    then SOME (SMT_Translate.SL ({fixedSizeBitVectors=true,real=true,set=false}:SMT_Translate.smtlib_theories))
+    then SOME (SMT_Translate.SL ({fixedSizeBitVectors=true,real=true,set=false,
+      datatypes=false}:SMT_Translate.smtlib_theories))
     else NONE
 
 

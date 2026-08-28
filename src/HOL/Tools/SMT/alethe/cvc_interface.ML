@@ -6,7 +6,6 @@ Interface to CVC4 and cvc5 based on an extended version of SMT-LIB.
 
 signature CVC_INTERFACE =
 sig
-  val smtlib_cvcC: SMT_Util.class
   val hosmtlib_cvcC: SMT_Util.class
 end;
 
@@ -14,7 +13,6 @@ structure CVC_Interface: CVC_INTERFACE =
 struct
 
 val cvcC = ["cvc"]
-val smtlib_cvcC = SMTLIB_Interface.smtlibC @ cvcC
 val hosmtlib_cvcC = SMTLIB_Interface.hosmtlibC @ cvcC
 
 
@@ -25,13 +23,12 @@ local
     {order = order,
      (*logic = K (K "(set-logic ALL_SUPPORTED)\n"),*)
      logic = K (K SMT_Translate.ALL),
-     fp_kinds = [BNF_Util.Least_FP, BNF_Util.Greatest_FP],
-     serialize = #serialize (SMTLIB_Interface.translate_config order ctxt)}
+     fp_kinds = [],
+     serialize = #serialize (SMTLIB_Interface.translate_config order [] ctxt)}
 in
 
 val _ = Theory.setup (Context.theory_map
-  (SMT_Translate.add_config (smtlib_cvcC, translate_config SMT_Util.First_Order) #>
-   SMT_Translate.add_config (hosmtlib_cvcC, translate_config SMT_Util.Higher_Order)))
+  (SMT_Translate.add_config (hosmtlib_cvcC, translate_config SMT_Util.Higher_Order)))
 
 end
 

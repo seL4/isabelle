@@ -6,7 +6,6 @@ Setup SMT solvers.
 
 signature SMT_SYSTEMS =
 sig
-  val cvc_extensions: bool Config.T
   val z3_extensions: bool Config.T
   val smt_method: (string option * string option) * thm list ->
       Proof.context -> thm list -> tactic
@@ -75,8 +74,6 @@ fun on_first_non_unsupported_line test_outcome solver_name lines =
 
 (* CVC4 and cvc5 *)
 
-val cvc_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc_extensions\<close> (K false)
-
 local
   fun cvc4_options ctxt =
     ["--no-stats",
@@ -110,6 +107,8 @@ local
    [SMTLIB_Interface.smtlibC] @
    (if Config.get ctxt SMT_Config.higher_order then [CVC_Interface.hosmtlib_cvcC] else []) @
    (if Config.get ctxt SMT_Config.native_bv then [SMTLIB_Interface.bvsmtlibC] else []) @
+   (if Config.get ctxt SMT_Config.native_datatypes then [SMTLIB_Interface.dtsmtlibC] else []) @
+   (if Config.get ctxt SMT_Config.native_codatatypes then [SMTLIB_Interface.codtsmtlibC] else []) @
    (if Config.get ctxt SMT_Config.native_set andalso SMT_Config.use_alethe_proof_from_cvc ctxt
     then [SMTLIB_Interface.setsmtlibC] else [])
 in
@@ -186,32 +185,35 @@ local
   fun on_vampire_relevant_line test_outcome solver_name lines =
     on_first_line test_outcome solver_name (filter (String.isPrefix "% SZS status") lines)
 
-  fun make_vampire_solver_config name class : SMT_Solver.solver_config = {
-    name = name,
-    class = class,
-    avail = is_some o check_tool "ISABELLE_VAMPIRE",
-    command = the o check_tool "ISABELLE_VAMPIRE",
-    options = vampire_smt_options,
-    smt_options = [],
-    good_slices =
-      (* FUDGE *)
-      [((2, false, false, 1024, meshN), []),
-       ((2, false, false, 512, mashN), []),
-       ((2, false, true, 128, meshN), []),
-       ((2, false, false, 64, meshN), []),
-       ((2, false, false, 256, mepoN), []),
-       ((2, false, false, 32, meshN), [])],
-    outcome = on_vampire_relevant_line (outcome_of "% SZS status Unsatisfiable" "% SZS status Satisfiable" "TODO: unknown" "TODO: Time limit exceeded"),
-    parse_proof = NONE,
-    replay = NONE }
+  (*Vampire is happier without a "set-logic" line*)
+  fun vampire_logic "vampire_smt" _ _ = SOME SMT_Translate.NO_LOGIC
+    | vampire_logic _ _ _ = NONE
 
+  fun select_class ctxt =
+   [SMTLIB_Interface.smtlibC] @
+   (if Config.get ctxt SMT_Config.native_datatypes then [SMTLIB_Interface.dtsmtlibC] else [])
 in
 
-val vampire_smt_dt: SMT_Solver.solver_config =
-  make_vampire_solver_config "vampire_smt_dt" (K [Vampire_Interface.smtlib_vampire_dtC])
+val vampire_smt: SMT_Solver.solver_config = {
+  name = "vampire_smt",
+  class = select_class,
+  avail = is_some o check_tool "ISABELLE_VAMPIRE",
+  command = the o check_tool "ISABELLE_VAMPIRE",
+  options = vampire_smt_options,
+  smt_options = [],
+  good_slices =
+    (* FUDGE *)
+    [((2, false, false, 1024, meshN), []),
+     ((2, false, false, 512, mashN), []),
+     ((2, false, true, 128, meshN), []),
+     ((2, false, false, 64, meshN), []),
+     ((2, false, false, 256, mepoN), []),
+     ((2, false, false, 32, meshN), [])],
+  outcome = on_vampire_relevant_line (outcome_of "% SZS status Unsatisfiable" "% SZS status Satisfiable" "TODO: unknown" "TODO: Time limit exceeded"),
+  parse_proof = NONE,
+  replay = NONE }
 
-val vampire_smt_nodt: SMT_Solver.solver_config =
-  make_vampire_solver_config "vampire_smt_nodt" (K [Vampire_Interface.smtlib_vampire_nodtC])
+val _ = Theory.setup (Context.theory_map (SMTLIB_Interface.add_logic ((* FUDGE *) 5, vampire_logic)))
 
 end
 
@@ -358,8 +360,7 @@ val _ = Theory.setup (
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc4 #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} cvc5 #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc5_proof #>
-  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_dt #>
-  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_nodt #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} veriT #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} z3 #>
   SMT_Solver.add_solver {dummy = true, sledgehammer_default = false} dummy_smtlib)

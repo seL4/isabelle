@@ -18,7 +18,8 @@ sig
   type smtlib_theories = {
     fixedSizeBitVectors : bool,
     real : bool,
-    set : bool
+    set : bool,
+    datatypes : bool
   }
   datatype smtlib_logic = SL of smtlib_theories | NO_LOGIC | ALL | ALL_SUPPORTED
   val merge_smtlib_logic: smtlib_logic -> smtlib_logic -> smtlib_logic
@@ -76,14 +77,15 @@ type smtlib_theories = {
   fixedSizeBitVectors : bool,
   real : bool,
   (*int : bool, *)
-  set : bool
+  set : bool,
+  datatypes : bool
 }
 
 val solver_supports = [
-  ("cvc5", ({fixedSizeBitVectors=true, real=true, set=true}:smtlib_theories)),
-  ("cvc5_proof", ({fixedSizeBitVectors=true, real=true, set=true}:smtlib_theories)),
-  ("verit", ({fixedSizeBitVectors=false, real=true, set=false}:smtlib_theories)),
-  ("z3", ({fixedSizeBitVectors=true, real=true, set=false}:smtlib_theories))
+  ("cvc5", ({fixedSizeBitVectors=true, real=true, set=true, datatypes=true}:smtlib_theories)),
+  ("cvc5_proof", ({fixedSizeBitVectors=true, real=true, set=true, datatypes=true}:smtlib_theories)),
+  ("verit", ({fixedSizeBitVectors=false, real=true, set=false, datatypes=false}:smtlib_theories)),
+  ("z3", ({fixedSizeBitVectors=true, real=true, set=false, datatypes=false}:smtlib_theories))
 ]
 
 fun get_supported_theories solver =
@@ -94,30 +96,35 @@ fun get_supported_theories solver =
         ^ "ALL_SUPPORTED as smt-lib logic")))
 
 fun solver_support_theories solver
-  ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set}:smtlib_theories) =
+  ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set, datatypes=l1_dt}:smtlib_theories) =
 let
-  val {fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set} = get_supported_theories solver
+  val {fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set, datatypes=l2_dt} =
+    get_supported_theories solver
 in
   (not l1_bv orelse l2_bv) andalso (not l1_real orelse l2_real) andalso (not l1_set orelse l2_set)
+  andalso (not l1_dt orelse l2_dt)
 end
 
 
-fun print_smtlib_theories solver (l as {fixedSizeBitVectors, real, set}) =
+fun print_smtlib_theories solver (l as {fixedSizeBitVectors, real, set, datatypes}) =
   if solver_support_theories solver l then
-    "AUF" ^ (if fixedSizeBitVectors then "BV" else "") ^ "LI"
+    "AUF" ^ (if fixedSizeBitVectors then "BV" else "") ^ (if datatypes then "DT" else "") ^ "LI"
     ^ (if real then "R" else "") ^ "A" ^ (if set then "FS" else "")
   else raise (Fail ("Solver " ^ solver ^ " does not support a theory that has been set:\n"
     ^ (if fixedSizeBitVectors then "fixedSizeBitVectors\n" else "")
     ^ (if real then "real\n" else "")
     ^ (if set then "set\n" else "")
+    ^ (if datatypes then "datatypes\n" else "")
     ^ "\n"))
 
-fun merge_smtlib_theory ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set}:smtlib_theories)
-                        ({fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set}:smtlib_theories)
+fun merge_smtlib_theory
+      ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set, datatypes=l1_dt}:smtlib_theories)
+      ({fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set, datatypes=l2_dt}:smtlib_theories)
   =
   ({fixedSizeBitVectors = l1_bv orelse l2_bv,
     real = l1_real orelse l2_real,
-    set = l1_set orelse l2_set
+    set = l1_set orelse l2_set,
+    datatypes = l1_dt orelse l2_dt
    })
 
 

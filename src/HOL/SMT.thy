@@ -1066,8 +1066,6 @@ ML_file \<open>Tools/SMT/z3/z3_replay_rules.ML\<close>
 ML_file \<open>Tools/SMT/z3/z3_replay_methods.ML\<close>
 ML_file \<open>Tools/SMT/z3/z3_replay.ML\<close>
 
-(*vampire*)
-ML_file \<open>Tools/SMT/vampire_interface.ML\<close>
 (*veriT and cvc5 replay*)
 ML_file \<open>Tools/SMT/alethe/alethe_replay_methods.ML\<close>
 ML_file \<open>Tools/SMT/alethe/cvc5_replay_methods.ML\<close>
@@ -1145,12 +1143,10 @@ in the SMT solver). To turn it on, set the following option.
 declare [[smt_infer_triggers = false]]
 
 text \<open>
-Enable the following option to use built-in support for datatypes,
-codatatypes, and records in CVC4 and cvc5. Currently, this is implemented
-only in oracle mode.
-\<close>
+Enable the following options to use built-in support for datatypes and codatatypes.\<close>
 
-declare [[cvc_extensions = false]]
+declare [[smt_native_datatypes = false]]
+declare [[smt_native_codatatypes = false]]
 
 text \<open>
 Enable the following option to use built-in support for div/mod, datatypes,

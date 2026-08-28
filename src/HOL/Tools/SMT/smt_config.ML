@@ -42,6 +42,8 @@ sig
   val higher_order: bool Config.T
   val native_bv: bool Config.T
   val native_set: bool Config.T
+  val native_datatypes: bool Config.T
+  val native_codatatypes: bool Config.T
   val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
   val integer_induction: bool Config.T
@@ -238,6 +240,8 @@ val explicit_application = Attrib.setup_config_int \<^binding>\<open>smt_explici
 val higher_order = Attrib.setup_config_bool \<^binding>\<open>smt_higher_order\<close> (K false);
 val native_bv = Attrib.setup_config_bool \<^binding>\<open>native_bv\<close> (K true);
 val native_set = Attrib.setup_config_bool \<^binding>\<open>native_set\<close> (K false);
+val native_datatypes = Attrib.setup_config_bool \<^binding>\<open>smt_native_datatypes\<close> (K false);
+val native_codatatypes = Attrib.setup_config_bool \<^binding>\<open>smt_native_codatatypes\<close> (K false);
 val nat_as_int = Attrib.setup_config_bool \<^binding>\<open>smt_nat_as_int\<close> (K false);
 val infer_triggers = Attrib.setup_config_bool \<^binding>\<open>smt_infer_triggers\<close> (K false);
 val integer_induction = Attrib.setup_config_bool \<^binding>\<open>smt_integer_induction\<close> (K false)
