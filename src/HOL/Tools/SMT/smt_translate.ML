@@ -578,14 +578,15 @@ fun get_config ctxt : config list =
 fun translate ctxt prover smt_options comments (ithms : ((int * SMT_Util.role) * thm) list) =
   let
     val _ = debug_msg ctxt low (fn () => \<^print> ("start translating problem ", ithms))
-
-    val order = map #order (get_config ctxt)
-    val logics = map #logic (get_config ctxt)
-    fun logic prover ts = print_smtlib_logic (Library.foldr1 (uncurry merge_smtlib_logic) (map (fn f => f prover ts) logics)) prover
-    val fp_kinds = map #fp_kinds (get_config ctxt) |> foldr1 (op @)
+    val configs = get_config ctxt
+    val orders = map #order configs
+    val logics = map #logic configs
+    fun logic prover ts = print_smtlib_logic
+      (Library.foldr1 (uncurry merge_smtlib_logic) (map (fn f => f prover ts) logics)) prover
+    val fp_kinds = map #fp_kinds configs |> foldr1 (op @)
     (*There is a single serialize function anyway*)
-    val serialize = map #serialize (get_config ctxt) |> hd
-    val first_order = is_some (List.find (curry (op =) SMT_Util.First_Order) order)
+    val serialize = map #serialize configs |> hd
+    val first_order = is_some (List.find (curry (op =) SMT_Util.First_Order) orders)
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
