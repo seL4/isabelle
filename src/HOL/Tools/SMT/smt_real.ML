@@ -10,10 +10,10 @@ struct
 
 (* SMT-LIB logic *)
 
-fun smtlib_logic _ ts =
-  if exists (Term.exists_type (Term.exists_subtype (equal \<^typ>\<open>real\<close>))) ts
-  then SOME "AUFLIRA"
-  else NONE
+fun smtlib_logic _ ts _ =
+    if exists (Term.exists_type (Term.exists_subtype (equal \<^typ>\<open>real\<close>))) ts
+    then SOME (SMT_Translate.SL {fixedSizeBitVectors=false,real=true,set=false})
+    else NONE
 
 
 (* SMT-LIB and Z3 built-ins *)
@@ -33,10 +33,31 @@ in
 fun real_type_parser (SMTLIB.Sym "Real", []) = SOME \<^typ>\<open>Real.real\<close>
   | real_type_parser _ = NONE
 
+fun convert_dec num1 num2 =
+let
+ (*val _ = @{print}("num1",num1)
+ val _ = @{print}("num2",num2)*)
+
+  fun mult10 x = if x = 0 then 1 else 10 * mult10 (x div 10)
+  val offset = mult10 num2
+(* val _ = @{print}("res",(offset*num1 + num2,offset))*)
+
+in
+  (offset*num1 + num2,offset)
+end
+
+fun mk_divide t1 t2 = \<^Const>\<open>divide \<^Type>\<open>real\<close> for t1 t2\<close>
+fun mk_real_num i = HOLogic.mk_number \<^Type>\<open>real\<close> i
+
 fun real_term_parser (SMTLIB.Dec (i, 0), []) = SOME (HOLogic.mk_number \<^typ>\<open>Real.real\<close> i)
+  | real_term_parser (SMTLIB.Dec (i,j), []) = 
+    let 
+      val (r,offset) = convert_dec i j
+    in SOME ( mk_divide (mk_real_num r) (mk_real_num offset)) end
   | real_term_parser (SMTLIB.Sym "/", [t1, t2]) =
       SOME (\<^term>\<open>Rings.divide :: real => _\<close> $ t1 $ t2)
-  | real_term_parser (SMTLIB.Sym "to_real", [t]) = SOME (\<^term>\<open>Int.of_int :: int => _\<close> $ t)
+  | real_term_parser (SMTLIB.Sym "to_real", [t]) = SOME (\<^term>\<open>Int.of_int :: int => Real.real\<close> $ t)
+  | real_term_parser (SMTLIB.Sym "to_int", [t]) = SOME (\<^term>\<open>floor :: Real.real \<Rightarrow> int\<close> $ t)
   | real_term_parser _ = NONE
 
 fun abstract abs t =

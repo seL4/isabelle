@@ -29,7 +29,7 @@ object Component_CVC5 {
   /* build cvc5 */
 
   val default_url = "https://github.com/cvc5/cvc5/releases/download"
-  val default_version = "1.2.0"
+  val default_version = "1.3.4"
 
   def build_cvc5(
     base_url: String = default_url,

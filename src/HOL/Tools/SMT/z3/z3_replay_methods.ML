@@ -15,6 +15,7 @@ sig
   val refl: z3_method
   val symm: z3_method
   val trans: z3_method
+  val trans_star: z3_method
   val cong: z3_method
   val quant_intro: z3_method
   val distrib: z3_method
@@ -52,20 +53,20 @@ type z3_method = Proof.context -> thm list -> term -> thm
 (* utility functions *)
 
 fun replay_error ctxt msg rule thms t =
-  SMT_Replay_Methods.replay_error ctxt msg (Z3_Proof.string_of_rule rule) thms t
+  SMT_Replay_Methods.replay_error ctxt msg (Z3_Proof.string_of_rule rule) thms [] t
 
 fun replay_rule_error ctxt rule thms t =
-  SMT_Replay_Methods.replay_rule_error "Z3" ctxt (Z3_Proof.string_of_rule rule) thms t
+  SMT_Replay_Methods.replay_rule_error "Z3" ctxt (Z3_Proof.string_of_rule rule) thms [] t
 
 fun trace_goal ctxt rule thms t =
-  SMT_Replay_Methods.trace_goal ctxt (Z3_Proof.string_of_rule rule) thms t
+  SMT_Replay_Methods.trace_goal ctxt (Z3_Proof.string_of_rule rule) thms [] t
 
 fun dest_prop (Const (\<^const_name>\<open>Trueprop\<close>, _) $ t) = t
   | dest_prop t = t
 
 fun dest_thm thm = dest_prop (Thm.concl_of thm)
 
-val try_provers = SMT_Replay_Methods.try_provers "Z3"
+fun try_provers ctxt rule np thms = SMT_Replay_Methods.try_provers "Z3" ctxt rule np thms []
 
 fun prop_tac ctxt prems =
   Method.insert_tac ctxt prems
@@ -128,6 +129,27 @@ fun symm _ [thm] _ = thm RS @{thm sym}
 
 fun trans _ [thm1, thm2] _ = thm1 RSN (1, thm2 RSN (2, @{thm trans}))
   | trans ctxt thms t = replay_rule_error ctxt Z3_Proof.Transitivity thms t
+
+
+(* transitivite closure *)
+(* Note: this implementation depends on z3 sorting the given theorems such that
+         pair-wise transitivity can be propagated through the list.
+         If `thms` is not already in the correct order (e.g.
+         `thms = [a = b, c = d, b = c]`),
+         this implementation will not work
+*)
+fun trans_star ctxt thms t = case thms of
+    [_, _] => trans ctxt thms t
+  | (t1 :: t2 :: t3 :: ts) => 
+    let 
+      val t12 = t1 RSN (1, t2 RSN (2, @{thm trans}))
+      val trest = case ts of
+          []  => t3
+        | ts' => trans_star ctxt (t3::ts') t
+    in
+      t12 RSN (1, trest RSN (2, @{thm trans}))
+    end
+  | _ => replay_rule_error ctxt Z3_Proof.Transitivity_Star thms t
 
 
 (* congruence *)
@@ -292,8 +314,7 @@ fun elim_unused ctxt _ t = SMT_Replay_Methods.prove ctxt t elim_unused_tac
 
 (* destructive equality resolution *)
 
-fun dest_eq_res _ _ _ = raise Fail "dest_eq_res" (* FIXME *)
-
+fun dest_eq_res a b c = raise Fail ("dest_eq_res" ^ @{make_string} (a,b,c))
 
 (* quantifier instantiation *)
 
@@ -426,7 +447,7 @@ fun choose Z3_Proof.True_Axiom = true_axiom
   | choose Z3_Proof.Reflexivity = refl
   | choose Z3_Proof.Symmetry = symm
   | choose Z3_Proof.Transitivity = trans
-  | choose (r as Z3_Proof.Transitivity_Star) = unsupported r
+  | choose Z3_Proof.Transitivity_Star = trans_star
   | choose Z3_Proof.Monotonicity = cong
   | choose Z3_Proof.Quant_Intro = quant_intro
   | choose Z3_Proof.Distributivity = distrib

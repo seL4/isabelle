@@ -24,9 +24,9 @@ end;
 structure Z3_Interface: Z3_INTERFACE =
 struct
 
-val z3C = ["z3"]
+val z3C = ["z3_extension"]
 
-val smtlib_z3C = SMTLIB_Interface.smtlibC @ SMTLIB_Interface.bvsmlibC @ z3C
+val smtlib_z3C = z3C
 
 
 (* interface *)
@@ -34,7 +34,8 @@ val smtlib_z3C = SMTLIB_Interface.smtlibC @ SMTLIB_Interface.bvsmlibC @ z3C
 local
   fun translate_config ctxt =
     {order = SMT_Util.First_Order,
-     logic = K (K ""),
+     (*logic = K (K ""),*)
+     logic = K (K SMT_Translate.NO_LOGIC),
      fp_kinds = [BNF_Util.Least_FP],
      serialize = #serialize (SMTLIB_Interface.translate_config SMT_Util.First_Order ctxt)}
 

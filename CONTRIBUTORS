@@ -25,6 +25,11 @@ Contributions to Isabelle2026
 * August 2026: Manuel Eberl and Larry Paulson
   HOL-Analysis: Theory of infinite products on sets
 
+* 2026: Hanna Lachnitt (University Stanford), Mathias Fleury and
+  Pascal Walter (University Freiburg)
+  Reconstructing cvc5 proofs in the SMT method, now included as part of Isabelle
+  with cvc5 as component.
+
 
 Contributions to Isabelle2025-1
 -------------------------------

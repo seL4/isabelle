@@ -60,7 +60,7 @@ val smt_failures = z3_failures @ unix_failures
 
 fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
     if genuine then Unprovable else GaveUp
-  | failure_of_smt_failure SMT_Failure.Time_Out = TimedOut
+  | failure_of_smt_failure (SMT_Failure.Time_Out _) = TimedOut
   | failure_of_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
       SOME failure => failure

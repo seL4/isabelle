@@ -178,12 +178,20 @@ For example:
 * SMT:
   - Added option "cvc5_integer_induction" and
     "cvc5_structural_induction".
+  - update the reconstruction to the latest version of Alethe proof standard.
+  - reconstruction is now possible using the SMT solver cvc5. Remark that the
+    reconstruction works best if you have Reals imported, even if you are using
+    only integers.
+  - like veriT, cvc5 has strategies to improve the performance of reconstruction.
 
 * Sledgehammer:
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
       . zipperposition-2.1 -- include arm64-darwin
       . vampire-4.8 -- include arm64-darwin
+      . veriT 2026.05
+      . cvc5 1.3.4
+  - Sledgehammer can now suggest cvc5 as proof backend `by (smt (cvc5, ...))`
   - Tuned output of proof search to use "using" for local facts in
     conjunction with "metis", "meson", and "smt".
   - Tuned output of proof reconstruction to detect more duplicate
@@ -270,6 +278,7 @@ the abbreviation "matrix_det". INCOMPATIBILITY
 * Session "HOL-Analysis": Theory "Infinite_Product" treats products
 indexed by arbitrary sets, generalising the existing treatment of
 the product of a sequence.
+
 
 *** ML ***
 

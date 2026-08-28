@@ -17,10 +17,12 @@ external_file \<open>SMT_Examples_Verit.certs\<close>
 declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
 declare [[smt_read_only_certificates = true]]
 
+declare [[smt_read_only_certificates = false]]
+declare [[smt_verbose=false]]
 
 section \<open>Propositional and first-order logic\<close>
 
-lemma "True" by (smt (verit))
+lemma "True" supply [[smt_trace]] by (smt (verit))
 lemma "p \<or> \<not>p" by (smt (verit))
 lemma "(p \<and> True) = p" by (smt (verit))
 lemma "(p \<or> q) \<and> \<not>p \<Longrightarrow> q" by (smt (verit))
@@ -259,13 +261,14 @@ lemma
 section \<open>Arithmetic\<close>
 
 subsection \<open>Linear arithmetic over integers and reals\<close>
-
+declare[[smt_trace=false]]
 lemma "(3::int) = 3" by (smt (verit))
 lemma "(3::real) = 3" by (smt (verit))
 lemma "(3 :: int) + 1 = 4" by (smt (verit))
 lemma "x + (y + z) = y + (z + (x::int))" by (smt (verit))
 lemma "max (3::int) 8 > 5" by (smt (verit))
 lemma "\<bar>x :: real\<bar> + \<bar>y\<bar> \<ge> \<bar>x + y\<bar>" by (smt (verit))
+lemma "\<bar>x :: int\<bar> + \<bar>y\<bar> \<ge> \<bar>x + y\<bar>" by (smt (verit))
 lemma "P ((2::int) < 3) = P True" supply[[smt_trace]] by (smt (verit))
 lemma "x + 3 \<ge> 4 \<or> x < (1::int)" by (smt (verit))
 
@@ -325,6 +328,8 @@ subsection \<open>Linear arithmetic with quantifiers\<close>
 lemma "~ (\<exists>x::int. False)" by (smt (verit))
 lemma "~ (\<exists>x::real. False)" by (smt (verit))
 
+declare [[verit_options="--proof-with-sharing --proof-define-skolems --proof-prune --proof-merge 
+--disable-print-success --disable-banner"]]
 
 lemma "\<forall>x y::int. (x = 0 \<and> y = 1) \<longrightarrow> x \<noteq> y" by (smt (verit))
 lemma "\<forall>x y::int. x < y \<longrightarrow> (2 * x + 1) < (2 * y)" by (smt (verit))
@@ -445,7 +450,7 @@ lemma
       and "\<And>A B. (\<And>x. (x::'a) \<in> A \<Longrightarrow> x \<in> B) \<Longrightarrow> A \<subseteq> B"
       and "\<And>A B. \<lbrakk>(A::'a set) \<subseteq> B; B \<subseteq> A\<rbrakk> \<Longrightarrow> A = B"
       and "\<And>A ys. (A \<subseteq> List.coset ys) = (\<forall>y\<in>set ys. (y::'a) \<notin> A)"
-  using that by (smt (verit, default))
+  using that [[smt_trace=false]] by (smt (verit, default))
 
 notepad
 begin
@@ -529,7 +534,7 @@ lemma
     (\<lambda>y. (- (d / 2), (2 * y - 1) * diamond_y (- (d / 2)))) =
     (\<lambda>x. ((x - 1 / 2) * d, diamond_y ((x - 1 / 2) * d))) \<Longrightarrow>
     False\<close>
-  using assms
+  using assms [[smt_trace=false]]
   by (smt (verit,ccfv_threshold))
 
 (*qnt_rm_unused example*)
@@ -627,7 +632,7 @@ lemma
        g (arg_min_on (f \<circ> g) B) \<close>
    shows False
   using assms
-  by (smt (verit))
+  by (smt (verit))  (*subproof reconstruction is using blast here because we do not distinguish the \<or> properly*)
 end
 
 
@@ -675,7 +680,7 @@ lemma
                     fun_evaluate_match (st'::'astate) (env::'vsemv_env) v2 (pes::('pat \<times> 'exp0) list) v2
                   | Rabort (abort::abort) \<Rightarrow> (st', Rerr (Rabort abort))))
            \<le> clock (st::'astate))"
-  using assms by (smt (verit))
+  using assms [[smt_trace=false]] by (smt (verit))
 end
 
 
@@ -729,14 +734,6 @@ lemma poly_Pred: "Pred x \<and> (Pred [x] \<or> \<not> Pred [x])"
 lemma "Pred (1::int)"
   by (smt (verit) poly_Pred)
 
-axiomatization g :: "'a \<Rightarrow> nat"
-axiomatization where
-  g1: "g (Some x) = g [x]" and
-  g2: "g None = g []" and
-  g3: "g xs = length xs"
-
-lemma "g (Some (3::int)) = g (Some True)" by (smt (verit) g1 g2 g3 list.size)
-
 experiment
 begin
 
@@ -786,10 +783,10 @@ ba) (a, b))) =
 ba) (a, b)))))"  
   apply (rule duplicate_goal)
   subgoal
-    supply [[verit_compress_proofs=true]]
+    supply [[verit_compress_proofs=true]][[smt_trace=false]] 
     by (smt (verit))
   subgoal
-    supply [[verit_compress_proofs=false]]
+    supply [[verit_compress_proofs=false]][[smt_trace=false]] 
     by (smt (verit))
   done
 
@@ -810,7 +807,7 @@ lemma
     by (smt (verit,del_insts))
   subgoal
     using assms
-    supply [[verit_compress_proofs=false]]
+    supply [[verit_compress_proofs=false]][[smt_trace=false]]
     by (smt (verit,del_insts))
   done
 
@@ -851,8 +848,278 @@ proof -
       (ground_resolution D)\<^sup>+\<^sup>+ C Cr \<and>
       (\<exists>Crr \<in> fset Urr. (ground_resolution D)\<^sup>*\<^sup>* Cr Crr) \<or>
         (is_least_false_clause (N |\<union>| Ur |\<union>| Uff) Cr)"
+    supply [[smt_trace]]
     by (smt (verit) L2_matches_L3.elims(2))
   oops
+
+lemma
+  assumes
+  "       \<forall>(a::real) c::real. (a * c \<le> c) = ((0 < c \<longrightarrow> a \<le> 1) \<and> (c < 0 \<longrightarrow> 1 \<le> a))"
+       "\<forall>x::real. 0 \<le> norm x"
+       "\<forall>x::complex. 0 \<le> cmod x"
+       "\<forall>(x::real) y::real. norm (x * y) = norm x * norm y"
+       "\<forall>(x::complex) y::complex. cmod (x * y) = cmod x * cmod y"
+       "\<forall>r::real. norm (of_real r) = (if r < 0 then - r else r)"
+       "\<forall>r::real. cmod (complex_of_real r) = (if r < 0 then - r else r)"
+       "0 < (t::real)"
+       "(t::real) < 1"
+       "(t::real) < inverse (cmod (w::complex) ^ ((k::nat) + 1) * (m::real))"
+       "\<not> cmod (complex_of_real (t::real) * (w::complex)) \<le> cmod w"
+     shows False
+  using assms by (smt (verit))
+end
+
+locale comm_monoid_fun = comm_monoid
+begin
+
+definition G :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+where
+  expand_set: "G g = comm_monoid_set.F f \<^bold>1 g {a. g a \<noteq> \<^bold>1}"
+
+interpretation F: comm_monoid_set f "\<^bold>1"
+  ..
+
+lemma
+  assumes
+       "\<forall>(P::'b \<Rightarrow> bool) Q::'b \<Rightarrow> bool. (\<forall>x::'b. P x \<longrightarrow> Q x) \<longrightarrow> Collect P \<subseteq> Collect Q"
+       "\<forall>(P::'c \<Rightarrow> bool) Q::'c \<Rightarrow> bool. (\<forall>x::'c. P x \<longrightarrow> Q x) \<longrightarrow> Collect P \<subseteq> Collect Q"
+       "\<forall>(g::'b \<Rightarrow> 'a) h::'b \<Rightarrow> 'a. (\<forall>a::'b. g a = h a) \<longrightarrow> G g = G h"
+       "\<forall>(g::'c \<Rightarrow> 'a) h::'c \<Rightarrow> 'a. (\<forall>a::'c. g a = h a) \<longrightarrow> G g = G h"
+       "\<forall>g::'b \<Rightarrow> 'a. G g \<noteq> \<^bold>1 \<and> (\<forall>a::'b. g a \<noteq> \<^bold>1 \<longrightarrow> False) \<longrightarrow> False"
+       "\<forall>g::'c \<Rightarrow> 'a. G g \<noteq> \<^bold>1 \<and> (\<forall>a::'c. g a \<noteq> \<^bold>1 \<longrightarrow> False) \<longrightarrow> False"
+       "finite {a::'b. \<exists>b::'c. (g::'b \<Rightarrow> 'c \<Rightarrow> 'a) a b \<noteq> \<^bold>1}"
+       "finite {b::'c. \<exists>a::'b. (g::'b \<Rightarrow> 'c \<Rightarrow> 'a) a b \<noteq> \<^bold>1}"
+       "\<forall>(A::'b set) g::'b \<Rightarrow> 'a. finite A \<and> {a::'b. g a \<noteq> \<^bold>1} \<subseteq> A \<longrightarrow> G g = F.F g A"
+       "\<forall>(A::'c set) g::'c \<Rightarrow> 'a. finite A \<and> {a::'c. g a \<noteq> \<^bold>1} \<subseteq> A \<longrightarrow> G g = F.F g A"
+       "G (\<lambda>a::'b. G ((g::'b \<Rightarrow> 'c \<Rightarrow> 'a) a)) \<noteq> F.F (\<lambda>a::'b. F.F (g a) {b::'c. \<exists>a::'b. g a b \<noteq> \<^bold>1}) {a::'b. \<exists>b::'c. g a b \<noteq> \<^bold>1}" 
+     shows False
+  using assms by (smt (verit, del_insts))
+end
+
+axiomatization g :: "'a \<Rightarrow> nat"
+axiomatization where
+  g1: "g (Some x) = g [x]" and
+  g2: "g None = g []" and
+  g3: "g xs = length xs"
+
+lemma "g (Some (3::int)) = g (Some True)" by (smt (verit) g1 g2 g3 list.size)
+
+text \<open>Regressions\<close>
+experiment
+begin
+
+lemma 
+  fixes eq :: "'qt1 \<Rightarrow> 'qt1 \<Rightarrow> bool" (infix "#=" 50) and
+        card_of :: "'var set \<Rightarrow> 'var rel" (\<open>(\<open>open_block notation=\<open>mixfix card_of\<close>\<close>|_|)\<close>) and
+        ordLess2 :: "'var rel \<Rightarrow> 'var rel \<Rightarrow> bool" (infix \<open><o\<close> 50) and
+        qGood :: "'qt1 \<Rightarrow> bool" and
+        asTerm :: "'qt1 \<Rightarrow> 'qt1 set"
+  assumes "\<forall>(qX::'qt1) qY::'qt1.
+          qGood qX \<and> asTerm qX = asTerm qY \<longrightarrow> qX #= qY"
+       "\<forall>x2::'qt1. the (Some x2) = x2"
+       "\<forall>x2::'qt1 set. the (Some x2) = x2"
+       "\<forall>(f1::'qt1 set option)
+          (f2::'qt1 \<Rightarrow> 'qt1 set option)
+          x2::'qt1.
+          (case Some x2 of None \<Rightarrow> f1 | Some (x::'qt1) \<Rightarrow> f2 x) = f2 x2"
+       "\<forall>(f1::'qt1 set option)
+          (f2::'qt1 \<Rightarrow> 'qt1 set option)
+          option::'qt1 option.
+          (case option of None \<Rightarrow> f1 | Some (x::'qt1) \<Rightarrow> f2 x) =
+          (if option = None then f1 else f2 (the option))"
+       "\<forall>x2::'qt1. None \<noteq> Some x2"
+       "\<forall>x2::'qt1 set. None \<noteq> Some x2"
+       "\<not> (((\<forall>(xs::'varSort) (i::'var) v::'qt1.
+                (qrho::'varSort \<Rightarrow> 'var \<Rightarrow> 'qt1 option) xs i = Some v \<longrightarrow> qGood v) \<and>
+            (\<forall>ys::'varSort. |{y::'var. \<exists>ya::'qt1. qrho ys y = Some ya}| <o (card_of UNIV))) \<and>
+           (\<lambda>(xs::'varSort) i::'var.
+               case qrho xs i of None \<Rightarrow> None | Some (v::'qt1) \<Rightarrow> Some (asTerm v)) =
+           (\<lambda>(xs::'varSort) i::'var.
+               case (qrho'::'varSort \<Rightarrow> 'var \<Rightarrow> 'qt1 option) xs i of None \<Rightarrow> None
+               | Some (v::'qt1) \<Rightarrow> Some (asTerm v)) \<longrightarrow>
+           (\<forall>xs::'varSort.
+               (\<forall>i::'var. (qrho xs i = None) = (qrho' xs i = None)) \<and>
+               (\<forall>(i::'var) (v1::'qt1) v2::'qt1.
+                   qrho xs i = Some v1 \<and> qrho' xs i = Some v2 \<longrightarrow> v1 #= v2)))"
+  shows "False"
+   using assms by (smt (verit)) (*bind From: Binding_Syntax_Theory/Transition_QuasiTerms_Terms.thy*)
+
+datatype ('n, 'e) result =
+  Normal (normal: 'n)
+| Exception (ex: 'e)
+| NT
+
+lemma
+  assumes "\<forall>(P::('a \<Rightarrow> ('b, 'c) result) \<Rightarrow> bool) Q::('a \<Rightarrow> ('b, 'c) result) \<Rightarrow> bool.
+          (\<forall>x::'a \<Rightarrow> ('b, 'c) result. P x = Q x) \<longrightarrow> Collect P = Collect Q"
+       "\<forall>(P::('b, 'c) result \<Rightarrow> bool) Q::('b, 'c) result \<Rightarrow> bool.
+          (\<forall>x::('b, 'c) result. P x = Q x) \<longrightarrow> Collect P = Collect Q"
+       "\<forall>(a::'a \<Rightarrow> ('b, 'c) result) P::('a \<Rightarrow> ('b, 'c) result) \<Rightarrow> bool. (a \<in> Collect P) = P a"
+       "\<forall>(a::('b, 'c) result) P::('b, 'c) result \<Rightarrow> bool. (a \<in> Collect P) = P a"
+       "\<forall>(f1::'b \<Rightarrow> bool) (f2::'c \<Rightarrow> bool) (f3::bool) result::('b, 'c) result.
+          (case result of Normal (x::'b) \<Rightarrow> f1 x | Exception (x::'c) \<Rightarrow> f2 x | NT \<Rightarrow> f3) =
+          (if is_Normal result then f1 (normal result) else if is_Exception result then f2 (ex result) else f3)"
+       "\<forall>result::('b, 'c) result. (result = NT) = (case result of NT \<Rightarrow> True | _ \<Rightarrow> False)"
+       "\<forall>(x::'a) a::('b, 'c) result.
+          result_lub
+           {y::('b, 'c) result. \<exists>xa::'a \<Rightarrow> ('b, 'c) result. xa \<in> (A::('a \<Rightarrow> ('b, 'c) result) set) \<and> y = xa x} =
+          a \<longrightarrow>
+          a = NT \<or> a \<in> {y::('b, 'c) result. \<exists>xa::'a \<Rightarrow> ('b, 'c) result. xa \<in> A \<and> y = xa x}"
+       "is_Normal
+        (result_lub
+          {y::('b, 'c) result. \<exists>x::'a \<Rightarrow> ('b, 'c) result. x \<in> (A::('a \<Rightarrow> ('b, 'c) result) set) \<and> y = x (h::'a)}) \<and>
+       (r::'b + 'c) = Inl (normal (result_lub {y::('b, 'c) result. \<exists>x::'a \<Rightarrow> ('b, 'c) result. x \<in> A \<and> y = x h}))"
+       "is_Normal (fun_lub result_lub (A::('a \<Rightarrow> ('b, 'c) result) set) (h::'a)) \<and>
+       (r::'b + 'c) = Inl (normal (fun_lub result_lub A h))"
+       "\<forall>x::'a \<Rightarrow> ('b, 'c) result.
+          x \<in> (A::('a \<Rightarrow> ('b, 'c) result) set) \<longrightarrow>
+          (\<forall>(h::'a) r::'b + 'c.
+              is_Normal (x h) \<and> r = Inl (normal (x h)) \<or> is_Exception (x h) \<and> r = Inr (ex (x h)) \<longrightarrow>
+              (P::'a \<Rightarrow> 'b + 'c \<Rightarrow> bool) h r)"
+       "\<not> (P::'a \<Rightarrow> 'b + 'c \<Rightarrow> bool) (h::'a) (r::'b + 'c)"
+       shows "False"
+  using assms by (smt (verit)) (*onepoint From: Isabelle-Solidity/State_Monad.thy*)
+
+lemma
+  fixes Sum :: "['a,'a,'a,'a,'a,'a] \<Rightarrow> bool" ("Sum _ _ _ _ _ _" [99,99,99,99,99,99] 50) and
+        Opp :: "['a,'a,'a,'a,'a] \<Rightarrow> bool" ("Opp _ _ _ _ _" [99,99,99,99,99] 50) and
+        Diff :: "['a,'a,'a,'a,'a,'a] \<Rightarrow> bool" ("Diff _ _ _ _ _ _" [99,99,99,99,99,99] 50)
+  assumes "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (B::'a) C::'a.
+          (Ar2 PO E E' A B C) = (\<not> Col PO E E' \<and> Col PO E A \<and> Col PO E B \<and> Col PO E C)"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (B::'a) C::'a.
+          (Diff PO E E' A B C) = (\<exists>B'::'a. Opp PO E E' B B' \<and> Sum PO E E' A B' C)"
+       "Diff (PO::'a) (E::'a) (E'::'a) (B::'a) (A::'a) (dBA::'a)"
+       "Diff (PO::'a) (E::'a) (E'::'a) (C::'a) (B::'a) (dCB::'a)"
+       "Diff (PO::'a) (E::'a) (E'::'a) (C::'a) (A::'a) (dCA::'a)"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (B::'a) AMB::'a. Diff PO E E' A B AMB \<longrightarrow> Ar2 PO E E' A B AMB"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (S::'a) (A::'a) B::'a. Diff PO E E' S A B \<longrightarrow> Sum PO E E' A B S"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (MA1::'a) MA2::'a.
+          \<not> Col PO E E' \<and> Opp PO E E' A MA1 \<and> Opp PO E E' A MA2 \<longrightarrow> MA1 = MA2"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (B::'a) (AB::'a) (C::'a) (BC::'a) ABC::'a.
+          Sum PO E E' A B AB \<and> Sum PO E E' B C BC \<longrightarrow> (Sum PO E E' A BC ABC) = (Sum PO E E' AB C ABC)"
+       "\<forall>(PO::'a) (E::'a) (E'::'a) (A::'a) (B::'a) C::'a. \<not> Col PO E E' \<and> Sum PO E E' A B C \<longrightarrow> Sum PO E E' B A C"
+       "\<not> Sum (PO::'a) (E::'a) (E'::'a) (dCB::'a) (dBA::'a) (dCA::'a)"
+       shows "False"
+  using assms by (smt (verit)) (*qnt_cnf From: IsaGeoCoq/Tarski_Euclidean_2D.thy*)
+
+lemma 
+  fixes  holds_for :: "(_ \<Rightarrow> bool) \<Rightarrow> _ \<Rightarrow> bool" (\<open>_ holds'_for _\<close> [100, 99] 100)
+  assumes "\<forall>(x::'cell list \<times> 'cell list \<Rightarrow> bool) xa::nat \<times> 'cell list \<times> 'cell list.
+          \<not> x holds_for xa \<and>
+          (\<forall>(P::'cell list \<times> 'cell list \<Rightarrow> bool) (s::nat) (l::'cell list) (r::'cell list).
+              x = P \<and> xa = (s, l, r) \<and> \<not> P (l, r) \<longrightarrow> False) \<longrightarrow> False"
+       "\<forall>(n::nat) (s::nat) tap::'cell list \<times> 'cell list.
+          inv_tm_skip_first_arg_len_eq_1 n (s, tap) =
+          (if s = 0 then inv_tm_skip_first_arg_len_eq_1_s0 n tap
+           else if s = 1 then inv_tm_skip_first_arg_len_eq_1_s1 n tap
+                else if s = (2::nat) then inv_tm_skip_first_arg_len_eq_1_s2 n tap
+                     else if s = (3::nat) then inv_tm_skip_first_arg_len_eq_1_s3 n tap
+                          else if s = (4::nat) then inv_tm_skip_first_arg_len_eq_1_s4 n tap
+                               else if s = (5::nat) then inv_tm_skip_first_arg_len_eq_1_s5 n tap else False)"
+       "\<forall>(s::nat) tap::'cell list \<times> 'cell list. is_final (s, tap) = (s = 0)"
+       "is_final (steps0 (1, l::'cell list, r::'cell list) tm_skip_first_arg (stp::nat))"
+       "inv_tm_skip_first_arg_len_eq_1 (n::nat) (steps0 (1, l::'cell list, r::'cell list) tm_skip_first_arg (stp::nat))"
+       "\<not> inv_tm_skip_first_arg_len_eq_1_s0
+           (n::nat) holds_for steps0 (1, l::'cell list, r::'cell list) tm_skip_first_arg (stp::nat)" 
+  shows "False"
+  using assms by (smt (verit)) (*qnt_cnf (From: Universal_Turing_Machine/StrongCopyTM.thy)*)
+end
+
+(*From Notes_On_Goedels_Ontological_Argument, but transformed into a locale, to make it easier
+to move this test within the file*)
+locale test =
+  fixes x :: "'i" and y :: "'e" and
+  existsAt::"'e\<Rightarrow>'i\<Rightarrow>bool" and
+  R::"'i\<Rightarrow>'i\<Rightarrow>bool" and
+  Mess :: \<open>('e \<Rightarrow> 'i \<Rightarrow> bool) \<Rightarrow> 'e \<Rightarrow> 'i \<Rightarrow> bool\<close>
+begin
+
+notation (input) existsAt  ("_\<^bold>@_") 
+notation (input) R ("_\<^bold>r_")
+
+abbreviation (input) Mexiact::"('e\<Rightarrow>'i\<Rightarrow>bool)\<Rightarrow>'i\<Rightarrow>bool" ("\<^bold>\<exists>\<^sup>E") where "\<^bold>\<exists>\<^sup>E\<Phi> \<equiv> \<lambda>w.\<exists>x. x\<^bold>@w \<and> \<Phi> x w"
+abbreviation (input)Mexiactb (binder "\<^bold>\<exists>\<^sup>E" [8]9) where "\<^bold>\<exists>\<^sup>Ex. \<phi>(x) \<equiv> \<^bold>\<exists>\<^sup>E\<phi>"
+
+abbreviation (input) Mbot::\<open>('i\<Rightarrow>bool)\<close> ("\<^bold>\<bottom>") where "\<^bold>\<bottom> \<equiv> \<lambda>w. False"
+abbreviation (input) Mtop::\<open>('i\<Rightarrow>bool)\<close> ("\<^bold>\<top>") where "\<^bold>\<top> \<equiv> \<lambda>w. True"
+abbreviation (input) Mneg::"(('i\<Rightarrow>bool))\<Rightarrow>('i\<Rightarrow>bool)" ("\<^bold>\<not>_" [52]53) where "\<^bold>\<not>\<phi> \<equiv> \<lambda>w. \<not>(\<phi> w)"
+abbreviation (input) Mand::"(('i\<Rightarrow>bool))\<Rightarrow>('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" (infixl "\<^bold>\<and>" 50) where "\<phi>\<^bold>\<and>\<psi> \<equiv> \<lambda>w. \<phi> w \<and> \<psi> w" 
+abbreviation (input) Mor::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" (infixl "\<^bold>\<or>" 49) where "\<phi>\<^bold>\<or>\<psi> \<equiv> \<lambda>w. \<phi> w \<or> \<psi> w "
+abbreviation (input) Mimp::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" (infixr "\<^bold>\<supset>" 48) where "\<phi>\<^bold>\<supset>\<psi> \<equiv> \<lambda>w. \<phi> w \<longrightarrow> \<psi> w" 
+abbreviation (input) Mequiv::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" (infixl "\<^bold>\<leftrightarrow>" 47) where "\<phi>\<^bold>\<leftrightarrow>\<psi> \<equiv> \<lambda>w. \<phi> w \<longleftrightarrow> \<psi> w"
+abbreviation (input) Mbox::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" ("\<^bold>\<box>_" [54]55) where "\<^bold>\<box>\<phi> \<equiv> \<lambda>w.\<forall>v. w \<^bold>r v \<longrightarrow> \<phi> v"
+abbreviation (input) Mdia::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" ("\<^bold>\<diamond>_" [54]55) where "\<^bold>\<diamond>\<phi> \<equiv> \<lambda>w.\<exists>v. w \<^bold>r v \<and> \<phi> v"
+abbreviation (input) Mnegpred::"('e\<Rightarrow>('i\<Rightarrow>bool))\<Rightarrow>('e\<Rightarrow>('i\<Rightarrow>bool))" ("\<^bold>~_") where "\<^bold>~\<Phi> \<equiv> \<lambda>x.\<lambda>w. \<not>\<Phi> x w"
+abbreviation (input) Mconpred::"('e\<Rightarrow>('i\<Rightarrow>bool))\<Rightarrow>('e\<Rightarrow>('i\<Rightarrow>bool))\<Rightarrow>('e\<Rightarrow>('i\<Rightarrow>bool))" (infixl "\<^bold>." 50) where "\<Phi>\<^bold>.\<Psi> \<equiv> \<lambda>x.\<lambda>w. \<Phi> x w \<and> \<Psi> x w"
+abbreviation (input) Mexclor::"('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)\<Rightarrow>('i\<Rightarrow>bool)" (infixl "\<^bold>\<or>\<^sup>e" 49) where "\<phi>\<^bold>\<or>\<^sup>e\<psi> \<equiv> (\<phi> \<^bold>\<or> \<psi>) \<^bold>\<and> \<^bold>\<not>(\<phi> \<^bold>\<and> \<psi>)" 
+abbreviation (input) Mvalid::"('i\<Rightarrow>bool)\<Rightarrow>bool" ("\<lfloor>_\<rfloor>\<^sub>g") where "\<lfloor>\<psi>\<rfloor>\<^sub>g \<equiv> \<forall>w. \<psi> w"
+
+notation (input) Mess ("_Ess_") 
+lemma
+  fixes P :: \<open>('e\<Rightarrow>'i\<Rightarrow>bool)\<Rightarrow>'i\<Rightarrow>bool\<close> and
+        E :: \<open>'e \<Rightarrow> 'i \<Rightarrow> bool\<close>
+  assumes "\<lfloor> P E \<rfloor>\<^sub>g"
+         "\<forall>(\<phi>::'e \<Rightarrow> 'i \<Rightarrow> bool) \<psi>::'e \<Rightarrow> 'i \<Rightarrow> bool. \<lfloor>P \<phi> \<^bold>\<and> \<^bold>\<box>(\<lambda>v::'i. \<forall>x::'e. (\<phi> x \<^bold>\<supset> \<psi> x) v) \<^bold>\<supset> P \<psi>\<rfloor>\<^sub>g"
+         "\<forall>x::'e. \<lfloor>\<lambda>xa::'i. E x xa = (\<forall>xb::'e \<Rightarrow> 'i \<Rightarrow> bool. ((xb Ess x) \<^bold>\<supset> \<^bold>\<box>Mexiactb xb) xa)\<rfloor>\<^sub>g"
+         "\<not> \<lfloor>P (\<lambda>x::'e. ((\<lambda>y::'e. \<^bold>\<bottom>) Ess x) \<^bold>\<supset> (\<^bold>\<box>(\<lambda>v::'i. \<exists>x::'e. (x\<^bold>@v) \<and> False)))\<rfloor>\<^sub>g"
+  shows "False"
+  using assms by (smt (verit)) (*bool_simplify From: Notes_On_Goedels_Ontological_Argument/GoedelVariantHOML1AndersonQuant.thy*)
+end
+
+experiment 
+begin
+
+abbreviation "nonEmpty S \<equiv> \<exists>x. S x"
+
+lemma
+  fixes \<phi> :: \<open>('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool\<close>
+  assumes "(\<forall>S::('a \<Rightarrow> bool) \<Rightarrow> bool.
+           let U::'a \<Rightarrow> bool = \<lambda>w::'a. nonEmpty (\<lambda>X::'a \<Rightarrow> bool. S X \<and> X w)
+           in \<forall>x::'a.
+                 \<not> U x \<and> nonEmpty (\<lambda>X::'a \<Rightarrow> bool. nonEmpty (\<lambda>x::'a \<Rightarrow> bool. S x \<and> (\<phi>::('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool) x = X) \<and> X x) \<longrightarrow>
+                 \<phi> (\<lambda>w::'a. nonEmpty (\<lambda>X::'a \<Rightarrow> bool. S X \<and> X w)) x) \<noteq>
+       (\<forall>S::('a \<Rightarrow> bool) \<Rightarrow> bool.
+           let U::'a \<Rightarrow> bool = \<lambda>w::'a. nonEmpty (\<lambda>X::'a \<Rightarrow> bool. S X \<and> X w)
+           in \<forall>x::'a.
+                 \<not> U x \<and> nonEmpty (\<lambda>X::'a \<Rightarrow> bool. nonEmpty (\<lambda>x::'a \<Rightarrow> bool. S x \<and> (\<lambda>p::'a. \<phi> x p \<noteq> x p) = X) \<and> X x) \<longrightarrow>
+                 \<phi> (\<lambda>w::'a. nonEmpty (\<lambda>X::'a \<Rightarrow> bool. S X \<and> X w)) x \<noteq> nonEmpty (\<lambda>X::'a \<Rightarrow> bool. S X \<and> X x))"
+shows "False"
+  using assms supply [[smt_trace]] by (smt (verit)) (*qnt_cnf From: Topological_Semantics/conditions_relativized_infinitary.thy*)
+end
+
+locale _ =
+  fixes order :: "'energy \<Rightarrow> 'energy \<Rightarrow> bool"  (infix \<open>e\<le>\<close> 80) and
+        energies :: "'energy set"
+begin
+
+abbreviation "incomparable P \<equiv> \<lambda>x y. \<not> P x y \<and> \<not> P y x"
+
+definition possible_pareto:: "('position \<Rightarrow> 'energy set) set" where 
+  "possible_pareto \<equiv> {F. \<forall>g. F g \<subseteq> {e. e\<in>energies} 
+                          \<and> (\<forall>e e'. (e \<in> F g \<and> e' \<in> F g \<and> e \<noteq> e') 
+                             \<longrightarrow> (\<not> e e\<le> e' \<and> \<not> e' e\<le> e))}"
+
+lemma
+  assumes "\<forall>(A::('position \<Rightarrow> 'energy set) set) P::('position \<Rightarrow> 'energy set) \<Rightarrow> bool.
+          (\<forall>x::'position \<Rightarrow> 'energy set. x \<in> A \<longrightarrow> P x) = (A \<subseteq> Collect P)"
+       "\<forall>(A::'energy set) P::'energy \<Rightarrow> bool. (\<forall>x::'energy. x \<in> A \<longrightarrow> P x) = (A \<subseteq> Collect P)"
+       "(P::('position \<Rightarrow> 'energy set) set) \<subseteq> possible_pareto"
+       "\<forall>(a::'position \<Rightarrow> 'energy set) P::('position \<Rightarrow> 'energy set) \<Rightarrow> bool. (a \<in> Collect P) = P a"
+       "\<forall>(a::'energy) P::'energy \<Rightarrow> bool. (a \<in> Collect P) = P a"
+       "possible_pareto =
+       {F::'position \<Rightarrow> 'energy set.
+        \<forall>g::'position.
+           F g \<subseteq> {e::'energy. e \<in> (energies::'energy set)} \<and>
+           (\<forall>(e::'energy) e'::'energy. e \<in> F g \<and> e' \<in> F g \<and> e \<noteq> e' \<longrightarrow> incomparable (e\<le>) e e')}"
+       "(\<lambda>g::'position.
+           {e::'energy \<in> {e::'energy. \<exists>F::'position \<Rightarrow> 'energy set. F \<in> (P::('position \<Rightarrow> 'energy set) set) \<and> e \<in> F g}.
+            \<forall>x::'energy. x \<in> {e::'energy. \<exists>F::'position \<Rightarrow> 'energy set. F \<in> P \<and> e \<in> F g} \<and> e \<noteq> x \<longrightarrow> \<not> x e\<le> e})
+       \<notin> {F::'position \<Rightarrow> 'energy set.
+           \<forall>g::'position.
+              F g \<subseteq> {e::'energy. e \<in> (energies::'energy set)} \<and>
+              (\<forall>(e::'energy) e'::'energy. e \<in> F g \<and> e' \<in> F g \<and> e \<noteq> e' \<longrightarrow> incomparable (e\<le>) e e')}"
+  shows "False"
+  using assms by (smt (verit, ccfv_threshold)) (*qnt_cnf From: Galois_Energy_Games/Decidability.thy*)
 end
 
 end

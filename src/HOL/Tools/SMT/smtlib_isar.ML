@@ -25,7 +25,7 @@ open ATP_Proof_Reconstruct
 fun unlift_term ll_defs =
   let
     val lifted = map (ATP_Util.extract_lambda_def dest_Free o ATP_Util.hol_open_form I) ll_defs
-
+                 |> map (apsnd (fn t => Const (\<^const_name>\<open>SMT.alethe_id\<close>, fastype_of t --> fastype_of t) $ t))
     fun un_free (t as Free (s, _)) =
        (case AList.lookup (op =) lifted s of
          SOME t => un_term t
@@ -39,7 +39,7 @@ fun unlift_term ll_defs =
 fun unskolemize_names ctxt =
   Term.map_abs_vars (perhaps (try Name.dest_skolem))
   #> Term.map_aterms (perhaps (try (fn Free (s, T) =>
-    Free (s |> not (Variable.is_fixed ctxt s) ? Name.dest_skolem, T))))
+    Free (s |> not (Variable.is_fixed ctxt s) ? Name.dest_skolem, T) | _ => raise Match)))
 
 fun postprocess_step_conclusion ctxt rewrite_rules ll_defs =
   let val thy = Proof_Context.theory_of ctxt in
