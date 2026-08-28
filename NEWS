@@ -176,8 +176,7 @@ For example:
 *** HOL ***
 
 * SMT:
-  - Added option "cvc5_integer_induction" and
-    "cvc5_structural_induction".
+  - Added option "smt_integer_induction" and "smt_structural_induction".
   - update the reconstruction to the latest version of Alethe proof standard.
   - reconstruction is now possible using the SMT solver cvc5. Remark that the
     reconstruction works best if you have Reals imported, even if you are using

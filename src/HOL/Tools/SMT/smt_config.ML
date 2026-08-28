@@ -35,6 +35,7 @@ sig
   val verbose: bool Config.T
   val trace: bool Config.T
   val statistics: bool Config.T
+
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
   val explicit_application: int Config.T
@@ -43,6 +44,9 @@ sig
   val native_set: bool Config.T
   val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
+  val integer_induction: bool Config.T
+  val structural_induction: bool Config.T
+
   val debug_files: string Config.T
   val problem_dest_file : string Config.T
   val proof_dest_file : string Config.T
@@ -227,6 +231,7 @@ val trace_arith_verit = Attrib.setup_config_bool \<^binding>\<open>smt_debug_ari
 val trace_verit_compression = Attrib.setup_config_bool \<^binding>\<open>verit_compress_proofs\<close> (K true);
 val trace_alethe_use_prop_skeleton = Attrib.setup_config_bool \<^binding>\<open>alethe_use_propositional_skeleton\<close> (K true);
 val statistics = Attrib.setup_config_bool \<^binding>\<open>smt_statistics\<close> (K false);
+
 val monomorph_limit = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_limit\<close> (K 10);
 val monomorph_instances = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_instances\<close> (K 500);
 val explicit_application = Attrib.setup_config_int \<^binding>\<open>smt_explicit_application\<close> (K 1);
@@ -235,6 +240,9 @@ val native_bv = Attrib.setup_config_bool \<^binding>\<open>native_bv\<close> (K 
 val native_set = Attrib.setup_config_bool \<^binding>\<open>native_set\<close> (K false);
 val nat_as_int = Attrib.setup_config_bool \<^binding>\<open>smt_nat_as_int\<close> (K false);
 val infer_triggers = Attrib.setup_config_bool \<^binding>\<open>smt_infer_triggers\<close> (K false);
+val integer_induction = Attrib.setup_config_bool \<^binding>\<open>smt_integer_induction\<close> (K false)
+val structural_induction = Attrib.setup_config_bool \<^binding>\<open>smt_structural_induction\<close> (K false)
+
 val problem_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_problem_dest_dir\<close> (K "");
 val proof_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_proof_dest_dir\<close> (K "");
 val debug_files = Attrib.setup_config_string \<^binding>\<open>smt_debug_files\<close> (K "");
