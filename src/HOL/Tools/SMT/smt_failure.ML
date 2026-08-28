@@ -12,7 +12,7 @@ sig
     Out_Of_Memory |
     Abnormal_Termination of int |
     Unknown |
-    Replay of (string * exn) | (*temp for testing*)
+    Replay of (string * exn) |
     Other_Failure of string
   val string_of_failure: failure -> string
   exception SMT of failure
@@ -27,7 +27,7 @@ datatype failure =
   Out_Of_Memory |
   Abnormal_Termination of int |
   Unknown |
-  Replay of (string * exn) | (*Temp for testing*)
+  Replay of (string * exn) |
   Other_Failure of string
 
 fun string_of_failure (Counterexample genuine) =
@@ -38,7 +38,7 @@ fun string_of_failure (Counterexample genuine) =
   | string_of_failure (Abnormal_Termination err) =
       "Solver terminated abnormally with error code " ^ string_of_int err
   | string_of_failure Unknown = "Solver answered unknown"
-  | string_of_failure (Replay (rule, _)) = (*temp for testing*)
+  | string_of_failure (Replay (rule, _)) =
       "Isabelle could not replay step " ^ rule
   | string_of_failure (Other_Failure msg) = msg
 
