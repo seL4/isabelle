@@ -67,6 +67,8 @@ fun with_trace ctxt msg f x =
   let val _ = SMT_Config.trace_msg ctxt (fn () => msg) ()
   in f x end
 
+(* TODO: change the type of the input from "string" to "string list" to allow for longer input and
+   avoid unnecessarily huge strings; each string of the list could be, e.g., a line. *)
 fun run ctxt name cmd input =
   (case SMT_Config.certificates_of ctxt of
     NONE =>
