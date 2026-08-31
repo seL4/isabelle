@@ -176,6 +176,10 @@ For example:
 *** HOL ***
 
 * SMT:
+  - Added option "smt_unique_dest_file" to add some pseudo-unique
+    suffix to the problem/proof files generated with through the options
+    "smt_problem_dest_dir" and "smt_proof_dest_dir"; this allows saving
+    the files of multiple SMT calls in one directory.
   - Added option "smt_integer_induction" and "smt_structural_induction".
   - update the reconstruction to the latest version of Alethe proof standard.
   - reconstruction is now possible using the SMT solver cvc5. Remark that the

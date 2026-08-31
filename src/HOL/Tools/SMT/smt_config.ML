@@ -49,9 +49,9 @@ sig
   val integer_induction: bool Config.T
   val structural_induction: bool Config.T
 
-  val debug_files: string Config.T
   val problem_dest_file : string Config.T
   val proof_dest_file : string Config.T
+  val unique_dest_file : bool Config.T
   val sat_solver: string Config.T
   val check_external: bool Config.T
   val slice_only_no_full_proof_attr: bool Config.T
@@ -249,7 +249,7 @@ val structural_induction = Attrib.setup_config_bool \<^binding>\<open>smt_struct
 
 val problem_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_problem_dest_dir\<close> (K "");
 val proof_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_proof_dest_dir\<close> (K "");
-val debug_files = Attrib.setup_config_string \<^binding>\<open>smt_debug_files\<close> (K "");
+val unique_dest_file = Attrib.setup_config_bool \<^binding>\<open>smt_unique_dest_file\<close> (K false);
 val sat_solver = Attrib.setup_config_string \<^binding>\<open>smt_sat_solver\<close> (K "cdclite");
 val check_external = Attrib.setup_config_bool \<^binding>\<open>smt_check_external\<close> (K false);
 val cvc_experimental_alethe = Attrib.setup_config_bool \<^binding>\<open>smt_cvc_alethe\<close> (K false);

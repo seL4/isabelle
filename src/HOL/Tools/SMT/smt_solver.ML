@@ -72,22 +72,18 @@ fun run ctxt name cmd input =
     NONE =>
       if not (SMT_Config.is_available ctxt name) then
         error ("The SMT solver " ^ quote name ^ " is not installed")
-      else if Config.get ctxt SMT_Config.debug_files = "" then
-        with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...") (Cache_IO.run cmd) input
       else
         let
-          val base_path = Path.explode (Config.get ctxt SMT_Config.debug_files)
-          val in_path = Path.ext "smt_in" base_path
-          val out_path = Path.ext "smt_out" base_path
-          val _ = File.write in_path input
-          val result = Cache_IO.run cmd input
-          val _ = Bytes.write out_path (Bytes.terminate_lines (Process_Result.out_lines result))
-          val serial_str = serial_string ()
+          val unique_suffix =
+            if Config.get ctxt SMT_Config.unique_dest_file then
+              "_" ^ serial_string ()
+            else
+              ""
           val () =
             (case Config.get ctxt SMT_Config.problem_dest_file of
               "" => ()
             | base_path =>
-              let val in_path = Path.ext "smt_in" (Path.explode (base_path ^ "_" ^ serial_str)) in
+              let val in_path = Path.ext "smt_in" (Path.explode (base_path ^ unique_suffix)) in
                 File.write in_path input
               end)
           val result =
@@ -97,7 +93,7 @@ fun run ctxt name cmd input =
               "" => ()
             | base_path =>
               let
-                val out_path = Path.ext "smt_out" (Path.explode (base_path ^ "_" ^ serial_str))
+                val out_path = Path.ext "smt_out" (Path.explode (base_path ^ unique_suffix))
                 val output = Bytes.terminate_lines (Process_Result.out_lines result)
               in
                 Bytes.write out_path output
