@@ -27,6 +27,8 @@ object Thy_Conditions {
 
     override def toString: String = synchronized { conditions.toString }
 
+    def options: Options = synchronized { conditions.options }
+
     def init(init_options: Options): Context =
       synchronized { conditions = Thy_Conditions.init(init_options); this }
 
@@ -40,7 +42,7 @@ object Thy_Conditions {
 }
 
 final class Thy_Conditions private(
-  options: Options,
+  val options: Options,
   rep: SortedMap[String, Exn.Result[Boolean]]
 ) {
   def restrict(domain: Set[String]): Thy_Conditions =
