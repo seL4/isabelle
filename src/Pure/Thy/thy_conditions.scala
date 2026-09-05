@@ -25,8 +25,7 @@ object Thy_Conditions {
   final class Context(init_options: Options) {
     private var conditions: Thy_Conditions = Thy_Conditions.init(init_options)
 
-    def value: Thy_Conditions = synchronized { conditions }
-    override def toString: String = value.toString
+    override def toString: String = synchronized { conditions.toString }
 
     def init(options: Options): Thy_Conditions =
       synchronized { conditions = Thy_Conditions.init(options); conditions }
