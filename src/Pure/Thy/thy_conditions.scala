@@ -13,8 +13,8 @@ import scala.collection.immutable.SortedMap
 object Thy_Conditions {
   val option = "condition"
 
-  def init(session_options: Options): Thy_Conditions =
-    new Thy_Conditions(session_options, SortedMap.empty)
+  def init(options: Options): Thy_Conditions =
+    new Thy_Conditions(options, SortedMap.empty)
 
   def explode(options: Options): List[String] =
     space_explode(',', options.string(option))
@@ -22,17 +22,17 @@ object Thy_Conditions {
 
   /* context with mutable state (or cache) */
 
-  final class Context(init_options: Options) {
-    private var conditions: Thy_Conditions = Thy_Conditions.init(init_options)
+  final class Context {
+    private var conditions: Thy_Conditions = Thy_Conditions.init(Options.defaults)
 
     override def toString: String = synchronized { conditions.toString }
 
-    def init(options: Options): Thy_Conditions =
-      synchronized { conditions = Thy_Conditions.init(options); conditions }
+    def init(init_options: Options): Context =
+      synchronized { conditions = Thy_Conditions.init(init_options); this }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
-      val options = conditions.options(specs)
-      val conds = Thy_Conditions.explode(options)
+      val eval_options = conditions.update_options(specs)
+      val conds = Thy_Conditions.explode(eval_options)
       conditions = conditions.evaluate(conds)
       conditions.restrict(conds.toSet)
     }
@@ -40,11 +40,11 @@ object Thy_Conditions {
 }
 
 final class Thy_Conditions private(
-  session_options: Options,
+  options: Options,
   rep: SortedMap[String, Exn.Result[Boolean]]
 ) {
   def restrict(domain: Set[String]): Thy_Conditions =
-    new Thy_Conditions(session_options, rep.filter(p => domain(p._1)))
+    new Thy_Conditions(options, rep.filter(p => domain(p._1)))
 
   def dest[A](f: (String, Boolean) => A): List[A] =
     List.from(for (case (a, Exn.Res(b)) <- rep.iterator) yield f(a, b))
@@ -64,8 +64,8 @@ final class Thy_Conditions private(
       case errs => error(cat_lines(errs))
     }
 
-  def options(specs: Options.Update): Options =
-    session_options ++ specs.filter(p => p._1 == Thy_Conditions.option)
+  def update_options(specs: Options.Update): Options =
+    options ++ specs.filter(p => p._1 == Thy_Conditions.option)
 
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
@@ -75,19 +75,19 @@ final class Thy_Conditions private(
           Library.try_unprefix("$", cond) match {
             case Some(a) => Isabelle_System.getenv(a).nonEmpty
             case None =>
-              try { session_options.proper_value(cond) }
+              try { options.proper_value(cond) }
               catch {
                 case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
               }
           }
         )
-      new Thy_Conditions(session_options, rep + (cond -> result))
+      new Thy_Conditions(options, rep + (cond -> result))
     }
 
   def evaluate(conds: List[String]): Thy_Conditions = conds.foldLeft(this)(_ evaluate _)
 
-  def eval(options: Options): Thy_Conditions = evaluate(Thy_Conditions.explode(options))
-  def eval(specs: Options.Update): Thy_Conditions = eval(options(specs))
+  def eval(opts: Options): Thy_Conditions = evaluate(Thy_Conditions.explode(opts))
+  def eval(specs: Options.Update): Thy_Conditions = eval(update_options(specs))
 
   override def toString: String = {
     val a = if_proper(good, "good = " + quote(good.mkString(",")))
