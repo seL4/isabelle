@@ -260,7 +260,7 @@ class Resources(
   }
 
   def check_thy(
-    session_conditions: Sessions.Conditions_Variable,
+    session_conditions: Thy_Conditions.Context,
     node_name: Document.Node.Name,
     reader: Reader[Char],
     more_options: Options.Update = Nil,
@@ -324,7 +324,7 @@ class Resources(
   /* theory and file dependencies */
 
   def dependencies(
-    session_conditions: Sessions.Conditions_Variable,
+    session_conditions: Thy_Conditions.Context,
     theories: List[(Document.Node.Name, Position.T)],
     options: Options.Update = Nil,
     progress: Progress = new Progress
@@ -337,7 +337,7 @@ class Resources(
     info: Sessions.Info,
     progress: Progress = new Progress
   ) : Dependencies = {
-    val session_conditions = new Sessions.Conditions_Variable(info.options)
+    val session_conditions = new Thy_Conditions.Context(info.options)
     info.theories.foldLeft(Dependencies.empty) {
       case (dependencies, (options, theories)) =>
         Dependencies.require_thys(dependencies, session_conditions,
@@ -360,7 +360,7 @@ class Resources(
 
     private [Resources] def require_thys(
       dependencies0: Dependencies,
-      session_conditions: Sessions.Conditions_Variable,
+      session_conditions: Thy_Conditions.Context,
       theories: List[(Document.Node.Name, Position.T)],
       options: Options.Update = Nil,
       progress: Progress = new Progress
@@ -508,7 +508,7 @@ class Resources(
   /* resolve implicit theory dependencies */
 
   def resolve_dependencies(
-    session_conditions: Sessions.Conditions_Variable,
+    session_conditions: Thy_Conditions.Context,
     models: Iterable[Document.Model],
     theories: List[Document.Node.Name]
   ): List[Document.Node.Name] = {

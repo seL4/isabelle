@@ -236,7 +236,7 @@ object Dump {
           val theory_options = options ++ entry.options
 
           val condition_bad =
-            Sessions.Conditions.init(options).eval(theory_options).check_errors.bad_message
+            Thy_Conditions.init(options).eval(theory_options).check_errors.bad_message
           if (condition_bad.nonEmpty) {
             warn(condition_bad)
             false

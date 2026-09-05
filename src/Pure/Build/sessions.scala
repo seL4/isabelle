@@ -8,7 +8,7 @@ package isabelle
 
 import java.io.{File => JFile}
 
-import scala.collection.immutable.{SortedSet, SortedMap}
+import scala.collection.immutable.SortedSet
 import scala.collection.mutable
 
 
@@ -499,7 +499,7 @@ object Sessions {
 
       val conditions =
         session_base.used_theories.map(_.options)
-          .foldLeft(Conditions.init(session_info.options))(_ eval _)
+          .foldLeft(Thy_Conditions.init(session_info.options))(_ eval _)
           .check_errors.dest((a, b) => Shasum.make(SHA1.digest(b), Condition.make(a)))
 
       val sources =
@@ -557,91 +557,6 @@ object Sessions {
 
   lazy val afp_groups: Set[String] =
     Set.from(notable_groups.flatMap(g => if (g.afp) Some(g.name) else None))
-
-
-  /* conditions to load theories */
-
-  object Conditions {
-    def init(session_options: Options): Conditions =
-      new Conditions(session_options, SortedMap.empty)
-
-    def explode(options: Options): List[String] =
-      space_explode(',', options.string(Condition.name))
-  }
-
-  final class Conditions private(
-    session_options: Options,
-    rep: SortedMap[String, Exn.Result[Boolean]]
-  ) {
-    def restrict(domain: Set[String]): Conditions =
-      new Conditions(session_options, rep.filter(p => domain(p._1)))
-
-    def dest[A](f: (String, Boolean) => A): List[A] =
-      List.from(for (case (a, Exn.Res(b)) <- rep.iterator) yield f(a, b))
-    def errors: List[String] =
-      List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
-    def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
-    def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
-    def bad_message: String =
-      bad match {
-        case Nil => ""
-        case xs => xs.map(x => "undefined " + x).mkString("(", ", ", ")")
-      }
-
-    def check_errors: Conditions =
-      errors match {
-        case Nil => this
-        case errs => error(cat_lines(errs))
-      }
-
-    def options(specs: Options.Update): Options =
-      session_options ++ specs.filter(p => p._1 == Condition.name)
-
-    def evaluate(cond: String): Conditions =
-      if (rep.isDefinedAt(cond)) this
-      else {
-        val result =
-          Exn.result(
-            Library.try_unprefix("$", cond) match {
-              case Some(a) => Isabelle_System.getenv(a).nonEmpty
-              case None =>
-                try { session_options.proper_value(cond) }
-                catch {
-                  case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
-                }
-            }
-          )
-        new Conditions(session_options, rep + (cond -> result))
-      }
-
-    def evaluate(conds: List[String]): Conditions = conds.foldLeft(this)(_ evaluate _)
-
-    def eval(options: Options): Conditions = evaluate(Conditions.explode(options))
-    def eval(specs: Options.Update): Conditions = eval(options(specs))
-
-    override def toString: String = {
-      val a = if_proper(good, "good = " + quote(good.mkString(",")))
-      val b = if_proper(bad, "bad = " + quote(bad.mkString(",")))
-      "Sessions.Conditions(" + a + if_proper(a.nonEmpty && b.nonEmpty, ", ") + b + ")"
-    }
-  }
-
-  final class Conditions_Variable(init_options: Options) {
-    private var conditions: Conditions = Conditions.init(init_options)
-
-    def value: Conditions = synchronized { conditions }
-    override def toString: String = value.toString
-
-    def init(options: Options): Conditions =
-      synchronized { conditions = Conditions.init(options); conditions }
-
-    def eval_restrict(specs: Options.Update): Conditions = synchronized {
-      val options = conditions.options(specs)
-      val conds = Conditions.explode(options)
-      conditions = conditions.evaluate(conds)
-      conditions.restrict(conds.toSet)
-    }
-  }
 
 
   /* cumulative session info */

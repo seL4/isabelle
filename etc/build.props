@@ -225,6 +225,7 @@ sources = \
   src/Pure/System/tty_loop.scala \
   src/Pure/System/web_app.scala \
   src/Pure/Thy/document_build.scala \
+  src/Pure/Thy/thy_conditions.scala \
   src/Pure/Thy/thy_element.scala \
   src/Pure/Thy/thy_header.scala \
   src/Pure/Thy/thy_syntax.scala \
