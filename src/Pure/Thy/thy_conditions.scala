@@ -47,6 +47,30 @@ object Thy_Conditions {
       conditions.restrict(conds.toSet)
     }
   }
+
+
+  /* predicates */
+
+  abstract class Predicate(val name: String) {
+    override def toString: String = name
+    def apply(conditions: Thy_Conditions): Boolean
+  }
+
+  class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
+
+  lazy val predicates: Map[String, Predicate] = {
+    Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
+      .foldLeft(Map.empty[String, Predicate])(
+        { case (map, pred) =>
+            if (map.isDefinedAt(pred.name)) {
+              error("Duplicate theory condition predicate: " + quote(pred.name))
+            }
+            else map + (pred.name -> pred)
+        })
+  }
+
+  def the_predicate(name: String): Predicate =
+    predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
 }
 
 final class Thy_Conditions private(
@@ -85,9 +109,13 @@ final class Thy_Conditions private(
           Library.try_unprefix("$", cond) match {
             case Some(a) => Isabelle_System.getenv(a).nonEmpty
             case None =>
-              try { options.proper_value(cond) }
-              catch {
-                case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
+              Library.try_unsuffix("()", cond) match {
+                case Some(a) => Thy_Conditions.the_predicate(a)(this)
+                case None =>
+                  try { options.proper_value(cond) }
+                  catch {
+                    case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
+                  }
               }
           }
         )

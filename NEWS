@@ -32,6 +32,9 @@ setup, later theories may work again uniformly on either variant.
     was plain NAME before.
   - "name" refers to a system option; to be enabled, the value needs to
     be true (bool), non-empty (string), or > 0 (int, real).
+  - "name()" refers to a predicate defined in Isabelle/Scala (via
+    'services' in etc/build.props and suitable instances of the service
+    class isabelle.Thy_Conditions.Predicates).
 
 * The Isabelle application bundle has been split into "macos"
 (x86_64-darwin, Intel) and "macos_arm" (arm64-darwin, Apple Silicon).
