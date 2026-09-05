@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/thy_element.ML
+/*  Title:      Pure/Thy/thy_element.scala
     Author:     Makarius
 
 Theory elements: statements with optional proof.
