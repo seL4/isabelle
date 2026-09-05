@@ -138,7 +138,7 @@ abstract class Session extends Document.Session {
   val store: Store = Store(session_options)
   def cache: Rich_Text.Cache = store.cache
 
-  val conditions: Thy_Conditions.Context = new Thy_Conditions.Context().init(session_options)
+  val conditions: Thy_Conditions.Context = Thy_Conditions.Context(session_options)
 
   def doc_contents: Doc.Contents = Doc.contents(store.ml_settings)
   def doc_entry(name: String): Option[Doc.Entry] = doc_contents.entries(name = _ == name).headOption

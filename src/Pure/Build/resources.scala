@@ -337,7 +337,7 @@ class Resources(
     info: Sessions.Info,
     progress: Progress = new Progress
   ) : Dependencies = {
-    val session_conditions = new Thy_Conditions.Context().init(info.options)
+    val session_conditions = Thy_Conditions.Context(info.options)
     info.theories.foldLeft(Dependencies.empty) {
       case (dependencies, (options, theories)) =>
         Dependencies.require_thys(dependencies, session_conditions,

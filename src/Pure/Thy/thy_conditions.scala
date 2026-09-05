@@ -22,15 +22,23 @@ object Thy_Conditions {
 
   /* context with mutable state (or cache) */
 
-  final class Context {
+  object Context {
+    def apply(options: Options): Context = {
+      val context = new Context
+      init(options)
+      context
+    }
+  }
+
+  final class Context private {
     private var conditions: Thy_Conditions = Thy_Conditions.init(Options.defaults)
 
     override def toString: String = synchronized { conditions.toString }
 
     def options: Options = synchronized { conditions.options }
 
-    def init(init_options: Options): Context =
-      synchronized { conditions = Thy_Conditions.init(init_options); this }
+    def init(init_options: Options): Unit =
+      synchronized { conditions = Thy_Conditions.init(init_options) }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
       val eval_options = conditions.update_options(specs)
