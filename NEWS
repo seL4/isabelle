@@ -210,6 +210,14 @@ For example:
       inj_on_the_image_dom
       ran_conv_dom
 
+* Session "HOL-New_Algebra": a new library for abstract algebra,
+based on Clemens Ballarin's locale approach and  intended to replace 
+HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer 
+relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra. 
+Proofs that had referenced the internals of HOL-Number_Theory.Residues 
+should now import the new theory "HOL-Algebra.Residues_Algebra". 
+INCOMPATIBILITY.
+
 * Constant "enumerate" in theory HOL.List renamed to more specific
 "indexed_from". Corresponding theorems renamed:
   enumerate_eq_zip ~> indexed_from_eq_zip

@@ -59,13 +59,4 @@ theory New_Algebra
     GF9
 begin
 
-text \<open>
-  The single entry point to the development, in the manner of HOL-Algebra's \<open>Algebra\<close>: importing
-  this theory makes the whole of New-Algebra available, and \<^file>\<open>ROOT\<close> need name nothing else.
-
-  Only the \<^emph>\<open>maximal\<close> theories are listed, exactly as \<^file>\<open>ROOT\<close> used to list them: every other
-  theory in the session is reached transitively, so a theory that some theory above already imports
-  does not belong here.  The groupings are the mathematical ones and carry no logical force.
-\<close>
-
 end
