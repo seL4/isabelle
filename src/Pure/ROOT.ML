@@ -1,6 +1,6 @@
 (*  Title:      Pure/ROOT.ML
     Author:     Makarius
-    UUID:       97908812-3f9e-4045-a7b7-a3da2bba1e61
+    UUID:       d4623d23-81b9-4e68-abef-482e1ff6e57f
 
 Main entry point for the Isabelle/Pure bootstrap process.
 
