@@ -1189,6 +1189,25 @@ lemma mod_greater_zero_iff_not_dvd:
   "m mod n > 0 \<longleftrightarrow> \<not> n dvd m" for m n :: nat
   by (simp add: dvd_eq_mod_eq_0)
 
+lemma dvd_pos_nat: "n > 0 \<Longrightarrow> m dvd n \<Longrightarrow> m > 0"
+  for m n :: nat
+  by auto
+
+lemma dvd_div_ge_1:
+  fixes a b :: nat
+  assumes "a \<ge> 1" "b dvd a"
+  shows "a div b \<ge> 1"
+proof -
+  from \<open>b dvd a\<close> obtain c where "a = b * c" ..
+  with \<open>a \<ge> 1\<close> show ?thesis by simp
+qed
+
+lemma dvd_nat_bounds:
+  fixes n p :: nat
+  assumes "p > 0" "n dvd p"
+  shows "n > 0 \<and> n \<le> p"
+  using assms by (simp add: dvd_pos_nat dvd_imp_le)
+
 lemma div_by_Suc_0 [simp]:
   "m div Suc 0 = m"
   using div_by_1 [of m] by simp

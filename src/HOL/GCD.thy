@@ -2428,10 +2428,6 @@ lemma lcm_pos_int: "m \<noteq> 0 \<Longrightarrow> n \<noteq> 0 \<Longrightarrow
   for m n :: int
   by (simp add: less_le lcm_eq_0_iff)
 
-lemma dvd_pos_nat: "n > 0 \<Longrightarrow> m dvd n \<Longrightarrow> m > 0"  (* FIXME move *)
-  for m n :: nat
-  by auto
-
 lemma lcm_unique_nat:
   "a dvd d \<and> b dvd d \<and> (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   for a b d :: nat
