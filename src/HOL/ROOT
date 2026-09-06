@@ -340,8 +340,6 @@ session "HOL-Number_Theory" (main timing) in Number_Theory = "HOL-Computational_
     Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
     Theorem, Wilson's Theorem, some lemmas for Quadratic Reciprocity.
   "
-  sessions
-    "HOL-Algebra"
   theories
     Number_Theory
   document_files
@@ -438,6 +436,7 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
   sessions
     "HOL-Cardinals"
     "HOL-Combinatorics"
+    "HOL-Number_Theory" (* for Residues_Algebra *)
   theories [document = false]
     README
   theories
@@ -454,9 +453,22 @@ session "HOL-Algebra" (main timing) in Algebra = "HOL-Computational_Algebra" +
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
     Algebraic_Closure_Type
+    (* Compatibility bridge for the previous "Residues" *)
+    Residues_Algebra
     (* Main theory *)
     Algebra
   document_files "root.bib" "root.tex"
+
+session "HOL-New_Algebra" (main timing) in New_Algebra = "HOL-Computational_Algebra" +
+  options [timeout = 1200]
+  sessions
+    "HOL-Library"
+    "HOL-Combinatorics"
+  theories
+    New_Algebra
+  document_files
+    "root.tex"
+    "root.bib"
 
 session "HOL-Auth" (timing) in Auth = HOL +
   description "
@@ -698,6 +710,7 @@ session "HOL-ex" (timing) in ex = "HOL-Library" +
   options [document = false]
   sessions
     "HOL-Number_Theory"
+    "HOL-Combinatorics"
   theories
     Antiquote
     Argo_Examples

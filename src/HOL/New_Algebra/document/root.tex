@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{isabelle,isabellesym}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[only,bigsqcap]{stmaryrd}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{New Algebra: groups, rings, modules and fields with carrier sets}
+\author{Lawrence C. Paulson}
+\date{}
+
+\maketitle
+
+\begin{abstract}
+  A development of abstract algebra in which every structure is a \emph{carrier
+  set} together with its operations, following the locale-based style of
+  Ballarin's \emph{Basic Algebra} \cite{ballarin-jacobson}, itself after
+  Jacobson \cite{jacobson-basic-algebra}.  A group is a set with a composition
+  and a unit; a ring is a set with two operations; an extension is a carrier with
+  its own addition and multiplication.  Nothing is a record, and no structure is
+  identified with a type, so substructures, quotients and extensions are all
+  ordinary values that can be quantified over, ordered, and exhausted by
+  transfinite arguments.
+
+  The group theory covers subgroup lattices, normal series, the Zassenhaus and
+  Schreier refinement theorems, the Jordan--H\"older uniqueness theorem, finite
+  and indexed products, group actions, and solvability.  The ring theory covers
+  ideals, quotients, the Chinese remainder theorem for finite families, Krull's
+  theorem on the existence of maximal ideals, principal ideal domains, Euclidean
+  domains, unique factorisation, and polynomials in one and in indexed families
+  of indeterminates.  The module theory covers submodules, exact sequences,
+  complements, free modules and their universal property, and finite-dimensional
+  vector spaces with the Steinitz exchange lemma and a well-defined dimension.
+
+  On these rest the field theory and Galois theory: minimal polynomials, the
+  degree of a finite extension and the tower law, transitivity of algebraicity,
+  normality and separability, Artin's theorem, the Galois correspondence, normal
+  closures, the primitive element theorem, and the finite fields.  The
+  cyclicity of the multiplicative group of a finite field is proved, along with
+  the residue rings $\mathbb{Z}/n\mathbb{Z}$, their unit groups, and Euler's and
+  Fermat's theorems.
+
+  The development is self-contained: it depends only on the Isabelle/HOL
+  distribution, and is intended to supersede the record-based \texttt{HOL-Algebra}
+  rather than to build upon it.  Importing the theory \texttt{Algebra} makes the
+  whole of it available.
+\end{abstract}
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% for proof reading
+\pagestyle{plain}
+
+\tableofcontents
+\newpage
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
