@@ -161,14 +161,14 @@ fun dsl_tac_initialize rewrite_name args ctxt t prems =
                   TRY' (debug_msg_tac'' ctxt high "reconstruct rewrite")
                   THEN'
                     ((CHANGED_GOAL
-                        (EqSubst.eqsubst_tac ctxt [0] [nth inst_lemmas_without_true 0] (*for bv's we will have to find the right lemma here, for now it is fine to just use the first*))
+                        (EqSubst.eqsubst_tac ctxt [0] [hd inst_lemmas_without_true] (*for bv's we will have to find the right lemma here, for now it is fine to just use the first*))
                       THEN' (TRY' (resolve_tac ctxt prems))
                       THEN' debug_msg_tac'' ctxt high "resolved premise if there was one"
                       THEN' TRY' (resolve_tac ctxt [@{thm refl}]))
                     ORELSE'
                       (fn i => fn st => (if rare_mode = 1
                       then
-                       (let val _ = debug_msg ctxt middle (fn () => @{print}("lemma,goal", (nth inst_lemmas_without_true 0, Thm.cterm_of ctxt t)));in (K no_tac) end)
+                       (let val _ = debug_msg ctxt middle (fn () => @{print}("lemma,goal", (hd inst_lemmas_without_true, Thm.cterm_of ctxt t)));in (K no_tac) end)
                       else try_simp_tac prems ctxt) i st))
                   THEN_ALL_NEW (
                     debug_msg_tac'' ctxt high "trying to discharge assumption of RARE lemma"
