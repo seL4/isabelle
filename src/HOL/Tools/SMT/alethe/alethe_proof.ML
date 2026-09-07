@@ -882,9 +882,8 @@ fun remove_skolem_definitions_proof steps =
       (step, (defs, skolems))
     end
   in
-    fold_map remove_skolem_definitions steps ([], [])
+    fold_maps remove_skolem_definitions steps ([], [])
     |> fst
-    |> flat
   end
 
 
