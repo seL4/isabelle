@@ -1521,11 +1521,13 @@ fun sort_disj ctxt t =
           |> single
         handle THM _ => []
       fun only_rewrite {context, prems=nprems, ...} =
-        let val rewr_prems = ((take (length nprems - 1) nprems)
-         @ maps (try_OF @{lemma \<open>\<And>a b. a = b \<equiv> True \<Longrightarrow> b = a \<equiv> True\<close> by (auto simp: eq_commute)})
-           ((take (length nprems - 1) nprems)))
+        let
+          val (init_prems, last_prem) = split_last nprems
+          val rewr_prems = init_prems
+            @ maps (try_OF @{lemma \<open>\<And>a b. a = b \<equiv> True \<Longrightarrow> b = a \<equiv> True\<close> by (auto simp: eq_commute)})
+              init_prems
         in
-          Method.insert_tac context [List.last nprems]
+          Method.insert_tac context [last_prem]
           (*the simplifier does not always rewrite assumptions*)
           THEN' (eqsubst_all context rewr_prems)
           THEN' simplify_tac_with_cong [] context
