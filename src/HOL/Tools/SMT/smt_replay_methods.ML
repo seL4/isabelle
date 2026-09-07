@@ -510,7 +510,7 @@ fun abstract_for_code_eval ctxt u =
                  "Archimedean_Field.floor_ceiling"
                 ]
             in 
-              if List.exists (fn x => x = name) dont_abstract
+              if member (op =) dont_abstract name
               then abstract_sub t f
               else abstract_arith_and_term ctxt abs t 
             end
