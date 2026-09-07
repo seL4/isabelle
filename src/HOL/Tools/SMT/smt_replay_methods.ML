@@ -472,7 +472,7 @@ fun abstract_for_code_eval ctxt u =
         let
           val (t1,ts) = strip_comb t
         in
-        if length ts = 0 then abstract_arith_and_term ctxt abs t
+        if null ts then abstract_arith_and_term ctxt abs t
         else
           (case t1 of
             Const (name,T) => 
