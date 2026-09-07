@@ -122,7 +122,7 @@ fun dict_lookup d cs =
 
 fun dict_get d cs =
   (case AList.lookup (op =) d cs of
-    NONE => (case cs of [] => NONE | _ => dict_get d (take (length cs - 1) cs))
+    NONE => (case cs of [] => NONE | _ => dict_get d (fst (split_last cs)))
   | SOME x => SOME x)
 
 
