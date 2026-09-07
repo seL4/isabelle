@@ -181,7 +181,7 @@ fun dsl_tac_initialize rewrite_name args ctxt t prems =
                   THEN' (debug_msg_tac'' ctxt high "should be solved now")
                 ))) t
               in
-                if length inst_lemmas_without_true > 0
+                if not (null inst_lemmas_without_true)
                 then (if rare_mode = 1 then raise ERROR("Rule could not be used") else try_lemma_i 0)
                 else (if rare_mode = 0 then try_simp ctxt t prems else raise ERROR("Rule could not be instantiated") )
               end))
