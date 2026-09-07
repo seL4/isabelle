@@ -646,15 +646,13 @@ local
        rewrite_all_skolems ctxt_eq thm_indirect ctxt thms
    | rewrite_all_skolems _ _ _ [] = K all_tac
 
-   fun extract_var_name (thm :: thms) =
-       let val name = Thm.concl_of thm
-         |> SMT_Replay_Methods.dest_prop
-         |> HOLogic.dest_eq
-         |> fst
-         |> (fn Const(_,_) $ Abs(name, _, _) => [(name,@{thm sym} OF [thm])]
-             | _ => [])
-       in name :: extract_var_name thms end
-    | extract_var_name [] = []
+   fun extract_var_name thm =
+       Thm.concl_of thm
+       |> SMT_Replay_Methods.dest_prop
+       |> HOLogic.dest_eq
+       |> fst
+       |> (fn Const(_,_) $ Abs(name, _, _) => [(name,@{thm sym} OF [thm])]
+           | _ => [])
 
 fun skolem_tac extractor thms1 ctxt prems t =
   let
@@ -664,7 +662,7 @@ fun skolem_tac extractor thms1 ctxt prems t =
     fun ordered_definitions () =
       let
         val var_order = extractor t
-        val thm_names_with_var = extract_var_name rew |> flat
+        val thm_names_with_var = maps extract_var_name rew
       in map (fn v => (v, AList.lookup (op =) thm_names_with_var v)) var_order end
     (*veriT produces longer terms for skolem function like
     SK1 = eps x. P x
