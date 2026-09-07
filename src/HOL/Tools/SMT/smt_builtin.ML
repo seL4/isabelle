@@ -70,21 +70,20 @@ fun merge_ttab ttabp = SMT_Util.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
   let
-    fun match (U, _) = Sign.typ_instance (Proof_Context.theory_of ctxt) (T, U)
-    fun most_special ((u as SOME (U, _)) :: (v as SOME (V, _)) :: rest) =
+    val thy = Proof_Context.theory_of ctxt
+    fun match (U, _) = Sign.typ_instance thy (T, U)
+    fun most_special ((u as (U, _)) :: (v as (V, _)) :: rest) =
          if U = V then most_special (u :: rest)
-         else if Sign.typ_instance (Proof_Context.theory_of ctxt) (U, V)
+         else if Sign.typ_instance thy (U, V)
          then most_special (v :: rest)
          else most_special (u :: rest)
-     | most_special (NONE :: rest) = most_special rest
      | most_special rest = rest
   in
-    maps (fn class => (SMT_Util.dict_lookup ttab class)) (SMT_Config.solver_class_of ctxt)
+    maps (SMT_Util.dict_lookup ttab) (SMT_Config.solver_class_of ctxt)
     |> flat
-    |> map (fn x => if match x then SOME x else NONE)
-    |> filter_out is_none
+    |> filter match
     |> most_special
-    |> (fn [] => NONE | x :: _ => x)
+    |> (fn [] => NONE | x :: _ => SOME x)
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
