@@ -102,7 +102,6 @@ fun parse_proof_alethe
           Alethe_Node.Alethe_Step
            {id = SMTLIB_Interface.assert_name_of_role_and_index role (id_of_index i),
             rule = input_rule, prems = [], concl = th, prop_skeleton = th}
-          |> single
       end
 
     val (actual_steps, _) = Alethe_Proof.parse typs terms output ctxt
@@ -112,7 +111,6 @@ fun parse_proof_alethe
         used_assert_ids
     val used_assms = map (nth assms) used_assm_js
     val assm_steps = map2 step_of_assume used_assm_js used_assms
-        |> flat
     val steps = assm_steps @ actual_steps
 
     val conjecture_i = 0
