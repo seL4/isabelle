@@ -79,8 +79,7 @@ fun lookup_ttab ctxt ttab T =
      | most_special (NONE :: rest) = most_special rest
      | most_special rest = rest
   in
-    map (fn class => (SMT_Util.dict_lookup ttab class)) (SMT_Config.solver_class_of ctxt)
-    |> flat
+    maps (fn class => (SMT_Util.dict_lookup ttab class)) (SMT_Config.solver_class_of ctxt)
     |> flat
     |> map (fn x => if match x then SOME x else NONE)
     |> filter_out is_none

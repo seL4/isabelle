@@ -378,7 +378,7 @@ fun replay solver method_for outer_ctxt
     fun add_used_asserts_in_step (Alethe_Node.Alethe_Replay_Node {prems,
       subproof = (_, _, _, subproof), ...}) =
       union (op =) (map_filter (try (snd o SMTLIB_Interface.role_and_index_of_assert_name)) prems @
-     flat (map (fn x => add_used_asserts_in_step x []) subproof)) |
+     maps (fn x => add_used_asserts_in_step x []) subproof) |
     add_used_asserts_in_step (Alethe_Node.Alethe_Definition_Node _) = (fn x => x)
 
     val used_assert_ids = fold add_used_asserts_in_step parsed_proof_steps []

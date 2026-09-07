@@ -25,9 +25,9 @@ fun try_OF_inst ctxt thm1 ((r, q, pos), thm2) =
       (try_OF ctxt thm1 thm2)
   handle THM _ => []
 
-fun try_OF_insts ctxt thms thm = (map (fn thm1 => try_OF_inst ctxt thm1 thm) thms |> flat)
+fun try_OF_insts ctxt thms thm = maps (fn thm1 => try_OF_inst ctxt thm1 thm) thms
 
-fun try_OFs ctxt thms thm = map (fn thm1 => try_OF ctxt thm1 thm) thms |> flat
+fun try_OFs ctxt thms thm = maps (fn thm1 => try_OF ctxt thm1 thm) thms
 
 fun la_farkas_tac ({context = ctxt, prems, concl,  ...}: Subgoal.focus) (SOME (Farkas_Coefficients coeffs)) thm =
   let
@@ -93,8 +93,8 @@ fun la_farkas_tac ({context = ctxt, prems, concl,  ...}: Subgoal.focus) (SOME (F
       let
         fun manipulate_thm thms cond thm =
           if cond then thm
-          else map (fn thm0 => try_OF ctxt thm0 thm) thms
-            |> flat |> the_single
+          else maps (fn thm0 => try_OF ctxt thm0 thm) thms
+            |> the_single
       in 
         thm
         |> manipulate_thm @{thms alethe_negate_coefficient} pos
@@ -102,8 +102,7 @@ fun la_farkas_tac ({context = ctxt, prems, concl,  ...}: Subgoal.focus) (SOME (F
       end
 
     val normalized =
-      map (try_OF_insts ctxt alethe_arith_multiplication) coeff_prems
-      |> flat
+      maps (try_OF_insts ctxt alethe_arith_multiplication) coeff_prems
       |> map negate_if_needed
 
     fun import_assumption thm (Trues, ctxt) =

@@ -366,7 +366,7 @@ fun skolems_introduced_by_rule [] = [] |
 
 fun collect_skolem_defs (Raw_Alethe_Node {rule, subproof = subproof, context_assignments, ...}) =
   (if is_skolemization rule then map get_skolem_def_id (skolems_introduced_by_rule context_assignments) else []) @
-  flat (map collect_skolem_defs subproof)
+  maps collect_skolem_defs subproof
  | collect_skolem_defs _ = []
 
 val desymbolize = Name.desymbolize (SOME false) o perhaps (try (unprefix "?"))
@@ -571,7 +571,7 @@ fun postprocess_proof compress ctxt step cx =
         (* Add rule-specific arguments *)
         fun mk_sko_def_prems () =
           let
-            val skolems_of_subproof = (if compress then flat (map collect_skolem_defs subproof) else [])
+            val skolems_of_subproof = (if compress then maps collect_skolem_defs subproof else [])
             val skolem_defs = (map (get_skolem_def_id o SMTLIB.extract_sym_value "cannot parse skolem id" o fst) substitute_terms)
           in (SOME (Sko_Def_Prems (skolems_of_subproof, skolem_defs))) end
         val (tactic_args) = (if is_skolemization rule then mk_sko_def_prems () else (NONE))
@@ -788,7 +788,7 @@ val linearize_proof =
               mk_step id' rule prems concl prop_skeleton :: find_input_steps_and_inline steps
 
         val subproof = subproof
-          |> flat o map linearize
+          |> maps linearize
           |> map (map_node_concl (fold add_assumption (assms @ inputs)))
           |> find_input_steps_and_inline
       in
@@ -867,9 +867,8 @@ fun remove_skolem_definitions_proof steps =
       val rule = (if promote_step then default_skolem_rule else rule)
       val subproof = subproof
         |> (is_skolem ? K []) (*subproofs of skolemization steps are useless for SH*)
-        |> map (fst o (fn st => remove_skolem_definitions st (prems_to_remove, skolems)))
+        |> maps (fst o (fn st => remove_skolem_definitions st (prems_to_remove, skolems)))
              (*no new definitions in subproofs*)
-        |> flat
       val concl = concl
         |> is_skolem ? replace_equivalent_by_imp
       val step = (if skolem_step_to_skip orelse rule = skolem_def orelse trivial_step then []
@@ -952,7 +951,7 @@ fun parse typs funs lines ctxt =
     val (u, env) = import_proof_and_post_process typs funs lines ctxt
     val t = u
        |> remove_skolem_definitions_proof
-       |> flat o (map linearize_proof)
+       |> maps linearize_proof
     fun node_to_step (Alethe_Step {id, rule, prems, concl, prop_skeleton, ...}) =
       mk_step id rule prems concl prop_skeleton
   in

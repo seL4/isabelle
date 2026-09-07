@@ -1524,8 +1524,8 @@ fun sort_disj ctxt t =
         handle THM _ => []
       fun only_rewrite {context, prems=nprems, ...} =
         let val rewr_prems = ((take (length nprems - 1) nprems)
-         @ flat (map (try_OF @{lemma \<open>\<And>a b. a = b \<equiv> True \<Longrightarrow> b = a \<equiv> True\<close> by (auto simp: eq_commute)})
-           ((take (length nprems - 1) nprems))))
+         @ maps (try_OF @{lemma \<open>\<And>a b. a = b \<equiv> True \<Longrightarrow> b = a \<equiv> True\<close> by (auto simp: eq_commute)})
+           ((take (length nprems - 1) nprems)))
         in
           Method.insert_tac context [List.last nprems]
           (*the simplifier does not always rewrite assumptions*)
