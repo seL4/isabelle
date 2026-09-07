@@ -903,35 +903,39 @@ local
   fun import_proof_and_post_process typs funs lines ctxt =
     let
       val _ = debug_msg ctxt middle (fn () => \<^print> ("In import_proof_and_post_process"))
+      val smtlib_lines_without_qm : SMTLIB.tree list =
+        let
+          fun parse_line (s : string) : SMTLIB.tree =
+            remove_pattern (remove_all_qm (SMTLIB.parse [s]))
 
-      val compress = SMT_Config.compress_alethe_proofs ctxt
+          fun parse_lines [] = []
+            | parse_lines ("" :: ss) = parse_lines ss
+            | parse_lines (s :: ss) = parse_line s :: parse_lines ss
 
-      val smtlib_lines_without_qm =
-        lines
-        (*TODO Hanna: Hotfix, make better. Difference between external checking and internal*)
-        |> (fn ("("::xs) =>
-          let
-            val len_xs = length xs
-            val lastc = List.nth (xs,len_xs - 1)
-          in
-            if lastc = ")"
-            then List.take (xs,len_xs - 1)
-            else if lastc = "" andalso List.nth (xs,len_xs - 2) = ")"
-            then List.take (xs,len_xs - 2)
-            else ("("::xs)
-          end
-         | xs => xs) (*Made optional for now because not all tools support it: raise throw_alethe_ex ("proof does not start with opening parenthesis"))*)
-        |> filter_out (fn x => x = "")
-        |> map single
-        |> map (fn x => SMTLIB.parse x)
-        |> map remove_all_qm
-        |> map remove_pattern
+          fun parse_wrapped_lines [] =
+                raise throw_alethe_ex "proof does not end with closing parenthesis"
+            | parse_wrapped_lines ("" :: ss) = parse_wrapped_lines ss
+            | parse_wrapped_lines (")" :: ss) =
+                if forall (equal "") ss then
+                  []
+                else
+                  raise throw_alethe_ex "unexpected closing parenthesis in proof"
+            | parse_wrapped_lines (s :: ss) = parse_line s :: parse_wrapped_lines ss
+        in
+          (case drop_prefix (equal "") lines of
+            "(" :: lines => parse_wrapped_lines lines
+          | lines =>
+            (* Made optional because not all tools emit the outer parentheses:
+              raise throw_alethe_ex "proof does not start with opening parenthesis" *)
+              parse_lines lines)
+        end
       val _ = debug_msg ctxt high (fn () => \<^print> ("Removed questionmarks and patterns from proof"))
 
       val (raw_steps, _, _) =
         parse_raw_proof_steps NONE smtlib_lines_without_qm SMTLIB_Proof.empty_name_binding
       val _ = debug_msg ctxt middle (fn () => \<^print> ("Successfully parsed into raw proof step"))
 
+      val compress = SMT_Config.compress_alethe_proofs ctxt
       fun process step (cx, cx') =
         let fun postprocess step (cx, cx') =
           let val (step, cx) = postprocess_proof compress ctxt step cx
