@@ -572,9 +572,8 @@ fun get_config ctxt : config list =
   let
     val cs = SMT_Config.solver_class_of ctxt
     val cfgs =
-      map (SMT_Util.dict_get (Configs.get (Context.Proof ctxt))) cs
-      |> filter is_some
-      |> map ((fn f => f ctxt) o the)
+      map_filter (SMT_Util.dict_get (Configs.get (Context.Proof ctxt))) cs
+      |> map ((fn f => f ctxt))
   in
     (case cfgs of
       (_ :: _) => cfgs
