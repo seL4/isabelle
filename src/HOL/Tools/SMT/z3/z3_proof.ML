@@ -225,7 +225,7 @@ fun subst_types ctxt env bounds t =
     val t' = singleton (Variable.polymorphic ctxt) t
     val patTs = map snd (Term.strip_qnt_vars \<^const_name>\<open>Pure.all\<close> t')
     val objTs = map objT_of bounds
-    val subst = subst_of (fold match (patTs ~~ objTs) Vartab.empty)
+    val subst = subst_of (fold2 (curry match) patTs objTs Vartab.empty)
   in Term.map_types (substTs_same subst) t' end
 
 fun eq_quant (\<^const_name>\<open>HOL.All\<close>, _) (\<^const_name>\<open>HOL.All\<close>, _) = true
