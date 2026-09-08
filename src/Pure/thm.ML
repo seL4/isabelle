@@ -1621,7 +1621,7 @@ fun abstract_rule b
           Thm (deriv_rule1 zproof proof der,
            {cert = cert,
             tags = [],
-            maxidx = maxidx,
+            maxidx = Term.maxidx_typ T maxidx,
             constraints = constraints,
             shyps = Sorts.union sorts shyps,
             hyps = hyps,
