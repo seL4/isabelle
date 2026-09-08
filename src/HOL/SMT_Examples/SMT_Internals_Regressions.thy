@@ -171,6 +171,17 @@ in
   false => raise (SMT_Regression ("Alethe_Proof.parse_raw_proof_steps does not give expected output instead resulted in "))
 end
 
+(*expects a string and the numerator/denominator the argument should be extracted to.*)
+fun check_coefficients str expected =
+  let
+    fun pair_str (i, j) = "(" ^ signed_string_of_int i ^ ", " ^ signed_string_of_int j ^ ")"
+    val res = Alethe_Proof.extract_coefficients (SMTLIB.parse [str])
+  in
+    if res = expected then true
+    else raise (SMT_Regression ("Alethe_Proof.extract_coefficients " ^ str ^ " gives " ^
+      pair_str res ^ " instead of " ^ pair_str expected))
+  end
+
 
 
 (*Regression Tests*)
@@ -258,6 +269,23 @@ val _ = check_raw_node [testTree] [resTree] true
 
 
 val testNode = Alethe_Proof.parse_raw_proof_steps NONE [testTree] SMTLIB_Proof.empty_name_binding
+
+
+(*extract_coefficients*)
+
+val _ = check_coefficients "5" (5, 1)
+val _ = check_coefficients "(- 5)" (~5, 1)
+val _ = check_coefficients "(/ 1 2)" (1, 2)
+val _ = check_coefficients "0.0" (0, 1)
+val _ = check_coefficients "5.0" (5, 1)
+val _ = check_coefficients "0.5" (5, 10)
+val _ = check_coefficients "1.5" (15, 10)
+val _ = check_coefficients "10.25" (1025, 100)
+val _ = check_coefficients "(- 5.0)" (~5, 1)
+val _ = check_coefficients "1/1" (1, 1)
+val _ = check_coefficients "47/28" (47, 28)
+val _ = check_coefficients "-47/28" (~47, 28)
+val _ = check_coefficients "(- 47/28)" (~47, 28)
 
 
 \<close>
