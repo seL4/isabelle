@@ -317,8 +317,7 @@ fun with_time_limit ctxt error_msg timeout_config f x =
   Timeout.apply (seconds (Config.get ctxt timeout_config)) f x
     handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT (SMT_Failure.Time_Out error_msg)
 
-fun with_timeout ctxt error_msg = with_time_limit ctxt error_msg timeout
-    handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT (SMT_Failure.Time_Out error_msg);
+fun with_timeout ctxt error_msg = with_time_limit ctxt error_msg timeout;
 
 
 (* certificates *)
