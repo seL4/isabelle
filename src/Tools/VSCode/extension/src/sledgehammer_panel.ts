@@ -24,6 +24,18 @@ export class Provider implements WebviewViewProvider{
     private readonly _language_client: LanguageClient
   ) { }
 
+  public setup() {
+    this._language_client.onNotification(LSP.sledgehammer_status_type, msg =>
+      this.update_status(msg.message))
+    this._language_client.onNotification(LSP.sledgehammer_output_type, msg =>
+      this.update_output(msg))
+    this._language_client.onNotification(LSP.sledgehammer_insert_type, msg =>
+      this.insert(msg))
+    this._language_client.onNotification(LSP.sledgehammer_provers_response_type, msg =>
+      this.update_provers(msg.provers))
+    this.request_provers(this._language_client)
+  }
+
   public resolveWebviewView(
     view: WebviewView,
     _context: WebviewViewResolveContext,
@@ -64,15 +76,15 @@ export class Provider implements WebviewViewProvider{
     }
   }
 
-  public update_status(message: string): void {
+  private update_status(message: string): void {
     if (this._view) { this._view.webview.postMessage({ command: "status", message }) }
   }
 
-  public update_provers(provers: string): void {
+  private update_provers(provers: string): void {
     if (this._view) { this._view.webview.postMessage({ command: "provers", provers }) }
   }
 
-  public insert(arg: { uri: string, line: number, character: number, text: string }): void {
+  private insert(arg: { uri: string, line: number, character: number, text: string }): void {
     const uri = Uri.parse(arg.uri)
     const editor = window.activeTextEditor
     if (editor && editor.document.uri.toString() === uri.toString()) {
@@ -83,7 +95,7 @@ export class Provider implements WebviewViewProvider{
     }
   }
 
-  public update_output(result: LSP.Sledgehammer_Output): void {
+  private update_output(result: LSP.Sledgehammer_Output): void {
     if (this._view) {
       this._view.webview.postMessage({ command: "result", content: result.content })
     }

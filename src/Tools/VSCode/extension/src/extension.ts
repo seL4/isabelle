@@ -238,21 +238,9 @@ export async function activate(context: ExtensionContext) {
     const sledgehammer_provider =
       new Sledgehammer_Panel.Provider(context.extensionUri, language_client)
     context.subscriptions.push(
-      window.registerWebviewViewProvider(Sledgehammer_Panel.view_type, sledgehammer_provider)
-    )
-    language_client.onReady().then(() => sledgehammer_provider.request_provers(language_client))
+      window.registerWebviewViewProvider(Sledgehammer_Panel.view_type, sledgehammer_provider))
 
-    language_client.onReady().then(() =>
-      {
-        language_client.onNotification(LSP.sledgehammer_status_type, msg =>
-          sledgehammer_provider.update_status(msg.message))
-        language_client.onNotification(LSP.sledgehammer_output_type, msg =>
-          sledgehammer_provider.update_output(msg))
-        language_client.onNotification(LSP.sledgehammer_insert_type, msg =>
-          sledgehammer_provider.insert(msg))
-        language_client.onNotification(LSP.sledgehammer_provers_response_type, msg =>
-          sledgehammer_provider.update_provers(msg.provers))
-      })
+    language_client.onReady().then(() => sledgehammer_provider.setup())
 
 
     /* state panel */
