@@ -341,7 +341,7 @@ val dest_abs_global = gen_dest_abs Term.dest_abs_global;
 
 (* constructors *)
 
-fun rename_tvar (a, i) (Ctyp {cert, T, maxidx, sorts}) =
+fun rename_tvar (a, i) (Ctyp {cert, T, maxidx = _, sorts = _}) =
   let
     val S =
       (case T of
@@ -349,7 +349,7 @@ fun rename_tvar (a, i) (Ctyp {cert, T, maxidx, sorts}) =
       | TVar (_, S) => S
       | _ => raise TYPE ("rename_tvar: no variable", [T], []));
     val _ = if i < 0 then raise TYPE ("rename_tvar: bad index", [TVar ((a, i), S)], []) else ();
-  in Ctyp {cert = cert, T = TVar ((a, i), S), maxidx = Int.max (i, maxidx), sorts = sorts} end;
+  in Ctyp {cert = cert, T = TVar ((a, i), S), maxidx = i, sorts = [S]} end;
 
 fun free (x, Ctyp {cert, T, maxidx, sorts}) =
   Cterm {cert = cert, t = Free (x, T), T = T, maxidx = maxidx, sorts = sorts};
