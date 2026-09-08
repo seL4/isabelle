@@ -428,6 +428,9 @@ object HTML {
       XML.elem(
         Markup("input", List("type" -> "hidden") ::: optional_value(text) ::: optional_name(name)))
 
+    def label(text: String, label_for: String): XML.Elem =
+      XML.Elem(Markup("label", List("for" -> label_for)), HTML.text(text))
+
     def form(body: XML.Body, name: String = "", action: String = "", http_post: Boolean = false)
         : XML.Elem =
       XML.Elem(
