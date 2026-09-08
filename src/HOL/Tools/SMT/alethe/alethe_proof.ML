@@ -402,7 +402,8 @@ fun extract_coefficients (SMTLIB.Num num) =
     (num1, num2)
   | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.S[SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]]) =
     (~num1, num2)
-  | extract_coefficients x = (@{print}("x",x);raise throw_alethe_ex ("malformed argument of la_generic step") )
+  | extract_coefficients t =
+    raise throw_alethe_ex ("malformed argument of la_generic step: " ^ SMTLIB.str_of t)
 
 
 
