@@ -17,11 +17,9 @@ external_file \<open>SMT_Examples_Verit.certs\<close>
 declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
 declare [[smt_read_only_certificates = true]]
 
-declare [[smt_read_only_certificates = false]]
-
 section \<open>Propositional and first-order logic\<close>
 
-lemma "True" supply [[smt_trace]] by (smt (verit))
+lemma "True" by (smt (verit))
 lemma "p \<or> \<not>p" by (smt (verit))
 lemma "(p \<and> True) = p" by (smt (verit))
 lemma "(p \<or> q) \<and> \<not>p \<Longrightarrow> q" by (smt (verit))
