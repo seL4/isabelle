@@ -266,7 +266,7 @@ fun replay_theorem_step solver method_for rewrite_rules all_assms ll_defs assume
       SMT_Config.with_time_limit ctxt (rule ^ "," ^ id) SMT_Config.reconstruction_step_timeout replay step
       handle ERROR exn => Exn.reraise (ERROR (" in step " ^ id ^ " " ^ exn))
 
-    val _ = (SMT_Config.verbose_msg ctxt (K ("Successfully checked step " ^ id)) ())
+    val _ = debug_msg ctxt low (fn () => \<^print> ("Successfully checked step", id))
 
     val name =
       (case rule of
