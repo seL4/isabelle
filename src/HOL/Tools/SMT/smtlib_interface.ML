@@ -16,7 +16,7 @@ sig
   val realsmtlibC: SMT_Util.class
   val add_logic: int * (string -> term list -> Proof.context -> SMT_Translate.smtlib_logic option) -> Context.generic
     -> Context.generic
-  val del_logic: int * (string -> term list -> SMT_Translate.smtlib_logic option) -> Context.generic -> Context.generic
+  val del_logic: int -> Context.generic -> Context.generic
 
   type dtype_decls = (string * (string * (string * string) list) list) list
   type func_decl = string * (string list * string)
@@ -99,7 +99,7 @@ structure Logics = Generic_Data
 )
 
 fun add_logic pf = Logics.map (Ord_List.insert fst_int_ord pf)
-fun del_logic pf = Logics.map (Ord_List.remove fst_int_ord pf)
+fun del_logic i = Logics.map (Ord_List.remove fst_int_ord (i, ()))
 
 fun choose_logic ctxt prover ts =
   let
