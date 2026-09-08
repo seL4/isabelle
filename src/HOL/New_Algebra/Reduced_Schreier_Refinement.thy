@@ -10,16 +10,14 @@ text \<open>
   removes precisely the canonical trivial isomorphism class while retaining
   multiplicity and forgetting order.
 \<close>
-definition nontrivial_factor_multiset ::
-    "'a group_iso_class list \<Rightarrow> 'a group_iso_class multiset"
+definition nontrivial_factor_multiset :: "'a group_iso_class list \<Rightarrow> 'a group_iso_class multiset"
   where
-    "nontrivial_factor_multiset factors =
+    "nontrivial_factor_multiset factors \<equiv>
       filter_mset (\<lambda>C. C \<noteq> trivial_group_iso_class) (mset factors)"
 
 lemma nontrivial_factor_multiset_cong:
   assumes "mset factors = mset factors'"
-  shows "nontrivial_factor_multiset factors =
-    nontrivial_factor_multiset factors'"
+  shows "nontrivial_factor_multiset factors = nontrivial_factor_multiset factors'"
   using assms unfolding nontrivial_factor_multiset_def by simp
 
 lemma nontrivial_factor_multiset_append [simp]:
@@ -32,8 +30,7 @@ lemma nontrivial_factor_multiset_Nil [simp]:
   unfolding nontrivial_factor_multiset_def by simp
 
 lemma nontrivial_factor_multiset_singleton [simp]:
-  "nontrivial_factor_multiset [C] =
-    (if C = trivial_group_iso_class then {#} else {#C#})"
+  "nontrivial_factor_multiset [C] = (if C = trivial_group_iso_class then {#} else {#C#})"
   unfolding nontrivial_factor_multiset_def by simp
 
 lemma nontrivial_factor_multiset_concat_map_upt:
@@ -53,31 +50,25 @@ text \<open>
 lemma left_refinement_factor_class_eq_trivial_iff:
   assumes i: "i < m" and j: "j < n"
   shows "left_refinement_factor_class i j = trivial_group_iso_class
-    \<longleftrightarrow>
-    left_refinement_term i j = left_refinement_term i (Suc j)"
-  unfolding left_refinement_factor_class_def
-  by (rule normal_factor_class_eq_trivial_iff[
-        OF left_refinement_step[OF i j]])
+    \<longleftrightarrow> left_refinement_term i j = left_refinement_term i (Suc j)"
+  by (simp add: i j left_refinement_factor_class_def left_refinement_step
+      normal_factor_class_eq_trivial_iff)
 
 lemma right_refinement_factor_class_eq_trivial_iff:
   assumes i: "i < m" and j: "j < n"
   shows "right_refinement_factor_class j i = trivial_group_iso_class
-    \<longleftrightarrow>
-    right_refinement_term j i = right_refinement_term j (Suc i)"
-  unfolding right_refinement_factor_class_def
-  by (rule normal_factor_class_eq_trivial_iff[
-        OF right_refinement_step[OF i j]])
+    \<longleftrightarrow> right_refinement_term j i = right_refinement_term j (Suc i)"
+  by (simp add: i j normal_factor_class_eq_trivial_iff right_refinement_factor_class_def
+      right_refinement_step)
 
-definition left_reduced_refinement_factor_multiset ::
-    "'a set group_iso_class multiset"
+definition left_reduced_refinement_factor_multiset :: "'a set group_iso_class multiset"
   where
-    "left_reduced_refinement_factor_multiset =
+    "left_reduced_refinement_factor_multiset \<equiv>
       nontrivial_factor_multiset left_refinement_factor_classes"
 
-definition right_reduced_refinement_factor_multiset ::
-    "'a set group_iso_class multiset"
+definition right_reduced_refinement_factor_multiset :: "'a set group_iso_class multiset"
   where
-    "right_reduced_refinement_factor_multiset =
+    "right_reduced_refinement_factor_multiset \<equiv>
       nontrivial_factor_multiset right_refinement_factor_classes"
 
 text \<open>
@@ -86,11 +77,9 @@ text \<open>
   directly with the factor multiset of a composition series.
 \<close>
 theorem reduced_schreier_refinement:
-  "left_reduced_refinement_factor_multiset =
-    right_reduced_refinement_factor_multiset"
-  unfolding left_reduced_refinement_factor_multiset_def
-    right_reduced_refinement_factor_multiset_def
-  by (rule nontrivial_factor_multiset_cong[OF schreier_refinement])
+  "left_reduced_refinement_factor_multiset = right_reduced_refinement_factor_multiset"
+  by (simp add: left_reduced_refinement_factor_multiset_def nontrivial_factor_multiset_def
+      right_reduced_refinement_factor_multiset_def schreier_refinement)
 
 end
 

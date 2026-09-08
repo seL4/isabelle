@@ -470,6 +470,14 @@ session "HOL-New_Algebra" (main timing) in New_Algebra = "HOL-Computational_Alge
     "root.tex"
     "root.bib"
 
+session "HOL-New_Algebra-ex" (timing) in "New_Algebra/ex" = "HOL-New_Algebra" +
+  description "
+    Consistency checks on the matrix-shaped constructions: the Zassenhaus butterfly
+    and the two-index Schreier refinement."
+  theories
+    Zassenhaus_Sanity
+    Schreier_Sanity
+
 session "HOL-Auth" (timing) in Auth = HOL +
   description "
     A new approach to verifying authentication protocols.

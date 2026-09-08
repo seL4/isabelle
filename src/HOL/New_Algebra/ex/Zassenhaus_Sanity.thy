@@ -1,7 +1,7 @@
 section \<open>Cross-checks on the Zassenhaus lemma\<close>
 
 theory Zassenhaus_Sanity
-  imports Zassenhaus_Lemma
+  imports "HOL-New_Algebra.Zassenhaus_Lemma"
 begin
 
 text \<open>Zassenhaus is now \<^emph>\<open>load-bearing\<close>: \<open>Series_Refinement\<close> imports it, so the whole Jordan--Hölder

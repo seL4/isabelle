@@ -26,19 +26,14 @@ text \<open>
 \<close>
 lemma left_refinement_row_reduction:
   assumes i: "i < m"
-  shows "nontrivial_factor_multiset
-      (List.map (left_refinement_factor_class i) [0..<n]) =
-    {#A.series_factor_class i#}"
+  shows "nontrivial_factor_multiset (List.map (left_refinement_factor_class i) [0..<n]) =
+         {#A.series_factor_class i#}"
 proof -
-  have reduction:
-      "reduced_normal_chain_factor_multiset
-          (left_refinement_term i) n (\<cdot>) \<one> =
+  have "reduced_normal_chain_factor_multiset (left_refinement_term i) n (\<cdot>) \<one> =
         {#normal_factor_class (A i) (A (Suc i)) (\<cdot>) \<one>#}"
-    by (rule simple_factor_chain_reduction[
-          OF left_refinement_row[OF i] A_comp.factor_simple_step[OF i]
-            left_refinement_start[OF i] left_refinement_end[OF i]])
-  show ?thesis
-    using reduction
+    using A_comp.factor_simple_step i left_refinement_end left_refinement_row left_refinement_start
+    by (metis simple_factor_chain_reduction)
+  then show ?thesis
     unfolding reduced_normal_chain_factor_multiset_def
       normal_chain_factor_classes_def left_refinement_factor_class_def
       A.series_factor_class_eq_normal_factor_class
@@ -47,19 +42,14 @@ qed
 
 lemma right_refinement_row_reduction:
   assumes j: "j < n"
-  shows "nontrivial_factor_multiset
-      (List.map (right_refinement_factor_class j) [0..<m]) =
-    {#B.series_factor_class j#}"
+  shows "nontrivial_factor_multiset (List.map (right_refinement_factor_class j) [0..<m]) =
+         {#B.series_factor_class j#}"
 proof -
-  have reduction:
-      "reduced_normal_chain_factor_multiset
-          (right_refinement_term j) m (\<cdot>) \<one> =
+  have "reduced_normal_chain_factor_multiset (right_refinement_term j) m (\<cdot>) \<one> =
         {#normal_factor_class (B j) (B (Suc j)) (\<cdot>) \<one>#}"
-    by (rule simple_factor_chain_reduction[
-          OF right_refinement_row[OF j] B_comp.factor_simple_step[OF j]
-            right_refinement_start[OF j] right_refinement_end[OF j]])
-  show ?thesis
-    using reduction
+    using B_comp.factor_simple_step j right_refinement_end right_refinement_row right_refinement_start
+    by (metis simple_factor_chain_reduction)
+  then show ?thesis
     unfolding reduced_normal_chain_factor_multiset_def
       normal_chain_factor_classes_def right_refinement_factor_class_def
       B.series_factor_class_eq_normal_factor_class
@@ -70,27 +60,13 @@ lemma left_reduced_refinement_eq_series_factor_multiset:
   "left_reduced_refinement_factor_multiset = A.series_factor_multiset"
 proof -
   have "left_reduced_refinement_factor_multiset =
-      (\<Sum>i<m. nontrivial_factor_multiset
-        (List.map (left_refinement_factor_class i) [0..<n]))"
-    unfolding left_reduced_refinement_factor_multiset_def
-      left_refinement_factor_classes_def
-    by (rule nontrivial_factor_multiset_concat_map_upt)
+      (\<Sum>i<m. nontrivial_factor_multiset (List.map (left_refinement_factor_class i) [0..<n]))"
+    by (simp add: left_reduced_refinement_factor_multiset_def left_refinement_factor_classes_def
+        nontrivial_factor_multiset_concat_map_upt)
   also have "... = (\<Sum>i<m. {#A.series_factor_class i#})"
-  proof (rule sum.cong)
-    show "{..<m} = {..<m}" by rule
-    fix i
-    assume i: "i \<in> {..<m}"
-    have "i < m"
-      using i by simp
-    then show "nontrivial_factor_multiset
-        (List.map (left_refinement_factor_class i) [0..<n]) =
-      {#A.series_factor_class i#}"
-      by (rule left_refinement_row_reduction)
-  qed
-  also have "... = mset (List.map A.series_factor_class [0..<m])"
-    by (rule mset_map_upt[symmetric])
+    using left_refinement_row_reduction by auto
   also have "... = A.series_factor_multiset"
-    unfolding A.series_factor_multiset_def A.series_factor_classes_def by rule
+    using A.series_factor_classes_def A.series_factor_multiset_def by (metis mset_map_upt)
   finally show ?thesis .
 qed
 
@@ -98,27 +74,13 @@ lemma right_reduced_refinement_eq_series_factor_multiset:
   "right_reduced_refinement_factor_multiset = B.series_factor_multiset"
 proof -
   have "right_reduced_refinement_factor_multiset =
-      (\<Sum>j<n. nontrivial_factor_multiset
-        (List.map (right_refinement_factor_class j) [0..<m]))"
-    unfolding right_reduced_refinement_factor_multiset_def
-      right_refinement_factor_classes_def
-    by (rule nontrivial_factor_multiset_concat_map_upt)
+      (\<Sum>j<n. nontrivial_factor_multiset (List.map (right_refinement_factor_class j) [0..<m]))"
+    by (simp add: nontrivial_factor_multiset_concat_map_upt right_reduced_refinement_factor_multiset_def
+        right_refinement_factor_classes_def)
   also have "... = (\<Sum>j<n. {#B.series_factor_class j#})"
-  proof (rule sum.cong)
-    show "{..<n} = {..<n}" by rule
-    fix j
-    assume j: "j \<in> {..<n}"
-    have "j < n"
-      using j by simp
-    then show "nontrivial_factor_multiset
-        (List.map (right_refinement_factor_class j) [0..<m]) =
-      {#B.series_factor_class j#}"
-      by (rule right_refinement_row_reduction)
-  qed
-  also have "... = mset (List.map B.series_factor_class [0..<n])"
-    by (rule mset_map_upt[symmetric])
+    using right_refinement_row_reduction by auto
   also have "... = B.series_factor_multiset"
-    unfolding B.series_factor_multiset_def B.series_factor_classes_def by rule
+    using B.series_factor_classes_def B.series_factor_multiset_def by (metis mset_map_upt)
   finally show ?thesis .
 qed
 
@@ -129,24 +91,11 @@ text \<open>
 \<close>
 theorem jordan_hoelder:
   "A.series_factor_multiset = B.series_factor_multiset"
-proof -
-  have "A.series_factor_multiset = left_reduced_refinement_factor_multiset"
-    by (rule left_reduced_refinement_eq_series_factor_multiset[symmetric])
-  also have "... = right_reduced_refinement_factor_multiset"
-    by (rule reduced_schreier_refinement)
-  also have "... = B.series_factor_multiset"
-    by (rule right_reduced_refinement_eq_series_factor_multiset)
-  finally show ?thesis .
-qed
+  using left_reduced_refinement_eq_series_factor_multiset reduced_schreier_refinement
+    right_reduced_refinement_eq_series_factor_multiset by presburger
 
-corollary jordan_hoelder_length:
-  "m = n"
-proof -
-  have "size A.series_factor_multiset = size B.series_factor_multiset"
-    by (rule arg_cong[OF jordan_hoelder])
-  then show ?thesis
-    using A.size_series_factor_multiset B.size_series_factor_multiset by simp
-qed
+corollary jordan_hoelder_length: "m = n"
+  using A.size_series_factor_multiset B.size_series_factor_multiset jordan_hoelder by argo
 
 end
 
