@@ -63,6 +63,8 @@ sig
 
   val number_of_steps: alethe_replay_node list -> int
 
+  val extract_coefficients: SMTLIB.tree -> int * int
+
 end;
 
 structure Alethe_Proof: ALETHE_PROOF =
@@ -384,6 +386,24 @@ fun is_alpha_renaming t =
     |> could_unify
   handle TERM _ => false
 
+fun extract_coefficients (SMTLIB.Num num) =
+    (num,1)
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Num num1]) =
+    (~num1,1)
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym _, SMTLIB.Num num1, SMTLIB.Num num2]) =
+    (num1,num2)
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Dec (num1,num2)]) =
+    SMTLIB.convert_dec_to_rat (~num1, num2)
+  | extract_coefficients (SMTLIB.Dec d) =
+    SMTLIB.convert_dec_to_rat d
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (1,0),SMTLIB.Dec (1,0)]) = (*not necessary, included for speed-up*)
+    (1,1)
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]) =
+    (num1, num2)
+  | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.S[SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]]) =
+    (~num1, num2)
+  | extract_coefficients x = (@{print}("x",x);raise throw_alethe_ex ("malformed argument of la_generic step") )
+
 
 
 (*The postprocessing does:
@@ -623,26 +643,7 @@ fun postprocess_proof compress ctxt step cx =
                    (if (commOp = "or") then @{term "HOL.disj"} else @{term "HOL.conj"}) |
                     getOp x = (@{print}("x",x);raise throw_alethe_ex ("malformed shuffle rule"))
               in SOME (CommOp (getOp concl)) end
-          | "la_generic" =>
-            let
-              fun extract_coefficients (SMTLIB.Num num) =
-                  (num,1)
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Num num1]) =
-                  (~num1,1)
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym _, SMTLIB.Num num1, SMTLIB.Num num2]) =
-                  (num1,num2)
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Dec (num1,num2)]) =
-                  SMTLIB.convert_dec_to_rat (~num1, num2)
-                | extract_coefficients (SMTLIB.Dec d) =
-                  SMTLIB.convert_dec_to_rat d
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (1,0),SMTLIB.Dec (1,0)]) = (*not necessary, included for speed-up*)
-                  (1,1)
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]) =
-                  (num1, num2)
-                | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.S[SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]]) =
-                  (~num1, num2)
-                | extract_coefficients x = (@{print}("x",x);raise throw_alethe_ex ("malformed argument of la_generic step") )
-            in SOME (Farkas_Coefficients (map extract_coefficients step_args)) end
+          | "la_generic" => SOME (Farkas_Coefficients (map extract_coefficients step_args))
           | "forall_inst" =>
             let
               fun get_foralls (SMTLIB.S [_,SMTLIB.S[_,SMTLIB.S [_,SMTLIB.S[_,SMTLIB.S xs,_]],_]]) step_args =
