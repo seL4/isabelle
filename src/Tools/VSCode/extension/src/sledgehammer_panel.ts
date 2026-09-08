@@ -84,7 +84,7 @@ export class Provider implements WebviewViewProvider{
     if (this._view) { this._view.webview.postMessage({ command: "provers", provers }) }
   }
 
-  private insert(arg: { uri: string, line: number, character: number, text: string }): void {
+  private insert(arg: LSP.Sledgehammer_Insert): void {
     const uri = Uri.parse(arg.uri)
     const editor = window.activeTextEditor
     if (editor && editor.document.uri.toString() === uri.toString()) {
