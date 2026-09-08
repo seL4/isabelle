@@ -44,12 +44,6 @@ export class Provider implements WebviewViewProvider{
   private _setup_message_handler(): void {
     if (this._view) {
       this._view.webview.onDidReceiveMessage(async message => {
-        const editor = window.activeTextEditor
-        const pos = editor?.selection.active
-        if (editor && pos) {
-          this._language_client.sendNotification(LSP.caret_update_type,
-            { uri: editor.document.uri.toString(), line: pos.line, character: pos.character })
-        }
         switch (message.command) {
           case "apply":
             this._language_client.sendNotification(LSP.sledgehammer_request_type,
