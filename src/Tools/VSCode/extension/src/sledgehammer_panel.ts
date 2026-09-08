@@ -28,7 +28,7 @@ export class Provider implements WebviewViewProvider{
     this._language_client.onNotification(LSP.sledgehammer_status_type, msg =>
       this.update_status(msg.message))
     this._language_client.onNotification(LSP.sledgehammer_output_type, msg =>
-      this.update_output(msg))
+      this.update_output(msg.content))
     this._language_client.onNotification(LSP.sledgehammer_insert_type, msg =>
       this.insert(msg))
     this._language_client.onNotification(LSP.sledgehammer_provers_response_type, msg =>
@@ -95,9 +95,9 @@ export class Provider implements WebviewViewProvider{
     }
   }
 
-  private update_output(result: LSP.Sledgehammer_Output): void {
+  private update_output(content: string): void {
     if (this._view) {
-      this._view.webview.postMessage({ command: "result", content: result.content })
+      this._view.webview.postMessage({ command: "result", content: content })
     }
   }
 
