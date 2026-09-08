@@ -11,6 +11,7 @@ section \<open>Examples for the cvc5-SMT binding\<close>
 
 theory SMT_Examples_CVC
   imports Complex_Main
+  options [condition = "$CVC5_INSTALLED"]
 begin
 
 
