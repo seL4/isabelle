@@ -18,7 +18,6 @@ declare [[smt_certificates = "SMT_Examples_Verit.certs"]]
 declare [[smt_read_only_certificates = true]]
 
 declare [[smt_read_only_certificates = false]]
-declare [[smt_verbose=false]]
 
 section \<open>Propositional and first-order logic\<close>
 

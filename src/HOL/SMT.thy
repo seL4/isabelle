@@ -1194,7 +1194,7 @@ The SMT method, when applied, traces important information. To
 make it entirely silent, set the following option to \<open>false\<close>.
 \<close>
 
-declare [[smt_verbose = false]]
+declare [[smt_verbose = true]]
 
 text \<open>
 For tracing the generated problem file given to the SMT solver as
