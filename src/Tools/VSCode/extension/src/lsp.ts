@@ -177,18 +177,7 @@ export interface Sledgehammer_Status {
 }
 
 export interface Sledgehammer_Output {
-  content: string,
-  position: {
-    uri: string,
-    line: number,
-    character: number
-  },
-  sendback_id: number,
-  state_location: {
-    uri: string,
-    line: number,
-    character: number
-  }
+  content: string
 }
 
 export interface Sledgehammer_Sendback {
