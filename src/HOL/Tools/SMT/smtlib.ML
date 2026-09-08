@@ -100,8 +100,8 @@ fun mk_dec n (m, k) =
 
 fun read_int' l cs = (!!! l "Expected numeral but could not find it." (read_radix_int' 10)) cs
 
-fun read_num' l sign =
- ((read_int' l >> (sign o fst)) :--
+fun read_num' l =
+ ((read_int' l >> fst) :--
  (fn n => (
     ((Scan.permissive ($$ ".")) |-- read_int' l >> mk_dec n) ||
     ((Scan.permissive ($$ "/")) |-- read_int' l >> (fn (m, _) => S[Sym "/", (Dec (n, 0)), (Dec (m, 0))])) ||
@@ -110,9 +110,17 @@ fun read_num' l sign =
   )
 ) >> snd
 
-val is_neg = Scan.optional ($$ "-" >> K ~) I
+(* read_num' yields only these three shapes *)
+fun negate_num (Num n) = Num (~ n)
+  | negate_num (Dec (n, k)) = Dec (~ n, k)
+  | negate_num (S [Sym "/", Dec (n, 0), d]) = S [Sym "/", Dec (~ n, 0), d]
+  | negate_num _ = raise Fail "cannot negate numeral"
 
-fun scan_num l = !!! l "Could not read numeral" (is_neg :--read_num' l >> snd)
+val is_neg = Scan.optional ($$ "-" >> K true) false
+
+fun scan_num l =
+  !!! l "Could not read numeral"
+    (is_neg -- read_num' l >> (fn (neg, t) => if neg then negate_num t else t))
 
 (* binary numbers *)
 

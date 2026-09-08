@@ -85,6 +85,10 @@ val _ = check_tree "0.05" (SMTLIB.Dec (5,2)) true
 val _ = check_tree "1.05" (SMTLIB.Dec (105,2)) true
 val _ = check_tree "0.50" (SMTLIB.Dec (5,1)) true
 val _ = check_tree "5.0" (SMTLIB.Dec (5,0)) true
+val _ = check_tree "-0.5" (SMTLIB.Dec (~5,1)) true
+val _ = check_tree "-1.5" (SMTLIB.Dec (~15,1)) true
+val _ = check_tree "-0.05" (SMTLIB.Dec (~5,2)) true
+val _ = check_tree "-1.0" (SMTLIB.Dec (~1,0)) true
 val _ = check_tree "47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (47,0),SMTLIB.Dec (28,0)]) true
 val _ = check_tree "-47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.S[SMTLIB.Sym "-", SMTLIB.Dec (47,0)],SMTLIB.Dec (28,0)]) false
 val _ = check_tree "-47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (~47,0),SMTLIB.Dec (28,0)]) true
@@ -94,6 +98,7 @@ val _ = check_str_of (SMTLIB.Dec (5,2)) "0.05"
 val _ = check_str_of (SMTLIB.Dec (105,2)) "1.05"
 val _ = check_str_of (SMTLIB.Dec (5,0)) "5"
 val _ = check_str_of (SMTLIB.Dec (~5,1)) "-0.5"
+val _ = check_str_of (SMTLIB.Dec (~5,2)) "-0.05"
 
 val _ = expect_parsing_error "01.234.99"
 val _ = expect_parsing_error "01."
@@ -307,6 +312,9 @@ val _ = check_coefficients "(- 47/28)" (~47, 28)
 val _ = check_coefficients "0.05" (5, 100)
 val _ = check_coefficients "1.05" (105, 100)
 val _ = check_coefficients "0.005" (5, 1000)
+val _ = check_coefficients "-0.5" (~5, 10)
+val _ = check_coefficients "-1.5" (~15, 10)
+val _ = check_coefficients "-0.05" (~5, 100)
 
 
 \<close>
