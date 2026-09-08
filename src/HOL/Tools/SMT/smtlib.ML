@@ -17,6 +17,7 @@ sig
     S of tree list
   val extract_subtrees: string -> tree -> tree list
   val extract_sym_value: string -> tree -> string
+  val convert_dec_to_rat: int * int -> int * int
   val parse: string list -> tree
   val pretty_tree: tree -> Pretty.T
   val str_of: tree -> string
@@ -87,6 +88,13 @@ fun read_radix_int' radix cs =
 
 
 (* numerals and decimals *)
+
+(* Converts a Dec (num1, num2) to numerator and denominator. *)
+fun convert_dec_to_rat (num1, num2) =
+  let
+    fun mult10 x = if x = 0 then 1 else 10 * mult10 (x div 10)
+    val denominator = mult10 num2
+  in (denominator * num1 + num2, denominator) end
 
 fun read_int' l cs = (!!! l "Expected numeral but could not find it." (read_radix_int' 10 >> fst)) cs
 

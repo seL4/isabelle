@@ -625,15 +625,6 @@ fun postprocess_proof compress ctxt step cx =
               in SOME (CommOp (getOp concl)) end
           | "la_generic" =>
             let
-              fun convert_dec_to_rat num1 num2 =
-                let
-                  fun mult10 x = if x = 0 then 1 else 10 * mult10 (x div 10)
-                  val offset = mult10 num2
-                  val res_num = (offset * num1) + num2
-                in
-                  (res_num,offset)
-                end
-
               fun extract_coefficients (SMTLIB.Num num) =
                   (num,1)
                 | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Num num1]) =
@@ -641,9 +632,9 @@ fun postprocess_proof compress ctxt step cx =
                 | extract_coefficients (SMTLIB.S [SMTLIB.Sym _, SMTLIB.Num num1, SMTLIB.Num num2]) =
                   (num1,num2)
                 | extract_coefficients (SMTLIB.S [SMTLIB.Sym "-", SMTLIB.Dec (num1,num2)]) =
-                  convert_dec_to_rat (~num1) num2
-                | extract_coefficients (SMTLIB.Dec (num1,num2)) =
-                  convert_dec_to_rat num1 num2
+                  SMTLIB.convert_dec_to_rat (~num1, num2)
+                | extract_coefficients (SMTLIB.Dec d) =
+                  SMTLIB.convert_dec_to_rat d
                 | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (1,0),SMTLIB.Dec (1,0)]) = (*not necessary, included for speed-up*)
                   (1,1)
                 | extract_coefficients (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (num1,0),SMTLIB.Dec (num2,0)]) =
