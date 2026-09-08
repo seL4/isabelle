@@ -1846,18 +1846,17 @@ fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts
   if Names.is_empty tfrees andalso Names.is_empty frees then ct
   else if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
   else
-    Cterm {cert = cert, sorts = sorts,
-      T = Term_Subst.generalizeT tfrees idx T,
-      t = Term_Subst.generalize (tfrees, frees) idx t,
-      maxidx = Int.max (maxidx, idx)};
+    let
+      val T' = Term_Subst.generalizeT tfrees idx T;
+      val t' = Term_Subst.generalize (tfrees, frees) idx t;
+    in Cterm {cert = cert, sorts = sorts, T = T', t = t', maxidx = Int.max (maxidx, idx)} end;
 
 fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
   if Names.is_empty tfrees then cT
   else if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
   else
-    Ctyp {cert = cert, sorts = sorts,
-      T = Term_Subst.generalizeT tfrees idx T,
-      maxidx = Int.max (maxidx, idx)};
+    let val T' = Term_Subst.generalizeT tfrees idx T
+    in Ctyp {cert = cert, sorts = sorts, T = T', maxidx = Int.max (maxidx, idx)} end;
 
 
 (*Instantiation of schematic variables
