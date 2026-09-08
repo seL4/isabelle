@@ -27,6 +27,13 @@ in
   false => raise (SMT_Regression ("SMTLIB.parse does not give expected output for " ^ str ^ " instead resulted in " ^ SMTLIB.str_of tree'))
 end
 
+(* expects a tree and the string it should be printed as *)
+fun check_str_of tree expected =
+  let val res = SMTLIB.str_of tree in
+    if res = expected then true
+    else raise (SMT_Regression ("SMTLIB.str_of gives " ^ quote res ^ " instead of " ^ quote expected))
+  end
+
 fun check_dec_to_rat dec expected =
   let
     fun str (i, j) = "(" ^ signed_string_of_int i ^ ", " ^ signed_string_of_int j ^ ")"
@@ -72,13 +79,21 @@ val _ = check_tree "-23" (SMTLIB.S[SMTLIB.Sym "-", SMTLIB.Num (~23)]) false
 (*Dec*)
 
 val _ = check_tree "1/2" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (1,0),SMTLIB.Dec (2,0)]) true
-val _ = check_tree "01.234" (SMTLIB.Dec (1,234)) true
-val _ = check_tree "01.234" (SMTLIB.Dec (01,234)) true
+val _ = check_tree "01.234" (SMTLIB.Dec (1234,3)) true
 val _ = check_tree "01.234" (SMTLIB.Dec (201,234)) false
+val _ = check_tree "0.05" (SMTLIB.Dec (5,2)) true
+val _ = check_tree "1.05" (SMTLIB.Dec (105,2)) true
+val _ = check_tree "0.50" (SMTLIB.Dec (5,1)) true
+val _ = check_tree "5.0" (SMTLIB.Dec (5,0)) true
 val _ = check_tree "47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (47,0),SMTLIB.Dec (28,0)]) true
 val _ = check_tree "-47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.S[SMTLIB.Sym "-", SMTLIB.Dec (47,0)],SMTLIB.Dec (28,0)]) false
 val _ = check_tree "-47/28" (SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (~47,0),SMTLIB.Dec (28,0)]) true
 val _ = check_tree "(- 47/28)" (SMTLIB.S[SMTLIB.Sym "-", SMTLIB.S [SMTLIB.Sym "/",SMTLIB.Dec (47,0),SMTLIB.Dec (28,0)]]) true
+
+val _ = check_str_of (SMTLIB.Dec (5,2)) "0.05"
+val _ = check_str_of (SMTLIB.Dec (105,2)) "1.05"
+val _ = check_str_of (SMTLIB.Dec (5,0)) "5"
+val _ = check_str_of (SMTLIB.Dec (~5,1)) "-0.5"
 
 val _ = expect_parsing_error "01.234.99"
 val _ = expect_parsing_error "01."
@@ -94,10 +109,11 @@ val _ = expect_parsing_error "3.2/5"
 
 val _ = check_dec_to_rat (0, 0) (0, 1)
 val _ = check_dec_to_rat (5, 0) (5, 1)
-val _ = check_dec_to_rat (0, 5) (5, 10)
-val _ = check_dec_to_rat (1, 5) (15, 10)
-val _ = check_dec_to_rat (1, 234) (1234, 1000)
-val _ = check_dec_to_rat (10, 25) (1025, 100)
+val _ = check_dec_to_rat (5, 1) (5, 10)
+val _ = check_dec_to_rat (15, 1) (15, 10)
+val _ = check_dec_to_rat (5, 2) (5, 100)
+val _ = check_dec_to_rat (1234, 3) (1234, 1000)
+val _ = check_dec_to_rat (1025, 2) (1025, 100)
 
 (*Key*)
 
@@ -171,7 +187,7 @@ in
   false => raise (SMT_Regression ("Alethe_Proof.parse_raw_proof_steps does not give expected output instead resulted in "))
 end
 
-(*expects a string and the numerator/denominator the argument should be extracted to.*)
+(* expects a string and the numerator/denominator the argument should be extracted to *)
 fun check_coefficients str expected =
   let
     fun pair_str (i, j) = "(" ^ signed_string_of_int i ^ ", " ^ signed_string_of_int j ^ ")"
@@ -288,6 +304,9 @@ val _ = check_coefficients "1/1" (1, 1)
 val _ = check_coefficients "47/28" (47, 28)
 val _ = check_coefficients "-47/28" (~47, 28)
 val _ = check_coefficients "(- 47/28)" (~47, 28)
+val _ = check_coefficients "0.05" (5, 100)
+val _ = check_coefficients "1.05" (105, 100)
+val _ = check_coefficients "0.005" (5, 1000)
 
 
 \<close>

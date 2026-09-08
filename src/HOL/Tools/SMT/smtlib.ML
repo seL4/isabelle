@@ -10,7 +10,7 @@ sig
   datatype tree =
     Num of int |
     BVNum of int * int |
-    Dec of int * int |
+    Dec of int * int | (* Dec (n, k) denotes n / 10^k, so Dec (n, 0) is the integer n *)
     Str of string |
     Sym of string |
     Key of string |
@@ -89,20 +89,22 @@ fun read_radix_int' radix cs =
 
 (* numerals and decimals *)
 
-(* Converts a Dec (num1, num2) to numerator and denominator. *)
-fun convert_dec_to_rat (num1, num2) =
-  let
-    fun mult10 x = if x = 0 then 1 else 10 * mult10 (x div 10)
-    val denominator = mult10 num2
-  in (denominator * num1 + num2, denominator) end
+(* Converts a Dec (n, k) to numerator and denominator. *)
+fun convert_dec_to_rat (n, k) = (n, Integer.pow k 10)
 
-fun read_int' l cs = (!!! l "Expected numeral but could not find it." (read_radix_int' 10 >> fst)) cs
+(* strip trailing zeros so that "5.0" becomes Dec (5, 0) rather than Dec (50, 1): decimals with
+an empty fraction stay integers for the Dec (n, 0) clauses downstream *)
+fun mk_dec n (m, k) =
+  if k > 0 andalso m mod 10 = 0 then mk_dec n (m div 10, k - 1)
+  else Dec (n * Integer.pow k 10 + m, k)
+
+fun read_int' l cs = (!!! l "Expected numeral but could not find it." (read_radix_int' 10)) cs
 
 fun read_num' l sign =
- ((read_int' l >> sign) :--
+ ((read_int' l >> (sign o fst)) :--
  (fn n => (
-    ((Scan.permissive ($$ ".")) |-- read_int' l >> (Dec o pair n)) ||
-    ((Scan.permissive ($$ "/")) |-- read_int' l >> (fn m => S[Sym "/", (Dec (n, 0)), (Dec (m, 0))])) ||
+    ((Scan.permissive ($$ ".")) |-- read_int' l >> mk_dec n) ||
+    ((Scan.permissive ($$ "/")) |-- read_int' l >> (fn (m, _) => S[Sym "/", (Dec (n, 0)), (Dec (m, 0))])) ||
     (pair (Num n))
     )
   )
@@ -214,8 +216,17 @@ fun parse lines = finish (fold add_line lines (1, (None, [[]])))
 
 fun pretty_tree (Num i) = Pretty.str (string_of_int i)
   | pretty_tree (BVNum (i, base)) = Pretty.str (string_of_int i ^ " :: " ^ string_of_int base ^ " word")
-  | pretty_tree (Dec (i, j)) =
-      Pretty.str (string_of_int i ^ "." ^ string_of_int j)
+  | pretty_tree (Dec (n, 0)) = Pretty.str (string_of_int n)
+  | pretty_tree (Dec (n, k)) =
+      let
+        val (sgn, m) = if n < 0 then ("-", ~ n) else ("", n)
+        val digits = string_of_int m
+        val digits = if size digits <= k then replicate_string (k + 1 - size digits) "0" ^ digits
+          else digits
+        val i = size digits - k
+      in
+        Pretty.str (sgn ^ String.substring (digits, 0, i) ^ "." ^ String.extract (digits, i, NONE))
+      end
   | pretty_tree (Str s) =
       raw_explode s
       |> maps (fn "\"" => ["\\", "\""] | "\\" => ["\\", "\\"] | c => [c])
