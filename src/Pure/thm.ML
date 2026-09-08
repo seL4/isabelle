@@ -1849,7 +1849,8 @@ fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts
     let
       val T' = Term_Subst.generalizeT tfrees idx T;
       val t' = Term_Subst.generalize (tfrees, frees) idx t;
-    in Cterm {cert = cert, sorts = sorts, T = T', t = t', maxidx = Int.max (maxidx, idx)} end;
+      val maxidx' = maxidx_of_term t';
+    in Cterm {cert = cert, sorts = sorts, T = T', t = t', maxidx = maxidx'} end;
 
 fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
   if Names.is_empty tfrees then cT
