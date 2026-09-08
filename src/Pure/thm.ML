@@ -390,7 +390,7 @@ fun adjust_maxidx_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   else if maxidx < i then
     Cterm {maxidx = i, cert = cert, t = t, T = T, sorts = sorts}
   else
-    Cterm {maxidx = Int.max (maxidx_of_term t, i), cert = cert, t = t, T = T, sorts = sorts};
+    Cterm {maxidx = Term.maxidx_term t i, cert = cert, t = t, T = T, sorts = sorts};
 
 fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   if i < 0 then raise CTERM ("negative increment", [ct])
@@ -929,7 +929,7 @@ fun adjust_maxidx_thm i
     Thm (der, {maxidx = i, cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop})
   else
-    Thm (der, {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i),
+    Thm (der, {maxidx = maxidx_tpairs tpairs (Term.maxidx_term prop i),
       cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop});
 
