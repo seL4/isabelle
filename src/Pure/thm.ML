@@ -1598,7 +1598,7 @@ fun eta_long_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
 *)
 fun abstract_rule b
     (ct as Cterm {t = x, T, sorts, ...})
-    (th as Thm (der, {cert, maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
+    (th as Thm (der, {maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
   let
     val (U, t, u) =
       (case prop of
@@ -1609,6 +1609,7 @@ fun abstract_rule b
         raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else
         let
+          val cert = join_certificate1 (ct, th);
           val f = Abs (b, T, abstract_over (x, t));
           val g = Abs (b, T, abstract_over (x, u));
           fun zproof p =
