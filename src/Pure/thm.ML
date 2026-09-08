@@ -1034,7 +1034,7 @@ fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) = (orac
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
-      if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
+      if c1 = c2 then digest else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
