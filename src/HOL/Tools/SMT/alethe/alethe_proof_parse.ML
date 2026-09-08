@@ -1,30 +1,22 @@
-(*  Title:      HOL/Tools/SMT/lethe_proof_parse.ML
+(*  Title:      HOL/Tools/SMT/alethe/alethe_proof_parse.ML
     Author:     Mathias Fleury, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
-VeriT proof parsing.
+Alethe proof parsing.
 *)
 
-signature LETHE_PROOF_PARSE =
+signature ALETHE_PROOF_PARSE =
 sig
-  type ('a, 'b) atp_step = ('a, 'b) ATP_Proof.atp_step
   val parse_proof: SMT_Translate.replay_data ->
     ((string * ATP_Problem_Generate.stature) * thm) list -> term list -> term -> string list ->
     SMT_Solver.parsed_proof
 end;
 
-structure Lethe_Proof_Parse: LETHE_PROOF_PARSE =
+structure Alethe_Proof_Parse: ALETHE_PROOF_PARSE =
 struct
 
-open ATP_Util
-open ATP_Problem
-open ATP_Proof
-open ATP_Proof_Reconstruct
-open Lethe_Isar
-open Lethe_Proof
-
 fun parse_proof
-    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
+    ({ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
     val num_ll_defs = length ll_defs
@@ -33,14 +25,15 @@ fun parse_proof
     val index_of_id = Integer.add (~ num_ll_defs)
 
     fun step_of_assume j ((_, role), th) =
-      Lethe_Proof.Lethe_Step
+      Alethe_Node.Alethe_Step
         {id = SMTLIB_Interface.assert_name_of_role_and_index role (id_of_index j),
-        rule = input_rule, prems = [], proof_ctxt = [], concl = Thm.prop_of th, fixes = []}
+        rule = Alethe_Proof.input_rule, prems = [], concl = Thm.prop_of th,
+        prop_skeleton = @{term "True"}}
 
-    val (actual_steps, _) = Lethe_Proof.parse typs terms output ctxt
+    val (actual_steps, _) = Alethe_Proof.parse typs terms output ctxt
     val used_assert_ids =
         actual_steps
-        |> map_filter (fn (Lethe_Step { id, ...}) =>
+        |> map_filter (fn (Alethe_Node.Alethe_Step { id, ...}) =>
            try (snd o SMTLIB_Interface.role_and_index_of_assert_name) id)
     val used_assm_js =
       map_filter (fn id => let val i = index_of_id id in if i >= 0 then SOME i else NONE end)
@@ -73,7 +66,7 @@ fun parse_proof
       map (apsnd (ATP_Util.short_thm_name ctxt)) helper_ids' @ map (apsnd (fst o fst)) fact_ids'
   in
     {outcome = NONE, fact_ids = SOME fact_ids',
-     atp_proof = fn () => atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules prems concl
+     atp_proof = fn () => Alethe_Isar.atp_proof_of_veriT_proof ctxt ll_defs rewrite_rules prems concl
        fact_helper_ts prem_ids conjecture_id fact_helper_ids' steps}
   end
 

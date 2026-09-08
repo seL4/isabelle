@@ -88,7 +88,7 @@ datatype order = First_Order | Higher_Order
 
 (* role *)
 
- datatype role = Conjecture | Hypothesis | Axiom
+datatype role = Conjecture | Hypothesis | Axiom
 
 
 (* class dictionaries *)
@@ -122,7 +122,7 @@ fun dict_lookup d cs =
 
 fun dict_get d cs =
   (case AList.lookup (op =) d cs of
-    NONE => (case cs of [] => NONE | _ => dict_get d (take (length cs - 1) cs))
+    NONE => (case cs of [] => NONE | _ => dict_get d (fst (split_last cs)))
   | SOME x => SOME x)
 
 
@@ -131,7 +131,7 @@ fun dict_get d cs =
 val dest_funT =
   let
     fun dest Ts 0 T = (rev Ts, T)
-      | dest Ts i (Type ("fun", [T, U])) = dest (T::Ts) (i-1) U
+      | dest Ts i (Type ("fun", [T, U])) = dest (T :: Ts) (i - 1) U
       | dest _ _ T = raise TYPE ("not a function type", [T], [])
   in dest [] end
 
@@ -172,6 +172,7 @@ fun mk_symb_list T ts =
 
 fun dest_symb_list (Const (\<^const_name>\<open>Symb_Nil\<close>, _)) = []
   | dest_symb_list (Const (\<^const_name>\<open>Symb_Cons\<close>, _) $ t $ u) = t :: dest_symb_list u
+  | dest_symb_list t = raise TERM ("not a symbol list", [t])
 
 
 (* patterns and instantiations *)

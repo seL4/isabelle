@@ -69,9 +69,21 @@ fun insert_ttab cs T f =
 fun merge_ttab ttabp = SMT_Util.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
-  let fun match (U, _) = Sign.typ_instance (Proof_Context.theory_of ctxt) (T, U)
+  let
+    val thy = Proof_Context.theory_of ctxt
+    fun match (U, _) = Sign.typ_instance thy (T, U)
+    fun most_special ((u as (U, _)) :: (v as (V, _)) :: rest) =
+         if U = V then most_special (u :: rest)
+         else if Sign.typ_instance thy (U, V)
+         then most_special (v :: rest)
+         else most_special (u :: rest)
+     | most_special rest = rest
   in
-    get_first (find_first match) (SMT_Util.dict_lookup ttab (SMT_Config.solver_class_of ctxt))
+    maps (SMT_Util.dict_lookup ttab) (SMT_Config.solver_class_of ctxt)
+    |> flat
+    |> filter match
+    |> most_special
+    |> (fn [] => NONE | x :: _ => SOME x)
   end
 
 type ('a, 'b) btab = ('a, 'b) ttab Symtab.table
@@ -106,6 +118,11 @@ fun filter_builtins keep_T =
   Context.proof_map (Builtins.map (fn (ttab, btab) =>
     (filter_ttab keep_T ttab, Symtab.map (K (filter_ttab keep_T)) btab)))
 
+type temp = (Proof.context -> typ -> bool,
+     (typ -> (string * typ list) option) *
+     (typ -> int -> string option)
+     )
+     kind
 
 (* built-in types *)
 
@@ -131,10 +148,15 @@ fun is_builtin_typ_ext ctxt T =
 
 (* built-in numbers *)
 
-fun dest_builtin_num ctxt t =
-  (case try HOLogic.dest_number t of
-    NONE => NONE
-  | SOME (T, i) =>
+(* HOLogic.dest_number evaluates a term. Thus, double negations are deleted.
+But as a consequence the assumption in a SMT certificate cannot be matched to the original assertion
+in Isabelle anymore. Thus, we skip this case here. *)
+
+fun dest_builtin_num ctxt (Const ("Groups.uminus_class.uminus", _) $ (t as Const ("Groups.uminus_class.uminus", _) $ _)) = dest_builtin_num ctxt t
+  | dest_builtin_num ctxt t =
+    (case try HOLogic.dest_number t of
+      NONE => NONE
+    | SOME (T, i) =>
       if i < 0 then NONE else
         (case lookup_builtin_typ ctxt T of
           SOME (_, Int (_, g)) => g T i |> Option.map (rpair T)

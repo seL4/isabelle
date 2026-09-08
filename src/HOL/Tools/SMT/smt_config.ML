@@ -11,7 +11,7 @@ sig
     name: string,
     dummy: bool,
     sledgehammer_default: bool,
-    class: Proof.context -> SMT_Util.class,
+    class: Proof.context -> SMT_Util.class list,
     avail: unit -> bool,
     options: Proof.context -> string list }
   val add_solver: solver_info -> Context.generic -> Context.generic
@@ -23,7 +23,7 @@ sig
   val available_solvers_of: Proof.context -> string list
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Proof.context -> string
-  val solver_class_of: Proof.context -> SMT_Util.class
+  val solver_class_of: Proof.context -> SMT_Util.class list
   val solver_options_of: Proof.context -> string list
 
   (*options*)
@@ -35,22 +35,34 @@ sig
   val verbose: bool Config.T
   val trace: bool Config.T
   val statistics: bool Config.T
+
   val monomorph_limit: int Config.T
   val monomorph_instances: int Config.T
   val explicit_application: int Config.T
   val higher_order: bool Config.T
   val native_bv: bool Config.T
+  val native_set: bool Config.T
+  val native_datatypes: bool Config.T
+  val native_codatatypes: bool Config.T
   val nat_as_int: bool Config.T
   val infer_triggers: bool Config.T
+  val integer_induction: bool Config.T
+  val structural_induction: bool Config.T
+
   val problem_dest_file : string Config.T
   val proof_dest_file : string Config.T
+  val unique_dest_file : bool Config.T
   val sat_solver: string Config.T
-  val compress_verit_proofs: Proof.context -> bool
+  val check_external: bool Config.T
+  val slice_only_no_full_proof_attr: bool Config.T
+  val compress_alethe_proofs: Proof.context -> bool
+  val alethe_use_prop_skeleton: Proof.context -> bool
+  val cvc5_word_experimental: bool Config.T
 
   (*tools*)
   val get_timeout: Proof.context -> Time.time option
-  val with_time_limit: Proof.context -> real Config.T -> ('a -> 'b) -> 'a -> 'b
-  val with_timeout: Proof.context -> ('a -> 'b) -> 'a -> 'b
+  val with_time_limit: Proof.context -> string -> real Config.T -> ('a -> 'b) -> 'a -> 'b
+  val with_timeout: Proof.context -> string -> ('a -> 'b) -> 'a -> 'b
 
   (*diagnostics*)
   val trace_msg: Proof.context -> ('a -> string) -> 'a -> unit
@@ -58,9 +70,16 @@ sig
   val statistics_msg: Proof.context -> ('a -> string) -> 'a -> unit
   val verit_msg: Proof.context -> (unit -> 'a) -> unit
   val verit_arith_msg: Proof.context -> (unit -> 'a) -> unit
+  datatype debugging_verbosity = off | low | middle | high
+  val alethe_debug_msg: Proof.context -> string -> debugging_verbosity -> (unit -> 'a) -> unit
+  val alethe_debug_msg_tac: Proof.context -> string -> debugging_verbosity -> string -> tactic
+  val spy_cvc: Proof.context -> bool
   val spy_verit: Proof.context -> bool
   val spy_Z3: Proof.context -> bool
-  val use_lethe_proof_from_cvc: Proof.context -> bool
+  val check_smt_is_slicing: Proof.context -> bool
+  val use_alethe_proof_from_cvc: Proof.context -> bool
+  val alethe_no_provided_assms: Proof.context -> bool
+  val alethe_set_no_provided_assms: bool -> Proof.context -> Proof.context
 
   (*certificates*)
   val select_certificates: string -> Context.generic -> Context.generic
@@ -79,7 +98,7 @@ type solver_info = {
   name: string,
   dummy: bool,
   sledgehammer_default: bool,
-  class: Proof.context -> SMT_Util.class,
+  class: Proof.context -> SMT_Util.class list,
   avail: unit -> bool,
   options: Proof.context -> string list};
 
@@ -122,6 +141,7 @@ fun add_solver (info as {name, ...} : solver_info) context =
 
 val all_solvers_of' = Symtab.keys o get_solvers';
 val all_solvers_of = all_solvers_of' o Context.Proof;
+
 fun all_nondummy_solvers_of (ctxt : Proof.context) : string list =
   let
     val solvers = get_solvers' (Context.Proof ctxt)
@@ -200,25 +220,41 @@ val timeout = Attrib.setup_config_real \<^binding>\<open>smt_timeout\<close> (K 
 val reconstruction_step_timeout = Attrib.setup_config_real \<^binding>\<open>smt_reconstruction_step_timeout\<close> (K 10.0);
 val random_seed = Attrib.setup_config_int \<^binding>\<open>smt_random_seed\<close> (K 1);
 val read_only_certificates = Attrib.setup_config_bool \<^binding>\<open>smt_read_only_certificates\<close> (K false);
-val verbose = Attrib.setup_config_bool \<^binding>\<open>smt_verbose\<close> (K true);
+val verbose = Attrib.setup_config_bool \<^binding>\<open>smt_verbose\<close> (K false);
 val trace = Attrib.setup_config_bool \<^binding>\<open>smt_trace\<close> (K false);
 val trace_verit = Attrib.setup_config_bool \<^binding>\<open>smt_debug_verit\<close> (K false);
+val slice_only_no_full_proof_attr = Attrib.setup_config_bool \<^binding>\<open>smt_alethe_slice\<close> (K false);
+val trace_expert_debug_alethe_level = Attrib.setup_config_int \<^binding>\<open>smt_expert_debug_alethe_level\<close> (K 0);
+val trace_expert_debug_alethe_files = Attrib.setup_config_string \<^binding>\<open>smt_expert_debug_alethe_files\<close> (K "all");
+val spy_cvc_attr = Attrib.setup_config_bool \<^binding>\<open>smt_spy_cvc\<close> (K false);
 val spy_verit_attr = Attrib.setup_config_bool \<^binding>\<open>smt_spy_verit\<close> (K false);
 val spy_z3 = Attrib.setup_config_bool \<^binding>\<open>smt_spy_z3\<close> (K false);
 val trace_arith_verit = Attrib.setup_config_bool \<^binding>\<open>smt_debug_arith_verit\<close> (K false);
 val trace_verit_compression = Attrib.setup_config_bool \<^binding>\<open>verit_compress_proofs\<close> (K true);
+val trace_alethe_use_prop_skeleton = Attrib.setup_config_bool \<^binding>\<open>alethe_use_propositional_skeleton\<close> (K true);
 val statistics = Attrib.setup_config_bool \<^binding>\<open>smt_statistics\<close> (K false);
+
 val monomorph_limit = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_limit\<close> (K 10);
 val monomorph_instances = Attrib.setup_config_int \<^binding>\<open>smt_monomorph_instances\<close> (K 500);
 val explicit_application = Attrib.setup_config_int \<^binding>\<open>smt_explicit_application\<close> (K 1);
 val higher_order = Attrib.setup_config_bool \<^binding>\<open>smt_higher_order\<close> (K false);
 val native_bv = Attrib.setup_config_bool \<^binding>\<open>native_bv\<close> (K true);
+val native_set = Attrib.setup_config_bool \<^binding>\<open>native_set\<close> (K false);
+val native_datatypes = Attrib.setup_config_bool \<^binding>\<open>smt_native_datatypes\<close> (K false);
+val native_codatatypes = Attrib.setup_config_bool \<^binding>\<open>smt_native_codatatypes\<close> (K false);
 val nat_as_int = Attrib.setup_config_bool \<^binding>\<open>smt_nat_as_int\<close> (K false);
 val infer_triggers = Attrib.setup_config_bool \<^binding>\<open>smt_infer_triggers\<close> (K false);
+val integer_induction = Attrib.setup_config_bool \<^binding>\<open>smt_integer_induction\<close> (K false)
+val structural_induction = Attrib.setup_config_bool \<^binding>\<open>smt_structural_induction\<close> (K false)
+
 val problem_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_problem_dest_dir\<close> (K "");
 val proof_dest_file = Attrib.setup_config_string \<^binding>\<open>smt_proof_dest_dir\<close> (K "");
+val unique_dest_file = Attrib.setup_config_bool \<^binding>\<open>smt_unique_dest_file\<close> (K false);
 val sat_solver = Attrib.setup_config_string \<^binding>\<open>smt_sat_solver\<close> (K "cdclite");
-val cvc_experimental_lethe = Attrib.setup_config_bool \<^binding>\<open>smt_cvc_lethe\<close> (K false);
+val check_external = Attrib.setup_config_bool \<^binding>\<open>smt_check_external\<close> (K false);
+val cvc_experimental_alethe = Attrib.setup_config_bool \<^binding>\<open>smt_cvc_alethe\<close> (K false);
+val alethe_no_assumption = Attrib.setup_config_bool \<^binding>\<open>smt_alethe_no_assumption\<close> (K false);
+val cvc5_word_experimental = Attrib.setup_config_bool \<^binding>\<open>smt_cvc5_word_experimental\<close> (K false);
 
 
 (* diagnostics *)
@@ -232,11 +268,43 @@ fun statistics_msg ctxt = cond_trace (Config.get ctxt statistics);
 fun verit_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_verit) then ignore(x ()) else ();
 fun verit_arith_msg ctxt (x : unit -> 'a) = if (Config.get ctxt trace_arith_verit) then ignore(x ()) else ();
 
-fun spy_verit ctxt  = Config.get ctxt spy_verit_attr;
-fun spy_Z3 ctxt  = Config.get ctxt spy_z3;
-fun compress_verit_proofs ctxt  = Config.get ctxt trace_verit_compression;
+datatype debugging_verbosity = off | low | middle | high
+datatype debugging_files = all | alethe_proof
 
-fun use_lethe_proof_from_cvc ctxt  = Config.get ctxt cvc_experimental_lethe;
+fun debug_to_int off = 0 |
+    debug_to_int low = 1 |
+    debug_to_int middle = 2 |
+    debug_to_int high = 3
+
+fun alethe_debug_msg ctxt file verbosity (x : unit -> 'a) =
+let
+  val part = Config.get ctxt trace_expert_debug_alethe_files
+  val min = Config.get ctxt trace_expert_debug_alethe_level
+in
+ if (min > 0 andalso min >= debug_to_int verbosity andalso (part = "all" orelse part = file)) then ignore(x ()) else ()
+end
+
+fun alethe_debug_msg_tac ctxt file verbosity (msg: string) =
+let
+  val part = Config.get ctxt trace_expert_debug_alethe_files
+  val min = Config.get ctxt trace_expert_debug_alethe_level
+in
+ if (min > 0 andalso min >= debug_to_int verbosity andalso (part = "all" orelse part = file))
+ then (print_tac ctxt msg) else TRY no_tac
+end
+
+
+fun check_smt_is_slicing ctxt  = Config.get ctxt slice_only_no_full_proof_attr
+
+fun spy_cvc ctxt  = Config.get ctxt spy_cvc_attr
+fun spy_verit ctxt  = Config.get ctxt spy_verit_attr
+fun spy_Z3 ctxt  = Config.get ctxt spy_z3
+fun compress_alethe_proofs ctxt = Config.get ctxt trace_verit_compression
+fun alethe_use_prop_skeleton ctxt = Config.get ctxt trace_alethe_use_prop_skeleton
+
+fun use_alethe_proof_from_cvc ctxt = Config.get ctxt cvc_experimental_alethe
+fun alethe_no_provided_assms ctxt = Config.get ctxt alethe_no_assumption
+fun alethe_set_no_provided_assms b = Config.map alethe_no_assumption (K b)
 
 
 (* tools *)
@@ -245,11 +313,12 @@ fun get_timeout ctxt =
   let val t = seconds (Config.get ctxt timeout);
   in if Timeout.ignored t then NONE else SOME (Timeout.scale_time t) end;
 
-fun with_time_limit ctxt timeout_config f x =
+fun with_time_limit ctxt error_msg timeout_config f x =
   Timeout.apply (seconds (Config.get ctxt timeout_config)) f x
-    handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT SMT_Failure.Time_Out;
+    handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT (SMT_Failure.Time_Out error_msg)
 
-fun with_timeout ctxt = with_time_limit ctxt timeout;
+fun with_timeout ctxt error_msg = with_time_limit ctxt error_msg timeout
+    handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT (SMT_Failure.Time_Out error_msg);
 
 
 (* certificates *)

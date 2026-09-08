@@ -24,19 +24,31 @@ end;
 structure Z3_Interface: Z3_INTERFACE =
 struct
 
-val z3C = ["z3"]
+val z3C = ["z3_extension"]
 
-val smtlib_z3C = SMTLIB_Interface.smtlibC @ SMTLIB_Interface.bvsmlibC @ z3C
+val smtlib_z3C = z3C
+
+
+(* datatype declarations, in the pre-2.6 SMT-LIB syntax expected by Z3 *)
+
+fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
+fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
+fun sdatatype (name, ctrs) = enclose "(" ")" (implode_space (name :: map sctr ctrs))
+
+fun sdtyp (fp, dtyps : SMTLIB_Interface.dtype_decls) =
+  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes () (") "))\n"
+    (space_implode "\n  " (map sdatatype dtyps)))
 
 
 (* interface *)
 
 local
-  fun translate_config ctxt =
+  fun translate_config _ =
     {order = SMT_Util.First_Order,
-     logic = K (K ""),
+     (*logic = K (K ""),*)
+     logic = K (K SMT_Translate.NO_LOGIC),
      fp_kinds = [BNF_Util.Least_FP],
-     serialize = #serialize (SMTLIB_Interface.translate_config SMT_Util.First_Order ctxt)}
+     serialize = SMTLIB_Interface.serialize sdtyp}
 
   fun is_div_mod \<^Const_>\<open>divide \<^Type>\<open>int\<close>\<close> = true
     | is_div_mod \<^Const>\<open>modulo \<^Type>\<open>int\<close>\<close> = true

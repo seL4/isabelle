@@ -71,9 +71,9 @@ fun replay_step ctxt assumed (step as Z3_Proof.Z3_Step {id, rule, prems, fixes, 
     val nthms = map (the o Inttab.lookup proofs) prems
     val replay = Timing.timing (replay_thm ctxt assumed nthms)
     val ({elapsed, ...}, thm) =
-      SMT_Config.with_time_limit ctxt SMT_Config.reconstruction_step_timeout replay step
-        handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT SMT_Failure.Time_Out
-    val stats' = Symtab.cons_list (Z3_Proof.string_of_rule rule, Time.toMilliseconds elapsed) stats
+      SMT_Config.with_time_limit ctxt "replay_step" SMT_Config.reconstruction_step_timeout replay step
+        handle Timeout.TIMEOUT _ => raise SMT_Failure.SMT (SMT_Failure.Time_Out (@{make_string} rule))
+    val stats' = Symtab.cons_list (Z3_Proof.string_of_rule rule, Time.toNanoseconds elapsed) stats
   in (Inttab.update (id, (fixes, thm)) proofs, stats') end
 
 (* |- (EX x. P x) = P c     |- ~ (ALL x. P x) = ~ P c *)
@@ -119,7 +119,7 @@ fun discharge rules outer_ctxt inner_ctxt =
   #> discharge_assms outer_ctxt (make_discharge_rules rules)
 
 fun parse_proof outer_ctxt
-    ({context = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
+    ({ctxt = ctxt, typs, terms, ll_defs, rewrite_rules, assms} : SMT_Translate.replay_data)
     xfacts prems concl output =
   let
     val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
@@ -149,7 +149,7 @@ fun parse_proof outer_ctxt
   end
 
 fun replay outer_ctxt
-    ({context = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT_Translate.replay_data) output =
+    ({ctxt = ctxt, typs, terms, rewrite_rules, assms, ...} : SMT_Translate.replay_data) output =
   let
     val (steps, ctxt2) = Z3_Proof.parse typs terms output ctxt
     val ((_, rules), (ctxt3, assumed)) =
@@ -169,6 +169,9 @@ fun replay outer_ctxt
     val total = Time.toMilliseconds (#elapsed (Timing.result start))
     val (_, Z3_Proof.Z3_Step {id, ...}) = split_last steps
     val _ = SMT_Config.statistics_msg ctxt4 (Pretty.string_of o SMT_Replay.pretty_statistics "Z3" total) stats
+    val _ = SMT_Replay.spying (SMT_Config.spy_Z3 ctxt) ctxt
+                                (fn () => SMT_Replay.print_stats (Symtab.dest stats)) "$ISABELLE_SMT_Z3_SPY"
+
   in
     Inttab.lookup proofs id |> the |> snd |> discharge rules outer_ctxt ctxt4
   end

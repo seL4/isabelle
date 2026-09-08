@@ -151,10 +151,11 @@ local
     \<^simproc_setup>\<open>passive antisym_less ("\<not> (x::'a::linorder) < y") = \<open>K prove_antisym_less\<close>\<close>
 
   val basic_simpset =
-    HOL_ss |> Simplifier.simpset_map \<^context>
-      (Simplifier.add_simps @{thms field_simps times_divide_eq_right times_divide_eq_left arith_special
-        arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def}
-      #> fold Simplifier.add_proc [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
+    simpset_of (put_simpset HOL_ss \<^context>
+      |> Simplifier.add_simps (@{thms times_divide_eq_right times_divide_eq_left arith_special
+        arith_simps rel_simps array_rules z3div_def z3mod_def NO_MATCH_def} @
+         Named_Theorems.get \<^context> \<^named_theorems>\<open>field_simps\<close>)
+      |> fold Simplifier.add_proc [\<^simproc>\<open>numeral_divmod\<close>, fast_int_arith_simproc,
         antisym_le_simproc, antisym_less_simproc])
 
   structure Simpset = Generic_Data
@@ -169,7 +170,7 @@ fun add_simproc simproc context =
   Simpset.map (Simplifier.simpset_map (Context.proof_of context) (Simplifier.add_proc simproc)) context
 
 fun make_simpset ctxt rules =
-  Simpset.get (Context.Proof ctxt) |> Simplifier.simpset_map ctxt (Simplifier.add_simps rules)
+  simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt |> Simplifier.add_simps rules)
 
 end
 
@@ -255,21 +256,35 @@ fun intermediate_statistics ctxt start total =
 
 fun pretty_statistics solver total stats =
   let
+    fun sum_all xs = List.foldr (fn ((_,b), x) => x + List.foldr (op+) 0 b) 0 xs
+    val total_time_rules = (sum_all (Symtab.dest stats)) div 1000000
     val stats = Symtab.map (K (map (fn i => curry Int.div i 1000000))) stats
     fun mean_of is =
       let
         val len = length is
         val mid = len div 2
       in if len mod 2 = 0 then (nth is (mid - 1) + nth is mid) div 2 else nth is mid end
+    fun quartile n is =
+      let
+        val len = length is
+        val pos = (len * n) div 4
+      in nth is pos end
     fun pretty_item name p = Pretty.item (Pretty.separate ":" [Pretty.str name, p])
-    fun pretty (name, milliseconds) = (Pretty.block (Pretty.str (name ^": ")  :: Pretty.separate "," [
-      Pretty.str (string_of_int (length milliseconds) ^ " occurrences") ,
-      Pretty.str (string_of_int (mean_of milliseconds) ^ " ms mean time"),
-      Pretty.str (string_of_int (fold Integer.max milliseconds 0) ^ " ms maximum time"),
-      Pretty.str (string_of_int (fold Integer.add milliseconds 0) ^ " ms total time")]))
+    fun pretty (name, milliseconds) =
+      let val milliseconds = Library.sort int_ord milliseconds
+      in
+        Pretty.block (Pretty.str (name ^": ")  :: Pretty.separate "," [
+        Pretty.str (string_of_int (length milliseconds) ^ " occurrences"),
+        Pretty.str (string_of_int (quartile 1 milliseconds) ^ " ms 1/4th time"),
+        Pretty.str (string_of_int (mean_of milliseconds) ^ " ms mean time"),
+        Pretty.str (string_of_int (quartile 3 milliseconds) ^ " ms 3/4th time"),
+        Pretty.str (string_of_int (fold Integer.max milliseconds 0) ^ " ms maximum time"),
+        Pretty.str (string_of_int (fold Integer.add milliseconds 0) ^ " ms total time")])
+      end
   in
     Pretty.big_list (solver ^ " proof reconstruction statistics:") (
       pretty_item "total time" (Pretty.str (string_of_int total ^ " ms")) ::
+      pretty_item "total time in rules" (Pretty.str (string_of_int total_time_rules ^ " ms")) ::
       map pretty (Symtab.dest stats))
   end
 

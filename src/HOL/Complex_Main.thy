@@ -5,6 +5,7 @@ imports
   Complex
   MacLaurin
   Binomial_Plus
+  SMT_CVC_Real
 begin
 
 end

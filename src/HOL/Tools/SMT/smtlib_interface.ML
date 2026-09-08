@@ -9,10 +9,14 @@ signature SMTLIB_INTERFACE =
 sig
   val smtlibC: SMT_Util.class
   val hosmtlibC: SMT_Util.class
-  val bvsmlibC: SMT_Util.class
-  val realsmlibC: SMT_Util.class
-  val add_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
-  val del_logic: int * (string -> term list -> string option) -> Context.generic -> Context.generic
+  val bvsmtlibC: SMT_Util.class
+  val dtsmtlibC: SMT_Util.class
+  val codtsmtlibC: SMT_Util.class
+  val setsmtlibC: SMT_Util.class
+  val realsmtlibC: SMT_Util.class
+  val add_logic: int * (string -> term list -> Proof.context -> SMT_Translate.smtlib_logic option) -> Context.generic
+    -> Context.generic
+  val del_logic: int * (string -> term list -> SMT_Translate.smtlib_logic option) -> Context.generic -> Context.generic
 
   type dtype_decls = (string * (string * (string * string) list) list) list
   type func_decl = string * (string list * string)
@@ -21,9 +25,8 @@ sig
      funcs: func_decl list, logic: string, sorts: string list} ->
     (SMT_Util.role * SMT_Translate.sterm) list -> string
 
-  val serialize_datatypes: BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T
-
-  val translate_config: SMT_Util.order -> Proof.context -> SMT_Translate.config
+  val translate_config: SMT_Util.order -> BNF_Util.fp_kind list -> Proof.context ->
+    SMT_Translate.config
   val assert_name_of_role_and_index: SMT_Util.role -> int -> string
   val role_and_index_of_assert_name: string -> SMT_Util.role * int
 end;
@@ -34,9 +37,12 @@ struct
 val hoC = ["ho"]
 
 val smtlibC = ["smtlib"]   (* SMT-LIB 2 *)
-val hosmtlibC = smtlibC @ hoC   (* possibly SMT-LIB 3 *)
-val bvsmlibC = smtlibC @ ["BV"] (* if BV are supported *)
-val realsmlibC = ["Real"]
+val hosmtlibC = hoC   (* possibly SMT-LIB 3 *)
+val bvsmtlibC = ["BV"] (* if BV are supported *)
+val dtsmtlibC = ["datatypes"]
+val codtsmtlibC = ["codatatypes"]
+val realsmtlibC = ["Real"]
+val setsmtlibC = ["Set"] (* if non SMT-LIB theory of sets is supported*)
 
 (* builtins *)
 
@@ -84,9 +90,10 @@ end
 
 fun fst_int_ord ((i1, _), (i2, _)) = int_ord (i1, i2)
 
+
 structure Logics = Generic_Data
 (
-  type T = (int * (string -> term list -> string option)) list
+  type T = (int * (string -> term list -> Proof.context -> SMT_Translate.smtlib_logic option)) list
   val empty = []
   fun merge data = Ord_List.merge fst_int_ord data
 )
@@ -96,12 +103,11 @@ fun del_logic pf = Logics.map (Ord_List.remove fst_int_ord pf)
 
 fun choose_logic ctxt prover ts =
   let
-    fun choose [] = "AUFLIA"
-      | choose ((_, f) :: fs) = (case f prover ts of SOME s => s | NONE => choose fs)
+    fun choose [] = SMT_Translate.SL {fixedSizeBitVectors=false, real=false, set=false,
+        datatypes=false}
+      | choose ((_, f) :: fs) = (case f prover ts ctxt of SOME s => s | NONE => choose fs)
   in
-    (case choose (Logics.get (Context.Proof ctxt)) of
-      "" => "" (* for default Z3 logic, a subset of everything *)
-    | logic => "(set-logic " ^ logic ^ ")\n")
+    choose (Logics.get (Context.Proof ctxt))
   end
 
 
@@ -139,11 +145,6 @@ fun tree_of_sterm l (SMT_Translate.SVar (i, [])) = SMTLIB.Sym (var (l - i - 1))
         SMTLIB.S [SMTLIB.Sym (quant_name q), SMTLIB.S vs, body]
       end
 
-
-fun sctrarg (sel, typ) = "(" ^ sel ^ " " ^ typ ^ ")"
-fun sctr (name, args) = enclose "(" ")" (implode_space (name :: map sctrarg args))
-fun sdatatype (name, ctrs) = enclose "(" ")" (implode_space (name :: map sctr ctrs))
-
 fun string_of_fun (f, (ss, s)) = f ^ " (" ^ implode_space ss ^ ") " ^ s
 
 fun named_sterm s t = SMTLIB.S [SMTLIB.Sym "!", t, SMTLIB.Key "named", SMTLIB.Sym s]
@@ -169,16 +170,13 @@ fun role_and_index_of_assert_name s =
 
 type dtype_decls = (string * (string * (string * string) list) list) list
 
-fun sdtyp (fp, dtyps : dtype_decls) =
-  Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes () (") "))\n"
-    (space_implode "\n  " (map sdatatype dtyps)))
-
 type func_decl = string * (string list * string)
 
 fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) smt_options comments
       {logic, sorts, dtyps, funcs} ts =
   let
     val unsat_core = member (op =) smt_options (":produce-unsat-cores", "true")
+    val models = member (op =) smt_options (":produce-models", "true")
   in
     Buffer.empty
     |> fold (Buffer.add o enclose "; " "\n") comments
@@ -192,7 +190,8 @@ fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) s
         (SMTLIB.str_of (named_sterm (assert_name_of_role_and_index role i) (tree_of_sterm 0 t)))))
         (map_index I ts)
     |> Buffer.add "(check-sat)\n"
-    |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else "(get-proof)\n")
+    |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else
+       if models then "(get-model)\n" else "(get-proof)\n")
     |> Buffer.content
   end
 
@@ -205,24 +204,35 @@ fun sarity (name, _) = enclose "(" ")" (name ^ " 0")
 
 in
 
-fun serialize_datatypes ((fp, dtyps : dtype_decls)) =
+fun sdtyp ((fp, dtyps : dtype_decls)) =
   Buffer.add (enclose ("(declare-" ^ BNF_FP_Util.co_prefix fp ^ "datatypes (" ^
     implode_space (map sarity dtyps) ^ ") (") "))\n"
   (space_implode"\n  " (map sdatatype dtyps)))
 
 end
 
+
 (* interface *)
 
-fun translate_config order ctxt = {
+(*the classes that declare (co)datatypes must also request the theory of datatypes ("DT") in the
+  logic, as required e.g. by cvc5*)
+val datatypes_logic = SMT_Translate.SL {fixedSizeBitVectors=false, real=false, set=false,
+  datatypes=true}
+
+fun translate_config order fp_kinds ctxt = {
   order = order,
-  logic = choose_logic ctxt,
-  fp_kinds = [],
+  logic =
+    if null fp_kinds then choose_logic ctxt
+    else (fn prover => fn ts =>
+      SMT_Translate.merge_smtlib_logic (choose_logic ctxt prover ts) datatypes_logic),
+  fp_kinds = fp_kinds,
   serialize = serialize sdtyp}
 
 val _ = Theory.setup (Context.theory_map
   (setup_builtins #>
-   SMT_Translate.add_config (smtlibC, translate_config SMT_Util.First_Order) #>
-   SMT_Translate.add_config (hosmtlibC, translate_config SMT_Util.Higher_Order)))
+   SMT_Translate.add_config (smtlibC, translate_config SMT_Util.First_Order []) #>
+   SMT_Translate.add_config (hosmtlibC, translate_config SMT_Util.Higher_Order []) #>
+   SMT_Translate.add_config (dtsmtlibC, translate_config SMT_Util.First_Order [BNF_Util.Least_FP]) #>
+   SMT_Translate.add_config (codtsmtlibC, translate_config SMT_Util.First_Order [BNF_Util.Greatest_FP])))
 
 end;

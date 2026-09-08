@@ -185,14 +185,35 @@ For example:
 *** HOL ***
 
 * SMT:
-  - Added option "cvc5_integer_induction" and
-    "cvc5_structural_induction".
+  - Added option "smt_unique_dest_file" to add some pseudo-unique
+    suffix to the problem/proof files generated with through the options
+    "smt_problem_dest_dir" and "smt_proof_dest_dir"; this allows saving
+    the files of multiple SMT calls in one directory.
+  - Added option "smt_integer_induction" and "smt_structural_induction".
+  - update the reconstruction to the latest version of Alethe proof standard.
+  - reconstruction is now possible using the SMT solver cvc5. Remark that the
+    reconstruction works best if you have Reals imported, even if you are using
+    only integers.
+  - like veriT, cvc5 has strategies to improve the performance of reconstruction.
+  - Added options "smt_native_datatypes" and "smt_native_codatatypes" to
+    emit native SMT-LIB (co)datatype declarations. Both options are
+    honoured only by solvers that support the declaration.
+  - Datatype declarations now use the SMT-LIB 2.6 syntax, except for z3,
+    which keeps the pre-2.6 syntax.
+  - The solvers "vampire_smt_dt" and "vampire_smt_nodt" have been replaced
+    by "vampire_smt", controlled by "smt_native_datatypes".
+    INCOMPATIBILITY.
+  - Removed option "cvc_extensions"; use "smt_native_datatypes" and
+    "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
 * Sledgehammer:
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
       . zipperposition-2.1 -- include arm64-darwin
       . vampire-4.8 -- include arm64-darwin
+      . veriT 2026.05
+      . cvc5 1.3.4
+  - Sledgehammer can now suggest cvc5 as proof backend `by (smt (cvc5, ...))`
   - Tuned output of proof search to use "using" for local facts in
     conjunction with "metis", "meson", and "smt".
   - Tuned output of proof reconstruction to detect more duplicate

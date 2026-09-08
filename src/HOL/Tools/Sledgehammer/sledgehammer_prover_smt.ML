@@ -60,13 +60,15 @@ val smt_failures = z3_failures @ unix_failures
 
 fun failure_of_smt_failure (SMT_Failure.Counterexample genuine) =
     if genuine then Unprovable else GaveUp
-  | failure_of_smt_failure SMT_Failure.Time_Out = TimedOut
+  | failure_of_smt_failure (SMT_Failure.Time_Out _) = TimedOut
   | failure_of_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
       SOME failure => failure
     | NONE => UnknownError ("Abnormal termination with exit code " ^ string_of_int code))
   | failure_of_smt_failure SMT_Failure.Out_Of_Memory = OutOfResources
   | failure_of_smt_failure (SMT_Failure.Other_Failure s) = UnknownError s
+  | failure_of_smt_failure (SMT_Failure.Replay (s, _)) = UnknownError ("Replay error: " ^ s)
+  | failure_of_smt_failure SMT_Failure.Unknown = UnknownError ""
 
 val is_boring_builtin_typ =
   not o exists_subtype (member (op =) [\<^typ>\<open>nat\<close>, \<^typ>\<open>int\<close>, HOLogic.realT])
@@ -75,10 +77,11 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
     timeout, ...} : params) memoize_fun_call state goal i slice_size facts options =
   let
     val run_timeout = slice_timeout slice_size slices timeout
-    val (higher_order, nat_as_int) =
+    val (higher_order, nat_as_int, native_datatypes) =
       (case type_enc of
-        SOME s => (SOME (String.isSubstring "native_higher" s), SOME (String.isSubstring "arith" s))
-      | NONE => (NONE, NONE))
+        SOME s => (SOME (String.isSubstring "native_higher" s), SOME (String.isSubstring "arith" s),
+          SOME (String.isSubstring "datatypes" s))
+      | NONE => (NONE, NONE, NONE))
     fun repair_context ctxt = ctxt
       |> Context.proof_map (SMT_Config.select_solver name)
       |> (case higher_order of
@@ -86,6 +89,9 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
          | NONE => I)
       |> (case nat_as_int of
            SOME nat_as_int => Config.put SMT_Config.nat_as_int nat_as_int
+         | NONE => I)
+      |> (case native_datatypes of
+           SOME native_datatypes => Config.put SMT_Config.native_datatypes native_datatypes
          | NONE => I)
       |> (if overlord then
             let

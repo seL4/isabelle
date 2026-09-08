@@ -17,6 +17,7 @@ theory Main
     Conditionally_Complete_Lattices
     Binomial
     GCD
+    SMT_CVC
 begin
 
 subsection \<open>Namespace cleanup\<close>

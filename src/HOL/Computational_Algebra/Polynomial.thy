@@ -3867,7 +3867,7 @@ proof -
     using assms rsquarefree_def by auto
   then have 2: "(\<forall>x. order x (p * q) = 0 \<or> order x (p * q) = 1)"
     using 11 1 order_mult assms(3)
-    by (metis comm_monoid_add_class.add_0 less_one order_gt_0_iff verit_sum_simplify)
+    by (metis comm_monoid_add_class.add_0 less_one order_gt_0_iff alethe_sum_simplify)
 
   show ?thesis unfolding rsquarefree_def
     using 1 2  by auto
