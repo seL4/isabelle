@@ -27,6 +27,16 @@ in
   false => raise (SMT_Regression ("SMTLIB.parse does not give expected output for " ^ str ^ " instead resulted in " ^ SMTLIB.str_of tree'))
 end
 
+fun check_dec_to_rat dec expected =
+  let
+    fun str (i, j) = "(" ^ signed_string_of_int i ^ ", " ^ signed_string_of_int j ^ ")"
+    val res = SMTLIB.convert_dec_to_rat dec
+  in
+    if res = expected then true
+    else raise (SMT_Regression ("SMTLIB.convert_dec_to_rat " ^ str dec ^ " gives " ^ str res ^
+      " instead of " ^ str expected))
+  end
+
 
 (*Regression Tests*)
 
@@ -78,6 +88,16 @@ val _ = expect_parsing_error "3.2/5"
 (*I guess these are allowed?*)
 (*val _ = expect_parsing_error ".38"*)
 (*val _ = expect_parsing_error "-." *)
+
+
+(*convert_dec_to_rat*)
+
+val _ = check_dec_to_rat (0, 0) (0, 1)
+val _ = check_dec_to_rat (5, 0) (5, 1)
+val _ = check_dec_to_rat (0, 5) (5, 10)
+val _ = check_dec_to_rat (1, 5) (15, 10)
+val _ = check_dec_to_rat (1, 234) (1234, 1000)
+val _ = check_dec_to_rat (10, 25) (1025, 100)
 
 (*Key*)
 
