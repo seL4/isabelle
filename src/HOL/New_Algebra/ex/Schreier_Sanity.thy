@@ -1,5 +1,5 @@
 theory Schreier_Sanity
-  imports Schreier_Refinement
+  imports "HOL-New_Algebra.Schreier_Refinement"
 begin
 
 section \<open>Cross-checking the Schreier refinement indices\<close>

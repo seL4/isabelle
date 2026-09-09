@@ -4,7 +4,7 @@ theory Artin
   imports Galois_Correspondence Linear_System Iso_Extension_Tower
 begin
 
-text \<open>Let \<open>H\<close> be a \<^emph>\<open>finite\<close> group of automorphisms of a subfield \<open>K\<close> of \<^typ>\<open>complex\<close>, and let
+text \<open>Let \<open>H\<close> be a \<^emph>\<open>finite\<close> group of automorphisms of a subfield \<open>K\<close> of a field, and let
   @{term "fixed_field K H"} be the subfield it fixes pointwise.  \<^emph>\<open>Artin's lemma\<close> bounds the
   extension \<open>K\<close> over that fixed field by the order of the group: any @{term "card H + 1"} elements
   of \<open>K\<close> are linearly dependent over @{term "fixed_field K H"}.
@@ -53,16 +53,20 @@ lemma field_auto_one:
 
 text \<open>An automorphism preserves \<open>0\<close>: additivity at @{term "0 + 0"}.\<close>
 lemma field_auto_zero:
-  assumes K: "complex_subfield K" and s: "\<sigma> \<in> field_auto K F"
+  assumes K: "Subfield K" and s: "\<sigma> \<in> field_auto K F"
   shows "\<sigma> 0 = 0"
 proof -
-  interpret K: complex_subfield K by (rule K)
-  show ?thesis using field_auto_add[OF s K.zero_in K.zero_in] by simp
+  interpret K: Subfield K by (rule K)
+  have eq: "\<sigma> 0 = \<sigma> 0 + \<sigma> 0"
+    using field_auto_add[OF s K.zero_closed K.zero_closed] by simp
+  have "\<sigma> 0 + 0 = \<sigma> 0 + \<sigma> 0" using eq by simp
+  then have "0 = \<sigma> 0" by (rule iffD1[OF add_left_cancel])
+  then show ?thesis by (rule sym)
 qed
 
 text \<open>Additivity extends to finite sums, by induction on the index set.\<close>
 lemma field_auto_sum:
-  assumes K: "complex_subfield K" and s: "\<sigma> \<in> field_auto K F"
+  assumes K: "Subfield K" and s: "\<sigma> \<in> field_auto K F"
     and x: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
   shows "\<sigma> (\<Sum>j \<in> J. x j) = (\<Sum>j \<in> J. \<sigma> (x j))"
   using x
@@ -72,9 +76,7 @@ next
   case empty then show ?case using field_auto_zero[OF K s] by simp
 next
   case (insert j J)
-  \<comment> \<open>@{locale complex_subfield} has no @{text sum_closed}; the type-class @{locale Subfield} does,
-    and the two notions agree on \<^typ>\<open>complex\<close>.\<close>
-  interpret K: Subfield K using K by (simp add: complex_subfield_iff_subfield)
+  interpret K: Subfield K by (rule K)
   have "(\<Sum>i \<in> insert j J. x i) = x j + (\<Sum>i \<in> J. x i)" using insert.hyps by simp
   also have "\<sigma> \<dots> = \<sigma> (x j) + \<sigma> (\<Sum>i \<in> J. x i)"
     using insert.prems by (intro field_auto_add[OF s]) (auto intro: K.sum_closed)
@@ -92,14 +94,14 @@ text \<open>The system to be solved has one equation per automorphism and one un
   finite sets rather than initial segments.\<close>
 
 theorem artin_lemma:
-  fixes H :: "(complex \<Rightarrow> complex) set" and x :: "'j \<Rightarrow> complex"
-  assumes K: "complex_subfield K"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set" and x :: "'j \<Rightarrow> 'a"
+  assumes K: "Subfield K"
     and finH: "finite H" and HG: "H \<subseteq> field_auto K F"
     and finJ: "finite J" and card: "card H < card J"
     and xK: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
   shows "\<exists>c. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> J. c j \<noteq> 0) \<and> (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> J. \<sigma> (x j) * c j) = 0)"
 proof -
-  interpret K: Subfield K using K by (simp add: complex_subfield_iff_subfield)
+  interpret K: Subfield K by (rule K)
   \<comment> \<open>The coefficients \<open>\<sigma> (x j)\<close> lie in @{term K}, since an automorphism maps @{term K} onto itself.
     Stated as an explicit @{text \<forall>} rather than with @{text \<And>}: as a rule with schematic variables it
     unifies with the closure premise in more than one way, which @{text OF} rejects outright
@@ -119,8 +121,8 @@ text \<open>The advertised form: more than @{term "card H"} elements of @{term K
   particular --- taking the identity, which lies in every Galois group --- against the elements
   themselves.\<close>
 corollary artin_lemma_dependence:
-  fixes H :: "(complex \<Rightarrow> complex) set" and x :: "'j \<Rightarrow> complex"
-  assumes K: "complex_subfield K"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set" and x :: "'j \<Rightarrow> 'a"
+  assumes K: "Subfield K"
     and finH: "finite H" and HG: "H \<subseteq> field_auto K F" and id: "identity K \<in> H"
     and finJ: "finite J" and card: "card H < card J"
     and xJK: "x ` J \<subseteq> K"
@@ -142,8 +144,8 @@ text \<open>For a genuine Galois subgroup the identity premise is automatic.  Th
   interface for the later fixed-field argument, while @{thm [source] artin_lemma} deliberately
   retains the extra generality of an arbitrary finite automorphism family.\<close>
 corollary artin_lemma_subgroup_dependence:
-  fixes H :: "(complex \<Rightarrow> complex) set" and x :: "'j \<Rightarrow> complex"
-  assumes K: "complex_subfield K"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set" and x :: "'j \<Rightarrow> 'a"
+  assumes K: "Subfield K"
     and H: "H \<in> galois_subgroups K F" and finH: "finite H"
     and finJ: "finite J" and card: "card H < card J"
     and xJK: "x ` J \<subseteq> K"
@@ -169,13 +171,13 @@ text \<open>The step that will drive the descent to the fixed field: an automorp
   to vanish, i.e. @{text "\<sigma> (c j) = c j"} for every @{text "\<sigma> \<in> H"} --- which is exactly to say that
   the coefficients lie in @{term "fixed_field K H"}.\<close>
 lemma field_auto_transports_dependence:
-  assumes K: "complex_subfield K" and s: "\<sigma> \<in> field_auto K F"
+  assumes K: "Subfield K" and s: "\<sigma> \<in> field_auto K F"
     and finJ: "finite J"
     and xK: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K" and cK: "\<And>j. j \<in> J \<Longrightarrow> c j \<in> K"
     and dep: "(\<Sum>j \<in> J. x j * c j) = 0"
   shows "(\<Sum>j \<in> J. \<sigma> (x j) * \<sigma> (c j)) = 0"
 proof -
-  interpret K: complex_subfield K by (rule K)
+  interpret K: Subfield K by (rule K)
   have "(\<Sum>j \<in> J. \<sigma> (x j) * \<sigma> (c j)) = (\<Sum>j \<in> J. \<sigma> (x j * c j))"
     using xK cK by (intro sum.cong refl) (simp add: field_auto_mult[OF s])
   also have "\<dots> = \<sigma> (\<Sum>j \<in> J. x j * c j)"
@@ -190,8 +192,8 @@ text \<open>Applying one subgroup automorphism to the coefficients preserves the
   \<open>compose K (inverse \<sigma>) \<rho>\<close>; the group laws reduce the transformed row back to
   @{term \<rho>}.\<close>
 lemma field_auto_transports_artin_solution:
-  fixes H :: "(complex \<Rightarrow> complex) set"
-  assumes K: "complex_subfield K" and H: "H \<in> galois_subgroups K F"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set"
+  assumes K: "Subfield K" and H: "H \<in> galois_subgroups K F"
     and s: "\<sigma> \<in> H" and finJ: "finite J"
     and xK: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
     and cK: "\<And>j. j \<in> J \<Longrightarrow> c j \<in> K"
@@ -259,7 +261,7 @@ text \<open>Now the substance: the coefficients of a dependence can be taken to 
   We first record the difference step on its own, since it is where the cancellation happens.\<close>
 
 lemma dependence_difference:
-  fixes c d :: "'j \<Rightarrow> complex"
+  fixes c d :: "'j \<Rightarrow> 'a :: field"
   assumes finJ: "finite J"
     and dep_c: "(\<Sum>j \<in> J. x j * c j) = 0" and dep_d: "(\<Sum>j \<in> J. x j * d j) = 0"
   shows "(\<Sum>j \<in> J. x j * (c j - d j)) = 0"
@@ -276,8 +278,8 @@ text \<open>The simultaneous system version of the minimal-support descent.  Unl
   @{thm [source] field_auto_transports_artin_solution} transports a solution to another solution of
   that same system.  This is the form needed for the genuine Artin bound.\<close>
 theorem artin_solution_over_fixed_field:
-  fixes H :: "(complex \<Rightarrow> complex) set" and x :: "'j \<Rightarrow> complex"
-  assumes K: "complex_subfield K" and H: "H \<in> galois_subgroups K F"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set" and x :: "'j \<Rightarrow> 'a"
+  assumes K: "Subfield K" and H: "H \<in> galois_subgroups K F"
     and finJ: "finite J" and xK: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
     and exsol: "\<exists>c. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> J. c j \<noteq> 0) \<and>
       (\<forall>\<rho> \<in> H. (\<Sum>j \<in> J. \<rho> (x j) * c j) = 0)"
@@ -285,12 +287,12 @@ theorem artin_solution_over_fixed_field:
       (\<exists>j \<in> J. c j \<noteq> 0) \<and>
       (\<forall>\<rho> \<in> H. (\<Sum>j \<in> J. \<rho> (x j) * c j) = 0)"
 proof -
-  interpret KS: Subfield K using K by (simp add: complex_subfield_iff_subfield)
+  interpret KS: Subfield K by (rule K)
   define Sol where
-    "Sol = (\<lambda>c :: 'j \<Rightarrow> complex. (\<forall>j. c j \<in> K) \<and>
+    "Sol = (\<lambda>c :: 'j \<Rightarrow> 'a. (\<forall>j. c j \<in> K) \<and>
       (\<exists>j \<in> J. c j \<noteq> 0) \<and>
       (\<forall>\<rho> \<in> H. (\<Sum>j \<in> J. \<rho> (x j) * c j) = 0))"
-  define supp where "supp = (\<lambda>c :: 'j \<Rightarrow> complex. {j \<in> J. c j \<noteq> 0})"
+  define supp where "supp = (\<lambda>c :: 'j \<Rightarrow> 'a. {j \<in> J. c j \<noteq> 0})"
   define Q where "Q = (\<lambda>n. \<exists>c. Sol c \<and> card (supp c) = n)"
   have "Q (LEAST n. Q n)" using exsol by (metis LeastI Sol_def Q_def)
   then obtain c where solc: "Sol c" and cmin: "card (supp c) = (LEAST n. Q n)"
@@ -382,8 +384,8 @@ text \<open>The descent.  Two hypotheses carry the weight.
   In fact only membership of @{term "\<sigma> ` H \<subseteq> field_auto K F"} is used below; the group structure is
   what makes the conclusion \<^emph>\<open>mean\<close> what it says.\<close>
 theorem dependence_over_fixed_field:
-  fixes H :: "(complex \<Rightarrow> complex) set" and x :: "'j \<Rightarrow> complex"
-  assumes K: "complex_subfield K"
+  fixes H :: "('a :: field \<Rightarrow> 'a) set" and x :: "'j \<Rightarrow> 'a"
+  assumes K: "Subfield K"
     and HG: "H \<subseteq> field_auto K F"
     and finJ: "finite J"
     and xK: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
@@ -392,13 +394,11 @@ theorem dependence_over_fixed_field:
   shows "\<exists>c. (\<forall>j \<in> J. c j \<in> fixed_field K H) \<and> (\<exists>j \<in> J. c j \<noteq> 0)
              \<and> (\<Sum>j \<in> J. x j * c j) = 0"
 proof -
-  \<comment> \<open>The type-class @{locale Subfield} is the one with @{text divide_closed} and @{text sum_closed};
-    the two notions agree on \<^typ>\<open>complex\<close>.\<close>
-  interpret K: Subfield K using K by (simp add: complex_subfield_iff_subfield)
+  interpret K: Subfield K by (rule K)
   \<comment> \<open>The dependences of the @{term "x j"}, and the sizes of their supports.\<close>
   define Dep where
-    "Dep = (\<lambda>c :: 'j \<Rightarrow> complex. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> J. c j \<noteq> 0) \<and> (\<Sum>j \<in> J. x j * c j) = 0)"
-  define supp where "supp = (\<lambda>c :: 'j \<Rightarrow> complex. {j \<in> J. c j \<noteq> 0})"
+    "Dep = (\<lambda>c :: 'j \<Rightarrow> 'a. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> J. c j \<noteq> 0) \<and> (\<Sum>j \<in> J. x j * c j) = 0)"
+  define supp where "supp = (\<lambda>c :: 'j \<Rightarrow> 'a. {j \<in> J. c j \<noteq> 0})"
   define Q where "Q = (\<lambda>n. \<exists>c. Dep c \<and> card (supp c) = n)"
   \<comment> \<open>Choose a dependence of least support, exactly as @{text minpoly_exists} chooses an annihilator
     of least degree.\<close>
@@ -496,13 +496,13 @@ text \<open>The reverse direction.  Distinct field automorphisms are linearly in
   We first record the two evaluations that the step subtracts.\<close>
 
 lemma character_relation_scaled:
-  assumes K: "complex_subfield K" and finS: "finite S"
+  assumes K: "Subfield K" and finS: "finite S"
     and SG: "S \<subseteq> field_auto K F"
     and rel: "\<And>z. z \<in> K \<Longrightarrow> (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = 0"
     and y: "y \<in> K" and z: "z \<in> K"
   shows "(\<Sum>\<sigma> \<in> S. (a \<sigma> * \<sigma> y) * \<sigma> z) = 0"
 proof -
-  interpret K: complex_subfield K by (rule K)
+  interpret K: Subfield K by (rule K)
   have mult: "\<sigma> (y * z) = \<sigma> y * \<sigma> z" if "\<sigma> \<in> S" for \<sigma>
     using that SG y z by (blast intro: field_auto_mult)
   have "(\<Sum>\<sigma> \<in> S. (a \<sigma> * \<sigma> y) * \<sigma> z) = (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> (y * z))"
@@ -511,18 +511,18 @@ proof -
   finally show ?thesis .
 qed
 
-text \<open>Dedekind's lemma.  The coefficients are arbitrary complex numbers; no subfield hypothesis on
+text \<open>Dedekind's lemma.  The coefficients are arbitrary field elements; no subfield hypothesis on
   them is needed, and none is available in the intended application.\<close>
 theorem dedekind_independence:
-  fixes S :: "(complex \<Rightarrow> complex) set" and a :: "(complex \<Rightarrow> complex) \<Rightarrow> complex"
-  assumes K: "complex_subfield K"
+  fixes S :: "('a :: field \<Rightarrow> 'a) set" and a :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  assumes K: "Subfield K"
   shows "\<lbrakk> finite S; S \<subseteq> field_auto K F; \<And>z. z \<in> K \<Longrightarrow> (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = 0 \<rbrakk>
          \<Longrightarrow> \<forall>\<sigma> \<in> S. a \<sigma> = 0"
 proof (induction S arbitrary: a rule: finite_induct)
   case empty then show ?case by simp
 next
   case (insert \<sigma>\<^sub>0 S)
-  interpret K: complex_subfield K by (rule K)
+  interpret K: Subfield K by (rule K)
   \<comment> \<open>@{text finite_induct} consumes the finiteness premise, so the remaining two are the subset and
     the relation.  Named rather than indexed, since the offset is easy to get wrong.\<close>
   note insG = insert.prems(1) and insrel = insert.prems(2)
@@ -585,7 +585,7 @@ next
   \<comment> \<open>Finally the leading coefficient: at @{term "z = 1"} every automorphism gives @{term 1}.\<close>
   have "a \<sigma>\<^sub>0 = 0"
   proof -
-    have "a \<sigma>\<^sub>0 * \<sigma>\<^sub>0 1 + (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using rel K.one_in by blast
+    have "a \<sigma>\<^sub>0 * \<sigma>\<^sub>0 1 + (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using rel K.one_closed by blast
     moreover have "(\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using S_zero by simp
     ultimately show ?thesis using field_auto_one[OF s0G] by simp
   qed

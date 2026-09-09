@@ -1,8 +1,8 @@
-theory Field_Mult_Cyclic
-  imports Poly_Ring Group_Operations Coprime_Count
-begin
-
 section \<open>A finite subgroup of the multiplicative group of a field is cyclic\<close>
+
+theory Field_Mult_Cyclic
+  imports Poly_Ring Group_Operations
+begin
 
 text \<open>In particular the multiplicative group of a finite field (e.g.\ \<open>GF(p\<^sup>n)\<close>) is cyclic.
   The argument splits into a group-theoretic part and a field-theoretic part.
@@ -28,39 +28,22 @@ proof -
   define d where "d = gcd e k"
   have e_pos: "e > 0" unfolding e_def using element_order_pos[OF fin aG] .
   have ak: "power a k \<in> G" using aG by simp
-  \<comment> \<open>@{term "power (power a k) m = \<one>"} exactly when @{term "e div d"} divides @{term m}.\<close>
   have pow_iff: "power (power a k) m = \<one> \<longleftrightarrow> (e div d) dvd m" for m
   proof -
-    have "power (power a k) m = power a (k * m)"
-      using power_mult[OF aG] by (simp add: mult.commute)
-    also have "\<dots> = \<one> \<longleftrightarrow> e dvd (k * m)"
-    proof
-      assume "power a (k * m) = \<one>"
-      then show "e dvd (k * m)" unfolding e_def using element_order_dvd[OF fin aG] by blast
-    next
-      assume "e dvd (k * m)" then show "power a (k * m) = \<one>"
-        unfolding dvd_def e_def by (metis aG fin power_mult power_element_order power_unit) 
-    qed
-    finally have step: "power (power a k) m = \<one> \<longleftrightarrow> e dvd (k * m)" .
+    have step: "power (power a k) m = \<one> \<longleftrightarrow> e dvd (k * m)"
+      using aG e_def element_order_dvd fin power_mult power_element_order power_unit
+      by (metis dvd_def)
     \<comment> \<open>Now reduce the divisibility using @{term d}.\<close>
     have d_pos: "d > 0" unfolding d_def using e_pos by simp
     have d_dvd_e: "d dvd e" and d_dvd_k: "d dvd k" unfolding d_def by auto
-    have cop: "coprime (e div d) (k div d)"
+    have "coprime (e div d) (k div d)"
       unfolding d_def using e_pos by (simp add: div_gcd_coprime)
-    have "e dvd (k * m) \<longleftrightarrow> (e div d) dvd ((k div d) * m)"
-      by (simp add: d_dvd_e d_dvd_k dvd_div_mult)
-    also have "\<dots> \<longleftrightarrow> (e div d) dvd m"
-      using cop coprime_dvd_mult_right_iff coprime_commute by blast
-    finally show ?thesis using step by simp
+    with step coprime_dvd_mult_right_iff d_dvd_e d_dvd_k show ?thesis
+      by fastforce
   qed
-  \<comment> \<open>Hence the least positive @{term m} with @{term "power (power a k) m = \<one>"} is @{term "e div d"}.\<close>
-  have edd_pos: "e div d > 0"
-    by (simp add: d_def div_greater_zero_iff e_pos)
-  have "element_order (power a k) = (LEAST m. m > 0 \<and> power (power a k) m = \<one>)"
-    unfolding element_order_def ..
-  also have "\<dots> = e div d"
-    using dvd_imp_le edd_pos pow_iff by (intro Least_equality) auto
-  finally show ?thesis unfolding e_def d_def .
+  then show ?thesis
+    using ak d_def e_def element_order_dvd fin power_element_order
+    by (metis gcd_nat.asym gcd_nat.refl)
 qed
 
 end
@@ -82,23 +65,20 @@ proof -
   have e_pos: "e > 0" 
     using ord_a element_order_pos[OF fin aG] by simp
   have set_eq: "{x \<in> cyclic_subgroup a. element_order x = e}
-              = power a ` {k. k < e \<and> gcd e k = 1}"
+              = power a ` {k. k < e \<and> gcd e k = 1}" (is "?L=?R")
   proof
-    show "{x \<in> cyclic_subgroup a. element_order x = e} \<subseteq> power a ` {k. k < e \<and> gcd e k = 1}"
+    show "?L \<subseteq> ?R"
     proof
-      fix x assume xc: "x \<in> {x \<in> cyclic_subgroup a. element_order x = e}"
+      fix x assume xc: "x \<in> ?L"
       then obtain k where xk: "x = power a k" and kl: "k < e"
         unfolding cyclic_subgroup_def ord_a by auto
       have "element_order (power a k) = e"
         using element_order_power[OF fin aG] ord_a xc xk by blast
       then have "gcd e k = 1"
         by (simp add: aG div_eq_dividend_iff e_pos element_order_power fin ord_a)
-      then show "x \<in> power a ` {k. k < e \<and> gcd e k = 1}" using xk kl by auto
+      then show "x \<in> ?R" using xk kl by auto
     qed
-  next
-    show "power a ` {k. k < e \<and> gcd e k = 1} \<subseteq> {x \<in> cyclic_subgroup a. element_order x = e}"
-      by (auto simp: cyclic_subgroup_def aG element_order_power fin ord_a)
-  qed
+  qed (auto simp: cyclic_subgroup_def aG element_order_power fin ord_a)
   \<comment> \<open>@{term "power a"} is injective on @{term "{..<e}"}.\<close>
   have "inj_on (power a) {..<e}" using power_inj_on_order[OF fin aG] ord_a by simp
   then have inj: "inj_on (power a) {k. k < e \<and> gcd e k = 1}"
@@ -109,6 +89,79 @@ qed
 
 end
 
+subsection \<open>Counting the Residues Coprime to a Modulus\<close>
+
+text \<open>
+  The cyclicity criterion for a finite group needs two arithmetic facts about the number of
+  residues below @{term e} coprime to @{term e}: that it is positive, and that summing it over the
+  divisors of @{term d} recovers @{term d}.
+\<close>
+
+lemma coprime_count_pos:
+  fixes e :: nat
+  assumes "0 < e" shows "0 < card {k. k < e \<and> gcd e k = 1}"
+    using Suc_lessI [OF assms] by (fastforce simp: card_gt_0_iff)
+
+text \<open>The residues below @{term d} whose greatest common divisor with @{term d} is exactly @{term f}
+  are the multiples @{term "j * f"} of @{term f} by residues below @{term "d div f"} coprime to it.\<close>
+lemma card_gcd_class:
+  fixes d f :: nat
+  assumes d: "0 < d" and f: "f dvd d"
+  shows "card {j. j < d div f \<and> gcd (d div f) j = 1} = card {k. k < d \<and> gcd k d = f}"
+proof (rule bij_betw_same_card)
+  have fpos: "0 < f" using d f by (auto intro: dvd_pos_nat)
+  have deq: "d div f * f = d" using f by simp
+  show "bij_betw (\<lambda>j. j * f) {j. j < d div f \<and> gcd (d div f) j = 1} {k. k < d \<and> gcd k d = f}"
+    unfolding bij_betw_def
+  proof
+    show "inj_on (\<lambda>j. j * f) {j. j < d div f \<and> gcd (d div f) j = 1}"
+      using fpos by (simp add: inj_on_def)
+  next
+    show "(\<lambda>j. j * f) ` {j. j < d div f \<and> gcd (d div f) j = 1} = {k. k < d \<and> gcd k d = f}"
+    proof (intro set_eqI iffI)
+      fix k assume "k \<in> (\<lambda>j. j * f) ` {j. j < d div f \<and> gcd (d div f) j = 1}"
+      then obtain j where j: "j < d div f" "gcd (d div f) j = 1" and k: "k = j * f" by auto
+      from j(1) fpos have "j * f < d div f * f" by (rule mult_less_mono1)
+      then have "k < d" using k deq by simp
+      moreover have "gcd k d = f"
+      proof -
+        have "gcd k d = gcd (j * f) (d div f * f)" using k deq by simp
+        also have "\<dots> = gcd (d div f) j * f" by (simp add: gcd_mult_right)
+        also have "\<dots> = f" using j(2) by simp
+        finally show ?thesis .
+      qed
+      ultimately show "k \<in> {k. k < d \<and> gcd k d = f}" by simp
+    next
+      fix k assume "k \<in> {k. k < d \<and> gcd k d = f}"
+      then have k: "k < d" and g: "gcd k d = f" and keq: "k div f * f = k" by auto
+      have "gcd (d div f) (k div f) * f = f" using g
+        using deq keq by (metis gcd.commute gcd_mult_distrib_nat mult.commute)
+      moreover have "k div f < d div f" using k fpos f by (simp add: div_less_iff_less_mult)
+      ultimately show "k \<in> (\<lambda>j. j * f) ` {j. j < d div f \<and> gcd (d div f) j = 1}"
+        using keq fpos by (force simp: image_iff)
+    qed
+  qed
+qed
+
+text \<open>Summing the coprime counts over the divisors of @{term d} recovers @{term d}: the residues
+  below @{term d} are partitioned by their greatest common divisor with @{term d}.\<close>
+theorem coprime_count_divisor_sum:
+  fixes d :: nat
+  assumes d: "0 < d"
+  shows "(\<Sum>e | e dvd d. card {k. k < e \<and> gcd e k = 1}) = d"
+proof -
+  have part: "{k. k < d} = (\<Union>f \<in> {f. f dvd d}. {k. k < d \<and> gcd k d = f})"
+    by auto
+  have "d = card {k. k < d}" by simp
+  also have "\<dots> = (\<Sum>f | f dvd d. card {k. k < d \<and> gcd k d = f})"
+    unfolding part using d by (intro card_UN_disjoint) auto
+  also have "\<dots> = (\<Sum>f | f dvd d. card {j. j < d div f \<and> gcd (d div f) j = 1})"
+    using card_gcd_class [OF d] by simp
+  also have "\<dots> = (\<Sum>e | e dvd d. card {k. k < e \<and> gcd e k = 1})"
+  proof (rule sum.reindex_bij_witness [of _ "\<lambda>e. d div e" "\<lambda>f. d div f"])
+  qed (use d div_div_eq_right in auto)
+  finally show ?thesis by simp
+qed
 
 subsection \<open>The abstract group criterion for being cyclic\<close>
 
@@ -146,8 +199,8 @@ lemma card_order_e_le_coprime_count:
     and e_pos: "e > 0"
   shows "card {x \<in> G. element_order x = e} \<le> card {k. k < e \<and> gcd e k = 1}"
 proof (cases "{x \<in> G. element_order x = e} = {}")
-  case True
-  then show ?thesis by (simp only: True card.empty)
+  case True show ?thesis
+    by (simp add: True)
 next
   case False
   then obtain a where aG: "a \<in> G" and ord_a: "element_order a = e" by auto
@@ -157,19 +210,14 @@ next
     fix x assume "x \<in> cyclic_subgroup a"
     then obtain k where xk: "x = power a k" and "k < e"
       unfolding cyclic_subgroup_def ord_a by auto
-    have "power x e = power a (k * e)" using xk power_mult[OF aG] by simp
-    also have "\<dots> = \<one>" 
-      using power_mult[OF aG] power_element_order[OF fin aG] ord_a by (simp add: mult.commute)
-    finally have "power x e = \<one>" .
-    moreover have "x \<in> G" using xk aG by simp
-    ultimately show "x \<in> {x \<in> G. power x e = \<one>}" by simp
+    have "power x e = \<one>"
+      using aG fin power_mult ord_a power_element_order power_unit xk by (metis mult.commute) 
+    with xk aG show "x \<in> {x \<in> G. power x e = \<one>}" by simp
   qed
-  have card_cyc: "card (cyclic_subgroup a) = e"
+  have "card (cyclic_subgroup a) = e"
     using card_cyclic_subgroup[OF fin aG] ord_a by simp
-  have fin_sol: "finite {x \<in> G. power x e = \<one>}" using fin by simp
-  have "card {x \<in> G. power x e = \<one>} \<le> e" using bound[OF e_pos] .
-  with cyc_sub card_cyc have *: "cyclic_subgroup a = {x \<in> G. power x e = \<one>}"
-    by (metis card_seteq fin_sol)
+  with cyc_sub bound[OF e_pos] fin have *: "cyclic_subgroup a = {x \<in> G. power x e = \<one>}"
+    by (simp add: card_seteq)
   have "{x \<in> G. element_order x = e} = {x \<in> cyclic_subgroup a. element_order x = e}"
     by (auto simp: * fin power_element_order)
   then show ?thesis
@@ -190,28 +238,27 @@ proof -
     unfolding d_def using card_G_sum_orders[OF fin] by simp
   have sum_counts: "(\<Sum>e | e dvd d. card {k. k < e \<and> gcd e k = 1}) = d"
     using coprime_count_divisor_sum [OF d_pos] by simp
-  have le: "\<And>e. e dvd d
-                 \<Longrightarrow> card {x \<in> G. element_order x = e} \<le> card {k. k < e \<and> gcd e k = 1}"
-    using bound card_order_e_le_coprime_count d_pos dvd_pos_nat fin by presburger
   have fin_div: "finite {e. e dvd d}"
     using d_pos finite_divisors_nat by (metis gr_implies_not0)
-  have eq_all: "\<And>e. e dvd d
-                     \<Longrightarrow> card {x \<in> G. element_order x = e} = card {k. k < e \<and> gcd e k = 1}"
+  have le: "card {x \<in> G. element_order x = e} \<le> card {k. k < e \<and> gcd e k = 1}"
+    if "e dvd d" for e
+    using bound card_0_eq card_order_e_le_coprime_count d_def fin that by fastforce
+  have eq_all: "card {x \<in> G. element_order x = e0} = card {k. k < e0 \<and> gcd e0 k = 1}"
+    if "e0 dvd d" for e0
   proof (rule ccontr)
-    fix e0 assume e0: "e0 dvd d"
-      and neq: "card {x \<in> G. element_order x = e0} \<noteq> card {k. k < e0 \<and> gcd e0 k = 1}"
-    with le[OF e0] have strict: "card {x \<in> G. element_order x = e0}
-                                 < card {k. k < e0 \<and> gcd e0 k = 1}" by simp
+    assume neq: "card {x \<in> G. element_order x = e0} \<noteq> card {k. k < e0 \<and> gcd e0 k = 1}"
+    with le that have strict: "card {x \<in> G. element_order x = e0}
+                                 < card {k. k < e0 \<and> gcd e0 k = 1}" by force
     have "(\<Sum>e | e dvd d. card {x \<in> G. element_order x = e})
         < (\<Sum>e | e dvd d. card {k. k < e \<and> gcd e k = 1})"
-      by (intro sum_strict_mono_ex1 fin_div) (use e0 strict le in auto)
+      by (intro sum_strict_mono_ex1 fin_div) (use that strict le in auto)
     with sum_orders sum_counts show False by simp
   qed
   \<comment> \<open>In particular there is an element of order @{term d}, which generates @{term G}.\<close>
   have "card {x \<in> G. element_order x = d} = card {k. k < d \<and> gcd d k = 1}"
     using eq_all by simp
   moreover have "card {k. k < d \<and> gcd d k = 1} > 0" using d_pos by (rule coprime_count_pos)
-  ultimately have "{x \<in> G. element_order x = d} \<noteq> {}" by (metis card.empty less_numeral_extra(3))
+  ultimately have "{x \<in> G. element_order x = d} \<noteq> {}" by (metis card.empty less_irrefl)
   then obtain g where gG: "g \<in> G" and gord: "element_order g = d" by auto
   have "cyclic_subgroup g = G"
     by (simp add: card_cyclic_subgroup card_subset_eq cyclic_subgroup_subset d_def fin gG gord)
@@ -271,7 +318,7 @@ lemma rpow_eq_power: "rpow x n = multiplicative.power x n"
 text \<open>The polynomial \<open>X\<^sup>n - 1\<close>, as a coefficient sequence: @{term "- \<one>"} at 0, @{term \<one>} at @{term n},
   and @{term \<zero>} elsewhere (valid for @{term "n > 0"}).\<close>
 definition xn_minus_1 :: "nat \<Rightarrow> (nat \<Rightarrow> 'a)"
-  where "xn_minus_1 n = (\<lambda>i. if i = 0 then - \<one> else if i = n then \<one> else \<zero>)"
+  where "xn_minus_1 n \<equiv> (\<lambda>i. if i = 0 then - \<one> else if i = n then \<one> else \<zero>)"
 
 lemma xn_minus_1_closed: "xn_minus_1 n \<in> poly_carrier"
 proof (rule poly_carrierI)
@@ -287,10 +334,9 @@ lemma degree_xn_minus_1:
   assumes n: "n > 0" shows "degree (xn_minus_1 n) = n"
 proof (rule le_antisym)
   show "degree (xn_minus_1 n) \<le> n"
-    by (rule degree_leI[OF xn_minus_1_closed]) (auto simp: xn_minus_1_def)
-  have "xn_minus_1 n n \<noteq> \<zero>" using n nontrivial by (simp add: xn_minus_1_def)
+    using degree_le_iff xn_minus_1_closed xn_minus_1_def by auto
   then show "n \<le> degree (xn_minus_1 n)"
-    using coeff_gt_degree[OF xn_minus_1_closed] by (meson not_le)
+    using coeff_gt_degree le_eq_less_or_eq nontrivial xn_minus_1_closed xn_minus_1_def by fastforce
 qed
 
 lemma xn_minus_1_nonzero:
@@ -302,9 +348,8 @@ lemma eval_xn_minus_1:
   assumes n: "n > 0" and x: "x \<in> R"
   shows "eval x (xn_minus_1 n) = multiplicative.power x n + (- \<one>)"
 proof -
-  have deg: "degree (xn_minus_1 n) = n" using n by (rule degree_xn_minus_1)
   have "eval x (xn_minus_1 n) = additive.fincomp (\<lambda>i. xn_minus_1 n i \<cdot> rpow x i) {..n}"
-    using deg by (simp add: eval_def)
+    using degree_xn_minus_1 local.eval_def n by force
   also have "\<dots> = additive.fincomp (\<lambda>i. xn_minus_1 n i \<cdot> rpow x i) {0, n}"
     using x
     by (intro additive.fincomp_mono_neutral_cong_right) (auto simp: xn_minus_1_def xn_minus_1_coeff)
@@ -324,18 +369,16 @@ proof -
   have "multiplicative.power x n = \<one>"
     if "x \<in> R" and "multiplicative.power x n - \<one> = \<zero>" for x 
   proof -
-    have p: "multiplicative.power x n \<in> R" using \<open>x \<in> R\<close> by simp
     have "multiplicative.power x n = (multiplicative.power x n + (- \<one>)) + \<one>"
-      using additive.invertible_left_inverse[of \<one>] p by (simp add: additive.associative)
-    also have "\<dots> = \<one>" using that p by (simp add: additive.associative)
+      using additive.invertible_left_inverse[of \<one>] \<open>x \<in> R\<close> by (simp add: additive.associative)
+    also have "\<dots> = \<one>" using that by (simp add: additive.associative)
     finally show "multiplicative.power x n = \<one>" .
   qed
-  then have set_eq: "{x \<in> R. multiplicative.power x n = \<one>} = {x \<in> R. eval x (xn_minus_1 n) = \<zero>}"
+  then have "{x \<in> R. multiplicative.power x n = \<one>} = {x \<in> R. eval x (xn_minus_1 n) = \<zero>}"
     by (auto simp: eval_xn_minus_1 n)
-  have "finite {x \<in> R. eval x (xn_minus_1 n) = \<zero>}
-        \<and> card {x \<in> R. eval x (xn_minus_1 n) = \<zero>} \<le> degree (xn_minus_1 n)"
-    using xn_minus_1_closed xn_minus_1_nonzero[OF n] by (rule card_roots_le_degree)
-  then show ?thesis using set_eq degree_xn_minus_1[OF n] by simp
+  then show ?thesis 
+    using degree_xn_minus_1[OF n] xn_minus_1_closed xn_minus_1_nonzero[OF n] card_roots_le_degree 
+    by force
 qed
 
 end
@@ -382,13 +425,7 @@ text \<open>In particular, if the whole multiplicative group @{term Fstar} is fi
 corollary finite_field_mult_cyclic:
   assumes fin: "finite Fstar"
   shows "\<exists>g \<in> Fstar. Group.cyclic_subgroup (\<cdot>) \<one> g = Fstar"
-proof -
-  interpret G: Group Fstar "(\<cdot>)" \<one> by (rule Group_Fstar)
-  have sub: "Subgroup Fstar Fstar (\<cdot>) \<one>"
-    by (rule G.group_self_subgroup)
-  show ?thesis
-    using finite_subgroup_Fstar_cyclic[OF  G.group_self_subgroup fin] by blast
-qed
+  by (simp add: Group.group_self_subgroup Group_Fstar fin finite_subgroup_Fstar_cyclic)
 
 end
 

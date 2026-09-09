@@ -1,22 +1,23 @@
+section \<open>Finite relative normal chains\<close>
+
 theory Normal_Chain
-  imports Composition_Factor_Classes
+  imports Normal_Series Group_Iso_Classes "HOL-Library.Multiset"
 begin
 
-section \<open>Finite relative normal chains\<close>
+subsection \<open>Normal factors\<close>
 
 text \<open>
   A refinement of one step in a normal series starts at an intermediate
   subgroup rather than at the trivial subgroup.  The following locale records
   exactly the structure shared by such relative chains: finitely many
   subgroups of one ambient group, with each term normal in its successor.
-  Endpoints are deliberately left unconstrained.
 \<close>
 
 definition normal_factor ::
     "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow>
       ('a set set \<times> ('a set \<Rightarrow> 'a set \<Rightarrow> 'a set) \<times> 'a set)"
   where
-    "normal_factor K H composition unit =
+    "normal_factor K H composition unit \<equiv>
       (normal_subgroup.Factor_Group K H composition unit,
        Monoid_congruence.quotient_composition H composition
          (normal_subgroup.Congruence K H composition unit),
@@ -24,10 +25,9 @@ definition normal_factor ::
          (normal_subgroup.Congruence K H composition unit) unit)"
 
 definition normal_factor_class ::
-    "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow>
-      'a set group_iso_class"
+    "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a set group_iso_class"
   where
-    "normal_factor_class K H composition unit =
+    "normal_factor_class K H composition unit \<equiv>
       group_iso_class_of (group_structure (normal_factor K H composition unit))"
 
 text \<open>
@@ -43,8 +43,7 @@ lemma normal_factor_group:
 proof -
   interpret N: normal_subgroup K H composition unit by fact
   show ?thesis
-    unfolding normal_factor_def
-    using N.quotient.Group_axioms by simp
+    unfolding normal_factor_def using N.quotient.Group_axioms by simp
 qed
 
 lemma normal_factor_class_eq_iff:
@@ -52,8 +51,7 @@ lemma normal_factor_class_eq_iff:
     and LM: "normal_subgroup L M composition unit"
   shows "normal_factor_class K H composition unit =
       normal_factor_class L M composition unit \<longleftrightarrow>
-      normal_factor K H composition unit \<cong>\<^sub>G
-        normal_factor L M composition unit"
+      normal_factor K H composition unit \<cong>\<^sub>G normal_factor L M composition unit"
   unfolding normal_factor_class_def
   by (rule group_iso_class_of_group_structure_eq_iff[OF
         normal_factor_group[OF KH] normal_factor_group[OF LM]])
@@ -69,37 +67,14 @@ lemma normal_factor_carrier_eq_singleton_iff:
   assumes N: "normal_subgroup K H composition unit"
   shows "fst (normal_factor K H composition unit) =
       {snd (snd (normal_factor K H composition unit))} \<longleftrightarrow> K = H"
-proof -
-  interpret N: normal_subgroup K H composition unit by fact
-  show ?thesis
-    unfolding normal_factor_def
-    by (simp only: prod.sel) (rule N.Factor_Group_eq_singleton_iff)
-qed
+  by (simp add: assms normal_factor_def normal_subgroup.Factor_Group_eq_singleton_iff)
 
 lemma normal_factor_class_eq_trivial_iff:
   assumes N: "normal_subgroup K H composition unit"
-  shows "normal_factor_class K H composition unit =
-      trivial_group_iso_class \<longleftrightarrow> K = H"
-proof -
-  have factor_group:
-      "Group (fst (normal_factor K H composition unit))
-        (fst (snd (normal_factor K H composition unit)))
-        (snd (snd (normal_factor K H composition unit)))"
-    by (rule normal_factor_group[OF N])
-  have class_iff:
-      "group_iso_class_of (group_structure
-          (fst (normal_factor K H composition unit),
-           fst (snd (normal_factor K H composition unit)),
-           snd (snd (normal_factor K H composition unit)))) =
-          trivial_group_iso_class \<longleftrightarrow>
-      fst (normal_factor K H composition unit) =
-        {snd (snd (normal_factor K H composition unit))}"
-    by (rule group_iso_class_eq_trivial_iff[OF factor_group])
-  show ?thesis
-    unfolding normal_factor_class_def
-    using class_iff normal_factor_carrier_eq_singleton_iff[OF N]
-    by (simp add: surjective_pairing)
-qed
+  shows "normal_factor_class K H composition unit = trivial_group_iso_class \<longleftrightarrow> K = H"
+  unfolding normal_factor_class_def
+  using assms normal_factor_group[OF N]
+  by (metis group_iso_class_eq_trivial_iff normal_factor_carrier_eq_singleton_iff prod.exhaust_sel)
 
 locale normal_chain =
   G: Group G "(\<cdot>)" \<one>
@@ -126,52 +101,79 @@ lemma chain_mono:
   shows "C i \<subseteq> C j"
   using ij
 proof (induction rule: inc_induct)
-  case base
-  show "C j \<subseteq> C j" by simp
-next
   case (step k)
-  have k_lt_n: "k < n"
-    by (rule less_le_trans[OF step(2) jn])
-  show ?case
-    by (rule subset_trans[OF step_subset[OF k_lt_n] step(3)])
-qed
+  then show ?case
+    using jn order_less_le_trans step_subset by blast
+qed auto
 
 definition chain_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
-  where
-    "chain_factor_class i =
-      normal_factor_class (C i) (C (Suc i)) (\<cdot>) \<one>"
+  where "chain_factor_class i \<equiv> normal_factor_class (C i) (C (Suc i)) (\<cdot>) \<one>"
 
 lemma prefix_normal_chain:
   assumes "k \<le> n"
   shows "normal_chain G (\<cdot>) \<one> C k"
-proof (intro normal_chain.intro)
-  show "Group G (\<cdot>) \<one>" by (rule G.Group_axioms)
-next
+proof intro_locales
   show "normal_chain_axioms G (\<cdot>) \<one> C k"
-  proof (rule normal_chain_axioms.intro)
-    show "\<And>i. i \<le> k \<Longrightarrow> Subgroup (C i) G (\<cdot>) \<one>"
-      by (meson assms le_trans term_subgroup)
-    show "\<And>i. i < k \<Longrightarrow> normal_subgroup (C i) (C (Suc i)) (\<cdot>) \<one>"
-      by (meson assms less_le_trans normal_step)
-  qed
+    by (simp add: assms le_trans normal_chain_axioms_def normal_step order_less_le_trans
+        term_subgroup)
 qed
 
 end
 
 sublocale normal_series \<subseteq> chain: normal_chain G "(\<cdot>)" \<one> H n
-proof (rule normal_chain.intro)
-  show "Group G (\<cdot>) \<one>" by (rule G.Group_axioms)
+proof intro_locales
   show "normal_chain_axioms G (\<cdot>) \<one> H n"
-  proof (rule normal_chain_axioms.intro)
-    show "\<And>i. i \<le> n \<Longrightarrow> Subgroup (H i) G (\<cdot>) \<one>"
-      by (rule term_subgroup)
-    show "\<And>i. i < n \<Longrightarrow> normal_subgroup (H i) (H (Suc i)) (\<cdot>) \<one>"
-      by (rule normal_step)
-  qed
+    by (simp add: normal_chain_axioms_def normal_step term_subgroup)
 qed
+
+
+subsection \<open>Isomorphism classes of normal-series factors\<close>
+
+text \<open>
+  We turn the valid factors of
+  an arbitrary normal series into isomorphism classes and then into a multiset.
+  When used with a composition series, these are the corresponding
+  composition-factor classes.
+\<close>
 
 context normal_series
 begin
+
+definition series_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
+  where "series_factor_class i \<equiv> group_iso_class_of (group_structure (series_factor i))"
+
+text \<open>The class sequence is ordered by increasing factor index.\<close>
+
+definition series_factor_classes :: "'a set group_iso_class list"
+  where "series_factor_classes \<equiv> List.map series_factor_class [0..<n]"
+
+definition series_factor_multiset :: "'a set group_iso_class multiset"
+  where "series_factor_multiset \<equiv> mset series_factor_classes"
+
+lemma length_series_factor_classes:
+  "length series_factor_classes = n"
+  unfolding series_factor_classes_def by simp
+
+lemma series_factor_classes_prefix:
+  assumes k: "k \<le> n"
+  shows "take k series_factor_classes = List.map series_factor_class [0..<k]"
+  using k unfolding series_factor_classes_def by (simp add: take_map)
+
+lemma series_factor_classes_nth:
+  assumes i: "i < n"
+  shows "series_factor_classes ! i = series_factor_class i"
+  using i unfolding series_factor_classes_def by simp
+
+lemma size_series_factor_multiset:
+  "size series_factor_multiset = n"
+  unfolding series_factor_multiset_def using length_series_factor_classes by simp
+
+lemma series_factor_class_eq_iff:
+  assumes i: "i < n" and j: "j < n"
+  shows "series_factor_class i = series_factor_class j \<longleftrightarrow>
+    series_factor i \<cong>\<^sub>G series_factor j"
+  by (simp add: group_iso_class_of_group_structure_eq_iff i j series_factor_class_def
+      series_factor_group)
 
 lemma series_factor_eq_normal_factor:
   "series_factor i = normal_factor (H i) (H (Suc i)) (\<cdot>) \<one>"

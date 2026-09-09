@@ -112,6 +112,107 @@ lemma separable_extensionD:
   shows "rsquarefree (minpoly F a)"
   using assms by (auto simp: separable_extension_def)
 
+text \<open>A divisor of a root-squarefree polynomial is root-squarefree.  This is the
+  base-change bridge used below: a minimal polynomial over a larger subfield divides the
+  minimal polynomial over the smaller one, so separability descends to the larger base.\<close>
+lemma rsquarefree_dvd:
+  fixes p q :: "'a :: idom poly"
+  assumes dvd: "p dvd q" and sq: "rsquarefree q"
+  shows "rsquarefree p"
+proof -
+  have q0: "q \<noteq> 0" using sq by (simp add: rsquarefree_def)
+  have p0: "p \<noteq> 0" using dvd q0 by auto
+  have order_le: "order x p \<le> order x q" for x
+    by (rule dvd_imp_order_le[OF q0 dvd])
+  show ?thesis
+    unfolding rsquarefree_def
+  proof (intro conjI allI)
+    show "p \<noteq> 0" by (rule p0)
+    fix x
+    have "order x q = 0 \<or> order x q = 1"
+      using sq by (simp add: rsquarefree_def)
+    then show "order x p = 0 \<or> order x p = 1"
+      using order_le[of x] by auto
+  qed
+qed
+
+text \<open>Over an algebraically closed field, root-squarefreeness turns the multiset of
+  polynomial roots into an ordinary set of the same cardinality.  This belongs with the
+  extension-property API rather than the Galois-group layer: primitive-element arguments also
+  need to turn a singleton root set into a degree-one minimal polynomial.\<close>
+lemma card_roots_eq_degree_alg_closed:
+  fixes p :: "'a :: alg_closed_field poly"
+  assumes p0: "p \<noteq> 0" and rsf: "rsquarefree p"
+  shows "card {x. poly p x = 0} = degree p"
+proof -
+  obtain A where sizeA: "size A = degree p"
+    and pA: "p = smult (lead_coeff p) (\<Prod>x\<in>#A. [:-x, 1:])"
+    using alg_closed_imp_factorization[OF p0] by blast
+  have lc0: "lead_coeff p \<noteq> 0" using p0 by simp
+  have prootsA: "proots p = A"
+  proof -
+    have roots_prod:
+        "proots (\<Prod>x\<in>#A. [:-x, 1:]) =
+          (\<Sum>x\<in>#A. proots [:-x, 1:])"
+    proof (induction A)
+      case empty
+      show ?case by simp
+    next
+      case (add x A)
+      have factor0: "[:-x, 1:] \<noteq> (0 :: 'a poly)" by simp
+      have factors0A: "0 \<notin># image_mset (\<lambda>y. [:-y, 1:]) A"
+        by (auto simp add: in_image_mset)
+      have prod0: "(\<Prod>y\<in>#A. [:-y, 1:]) \<noteq> (0 :: 'a poly)"
+        using factors0A by (simp add: prod_mset_zero_iff)
+      have roots_mult:
+          "proots ([:-x, 1:] * (\<Prod>y\<in>#A. [:-y, 1:])) =
+            proots [:-x, 1:] + proots (\<Prod>y\<in>#A. [:-y, 1:])"
+        by (rule proots_mult[OF factor0 prod0])
+      show ?case using add.IH roots_mult by simp
+    qed
+    have roots_p0:
+        "proots p = proots (smult (lead_coeff p) (\<Prod>x\<in>#A. [:-x, 1:]))"
+      by (rule arg_cong[OF pA])
+    have roots_p: "proots p = proots (\<Prod>x\<in>#A. [:-x, 1:])"
+      by (rule trans[OF roots_p0 proots_smult[OF lc0]])
+    show ?thesis using roots_p roots_prod by simp
+  qed
+  have count_le: "count (proots p) x \<le> 1" for x
+  proof -
+    have order_cases: "order x p = 0 \<or> order x p = 1"
+      using rsf by (auto simp: rsquarefree_def)
+    have order_le: "order x p \<le> 1"
+      using order_cases by (elim disjE; simp)
+    show ?thesis using order_le by (simp add: count_proots[OF p0])
+  qed
+  have eq_mset: "proots p = mset_set (set_mset (proots p))"
+  proof (rule multiset_eqI)
+    fix x
+    show "count (proots p) x = count (mset_set (set_mset (proots p))) x"
+    proof (cases "x \<in># proots p")
+      case True
+      have fin: "finite (set_mset (proots p))" by simp
+      have one_le: "1 \<le> count (proots p) x" using True by simp
+      have one: "count (proots p) x = 1"
+        by (rule le_antisym[OF count_le one_le])
+      then show ?thesis using fin True by simp
+    next
+      case False
+      have count0: "count (proots p) x = 0"
+        using False by (simp add: not_in_iff)
+      have xnot: "x \<notin> set_mset (proots p)" using False by simp
+      then show ?thesis using count0 by simp
+    qed
+  qed
+  have roots_set: "set_mset (proots p) = {x. poly p x = 0}"
+    by (rule set_count_proots[OF p0])
+  have "card {x. poly p x = 0} = card (set_mset (proots p))"
+    using roots_set by simp
+  also have "... = size (mset_set (set_mset (proots p)))" by simp
+  also have "... = size (proots p)" using eq_mset by simp
+  finally show ?thesis using prootsA sizeA by simp
+qed
+
 text \<open>A root of the defining polynomial of a splitting field is algebraic over its base.\<close>
 lemma splitting_field_root_algebraic:
   assumes split: "splitting_field F p K"

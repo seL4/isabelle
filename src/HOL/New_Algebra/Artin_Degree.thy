@@ -23,18 +23,15 @@ unbundle uminus_syntax
 
 subsection \<open>The fixed field sits below \<open>K\<close> as a tower\<close>
 
-text \<open>Both fields are subfields of \<^typ>\<open>complex\<close> and one contains the other, so they form a
-  @{locale subfield_tower} --- the scalars being the fixed field and the vectors @{term K}.  Note the
-  translation between the two subfield notions: @{const complex_subfield} is what the Galois
-  development uses, the type class @{locale Subfield} is what the vector-space layer needs.\<close>
+text \<open>Both fields are native set-based subfields and one contains the other, so they form a
+  @{locale subfield_tower} --- the scalars being the fixed field and the vectors @{term K}.\<close>
 lemma fixed_field_tower:
-  assumes K: "complex_subfield K" and HG: "H \<subseteq> field_auto K F"
+  assumes K: "Subfield K" and HG: "H \<subseteq> field_auto K F"
   shows "subfield_tower (fixed_field K H) K"
 proof (rule subfield_tower.intro)
-  have K': "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
   show "Subfield (fixed_field K H)"
-    by (rule fixed_field_subfield[OF K' HG])
-  show "Subfield K" by (rule K')
+    by (rule fixed_field_subfield[OF K HG])
+  show "Subfield K" by (rule K)
   show "subfield_tower_axioms (fixed_field K H) K"
     by unfold_locales (rule fixed_field_subset)
 qed
@@ -59,8 +56,8 @@ text \<open>No set of more than @{term "card H"} elements of @{term K} is linear
   qualified \<open>T.vs.\<close> prefix works.\<close>
 
 context
-  fixes K F :: "complex set" and H :: "(complex \<Rightarrow> complex) set"
-  assumes K: "complex_subfield K" and Hsub: "H \<in> galois_subgroups K F"
+  fixes K F :: "'a :: field set" and H :: "('a \<Rightarrow> 'a) set"
+  assumes K: "Subfield K" and Hsub: "H \<in> galois_subgroups K F"
 begin
 
 lemma H_auto: "H \<subseteq> field_auto K F" using Hsub by (rule galois_subgroups_subset)
@@ -94,7 +91,7 @@ proof
         (\<exists>j \<in> B. c j \<noteq> 0) \<and>
         (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)"
   proof (rule artin_solution_over_fixed_field[where x = id and J = B and F = F])
-    show "complex_subfield K" by (rule K)
+    show "Subfield K" by (rule K)
     show "H \<in> galois_subgroups K F" by (rule Hsub)
     show "finite B" by (rule finB)
     show "\<And>j. j \<in> B \<Longrightarrow> id j \<in> K" by (rule xK)
@@ -186,8 +183,8 @@ text \<open>As before the statements sit inside a context, so that the tower's i
   would not bring \<open>T.vs.basis\<close> into scope for the statement itself.\<close>
 
 context
-  fixes K E :: "complex set"
-  assumes K: "complex_subfield K" and Ebase: "subfield_tower E K"
+  fixes K E :: "'a :: field set"
+  assumes K: "Subfield K" and Ebase: "subfield_tower E K"
 begin
 
 interpretation T: subfield_tower E K by (rule Ebase)
@@ -199,7 +196,7 @@ text \<open>@{term K} as a type-class @{locale Subfield}, which is where
   @{command interpretation} --- the obvious move, to get the theorem unqualified --- does not work
   inside a @{command context} carrying assumptions: the interpretation is accepted but its theorems
   are not available under the prefix, giving \<open>Undefined fact: KS.underdetermined_solution\<close>.\<close>
-lemma Ksf: "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
+lemma Ksf: "Subfield K" by (rule K)
 
 text \<open>The base field lies inside the extension --- the tower's own axiom.\<close>
 lemma EK: "E \<subseteq> K" by (rule T.base_subset)
@@ -211,10 +208,10 @@ lemma field_auto_lincomb:
     and c: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> E"
   shows "\<sigma> (\<Sum>v \<in> B. c v * v) = (\<Sum>v \<in> B. c v * \<sigma> v)"
 proof -
-  interpret K: complex_subfield K by (rule K)
   have cK: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> K" using c EK by blast
   have "\<sigma> (\<Sum>v \<in> B. c v * v) = (\<Sum>v \<in> B. \<sigma> (c v * v))"
-    using cK BK by (intro field_auto_sum[OF K s]) (blast intro: K.mult_closed)
+    using cK BK by (intro field_auto_sum[OF K s])
+       (blast intro: Subfield.mult_closed[OF K])
   also have "\<dots> = (\<Sum>v \<in> B. c v * \<sigma> v)"
   proof (intro sum.cong refl)
     fix v assume v: "v \<in> B"
@@ -315,8 +312,8 @@ text \<open>Again a context, for the same reason as before: the locally extracte
   is in scope.  Here the tower is the one built from @{term H} itself.\<close>
 
 context
-  fixes K F :: "complex set" and H :: "(complex \<Rightarrow> complex) set"
-  assumes K: "complex_subfield K" and Fsub: "complex_subfield F" and FK: "F \<subseteq> K"
+  fixes K F :: "'a :: field set" and H :: "('a \<Rightarrow> 'a) set"
+  assumes K: "Subfield K" and Fsub: "Subfield F" and FK: "F \<subseteq> K"
     and Hsub: "H \<in> galois_subgroups K F"
 begin
 
@@ -325,16 +322,14 @@ lemma HG: "H \<subseteq> field_auto K F" using Hsub by (rule galois_subgroups_su
 interpretation T: subfield_tower "fixed_field K H" K
   by (rule fixed_field_tower[OF K HG])
 
-theorem artin_theorem:
+theorem artin_fixed_field_degree_data:
   assumes finH: "finite H"
-  shows "field_auto K (fixed_field K H) = H"
+  shows "\<exists>B. T.vs.basis B \<and> card B = card H \<and>
+    finite (field_auto K (fixed_field K H)) \<and>
+    card (field_auto K (fixed_field K H)) = card H"
 proof -
-  \<comment> \<open>Via the locale's own intro rule: @{method unfold_locales} would descend through
-    @{locale complex_subfield} to its six closure axioms for each of @{term K} and @{term F}.\<close>
-  have K': "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
-  have F': "Subfield F" using Fsub by (simp add: complex_subfield_iff_subfield)
   interpret GE: galois_extension K F
-    by (rule galois_extension.intro[OF K' F' FK])
+    by (rule galois_extension.intro[OF K Fsub FK])
   have tower: "subfield_tower (fixed_field K H) K" by (rule fixed_field_tower[OF K HG])
   \<comment> \<open>First obtain a basis from the uniform Artin bound.  The bound applies to every independent
     set, so the maximum-cardinality extraction in @{thm [source] Vector_Space.basis_exists_of_independent_card_bound}
@@ -376,10 +371,28 @@ proof -
   have HsubG: "H \<subseteq> field_auto K (fixed_field K H)"
     using Hsub by (rule GE.le_galois_group_fixed_field)
   have card_le: "card (field_auto K (fixed_field K H)) \<le> card H" using le1 le2 by simp
-  \<comment> \<open>@{thm [source] card_seteq} concludes @{text "A = B"} from @{text "finite A"},
-    @{text "B \<subseteq> A"} and @{text "card A \<le> card B"} --- so here @{term H} plays the \<^emph>\<open>subset\<close> and the
-    Galois group the finite superset.\<close>
-  show ?thesis by (rule card_seteq[OF finG HsubG card_le, symmetric])
+  have card_ge: "card H \<le> card (field_auto K (fixed_field K H))"
+    by (rule card_mono[OF finG HsubG])
+  have cardG: "card (field_auto K (fixed_field K H)) = card H"
+    using card_le card_ge by simp
+  have cardB: "card B = card H" using le1 le2 card_ge by simp
+  show ?thesis using basis cardB finG cardG by blast
+qed
+
+theorem artin_theorem:
+  assumes finH: "finite H"
+  shows "field_auto K (fixed_field K H) = H"
+proof -
+  obtain B where basis: "T.vs.basis B" and cardB: "card B = card H"
+    and finG: "finite (field_auto K (fixed_field K H))"
+    and cardG: "card (field_auto K (fixed_field K H)) = card H"
+    using artin_fixed_field_degree_data[OF finH] by blast
+  interpret GE: galois_extension K F
+    by (rule galois_extension.intro[OF K Fsub FK])
+  have HsubG: "H \<subseteq> field_auto K (fixed_field K H)"
+    using Hsub by (rule GE.le_galois_group_fixed_field)
+  show ?thesis
+    by (rule card_seteq[OF finG HsubG, symmetric]) (simp add: cardG)
 qed
 
 end
@@ -389,10 +402,10 @@ text \<open>\<^bold>\<open>What this completes.\<close>  With @{thm [source] art
   \<open>Galois_Correspondence\<close>, the correspondence restricts to a \<^emph>\<open>bijection\<close> between the finite subgroups
   of the Galois group and those intermediate fields that arise as fixed fields.
 
-  The remaining step for the classical statement --- that \<^emph>\<open>every\<close> intermediate field of a finite
-  Galois extension is such a fixed field, so that the closure operator is the identity too --- is
-  where separability and normality enter, and it is not attempted here.  For the simple normal case
-  \<open>galois_simple_normal_degree\<close> of \<open>Galois_Degree\<close> supplies the matching degree count.
+  The classical finite correspondence is assembled downstream in
+  \<open>Galois_Finite_Correspondence\<close>.  There separability and normality show that
+  every intermediate field is recovered from its relative automorphism group, while this theorem
+  supplies the inverse law for every subgroup.
 
   The theorem now obtains the needed basis internally from the uniform Artin bound, so no basis or
   vector-fixing hypothesis is exposed at the public interface.\<close>

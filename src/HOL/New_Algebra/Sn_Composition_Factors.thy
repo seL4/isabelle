@@ -1,6 +1,6 @@
-section \<open>Cross-checks on the composition-series development\<close>
+section \<open>Composition factors of the symmetric and alternating groups\<close>
 
-theory Composition_Sanity
+theory Sn_Composition_Factors
   imports Composition_Factors_Solvable Sym_Not_Solvable Symmetric_Generation
 begin
 
@@ -72,26 +72,5 @@ proof -
   with series show ?thesis by blast
 qed
 
-
-subsection \<open>The criterion is not vacuously true: solvable groups do occur\<close>
-
-text \<open>The converse direction of the criterion also carries content, and the sharpest check on it is
-  that it is \<^emph>\<open>not\<close> the case that every group has a non-abelian composition factor.  An abelian group
-  is solvable (\<open>Group.abelian_imp_solvable\<close>), so all of its composition factors are abelian ---
-  the criterion read the other way.  Together with the previous section this shows the criterion
-  genuinely separates groups rather than being constantly true or constantly false.\<close>
-lemma abelian_group_composition_factors_abelian:
-  assumes ab: "Abelian_Group G comp e"
-    and series: "composition_series G comp e H m"
-  shows "composition_series.abelian_factors comp e H m"
-proof -
-  interpret ab: Abelian_Group G comp e by (rule ab)
-  interpret S: composition_series G comp e H m by (rule series)
-  \<comment> \<open>@{thm [source] Group.abelian_imp_solvable} wants the \<^emph>\<open>commutative monoid\<close> component, which an
-    abelian group supplies as one of its axioms.\<close>
-  have "Group.solvable G comp e"
-    by (rule ab.abelian_imp_solvable) (rule ab.commutative_monoid_axioms)
-  then show ?thesis using S.solvable_iff_abelian_factors by blast
-qed
 
 end

@@ -1,7 +1,7 @@
-section \<open>The order of the Galois group of a simple normal extension\<close>
+section \<open>The order of the Galois group of a finite normal separable extension\<close>
 
 theory Galois_Degree
-  imports Galois_Action Extension_Degree
+  imports Galois_Action Extension_Properties Primitive_Element
 begin
 
 text \<open>The capstone of the field side of phase R2: for a \<^emph>\<open>simple normal\<close> extension
@@ -18,10 +18,10 @@ text \<open>The capstone of the field side of phase R2: for a \<^emph>\<open>sim
   the conjugates (@{thm [source] field_auto_maps_root}), and is onto (the Galois action is transitive on
   the roots of an irreducible polynomial, @{thm [source] galois_action_transitive}).
 
-  We work with @{term "ext_degree F a"}, the \<^emph>\<open>simple\<close>-extension degree, so no dimension-uniqueness
-  (Steinitz) lemma is needed.  The general splitting-field statement \<open>|Gal(K/F)| = [K:F]\<close> for an
-  arbitrary intermediate field would require the general degree, hence the exchange lemma, and is
-  outside this scope.\<close>
+  The simple-extension calculation is the reusable core.  The final theorem combines it with the
+  primitive-element theorem and the basis definition of extension degree to obtain
+  \<open>|Gal(K/F)| = [K:F]\<close> for every finite normal separable extension in an algebraically closed
+  ambient field.\<close>
 
 subsection \<open>The minimal polynomial is irreducible over the base\<close>
 
@@ -260,5 +260,203 @@ theorem galois_simple_normal_degree:
   shows "card (field_auto (eval_img F a) F) = ext_degree F a"
   using galois_simple_normal_card[OF sfF alg normal] card_conjugates_eq_degree[OF sfF alg]
   by simp
+
+subsection \<open>Generic finite normal and separable extensions\<close>
+
+text \<open>Normality of a simple extension identifies its automorphisms with the roots of the
+  minimal polynomial.  The proof is the generic root-action argument: an automorphism is determined
+  by the generator, maps the generator to a root, and transitivity supplies an automorphism for each
+  root.\<close>
+theorem galois_simple_normal_card_alg_closed:
+  fixes F :: "'a :: alg_closed_field set" and a :: 'a
+  assumes sfF: "Subfield F" and alg: "algebraic_over F a"
+    and normal: "{r. poly (minpoly F a) r = 0} \<subseteq> eval_img F a"
+  shows "card (field_auto (eval_img F a) F) =
+    card {r. poly (minpoly F a) r = 0}"
+proof -
+  define m where "m = minpoly F a"
+  define E where "E = eval_img F a"
+  define R where "R = {r. poly m r = 0}"
+  have sfE: "Subfield E"
+    unfolding E_def by (rule Subfield.subfield_eval_img[OF sfF alg])
+  have mF: "m \<in> poly_over F"
+    unfolding m_def by (rule Subfield.minpoly_over[OF sfF alg])
+  have mnz: "m \<noteq> 0"
+    unfolding m_def by (rule Subfield.minpoly_nonzero[OF sfF alg])
+  have mroot: "poly m a = 0"
+    unfolding m_def by (rule Subfield.minpoly_root[OF sfF alg])
+  have irr: "irreducible_over F m"
+    unfolding m_def by (rule irreducible_over_minpoly[OF sfF alg])
+  have aR: "a \<in> R" using mroot by (simp add: R_def)
+  have aE: "a \<in> E"
+    unfolding E_def by (rule Subfield.eval_img_self[OF sfF])
+  have FE: "F \<subseteq> E"
+    unfolding E_def using Subfield.eval_img_base[OF sfF] by blast
+  have RE: "R \<subseteq> E"
+    using normal by (simp add: R_def m_def E_def)
+  have finR: "finite R"
+    unfolding R_def using mnz by (rule poly_roots_finite)
+  have E_gen: "E = generate_field (F \<union> R)"
+  proof (rule antisym)
+    have "F \<union> {a} \<subseteq> F \<union> R" using aR by blast
+    then have "generate_field (F \<union> {a}) \<subseteq> generate_field (F \<union> R)"
+      by (rule generate_field_mono)
+    then show "E \<subseteq> generate_field (F \<union> R)"
+      using Subfield.eval_img_eq_generate_field[OF sfF alg] by (simp add: E_def)
+    show "generate_field (F \<union> R) \<subseteq> E"
+      using FE RE by (intro generate_field_least[OF sfE]) auto
+  qed
+  have action_bij:
+      "bij_betw (\<lambda>\<sigma>. \<sigma> a) (field_auto E F) R"
+    unfolding bij_betw_def
+  proof
+    show inj: "inj_on (\<lambda>\<sigma>. \<sigma> a) (field_auto E F)"
+    proof (rule inj_onI)
+      fix \<sigma> \<tau>
+      assume "\<sigma> \<in> field_auto E F" "\<tau> \<in> field_auto E F"
+        "\<sigma> a = \<tau> a"
+      then show "\<sigma> = \<tau>"
+        using field_auto_determined_by_gen[OF sfF alg] by (simp add: E_def)
+    qed
+    show "(\<lambda>\<sigma>. \<sigma> a) ` field_auto E F = R"
+    proof (rule antisym)
+      show "(\<lambda>\<sigma>. \<sigma> a) ` field_auto E F \<subseteq> R"
+      proof
+        fix y assume "y \<in> (\<lambda>\<sigma>. \<sigma> a) ` field_auto E F"
+        then obtain \<sigma> where s: "\<sigma> \<in> field_auto E F" and ys: "y = \<sigma> a"
+          by blast
+        have "poly m (\<sigma> a) = 0"
+          using field_auto_maps_root[OF sfE sfF FE s mF aE mroot] .
+        then show "y \<in> R" using ys by (simp add: R_def)
+      qed
+      show "R \<subseteq> (\<lambda>\<sigma>. \<sigma> a) ` field_auto E F"
+      proof
+        fix b assume bR: "b \<in> R"
+        have "\<forall>b\<in>R. \<exists>\<sigma>\<in>field_auto (generate_field (F \<union> R)) F.
+            restrict \<sigma> R a = b"
+          using galois_action_transitive[OF sfF finR mF irr _ alg_closed_imp_poly_has_root aR]
+          by (simp add: R_def)
+        then obtain \<sigma> where s: "\<sigma> \<in> field_auto (generate_field (F \<union> R)) F"
+          and sab: "restrict \<sigma> R a = b" using bR by blast
+        have sE: "\<sigma> \<in> field_auto E F" using s by (simp add: E_gen)
+        have "\<sigma> a = b" using sab aR by (simp add: restrict_apply)
+        then show "b \<in> (\<lambda>\<sigma>. \<sigma> a) ` field_auto E F" using sE by force
+      qed
+    qed
+  qed
+  have cardER: "card (field_auto E F) = card R"
+    using action_bij by (rule bij_betw_same_card)
+  then show ?thesis by (simp add: E_def R_def m_def)
+qed
+
+text \<open>The simple normal argument is now available over every algebraically closed field.  The
+  normality hypothesis says that all roots of the minimal polynomial lie in the simple extension;
+  separability supplies squarefreeness, and the generic root action supplies the matching
+  automorphism count.\<close>
+theorem galois_simple_normal_separable_degree:
+  fixes F :: "'a :: alg_closed_field set" and a :: 'a
+  assumes sfF: "Subfield F" and alg: "algebraic_over F a"
+    and normal: "{r. poly (minpoly F a) r = 0} \<subseteq> eval_img F a"
+    and sep: "separable_extension (eval_img F a) F"
+  shows "card (field_auto (eval_img F a) F) = ext_degree F a"
+proof -
+  have card_group_roots:
+      "card (field_auto (eval_img F a) F) =
+        card {r. poly (minpoly F a) r = 0}"
+    by (rule galois_simple_normal_card_alg_closed[OF sfF alg normal])
+  have aE: "a \<in> eval_img F a"
+    by (rule Subfield.eval_img_self[OF sfF])
+  have sep_minpoly: "rsquarefree (minpoly F a)"
+    by (rule separable_extensionD[OF sep aE alg])
+  have minpoly0: "minpoly F a \<noteq> 0"
+    by (rule Subfield.minpoly_nonzero[OF sfF alg])
+  have card_roots_degree:
+      "card {r. poly (minpoly F a) r = 0} = ext_degree F a"
+  proof -
+    have "card {r. poly (minpoly F a) r = 0} = degree (minpoly F a)"
+      by (rule card_roots_eq_degree_alg_closed[OF minpoly0 sep_minpoly])
+    then show ?thesis by (simp add: ext_degree_def)
+  qed
+  show ?thesis using card_group_roots card_roots_degree by simp
+qed
+
+text \<open>
+  A finite normal separable extension is simple by the primitive-element theorem.  Normality then
+  puts every conjugate of the primitive element back in the target field, so the preceding simple
+  theorem computes the whole automorphism group.  The basis theorem identifies the simple degree
+  with the intrinsic extension degree.
+\<close>
+context
+  fixes F K :: "'a :: alg_closed_field set"
+  assumes finite: "finite_subfield_tower F K"
+begin
+
+interpretation T: finite_subfield_tower F K by (rule finite)
+
+theorem finite_normal_separable_field_auto:
+  assumes normal: "normal_extension K F" and sep: "separable_extension K F"
+  shows "finite (field_auto K F)"
+proof -
+  obtain a where aK: "a \<in> K" and prim: "primitive_element F K a"
+    using finite_separable_extension_is_simple[OF finite sep] by blast
+  have Kdef: "K = eval_img F a" by (rule primitive_elementD[OF prim])
+  have alg: "algebraic_over F a" by (rule T.finite_extension_algebraic[OF aK])
+  define p where "p = minpoly F a"
+  define R where "R = {r. poly p r = 0}"
+  have pF: "p \<in> poly_over F"
+    unfolding p_def by (rule T.base.minpoly_over[OF alg])
+  have p0: "p \<noteq> 0"
+    unfolding p_def by (rule T.base.minpoly_nonzero[OF alg])
+  have aR: "a \<in> R"
+    unfolding R_def p_def using T.base.minpoly_root[OF alg] by simp
+  have finR: "finite R" unfolding R_def using p0 by (rule poly_roots_finite)
+  have roots_min: "poly_root_set (minpoly F a) \<subseteq> K"
+    by (rule normal_extensionD[OF normal T.base.minpoly_over[OF alg]
+      irreducible_over_minpoly[OF T.base.Subfield_axioms alg]
+      aK T.base.minpoly_root[OF alg]])
+  have rootsK: "R \<subseteq> K"
+    using roots_min unfolding R_def p_def poly_root_set_def by simp
+  have Kgen: "K = generate_field (F \<union> R)"
+  proof (rule subset_antisym)
+    have "K = generate_field (F \<union> {a})"
+      using Kdef T.base.eval_img_eq_generate_field[OF alg] by simp
+    also have "... \<subseteq> generate_field (F \<union> R)"
+      by (rule generate_field_mono) (use aR in auto)
+    finally show "K \<subseteq> generate_field (F \<union> R)" .
+    show "generate_field (F \<union> R) \<subseteq> K"
+      by (rule generate_field_least[OF T.ext.Subfield_axioms])
+         (use T.base_subset rootsK in auto)
+  qed
+  show ?thesis
+    by (rule finite_galois_group[OF T.ext.Subfield_axioms T.base.Subfield_axioms
+      T.base_subset pF R_def rootsK finR Kgen])
+qed
+
+theorem finite_normal_separable_galois_degree:
+  assumes normal: "normal_extension K F" and sep: "separable_extension K F"
+  shows "card (field_auto K F) = T.extension_degree"
+proof -
+  obtain a where aK: "a \<in> K" and prim: "primitive_element F K a"
+    using finite_separable_extension_is_simple[OF finite sep] by blast
+  have Kdef: "K = eval_img F a" by (rule primitive_elementD[OF prim])
+  have alg: "algebraic_over F a" by (rule T.finite_extension_algebraic[OF aK])
+  have irr: "irreducible_over F (minpoly F a)"
+    by (rule irreducible_over_minpoly[OF T.base.Subfield_axioms alg])
+  have root: "poly (minpoly F a) a = 0"
+    by (rule T.base.minpoly_root[OF alg])
+  have rootsK: "poly_root_set (minpoly F a) \<subseteq> K"
+    by (rule normal_extensionD[OF normal T.base.minpoly_over[OF alg] irr aK root])
+  have roots_simple: "{r. poly (minpoly F a) r = 0} \<subseteq> eval_img F a"
+    using rootsK by (simp add: poly_root_set_def Kdef)
+  have card_simple:
+      "card (field_auto (eval_img F a) F) = ext_degree F a"
+    by (rule galois_simple_normal_separable_degree[OF T.base.Subfield_axioms alg
+      roots_simple sep[unfolded Kdef]])
+  have degree_simple: "T.extension_degree = ext_degree F a"
+    by (rule T.primitive_element_degree[OF prim])
+  show ?thesis using card_simple degree_simple by (simp add: Kdef)
+qed
+
+end
 
 end

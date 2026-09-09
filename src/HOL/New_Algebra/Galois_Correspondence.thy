@@ -26,7 +26,8 @@ text \<open>Let \<open>F \<subseteq> K\<close> be subfields of an ambient type-c
   extension/contraction pair on ideals in \<open>Ideal_Extension\<close>.  What genuinely \<^emph>\<open>does\<close> need those
   hypotheses is the statement that the two maps are mutually inverse \<^emph>\<open>bijections\<close>; the closure
   operator @{text "E \<mapsto> K\<^bsup>field_auto K E\<^esup>"} is the identity precisely on the intermediate fields over
-  which @{term K} is normal.  That refinement is not attempted here --- see the note at the end.\<close>
+  which @{term K} is normal.  The finite normal separable refinement is proved in
+  \<open>Galois_Finite_Correspondence\<close>.\<close>
 
 
 subsection \<open>The fixed field of a set of automorphisms\<close>
@@ -308,8 +309,9 @@ text \<open>\<^bold>\<open>Scope and downstream completion.\<close>  This theory
     \<^item> \<open>Galois_Finite_Extension\<close> supplies the closure identity for complex splitting fields,
       with algebraicity discharged by the generated-field API.
 
-  Thus the complex-specific correspondence is complete in both directions at the downstream layer.
-  A future abstract version over the \<open>subfield\<close> type class is separate work rather than a gap in
-  this adjunction theory.\<close>
+  The representation-independent finite normal separable correspondence is completed in
+  \<open>Galois_Finite_Correspondence\<close>: both maps are inverse bijections, their
+  degree/index formulas are proved, normal intermediate fields correspond to normal subgroups, and
+  restriction yields the expected quotient-group isomorphism.\<close>
 
 end

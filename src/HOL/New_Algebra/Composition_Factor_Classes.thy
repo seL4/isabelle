@@ -17,19 +17,15 @@ context normal_series
 begin
 
 definition series_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
-  where
-    "series_factor_class i =
-      group_iso_class_of (group_structure (series_factor i))"
+  where "series_factor_class i \<equiv> group_iso_class_of (group_structure (series_factor i))"
 
 text \<open>The class sequence is ordered by increasing factor index.\<close>
 
 definition series_factor_classes :: "'a set group_iso_class list"
-  where
-    "series_factor_classes = List.map series_factor_class [0..<n]"
+  where "series_factor_classes \<equiv> List.map series_factor_class [0..<n]"
 
 definition series_factor_multiset :: "'a set group_iso_class multiset"
-  where
-    "series_factor_multiset = mset series_factor_classes"
+  where "series_factor_multiset \<equiv> mset series_factor_classes"
 
 lemma length_series_factor_classes:
   "length series_factor_classes = n"
@@ -53,9 +49,8 @@ lemma series_factor_class_eq_iff:
   assumes i: "i < n" and j: "j < n"
   shows "series_factor_class i = series_factor_class j \<longleftrightarrow>
     series_factor i \<cong>\<^sub>G series_factor j"
-  unfolding series_factor_class_def
-  by (rule group_iso_class_of_group_structure_eq_iff[OF
-        series_factor_group[OF i] series_factor_group[OF j]])
+  by (simp add: group_iso_class_of_group_structure_eq_iff i j series_factor_class_def
+      series_factor_group)
 
 end
 
