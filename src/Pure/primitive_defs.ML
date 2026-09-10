@@ -69,8 +69,8 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     else if exists_subterm (fn t => t aconv head) rhs then
       err "Entity to be defined occurs on rhs"
     else
-      ((lhs, rhs), args,
-        fold_rev close_arg args (Logic.list_all (eq_vars, (Logic.mk_equals (lhs, rhs)))))
+      let val ax = fold_rev close_arg args (Logic.list_all (eq_vars, (Logic.mk_equals (lhs, rhs))))
+      in ((lhs, rhs), args, ax) end
   end;
 
 (*\<And>x. c x \<equiv> t[x] to c \<equiv> \<lambda>x. t[x]*)
