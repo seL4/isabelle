@@ -384,7 +384,7 @@ val spass = (spassN, fn () => spass_config)
 
 local
 
-val new_vampire_basic_options =
+val vampire_4_8_basic_options =
   ["--input_syntax tptp",
    "--proof tptp",
    "--output_axiom_names on"] @
@@ -392,18 +392,31 @@ val new_vampire_basic_options =
    then []  (*time slicing is not support in the Windows version of Vampire*)
    else ["--mode portfolio", "--schedule snake_slh"])
 
+val vampire_5_1_basic_options =
+  ["--input_syntax tptp",
+   "-p tptp"] @
+  (if ML_System.platform_is_windows
+   then []  (*time slicing is not support in the Windows version of Vampire*)
+   else ["--mode portfolio", "--schedule snake_tptp_uns"])
+
+fun vampire_basic_options () =
+  (case getenv "VAMPIRE_VERSION" of
+    "4.8" => vampire_4_8_basic_options
+  | "5.1" => vampire_5_1_basic_options
+  | _ => vampire_5_1_basic_options)
+
 val vampire_full_proof_options =
   ["--proof_extra free",
    "--forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"]
 
-fun make_vampire_config vampire_basic_options good_max_new_mono_instances good_slices : atp_config =
+fun make_vampire_config good_max_new_mono_instances good_slices : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem =>
-     vampire_basic_options @
+     vampire_basic_options () @
      (if full_proofs then vampire_full_proof_options else []) @
      (if extra_options <> "" then [extra_options] else []) @
      ["-t " ^ string_of_int (to_secs 1 timeout),
-      "--input_file " ^ File.bash_path problem],
+      File.bash_path problem],
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation =======")] @
@@ -422,8 +435,8 @@ fun make_vampire_config vampire_basic_options good_max_new_mono_instances good_s
    good_max_new_mono_instances = good_max_new_mono_instances}
 
 val vampire_config : atp_config =
-  (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing *)
-  make_vampire_config new_vampire_basic_options 256
+  (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing version 4.8 HO - Sledgehammer schedules (2023-10-19) *)
+  make_vampire_config 256
     [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
