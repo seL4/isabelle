@@ -1,7 +1,7 @@
 section \<open>Finite relative normal chains\<close>
 
 theory Normal_Chain
-  imports Normal_Series Group_Iso_Classes "HOL-Library.Multiset"
+  imports Composition_Factor_Classes
 begin
 
 subsection \<open>Normal factors\<close>
@@ -25,10 +25,11 @@ definition normal_factor ::
          (normal_subgroup.Congruence K H composition unit) unit)"
 
 definition normal_factor_class ::
-    "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a set group_iso_class"
+    "'a set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow>
+      'a set monoid_iso_class"
   where
-    "normal_factor_class K H composition unit \<equiv>
-      group_iso_class_of (group_structure (normal_factor K H composition unit))"
+    "normal_factor_class K H composition unit =
+      monoid_iso_class_of (monoid (normal_factor K H composition unit))"
 
 text \<open>
   A normal factor is a group whenever its denominator is normal in its
@@ -53,7 +54,7 @@ lemma normal_factor_class_eq_iff:
       normal_factor_class L M composition unit \<longleftrightarrow>
       normal_factor K H composition unit \<cong>\<^sub>G normal_factor L M composition unit"
   unfolding normal_factor_class_def
-  by (rule group_iso_class_of_group_structure_eq_iff[OF
+  by (rule monoid_iso_class_of_monoid_eq_iff_groups[OF
         normal_factor_group[OF KH] normal_factor_group[OF LM]])
 
 text \<open>
@@ -71,10 +72,11 @@ lemma normal_factor_carrier_eq_singleton_iff:
 
 lemma normal_factor_class_eq_trivial_iff:
   assumes N: "normal_subgroup K H composition unit"
-  shows "normal_factor_class K H composition unit = trivial_group_iso_class \<longleftrightarrow> K = H"
+  shows "normal_factor_class K H composition unit = trivial_monoid_iso_class \<longleftrightarrow> K = H"
   unfolding normal_factor_class_def
-  using assms normal_factor_group[OF N]
-  by (metis group_iso_class_eq_trivial_iff normal_factor_carrier_eq_singleton_iff prod.exhaust_sel)
+  using assms
+  by (metis monoid_iso_class_eq_trivial_iff normal_factor_carrier_eq_singleton_iff
+      normal_factor_group split_pairs)
 
 locale normal_chain =
   G: Group G "(\<cdot>)" \<one>
@@ -106,8 +108,10 @@ proof (induction rule: inc_induct)
     using jn order_less_le_trans step_subset by blast
 qed auto
 
-definition chain_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
-  where "chain_factor_class i \<equiv> normal_factor_class (C i) (C (Suc i)) (\<cdot>) \<one>"
+definition chain_factor_class :: "nat \<Rightarrow> 'a set monoid_iso_class"
+  where
+    "chain_factor_class i =
+      normal_factor_class (C i) (C (Suc i)) (\<cdot>) \<one>"
 
 lemma prefix_normal_chain:
   assumes "k \<le> n"
@@ -138,42 +142,6 @@ text \<open>
 
 context normal_series
 begin
-
-definition series_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
-  where "series_factor_class i \<equiv> group_iso_class_of (group_structure (series_factor i))"
-
-text \<open>The class sequence is ordered by increasing factor index.\<close>
-
-definition series_factor_classes :: "'a set group_iso_class list"
-  where "series_factor_classes \<equiv> List.map series_factor_class [0..<n]"
-
-definition series_factor_multiset :: "'a set group_iso_class multiset"
-  where "series_factor_multiset \<equiv> mset series_factor_classes"
-
-lemma length_series_factor_classes:
-  "length series_factor_classes = n"
-  unfolding series_factor_classes_def by simp
-
-lemma series_factor_classes_prefix:
-  assumes k: "k \<le> n"
-  shows "take k series_factor_classes = List.map series_factor_class [0..<k]"
-  using k unfolding series_factor_classes_def by (simp add: take_map)
-
-lemma series_factor_classes_nth:
-  assumes i: "i < n"
-  shows "series_factor_classes ! i = series_factor_class i"
-  using i unfolding series_factor_classes_def by simp
-
-lemma size_series_factor_multiset:
-  "size series_factor_multiset = n"
-  unfolding series_factor_multiset_def using length_series_factor_classes by simp
-
-lemma series_factor_class_eq_iff:
-  assumes i: "i < n" and j: "j < n"
-  shows "series_factor_class i = series_factor_class j \<longleftrightarrow>
-    series_factor i \<cong>\<^sub>G series_factor j"
-  by (simp add: group_iso_class_of_group_structure_eq_iff i j series_factor_class_def
-      series_factor_group)
 
 lemma series_factor_eq_normal_factor:
   "series_factor i = normal_factor (H i) (H (Suc i)) (\<cdot>) \<one>"

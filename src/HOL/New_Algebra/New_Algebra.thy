@@ -5,7 +5,7 @@ theory New_Algebra
     (* groups *)
     Subgroup_Lattice
     Simple_Group
-    Group_Iso_Classes
+    Monoid_Iso_Classes
     Normal_Series
     Composition_Series
     Composition_Factor_Classes

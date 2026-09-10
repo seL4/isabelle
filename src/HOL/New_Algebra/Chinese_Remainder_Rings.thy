@@ -731,36 +731,16 @@ lemma Ji_Cong_sym:
   shows "(b, a) \<in> Ji_Cong i"
 proof -
   interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
-  from assms(2) have aR: "a \<in> R" and bR: "b \<in> R" and d: "a - b \<in> J i"
+  from assms have aR: "a \<in> R" and bR: "b \<in> R" and d: "a - b \<in> J i"
     unfolding Ji_Cong_def by auto
-  have "- (a - b) \<in> J i" using d qi.additive.submonoid_inverse_closed aR bR by simp
-  then have "b - a \<in> J i"
-    using aR bR by (simp add: additive.inverse_composition_commute additive.commutative)
-  then show ?thesis using aR bR unfolding Ji_Cong_def by auto
+  then show ?thesis
+    using Ji_Cong_eq assms(2) i qi.additive.symmetric by blast
 qed
 
 lemma Ji_Class_mem_sym:
   assumes i: "i \<in> S" and "a \<in> R" "b \<in> Ji_Class i a"
   shows "a \<in> Ji_Class i b"
-proof -
-  from assms(3) have bR: "b \<in> R" and ab: "(a, b) \<in> Ji_Cong i"
-    unfolding Ji_Class_def by auto
-  have "(b, a) \<in> Ji_Cong i" by (rule Ji_Cong_sym[OF i ab])
-  then show ?thesis using assms(2) unfolding Ji_Class_def by auto
-qed
-
-lemma Ji_Class_coset_bridge:
-  assumes i: "i \<in> S" and aR: "a \<in> R"
-  shows "Ji_Class i a = {b \<in> R. (a, b) \<in> Ji_Cong i}"
-  unfolding Ji_Class_def by auto
-
-text \<open>Within an interpretation @{text "qi: quotient_ring (J i) R (+) (\<cdot>) \<zero> \<one>"},
-  the coset @{text "qi.coset a"} equals @{term "Ji_Class i a"}.  We package this as a
-  fact to use in proofs.\<close>
-lemma Ji_Class_qi_coset:
-  assumes i: "i \<in> S" and aR: "a \<in> R"
-  shows "Ji_Class i a = {b \<in> R. a - b \<in> J i}"
-  by (rule Ji_Class_unfold[OF aR])
+  using Ji_Class_def Ji_Cong_sym assms by (metis (lifting) mem_Collect_eq)
 
 text \<open>The coset map is well-defined modulo the congruence.\<close>
 lemma Ji_Class_cong:
@@ -768,19 +748,12 @@ lemma Ji_Class_cong:
   shows "Ji_Class i a = Ji_Class i b"
 proof -
   interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
-  have ca: "Ji_Class i a = qi.coset a" and cb: "Ji_Class i b = qi.coset b"
+  have "Ji_Class i a = qi.coset a" "Ji_Class i b = qi.coset b"
     using \<open>a \<in> R\<close> \<open>b \<in> R\<close> qi.additive.symmetric
     by (auto simp: Ji_Class_def Ji_Cong_eq i qi.coset_def)
-  have "qi.coset a = qi.coset b"
-    using assms by (simp add: qi.coset_def qi.additive.Class_equivalence
-                              qi.additive_congruence Ji_Cong_eq[OF i])
-  then show ?thesis using ca cb by simp
+  then show ?thesis 
+    using Ji_Cong_eq assms(4) i qi.additive.Class_eq qi.coset_def by metis
 qed
-
-lemma Ji_Class_repr:
-  assumes i: "i \<in> S" and "A \<in> quot_carrier i"
-  obtains a where "a \<in> R" "A = Ji_Class i a"
-  using assms unfolding quot_carrier_def by auto
 
 lemma quot_Ring:
   assumes i: "i \<in> S"
@@ -802,34 +775,20 @@ proof -
   proof -
     obtain a b where aR: "a \<in> R" "A = Ji_Class i a" and bR: "b \<in> R" "B = Ji_Class i b"
       using AB unfolding quot_carrier_def by auto
-    have Aca: "A = qi.coset a" using aR class_eq by simp
-    have Bcb: "B = qi.coset b" using bR class_eq by simp
+    have Aca: "A = qi.coset a" and Bcb: "B = qi.coset b" using aR bR class_eq by auto
     have rhs: "qi.additive.quotient_composition A B = qi.coset (a + b)"
       using aR(1) bR(1) Aca Bcb by (simp add: qi.coset_def qi.additive.Class_commutes_with_composition)
-    have aA: "a \<in> A" using aR(1,2) unfolding Ji_Class_def Ji_Cong_def by auto
-    moreover have bB: "b \<in> B" using bR(1,2) unfolding Ji_Class_def Ji_Cong_def by auto
-    moreover have "\<And>a' b'. a' \<in> A \<Longrightarrow> b' \<in> B \<Longrightarrow> Ji_Class i (a' + b') = Ji_Class i (a + b)"
+    obtain aA: "a \<in> A" and bB: "b \<in> B"
+      using Aca Bcb aR(1) bR(1) qi.coset_def by blast
+    moreover have bB: "b \<in> B" using bR unfolding Ji_Class_def Ji_Cong_def by auto
+    moreover have "Ji_Class i (a' + b') = Ji_Class i (a + b)" if "a' \<in> A" "b' \<in> B" for a' b'
     proof -
-      fix a' b' assume "a' \<in> A" "b' \<in> B"
-      then have a'R: "a' \<in> R" and b'R: "b' \<in> R"
-        using AB unfolding quot_carrier_def Ji_Class_def by auto
-      have "qi.coset a' = qi.coset a"
-        using \<open>a' \<in> A\<close> Aca a'R aR(1) qi.coset_def qi.additive.Class_equivalence qi.additive_congruence
-        by auto
-      moreover have "qi.coset b' = qi.coset b"
-        using \<open>b' \<in> B\<close> Bcb b'R bR(1) qi.coset_def qi.additive.Class_equivalence qi.additive_congruence
-        by auto
-      ultimately have "qi.coset (a' + b') = qi.coset (a + b)"
-      proof -
-        assume eq_a: "qi.coset a' = qi.coset a" and eq_b: "qi.coset b' = qi.coset b"
-        have "qi.coset (a' + b') = qi.additive.quotient_composition (qi.coset a') (qi.coset b')"
-          using a'R b'R by (simp add: qi.coset_def qi.additive.Class_commutes_with_composition)
-        also have "\<dots> = qi.additive.quotient_composition (qi.coset a) (qi.coset b)"
-          by (simp add: eq_a eq_b)
-        also have "\<dots> = qi.coset (a + b)"
-          using aR(1) bR(1) by (simp add: qi.coset_def qi.additive.Class_commutes_with_composition)
-        finally show "qi.coset (a' + b') = qi.coset (a + b)" .
-      qed
+      have a'R: "a' \<in> R" and b'R: "b' \<in> R"
+        using that AB unfolding quot_carrier_def Ji_Class_def by auto
+      with that obtain "qi.coset a' = qi.coset a" "qi.coset b' = qi.coset b"
+        using Aca Bcb aR(1) bR(1) qi.additive.ClassD qi.additive.Class_equivalence qi.coset_def by metis
+      then have "qi.coset (a' + b') = qi.coset (a + b)"
+        using Aca Bcb a'R b'R qi.additive.Class_commutes_with_composition qi.coset_def rhs by metis
       then show "Ji_Class i (a' + b') = Ji_Class i (a + b)"
         using class_eq a'R b'R aR(1) bR(1) by simp
     qed
@@ -844,30 +803,23 @@ proof -
     interpret qi_comm: ideal_in_comm_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule Ji_ideal_comm[OF i])
     obtain a b where aR: "a \<in> R" "A = Ji_Class i a" and bR: "b \<in> R" "B = Ji_Class i b"
       using AB unfolding quot_carrier_def by auto
-    have Aca: "A = qi.coset a" using aR class_eq by simp
-    have Bcb: "B = qi.coset b" using bR class_eq by simp
+    then have ABc: "A = qi.coset a" "B = qi.coset b" using class_eq by auto
     have rhs: "qi.multiplicative.quotient_composition A B = qi.coset (a \<cdot> b)"
-      using aR(1) bR(1) Aca Bcb by (simp add: qi.coset_def qi_comm.quot_mult_Class)
-    have "a \<in> A" using aR(1,2) unfolding Ji_Class_def Ji_Cong_def by auto
-    moreover have "b \<in> B" using bR(1,2) unfolding Ji_Class_def Ji_Cong_def by auto
-    moreover have "\<And>a' b'. a' \<in> A \<Longrightarrow> b' \<in> B \<Longrightarrow> Ji_Class i (a' \<cdot> b') = Ji_Class i (a \<cdot> b)"
+      using aR(1) bR(1) ABc by (simp add: qi.coset_def qi_comm.quot_mult_Class)
+    have "a \<in> A" using aR unfolding Ji_Class_def Ji_Cong_def by auto
+    moreover have "b \<in> B" using bR unfolding Ji_Class_def Ji_Cong_def by auto
+    moreover have "Ji_Class i (a' \<cdot> b') = Ji_Class i (a \<cdot> b)" if "a' \<in> A" "b' \<in> B" for a' b'
     proof -
-      fix a' b' assume "a' \<in> A" "b' \<in> B"
-      then have a'R: "a' \<in> R" and b'R: "b' \<in> R"
-        using AB unfolding quot_carrier_def Ji_Class_def by auto
-      have "(a, a') \<in> Ji_Cong i" using \<open>a' \<in> A\<close> aR(2) unfolding Ji_Class_def by auto
-      then have ca: "(a', a) \<in> qi.Ring_Congruence" using Ji_Cong_sym[OF i] Ji_Cong_eq[OF i] by simp
-      have "(b, b') \<in> Ji_Cong i" using \<open>b' \<in> B\<close> bR(2) unfolding Ji_Class_def by auto
-      then have cb: "(b', b) \<in> qi.Ring_Congruence" using Ji_Cong_sym[OF i] Ji_Cong_eq[OF i] by simp
-      have "(a' \<cdot> b', a \<cdot> b) \<in> qi.Ring_Congruence"
-        using ca cb by (rule qi.multiplicative_congruence)
-      then have "(a' \<cdot> b', a \<cdot> b) \<in> Ji_Cong i" using Ji_Cong_eq[OF i] by simp
+      have a'R: "a' \<in> R" and b'R: "b' \<in> R"
+        using AB that unfolding quot_carrier_def Ji_Class_def by auto
+      have "(a' \<cdot> b', a \<cdot> b) \<in> Ji_Cong i"
+        using ABc Ji_Cong_eq aR(1) bR(1) i qi.coset_def that by blast
       then show "Ji_Class i (a' \<cdot> b') = Ji_Class i (a \<cdot> b)"
-        using Ji_Class_cong[OF i] a'R b'R aR(1) bR(1) by simp
+        by (simp add: Ji_Class_cong a'R aR b'R bR i)
     qed
     ultimately have "quot_mult i A B = Ji_Class i (a \<cdot> b)"
       unfolding quot_mult_def by (intro the_equality; blast)
-    also have "\<dots> = qi.coset (a \<cdot> b)" using class_eq aR(1) bR(1) by simp
+    also have "\<dots> = qi.coset (a \<cdot> b)" using class_eq aR bR by simp
     finally show ?thesis using rhs by simp
   qed
   \<comment> \<open>Transfer the Ring structure from @{term qi.quotient_set} to our definitional carrier.\<close>
@@ -882,8 +834,8 @@ interpretation prod: ring_family S quot_carrier quot_add quot_mult quot_zero quo
   by (rule ring_family.intro) (rule quot_Ring)
 
 text \<open>The coset map for each component — directly uses @{const Ji_Class}.\<close>
-definition ncoset :: "'i \<Rightarrow> 'a \<Rightarrow> 'a set" where
-  "ncoset i a = Ji_Class i a"
+definition ncoset :: "'i \<Rightarrow> 'a \<Rightarrow> 'a set" 
+  where "ncoset i a \<equiv> Ji_Class i a"
 
 lemma ncoset_in_carrier:
   assumes "i \<in> S" "a \<in> R"
@@ -891,8 +843,8 @@ lemma ncoset_in_carrier:
   unfolding ncoset_def quot_carrier_def using assms(2) by auto
 
 text \<open>The canonical map \<open>a \<mapsto> (\<lambda>i\<in>S. Ji_Class i a)\<close> into the indexed product.\<close>
-definition ncanon :: "'a \<Rightarrow> ('i \<Rightarrow> 'a set)" where
-  "ncanon = restrict (\<lambda>a. \<lambda>i\<in>S. ncoset i a) R"
+definition ncanon :: "'a \<Rightarrow> ('i \<Rightarrow> 'a set)" 
+  where "ncanon \<equiv> restrict (\<lambda>a. \<lambda>i\<in>S. ncoset i a) R"
 
 lemma ncanon_apply:
   assumes "a \<in> R" "i \<in> S"
@@ -902,13 +854,7 @@ lemma ncanon_apply:
 lemma ncanon_closed:
   assumes "a \<in> R"
   shows "ncanon a \<in> prod.Pcarrier"
-proof (rule prod.Pcarrier_memI)
-  fix i assume i: "i \<in> S"
-  show "ncanon a i \<in> quot_carrier i"
-    using assms i by (simp add: ncanon_apply ncoset_in_carrier)
-next
-  show "ncanon a \<in> extensional S" using assms by (simp add: ncanon_def)
-qed
+  by (simp add: assms ncanon_def ncoset_in_carrier prod.Pcarrier_memI)
 
 lemma ncanon_outside: "a \<notin> R \<Longrightarrow> ncanon a = undefined"
   by (simp add: ncanon_def)
@@ -919,19 +865,11 @@ theorem ncanon_hom:
      prod.Pcarrier prod.Padd prod.Pmult prod.Pzero prod.Pone"
 proof unfold_locales
   show "ncanon \<in> R \<rightarrow>\<^sub>E prod.Pcarrier"
-  proof (rule PiE_I)
-    fix a assume "a \<in> R" then show "ncanon a \<in> prod.Pcarrier" by (rule ncanon_closed)
-  next
-    fix a assume "a \<notin> R" then show "ncanon a = undefined" by (rule ncanon_outside)
-  qed
+    by (simp add: PiE_I ncanon_closed ncanon_outside)
 next
   fix a b assume ab: "a \<in> R" "b \<in> R"
   show "ncanon (a + b) = prod.Padd (ncanon a) (ncanon b)"
   proof (rule prod.Pcarrier_eqI)
-    show "ncanon (a + b) \<in> prod.Pcarrier" using ab by (simp add: ncanon_closed)
-    show "prod.Padd (ncanon a) (ncanon b) \<in> prod.Pcarrier"
-      using ab by (simp add: ncanon_closed)
-  next
     fix i assume i: "i \<in> S"
     interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
     have lhs: "ncanon (a + b) i = Ji_Class i (a + b)"
@@ -943,123 +881,57 @@ next
       unfolding quot_add_def
     proof (rule the_equality)
       show "\<exists>a'\<in>Ji_Class i a. \<exists>b'\<in>Ji_Class i b. Ji_Class i (a + b) = Ji_Class i (a' + b')"
-      proof (intro bexI)
-        show "a \<in> Ji_Class i a" using ab(1) unfolding Ji_Class_def Ji_Cong_def by auto
-        show "b \<in> Ji_Class i b" using ab(2) unfolding Ji_Class_def Ji_Cong_def by auto
-      qed simp
+        using Ji_Class_unfold ab i by fastforce
     next
       fix C assume "\<exists>a'\<in>Ji_Class i a. \<exists>b'\<in>Ji_Class i b. C = Ji_Class i (a' + b')"
       then obtain a' b' where a'A: "a' \<in> Ji_Class i a" and b'B: "b' \<in> Ji_Class i b"
         and Ceq: "C = Ji_Class i (a' + b')" by auto
-      have a'R: "a' \<in> R" using a'A unfolding Ji_Class_def by auto
-      have b'R: "b' \<in> R" using b'B unfolding Ji_Class_def by auto
-      have ca: "(a', a) \<in> qi.Ring_Congruence"
-      proof -
-        have d: "a - a' \<in> J i" using a'A ab(1) unfolding Ji_Class_def Ji_Cong_def by auto
-        have dR: "a - a' \<in> R" using ab(1) a'R by simp
-        have "a' - a = - (a - a')"
-          using ab(1) a'R by (simp add: additive.inverse_composition_commute additive.commutative)
-        also have "- (a - a') \<in> J i" using d dR qi.additive.submonoid_inverse_closed by simp
-        finally have "a' - a \<in> J i" .
-        then show ?thesis using a'R ab(1) unfolding qi.Ring_Congruence_def by auto
-      qed
-      have cb: "(b', b) \<in> qi.Ring_Congruence"
-      proof -
-        have d: "b - b' \<in> J i" using b'B ab(2) unfolding Ji_Class_def Ji_Cong_def by auto
-        have dR: "b - b' \<in> R" using ab(2) b'R by simp
-        have "b' - b = - (b - b')"
-          using ab(2) b'R by (simp add: additive.inverse_composition_commute additive.commutative)
-        also have "- (b - b') \<in> J i" using d dR qi.additive.submonoid_inverse_closed by simp
-        finally have "b' - b \<in> J i" .
-        then show ?thesis using b'R ab(2) unfolding qi.Ring_Congruence_def by auto
-      qed
-      have "(a' + b', a + b) \<in> qi.Ring_Congruence"
-        using qi.additive.cong[simplified qi.additive_congruence, OF ca cb] .
+      then have "(a' + b', a + b) \<in> qi.Ring_Congruence"
+        using Ji_Class_def Ji_Cong_eq i qi.additive.cong qi.additive.symmetric by auto
       then have "(a' + b', a + b) \<in> Ji_Cong i" using Ji_Cong_eq[OF i] by simp
       then have "Ji_Class i (a' + b') = Ji_Class i (a + b)"
-        using a'R b'R ab(1) ab(2) by (intro Ji_Class_cong[OF i]) auto
+        using a'A b'B ab(1) ab(2) by (intro Ji_Class_cong[OF i]) (auto simp: Ji_Class_def)
       then show "C = Ji_Class i (a + b)" using Ceq by simp
     qed
     finally show "ncanon (a + b) i = prod.Padd (ncanon a) (ncanon b) i"
       using lhs by simp
-  qed
+  qed (use ab ncanon_closed in auto)
 next
   fix a b assume ab: "a \<in> R" "b \<in> R"
   show "ncanon (a \<cdot> b) = prod.Pmult (ncanon a) (ncanon b)"
   proof (rule prod.Pcarrier_eqI)
-    show "ncanon (a \<cdot> b) \<in> prod.Pcarrier" using ab by (simp add: ncanon_closed)
-    show "prod.Pmult (ncanon a) (ncanon b) \<in> prod.Pcarrier"
-      using ab by (simp add: ncanon_closed)
-  next
     fix i assume i: "i \<in> S"
     interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
     have lhs: "ncanon (a \<cdot> b) i = Ji_Class i (a \<cdot> b)"
       using ab i by (simp add: ncanon_apply ncoset_def)
-    have rhs: "prod.Pmult (ncanon a) (ncanon b) i =
-               quot_mult i (Ji_Class i a) (Ji_Class i b)"
+    have rhs: "prod.Pmult (ncanon a) (ncanon b) i = quot_mult i (Ji_Class i a) (Ji_Class i b)"
       using ab i by (simp add: ncanon_apply prod.Pmult_apply ncoset_def)
     also have "\<dots> = Ji_Class i (a \<cdot> b)"
       unfolding quot_mult_def
     proof (rule the_equality)
       show "\<exists>a'\<in>Ji_Class i a. \<exists>b'\<in>Ji_Class i b. Ji_Class i (a \<cdot> b) = Ji_Class i (a' \<cdot> b')"
-      proof (intro bexI)
-        show "a \<in> Ji_Class i a" using ab(1) unfolding Ji_Class_def Ji_Cong_def by auto
-        show "b \<in> Ji_Class i b" using ab(2) unfolding Ji_Class_def Ji_Cong_def by auto
-      qed simp
+        using Ji_Class_unfold ab(1,2) by fastforce
     next
       fix C assume "\<exists>a'\<in>Ji_Class i a. \<exists>b'\<in>Ji_Class i b. C = Ji_Class i (a' \<cdot> b')"
       then obtain a' b' where a'A: "a' \<in> Ji_Class i a" and b'B: "b' \<in> Ji_Class i b"
         and Ceq: "C = Ji_Class i (a' \<cdot> b')" by auto
-      have a'R: "a' \<in> R" using a'A unfolding Ji_Class_def by auto
-      have b'R: "b' \<in> R" using b'B unfolding Ji_Class_def by auto
-      have ca: "(a', a) \<in> qi.Ring_Congruence"
-      proof -
-        have "a - a' \<in> J i" using a'A ab(1) unfolding Ji_Class_def Ji_Cong_def by auto
-        then have "- (a - a') \<in> J i"
-          using qi.additive.submonoid_inverse_closed ab(1) a'R by simp
-        then have "a' - a \<in> J i"
-          using ab(1) a'R by (simp add: additive.inverse_composition_commute additive.commutative)
-        then show ?thesis using a'R ab(1) unfolding qi.Ring_Congruence_def by auto
-      qed
-      have cb: "(b', b) \<in> qi.Ring_Congruence"
-      proof -
-        have "b - b' \<in> J i" using b'B ab(2) unfolding Ji_Class_def Ji_Cong_def by auto
-        then have "- (b - b') \<in> J i"
-          using qi.additive.submonoid_inverse_closed ab(2) b'R by simp
-        then have "b' - b \<in> J i"
-          using ab(2) b'R by (simp add: additive.inverse_composition_commute additive.commutative)
-        then show ?thesis using b'R ab(2) unfolding qi.Ring_Congruence_def by auto
-      qed
-      have "(a' \<cdot> b', a \<cdot> b) \<in> qi.Ring_Congruence"
-        using ca cb by (rule qi.multiplicative_congruence)
+      then have "(a' \<cdot> b', a \<cdot> b) \<in> qi.Ring_Congruence"
+        using Ji_Class_def Ji_Cong_eq i qi.additive.symmetric by auto
       then have "(a' \<cdot> b', a \<cdot> b) \<in> Ji_Cong i" using Ji_Cong_eq[OF i] by simp
       then have "Ji_Class i (a' \<cdot> b') = Ji_Class i (a \<cdot> b)"
-        using a'R b'R ab(1) ab(2) by (intro Ji_Class_cong[OF i]) auto
+        using a'A b'B ab(1) ab(2) by (intro Ji_Class_cong[OF i]) (auto simp: Ji_Class_def)
       then show "C = Ji_Class i (a \<cdot> b)" using Ceq by simp
     qed
     finally show "ncanon (a \<cdot> b) i = prod.Pmult (ncanon a) (ncanon b) i"
       using lhs by simp
-  qed
+  qed (use ab ncanon_closed in auto)
 next
   show "ncanon \<zero> = prod.Pzero"
-  proof (rule prod.Pcarrier_eqI)
-    show "ncanon \<zero> \<in> prod.Pcarrier" by (simp add: ncanon_closed)
-    show "prod.Pzero \<in> prod.Pcarrier" by simp
-  next
-    fix i assume i: "i \<in> S"
-    show "ncanon \<zero> i = prod.Pzero i"
-      using i by (simp add: ncanon_apply prod.Pzero_apply quot_zero_def ncoset_def)
-  qed
-next
+    by (simp add: ncanon_apply ncanon_closed ncoset_def prod.Pcarrier_eqI prod.Pzero_apply
+        quot_zero_def)
   show "ncanon \<one> = prod.Pone"
-  proof (rule prod.Pcarrier_eqI)
-    show "ncanon \<one> \<in> prod.Pcarrier" by (simp add: ncanon_closed)
-    show "prod.Pone \<in> prod.Pcarrier" by simp
-  next
-    fix i assume i: "i \<in> S"
-    show "ncanon \<one> i = prod.Pone i"
-      using i by (simp add: ncanon_apply prod.Pone_apply quot_one_def ncoset_def)
-  qed
+    by (simp add: ncanon_apply ncanon_closed ncoset_def prod.Pcarrier_eqI prod.Pone_apply
+        quot_one_def)
 qed
 
 interpretation ncanon: ring_homomorphism ncanon R "(+)" "(\<cdot>)" \<zero> \<one>
@@ -1075,57 +947,52 @@ subsection \<open>Kernel and surjectivity\<close>
 
 text \<open>The kernel of the canonical projection is @{term "\<Inter> (J ` S)"}.\<close>
 theorem ncanon_kernel: "ncanon.additive.Ker = \<Inter> (J ` S)"
-proof (rule set_eqI)
+proof (intro antisym subsetI)
   fix a
-  show "a \<in> ncanon.additive.Ker \<longleftrightarrow> a \<in> \<Inter> (J ` S)"
-  proof
-    assume ker: "a \<in> ncanon.additive.Ker"
-    then have aR: "a \<in> R" and eq: "ncanon a = prod.Pzero"
-      unfolding ncanon.additive.Ker_def by auto
-    show "a \<in> \<Inter> (J ` S)"
-    proof (rule InterI)
-      fix X assume "X \<in> J ` S"
-      then obtain i where i: "i \<in> S" and Xi: "X = J i" by auto
-      interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
-      have "ncanon a i = prod.Pzero i" using eq by simp
-      then have cls: "Ji_Class i a = Ji_Class i \<zero>"
-        using i aR by (simp add: ncanon_apply prod.Pzero_apply ncoset_def quot_zero_def)
-      have "a \<in> Ji_Class i a"
-        using aR qi.additive.sub_unit_closed unfolding Ji_Class_def Ji_Cong_def by simp
-      then have "a \<in> Ji_Class i \<zero>" using cls by simp
-      then have "(\<zero>, a) \<in> Ji_Cong i" unfolding Ji_Class_def by simp
-      then have "(a, \<zero>) \<in> Ji_Cong i" by (rule Ji_Cong_sym[OF i])
-      then have "a - \<zero> \<in> J i" using aR unfolding Ji_Cong_def by simp
-      then have "a \<in> J i" using aR by simp
-      then show "a \<in> X" using Xi by simp
-    qed
-  next
-    assume aInt: "a \<in> \<Inter> (J ` S)"
-    then have aI: "\<And>i. i \<in> S \<Longrightarrow> a \<in> J i" by auto
-    have aR: "a \<in> R"
-    proof -
-      obtain i where "i \<in> S" using nonempty by blast
-      then interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals)
-      show "a \<in> R" using aI[OF \<open>i \<in> S\<close>] qi.additive.subset by blast
-    qed
-    have "ncanon a = prod.Pzero"
-    proof (rule prod.Pcarrier_eqI)
-      show "ncanon a \<in> prod.Pcarrier" by (rule ncanon_closed[OF aR])
-      show "prod.Pzero \<in> prod.Pcarrier" by simp
-    next
-      fix i assume i: "i \<in> S"
-      interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
-      have "a \<in> J i" using aI[OF i] .
-      then have "a - \<zero> \<in> J i" using aR by simp
-      then have cong: "(a, \<zero>) \<in> Ji_Cong i" using aR unfolding Ji_Cong_def by auto
-      then have "Ji_Class i a = Ji_Class i \<zero>"
-        by (intro Ji_Class_cong[OF i aR _ cong]) simp
-      then show "ncanon a i = prod.Pzero i"
-        using i aR by (simp add: ncanon_apply prod.Pzero_apply ncoset_def quot_zero_def)
-    qed
-    then show "a \<in> ncanon.additive.Ker"
-      unfolding ncanon.additive.Ker_def using aR by auto
+  assume ker: "a \<in> ncanon.additive.Ker"
+  then have aR: "a \<in> R" and eq: "ncanon a = prod.Pzero"
+    unfolding ncanon.additive.Ker_def by auto
+  show "a \<in> \<Inter> (J ` S)"
+  proof (rule InterI)
+    fix X assume "X \<in> J ` S"
+    then obtain i where i: "i \<in> S" and Xi: "X = J i" by auto
+    interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
+    have "ncanon a i = prod.Pzero i" using eq by simp
+    then have cls: "Ji_Class i a = Ji_Class i \<zero>"
+      using i aR by (simp add: ncanon_apply prod.Pzero_apply ncoset_def quot_zero_def)
+    have "a \<in> Ji_Class i a"
+      using aR qi.additive.sub_unit_closed unfolding Ji_Class_def Ji_Cong_def by simp
+    then have "(\<zero>, a) \<in> Ji_Cong i" 
+      using Ji_Class_def cls by auto
+    then show "a \<in> X" using Xi
+      using Ji_Cong_eq i qi.additive.Normal_def by auto
   qed
+next
+  fix a
+  assume aInt: "a \<in> \<Inter> (J ` S)"
+  then have aI: "\<And>i. i \<in> S \<Longrightarrow> a \<in> J i" by auto
+  have aR: "a \<in> R"
+  proof -
+    obtain i where "i \<in> S" using nonempty by blast
+    then interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals)
+    show "a \<in> R" using aI[OF \<open>i \<in> S\<close>] qi.additive.subset by blast
+  qed
+  have "ncanon a = prod.Pzero"
+  proof (rule prod.Pcarrier_eqI)
+    show "ncanon a \<in> prod.Pcarrier" by (rule ncanon_closed[OF aR])
+  next
+    fix i assume i: "i \<in> S"
+    interpret qi: quotient_ring "J i" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule ideals[OF i])
+    have "a \<in> J i" using aI[OF i] .
+    then have "a - \<zero> \<in> J i" using aR by simp
+    then have cong: "(a, \<zero>) \<in> Ji_Cong i" using aR unfolding Ji_Cong_def by auto
+    then have "Ji_Class i a = Ji_Class i \<zero>"
+      by (intro Ji_Class_cong[OF i aR _ cong]) simp
+    then show "ncanon a i = prod.Pzero i"
+      using i aR by (simp add: ncanon_apply prod.Pzero_apply ncoset_def quot_zero_def)
+  qed auto
+  then show "a \<in> ncanon.additive.Ker"
+    unfolding ncanon.additive.Ker_def using aR by auto
 qed
 
 text \<open>The @{const Ji_Class} version of @{thm ideal_in_comm_ring.coset_comaximal}: if
@@ -1164,18 +1031,14 @@ proof -
     then show ?case by simp
   next
     case (insert k F)
-    have kS: "k \<in> S" using insert.prems by auto
-    have xkR: "x k \<in> R" using insert.prems by simp
+    then have kS: "k \<in> S" and xkR: "x k \<in> R" and FS: "F \<subseteq> S" and kF: "k \<notin> F"
+      using insert.prems by auto
     show ?case
     proof (cases "F = {}")
       case True
-      \<comment> \<open>Singleton: @{term "x k"} itself realises the single component.\<close>
-      have "\<forall>i\<in>insert k F. Ji_Class i (x k) = Ji_Class i (x i)" using True by simp
       then show ?thesis using xkR by blast
     next
       case Fne: False
-      have FS: "F \<subseteq> S" using insert.prems by auto
-      have kF: "k \<notin> F" by (rule insert.hyps)
       \<comment> \<open>Solve over @{term F} by the induction hypothesis.\<close>
       obtain y where yR: "y \<in> R" and yF: "\<And>i. i \<in> F \<Longrightarrow> Ji_Class i y = Ji_Class i (x i)"
         using insert.IH Fne FS insert.prems(3) by auto
@@ -1183,47 +1046,36 @@ proof -
       have "\<exists>m\<in>J k. \<exists>n\<in>\<Inter> (J ` F). m + n = \<one>"
       proof (rule comaximal_with_Inter[OF kS FS Fne kF])
         fix j assume j: "j \<in> F"
-        then have "j \<in> S" using FS by auto
         then show "\<exists>a\<in>J k. \<exists>b\<in>J j. a + b = \<one>"
-          using pairwise[OF kS] kF j by auto
+          using pairwise[OF kS] j FS kF by blast
       qed
       then obtain m n where m: "m \<in> J k" and n: "n \<in> \<Inter> (J ` F)" and mn: "m + n = \<one>" by blast
+      interpret Jk: Ideal "J k" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule Ji_ideal[OF kS])
       have mR: "m \<in> R"
-      proof -
-        interpret Jk: Ideal "J k" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule Ji_ideal[OF kS])
-        show ?thesis using m Jk.additive.subset by blast
-      qed
+        using m Jk.additive.subset by blast
+      obtain j where j: "j \<in> F" using Fne by blast
+      then interpret Jj: Ideal "J j" R "(+)" "(\<cdot>)" \<zero> \<one> using Ji_ideal FS by blast
       have nR: "n \<in> R"
-      proof -
-        obtain j where j: "j \<in> F" using Fne by blast
-        then interpret Jj: Ideal "J j" R "(+)" "(\<cdot>)" \<zero> \<one> using Ji_ideal FS by blast
-        have "n \<in> J j" using n j by blast
-        then show ?thesis using Jj.additive.subset by blast
-      qed
+        using Jj.additive.subset j n by force
       define a where "a = x k \<cdot> n + y \<cdot> m"
       have aR: "a \<in> R" unfolding a_def using xkR yR mR nR by simp
-      have "\<forall>i\<in>insert k F. Ji_Class i a = Ji_Class i (x i)"
-      proof
-        fix i assume "i \<in> insert k F"
-        then consider "i = k" | "i \<in> F" by auto
-        then show "Ji_Class i a = Ji_Class i (x i)"
-        proof cases
-          case 1
-          have "Ji_Class k a = Ji_Class k (x k)"
-            unfolding a_def by (rule Ji_Class_comaximal[OF kS xkR yR m nR mn])
-          then show ?thesis using 1 by simp
-        next
-          case 2
-          have iS: "i \<in> S" using 2 FS by auto
-          have nJi: "n \<in> J i" using n 2 by blast
-          have nm: "n + m = \<one>" using mn mR nR by (simp add: additive.commutative)
-          have "Ji_Class i (y \<cdot> m + x k \<cdot> n) = Ji_Class i y"
-            by (rule Ji_Class_comaximal[OF iS yR xkR nJi mR nm])
-          moreover have "y \<cdot> m + x k \<cdot> n = a"
-            unfolding a_def using xkR yR mR nR by (simp add: additive.commutative)
-          ultimately have "Ji_Class i a = Ji_Class i y" by simp
-          then show ?thesis using yF[OF 2] by simp
-        qed
+      have "Ji_Class i a = Ji_Class i (x i)" if "i \<in> insert k F" for i
+        using that
+      proof 
+        assume "i = k"
+        then show ?thesis
+          by (simp add: Ji_Class_comaximal a_def kS m mn nR xkR yR)
+      next
+        assume "i \<in> F"
+        then obtain iS: "i \<in> S" and nJi: "n \<in> J i"
+          using FS n by auto
+        have nm: "n + m = \<one>" using mn mR nR by (simp add: additive.commutative)
+        have "Ji_Class i (y \<cdot> m + x k \<cdot> n) = Ji_Class i y"
+          by (rule Ji_Class_comaximal[OF iS yR xkR nJi mR nm])
+        moreover have "y \<cdot> m + x k \<cdot> n = a"
+          unfolding a_def using xkR yR mR nR by (simp add: additive.commutative)
+        ultimately have "Ji_Class i a = Ji_Class i y" by simp
+        then show ?thesis using yF[OF \<open>i \<in> F\<close>] by simp
       qed
       then show ?thesis using aR by blast
     qed
@@ -1240,28 +1092,14 @@ next
     fix f assume f: "f \<in> prod.Pcarrier"
     \<comment> \<open>Choose a representative @{term "x i \<in> R"} of each component @{term "f i"}.\<close>
     have "\<forall>i\<in>S. \<exists>xi\<in>R. f i = Ji_Class i xi"
-    proof
-      fix i assume i: "i \<in> S"
-      have "f i \<in> quot_carrier i" using f i by (simp add: prod.Pcarrier_component)
-      then show "\<exists>xi\<in>R. f i = Ji_Class i xi" unfolding quot_carrier_def by auto
-    qed
+      using f prod.Pcarrier_component quot_carrier_def by (metis imageE)
     then obtain x where xR: "\<And>i. i \<in> S \<Longrightarrow> x i \<in> R"
       and fx: "\<And>i. i \<in> S \<Longrightarrow> f i = Ji_Class i (x i)" by metis
-    have "\<exists>a\<in>R. \<forall>i\<in>S. Ji_Class i a = Ji_Class i (x i)"
-      by (rule partial_solution[OF subset_refl nonempty]) (rule xR)
-    then obtain a where aR: "a \<in> R" and aeq: "\<And>i. i \<in> S \<Longrightarrow> Ji_Class i a = Ji_Class i (x i)"
-      by blast
-    have "ncanon a = f"
-    proof (rule prod.Pcarrier_eqI)
-      show "ncanon a \<in> prod.Pcarrier" by (rule ncanon_closed[OF aR])
-      show "f \<in> prod.Pcarrier" by (rule f)
-    next
-      fix i assume i: "i \<in> S"
-      have "ncanon a i = Ji_Class i a" using aR i by (simp add: ncanon_apply ncoset_def)
-      also have "\<dots> = Ji_Class i (x i)" using aeq[OF i] .
-      also have "\<dots> = f i" using fx[OF i] by simp
-      finally show "ncanon a i = f i" .
-    qed
+    with partial_solution[OF subset_refl nonempty] 
+    obtain a where aR: "a \<in> R" and "\<And>i. i \<in> S \<Longrightarrow> Ji_Class i a = Ji_Class i (x i)"
+      by metis
+    then have "ncanon a = f"
+      using f fx ncanon_apply ncanon_closed ncoset_def prod.Pcarrier_eqI by presburger
     then show "f \<in> ncanon ` R" using aR by blast
   qed
 qed
@@ -1275,30 +1113,18 @@ theorem chinese_remainder_general:
       ncanon.kernel.additive.Class \<zero>, ncanon.kernel.additive.Class \<one>)
    \<cong>\<^sub>R (prod.Pcarrier, prod.Padd, prod.Pmult, prod.Pzero, prod.Pone)"
 proof -
-  have ker: "ncanon.additive.Ker = \<Inter> (J ` S)" by (rule ncanon_kernel)
   have "ring_isomorphism ncanon.additive.induced
       (R / (subgroup_of_additive_group_of_ring.Ring_Congruence (\<Inter> (J ` S)) R (+) \<zero>))
       ncanon.kernel.additive.quotient_composition ncanon.kernel.multiplicative.quotient_composition
       (ncanon.kernel.additive.Class \<zero>) (ncanon.kernel.additive.Class \<one>)
       prod.Pcarrier prod.Padd prod.Pmult prod.Pzero prod.Pone"
-    unfolding ker[symmetric]
-  proof (rule ring_isomorphism.intro)
-    show "ring_homomorphism ncanon.additive.induced
-        (R / (subgroup_of_additive_group_of_ring.Ring_Congruence ncanon.additive.Ker R (+) \<zero>))
-        ncanon.kernel.additive.quotient_composition ncanon.kernel.multiplicative.quotient_composition
-        (ncanon.kernel.additive.Class \<zero>) (ncanon.kernel.additive.Class \<one>)
-        prod.Pcarrier prod.Padd prod.Pmult prod.Pzero prod.Pone"
-      by (rule ncanon.induced.ring_homomorphism_axioms)
+    unfolding ncanon_kernel[symmetric]
+  proof (intro ring_isomorphism.intro ncanon.induced.ring_homomorphism_axioms)
     show "bijective_map ncanon.additive.induced
         (R / (subgroup_of_additive_group_of_ring.Ring_Congruence ncanon.additive.Ker R (+) \<zero>))
         prod.Pcarrier"
-    proof
-      show "bij_betw ncanon.additive.induced
-          (R / (subgroup_of_additive_group_of_ring.Ring_Congruence ncanon.additive.Ker R (+) \<zero>))
-          prod.Pcarrier"
-        using ncanon.additive.induced_image ncanon.additive.induced_inj_on ncanon_surjective
-        by (simp add: bij_betw_def)
-    qed
+    proof 
+    qed (simp add: ncanon.additive.induced_image ncanon.additive.induced_inj_on ncanon_surjective bij_betw_def)
   qed
   then show ?thesis
     by (auto simp: isomorphic_as_rings_def)

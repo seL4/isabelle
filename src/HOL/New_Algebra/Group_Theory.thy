@@ -691,6 +691,74 @@ theorem isomorphic_as_monoids_symmetric:
   "(M, composition, unit) \<cong>\<^sub>M (M', composition', unit') \<Longrightarrow> (M', composition', unit') \<cong>\<^sub>M (M, composition, unit)"
   by (simp add: isomorphic_as_monoids_def) (meson Monoid_isomorphism.inverse_monoid_isomorphism)
 
+text \<open>Reflexivity and transitivity complete the picture: isomorphism is an equivalence relation
+  on monoid triples, which is what lets isomorphism classes be formed as a quotient.\<close>
+
+lemma isomorphic_as_monoids_refl:
+  assumes "Monoid M composition unit"
+  shows "(M, composition, unit) \<cong>\<^sub>M (M, composition, unit)"
+proof -
+  interpret M: Monoid M composition unit by fact
+  have "Monoid_isomorphism (restrict id M) M composition unit M composition unit"
+    by unfold_locales
+      (auto simp: PiE_def extensional_def restrict_def bij_betw_def inj_on_def
+        M.composition_closed)
+  then show ?thesis unfolding isomorphic_as_monoids_def by auto
+qed
+
+lemma isomorphic_as_monoids_transitive:
+  assumes "(M, composition, unit) \<cong>\<^sub>M (M', composition', unit')"
+    and "(M', composition', unit') \<cong>\<^sub>M (M'', composition'', unit'')"
+  shows "(M, composition, unit) \<cong>\<^sub>M (M'', composition'', unit'')"
+proof -
+  obtain \<eta> where first: "Monoid_isomorphism \<eta> M composition unit M' composition' unit'"
+    using assms(1) unfolding isomorphic_as_monoids_def by auto
+  obtain \<theta> where second: "Monoid_isomorphism \<theta> M' composition' unit' M'' composition'' unit''"
+    using assms(2) unfolding isomorphic_as_monoids_def by auto
+  interpret first: Monoid_isomorphism \<eta> M composition unit M' composition' unit' by fact
+  interpret second: Monoid_isomorphism \<theta> M' composition' unit' M'' composition'' unit'' by fact
+  have "Monoid_isomorphism (restrict (\<theta> \<circ> \<eta>) M) M composition unit M'' composition'' unit''"
+  proof
+    show "restrict (\<theta> \<circ> \<eta>) M \<in> M \<rightarrow>\<^sub>E M''"
+      using first.graph second.graph by auto
+    show "composition'' (restrict (\<theta> \<circ> \<eta>) M x) (restrict (\<theta> \<circ> \<eta>) M y)
+            = restrict (\<theta> \<circ> \<eta>) M (composition x y)"
+      if "x \<in> M" "y \<in> M" for x y
+      using that first.commutes_with_composition second.commutes_with_composition
+        first.source.composition_closed first.map_closed by auto
+    show "restrict (\<theta> \<circ> \<eta>) M unit = unit''"
+      using first.commutes_with_unit second.commutes_with_unit first.source.unit_closed by simp
+    have "bij_betw (\<theta> \<circ> \<eta>) M M''"
+      using first.bijective second.bijective by (rule bij_betw_trans)
+    then show "bij_betw (restrict (\<theta> \<circ> \<eta>) M) M M''"
+      by (simp add: bij_betw_restrict_eq)
+  qed
+  then show ?thesis unfolding isomorphic_as_monoids_def by auto
+qed
+
+text \<open>Being a group is a property of the isomorphism class, not of the presentation: invertibility
+  transports along a monoid isomorphism, because the isomorphism carries a two-sided inverse to a
+  two-sided inverse and reaches every element of the target.  This is what allows isomorphism
+  classes to be formed once, at the level of monoids, with group-ness imposed as a constraint.\<close>
+lemma (in Monoid_isomorphism) target_Group:
+  assumes "Group M (\<cdot>) \<one>"
+  shows "Group M' (\<cdot>') \<one>'"
+proof (rule GroupI)
+  interpret source: Group M "(\<cdot>)" \<one> by (rule assms)
+  fix u assume u: "u \<in> M'"
+  then obtain a where a: "a \<in> M" and \<eta>a: "\<eta> a = u"
+    using bijective by (metis bij_betw_imp_surj_on imageE)
+  obtain b where b: "b \<in> M" and ab: "a \<cdot> b = \<one>" and ba: "b \<cdot> a = \<one>"
+    using source.invertible[OF a] unfolding source.invertible_def by blast
+  have "\<eta> b \<in> M'" using b by (rule map_closed)
+  moreover have "u \<cdot>' \<eta> b = \<one>'"
+    using \<eta>a commutes_with_composition[OF a b] ab commutes_with_unit by simp
+  moreover have "\<eta> b \<cdot>' u = \<one>'"
+    using \<eta>a commutes_with_composition[OF b a] ba commutes_with_unit by simp
+  ultimately show "\<exists>v \<in> M'. u \<cdot>' v = \<one>' \<and> v \<cdot>' u = \<one>'" by blast
+qed (use target.composition_closed target.unit_closed target.associative
+       target.left_unit target.right_unit in blast)+
+
 text \<open>p 38, l 4\<close>
 locale left_translations_of_monoid = Monoid begin
 
@@ -2305,6 +2373,37 @@ proof -
       by (simp add: bij_betw_restrict_eq)
   qed
   show ?thesis unfolding isomorphic_as_groups_def using composite by auto
+qed
+
+text \<open>On groups the two notions of isomorphism coincide: a bijective monoid isomorphism between
+  groups is already a group isomorphism, since @{locale group_homomorphism} adds nothing to
+  @{locale Monoid_homomorphism} beyond the two structures being groups.  So isomorphism classes may
+  be formed once at the level of monoids without losing the group-level statement.\<close>
+lemma isomorphic_as_monoids_iff_groups:
+  assumes G: "Group G composition unit" and G': "Group G' composition' unit'"
+  shows "(G, composition, unit) \<cong>\<^sub>M (G', composition', unit')
+     \<longleftrightarrow> (G, composition, unit) \<cong>\<^sub>G (G', composition', unit')"
+proof
+  assume "(G, composition, unit) \<cong>\<^sub>M (G', composition', unit')"
+  then obtain \<eta> where \<eta>: "Monoid_isomorphism \<eta> G composition unit G' composition' unit'"
+    unfolding isomorphic_as_monoids_def by auto
+  interpret \<eta>: Monoid_isomorphism \<eta> G composition unit G' composition' unit' by fact
+  interpret source: Group G composition unit by (rule G)
+  interpret target: Group G' composition' unit' by (rule G')
+  \<comment> \<open>The @{locale Monoid_isomorphism} interpretation already supplies the map and bijectivity
+    components; only the homomorphism equation is left, and it differs merely in orientation.\<close>
+  have "group_isomorphism \<eta> G composition unit G' composition' unit'"
+    by unfold_locales (simp_all add: \<eta>.commutes_with_composition \<eta>.commutes_with_unit)
+  then show "(G, composition, unit) \<cong>\<^sub>G (G', composition', unit')"
+    unfolding isomorphic_as_groups_def by auto
+next
+  assume "(G, composition, unit) \<cong>\<^sub>G (G', composition', unit')"
+  then obtain \<eta> where "group_isomorphism \<eta> G composition unit G' composition' unit'"
+    unfolding isomorphic_as_groups_def by auto
+  then interpret \<eta>: group_isomorphism \<eta> G composition unit G' composition' unit' .
+  show "(G, composition, unit) \<cong>\<^sub>M (G', composition', unit')"
+    unfolding isomorphic_as_monoids_def
+    using \<eta>.Monoid_isomorphism_axioms by auto
 qed
 
 text \<open>p 63, l 1\<close>
