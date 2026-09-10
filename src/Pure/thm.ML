@@ -968,32 +968,42 @@ fun merge_classes
 
 (* data *)
 
+type data =
+ {zproofs: {name: Thm_Name.P, thm: thm} Inttab.table,  (*stored zproof thms*)
+  oracles: unit Name_Space.table,  (*oracles: authentic derivation names*)
+  classes: classes};  (*type classes within the logic*)
+
+fun make_data (zproofs, oracles, classes) : data =
+  {zproofs = zproofs, oracles = oracles, classes = classes};
+
 structure Data = Theory_Data
 (
-  type T =
-    {name: Thm_Name.P, thm: thm} Inttab.table *  (*stored zproof thms*)
-    unit Name_Space.table *  (*oracles: authentic derivation names*)
-    classes;  (*type classes within the logic*)
-
-  val empty : T = (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
-  fun merge ((_, oracles1, sorts1), (_, oracles2, sorts2)) : T =
-   (Inttab.empty,
-    Name_Space.merge_tables (oracles1, oracles2),
-    merge_classes (sorts1, sorts2));
+  type T = data;
+  val empty = make_data (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
+  fun merge
+    ({oracles = oracles1, classes = classes1, ...},
+     {oracles = oracles2, classes = classes2, ...}) =
+    make_data
+     (Inttab.empty,
+      Name_Space.merge_tables (oracles1, oracles2),
+      merge_classes (classes1, classes2));
 );
 
-val get_zproofs = #1 o Data.get;
-fun map_zproofs f = Data.map (fn (a, b, c) => (f a, b, c));
+fun map_data f =
+  Data.map (fn {zproofs, oracles, classes} => make_data (f (zproofs, oracles, classes)));
 
-val get_oracles = #2 o Data.get;
-fun map_oracles f = Data.map (fn (a, b, c) => (a, f b, c));
+val get_zproofs = #zproofs o Data.get;
+fun map_zproofs f = map_data (fn (a, b, c) => (f a, b, c));
 
-val get_classes = (fn (_, _, Classes args) => args) o Data.get;
+val get_oracles = #oracles o Data.get;
+fun map_oracles f = map_data (fn (a, b, c) => (a, f b, c));
+
+val get_classes = (fn {classes = Classes args, ...} => args) o Data.get;
 val get_classrels = #classrels o get_classes;
 val get_arities = #arities o get_classes;
 
 fun map_classes f =
-  Data.map (fn (a, b, Classes {classrels, arities}) =>
+  map_data (fn (a, b, Classes {classrels, arities}) =>
     (a, b, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
