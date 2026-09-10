@@ -8,8 +8,9 @@ package isabelle
 
 
 object Component_Vampire {
-  val default_download_url = "https://github.com/vprover/vampire/archive/refs/tags/v4.8HO4Sledgahammer.tar.gz"
-  val default_version = "4.8"
+  val default_download_url =
+    "https://github.com/vprover/vampire/releases/download/v5.1.0/vampire.tar.gz"
+  val default_version = "5.1"
   val default_jobs = 1
 
   def make_component_name(version: String): String =
@@ -71,21 +72,15 @@ object Component_Vampire {
       Isabelle_System.copy_file(source_dir + Path.explode("LICENCE"), component_dir.path)
 
       val cmake_opts =
-        "-DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_HOL=On -DCMAKE_DISABLE_FIND_PACKAGE_Z3=ON " +
+        "-DCMAKE_BUILD_TYPE=Release -DCMAKE_DISABLE_FIND_PACKAGE_Z3=ON " +
         (if (Platform.is_linux) "-DBUILD_SHARED_LIBS=0 " else "")
-      val cmake_out =
-        progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
-          cwd = source_dir, echo = progress.verbose).check.out
-
-      val Pattern = """-- Setting binary name to '?([^\s']*)'?""".r
-      val binary =
-        split_lines(cmake_out).collectFirst({ case Pattern(name) => name })
-          .getOrElse(error("Failed to determine binary name from cmake output:\n" + cmake_out))
+      progress.bash("cmake " + cmake_opts + """-G "Unix Makefiles" .""",
+        cwd = source_dir, echo = progress.verbose).check
 
       progress.bash("make -j" + jobs, cwd = source_dir, echo = progress.verbose).check
 
-      Isabelle_System.copy_file(source_dir + Path.basic("bin") + Path.basic(binary).platform_exe,
-        platform_dir + Path.basic("vampire").platform_exe)
+      val binary = Path.basic("vampire").platform_exe
+      Isabelle_System.copy_file(source_dir + binary, platform_dir + binary)
 
 
       /* settings */
