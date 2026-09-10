@@ -328,7 +328,7 @@ fun check_def (context as (ctxt, _)) thy unchecked overloaded (b, tm) defs =
   let
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _, _) =
-      Primitive_Defs.dest_def ctxt
+      Primitive_Defs.dest_def ctxt Name.context
         {check_head = Term.is_Const,
          check_free_lhs = K true,
          check_free_rhs = K false,
