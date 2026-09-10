@@ -2406,7 +2406,7 @@ text \<open>One might expect the quotient $H/K$ to be @{term "K.Factor_Group"} w
   cannot be applied, leaving the term opaque.
 
   The correct formalisation of $H/K$ is @{term K_in_H.Partition}, the partition of @{term H} under
-  @{term K_in_H.Congruence}—the congruence of @{term K} viewed as a normal subgroup of @{term H}.
+  @{term K_in_H.Congruence}---the congruence of @{term K} viewed as a normal subgroup of @{term H}.
   The proof that @{term Fract_H_K} equals @{term K_in_H.Partition} follows from the fact that @{term K.Class}
   and @{term K_in_H.Class} agree on elements of @{term H}: both map $h \in H$ to the left coset
   $hK$, by @{thm [source] K.Class_is_Left_Coset} and @{thm [source] K_in_H.Class_is_Left_Coset}.\<close>
