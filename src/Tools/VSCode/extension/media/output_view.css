@@ -117,3 +117,20 @@ sub, sup {
   font-size: 1%;
   color: rgba(255,255,255,0);
 }
+
+span.active {
+  cursor: pointer;
+  color: var(--vscode-button-foreground);
+  background-color: var(--vscode-button-background);
+  box-shadow:
+    0 -1px 0 var(--vscode-button-background),
+    0 1px 0 var(--vscode-button-background);
+}
+
+span.active:hover {
+  color: var(--vscode-button-foreground);
+  background-color: var(--vscode-button-hoverBackground);
+  box-shadow:
+    0 -1px 0 var(--vscode-button-hoverBackground),
+    0 1px 0 var(--vscode-button-hoverBackground);
+}
