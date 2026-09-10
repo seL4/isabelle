@@ -996,6 +996,13 @@ structure Data = Theory_Data
       merge_classes (classes1, classes2));
 );
 
+val _ =
+  (Theory.setup o Theory.at_begin) (fn thy =>
+    let val {proofs, zproofs, oracles, classes} = Data.get thy in
+      if Inttab.is_empty proofs andalso Inttab.is_empty zproofs then NONE
+      else SOME (Data.put (make_data (Inttab.empty, Inttab.empty, oracles, classes)) thy)
+    end);
+
 fun map_data f =
   Data.map (fn {proofs, zproofs, oracles, classes} =>
     make_data (f (proofs, zproofs, oracles, classes)));
@@ -1018,11 +1025,6 @@ fun map_classes f =
     (a, b, c, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
-
-val _ =
-  (Theory.setup o Theory.at_begin) (fn thy =>
-    if Inttab.is_empty (get_zproofs thy) then NONE
-    else SOME (map_zproofs (K Inttab.empty) thy));
 
 
 (* type classes *)
@@ -1215,12 +1217,6 @@ val trim_context = solve_constraints #> trim_context_thm;
 
 
 (* forked proofs *)
-
-fun reset_proofs thy =
-  if Inttab.is_empty (get_proofs thy) then NONE
-  else SOME (map_proofs (K Inttab.empty) thy);
-
-val _ = Theory.setup (Theory.at_begin reset_proofs);
 
 fun register_proofs ths thy =
   let val entry = (serial (), Lazy.map_finished (map trim_context) ths)
