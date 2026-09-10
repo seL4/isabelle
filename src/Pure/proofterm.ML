@@ -1000,7 +1000,7 @@ fun generalize_proof (tfrees, frees) idx prop prf =
         (Term_Subst.generalize_same (tfrees, Names.empty) idx)
         (Term_Subst.generalizeT_same tfrees idx))
     |> fold (fn (x, T) => forall_intr_proof (x, Free (x, T)) NONE) gen
-    |> fold_rev (fn (x, T) => fn prf' => prf' %> Var (Name.clean_index (x, idx), T)) gen
+    |> fold_rev (fn (x, T) => fn prf' => prf' %> Var (Term_Subst.generalize_index (x, idx), T)) gen
   end;
 
 

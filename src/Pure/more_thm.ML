@@ -109,9 +109,6 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
-  val register_proofs: thm list lazy -> theory -> theory
-  val consolidate_theory: theory -> unit
-  val expose_theory: theory -> unit
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
@@ -415,10 +412,11 @@ fun instantiate_frees (instT, inst) th =
         (Thm.maxidx_of th
           |> TFrees.fold (Integer.max o Thm.maxidx_of_ctyp o #2) instT
           |> Frees.fold (Integer.max o Thm.maxidx_of_cterm o #2) inst) + 1;
-      fun index ((a, A), b) = (((a, idx), A), b);
+
+      fun gen_index x = Term_Subst.generalize_index (x, idx);
 
       val instT' =
-        TVars.build (TFrees.fold (TVars.add o index) instT)
+        TVars.build (TFrees.fold (fn ((a, S), T) => TVars.add (((a, idx), S), T)) instT)
         |> not (Names.is_empty namesT) ? Thm.fold_atomic_ctyps {hyps = true}
             (fn tab => fn T => Term.is_TFree T andalso
               let val (a, S) = Term.dest_TFree T in
@@ -436,7 +434,7 @@ fun instantiate_frees (instT, inst) th =
         Thm.instantiate_cterm (instT', Vars.empty);
 
       val inst' =
-        Vars.build (Frees.fold (Vars.add o index) inst)
+        Vars.build (Frees.fold (fn ((x, T), t) => Vars.add ((gen_index x, T), t)) inst)
         |> not (Names.is_empty names) ? Thm.fold_atomic_cterms {hyps = true}
             (fn tab => fn t => Term.is_Free t andalso
               let val (x, T) = Term.dest_Free t in
@@ -446,7 +444,7 @@ fun instantiate_frees (instT, inst) th =
               end)
             (fn ct =>
               let val (x, T) = Term.dest_Free (Thm.term_of ct)
-              in Vars.add (((x, idx), inst_typ T), inst_ctyp ct) end) th;
+              in Vars.add ((gen_index x, inst_typ T), inst_ctyp ct) end) th;
 
       val hyps = Thm.chyps_of th;
     in
@@ -709,36 +707,6 @@ fun simple_fact x = [(x, [])];
 fun tag tg = rule_attribute [] (K (tag_rule tg));
 fun untag s = rule_attribute [] (K (untag_rule s));
 fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
-
-
-
-(** forked proofs **)
-
-structure Proofs = Theory_Data
-(
-  type T = thm list lazy Inttab.table;
-  val empty = Inttab.empty;
-  val merge = Inttab.merge (K true);
-);
-
-fun reset_proofs thy =
-  if Inttab.is_empty (Proofs.get thy) then NONE
-  else SOME (Proofs.put Inttab.empty thy);
-
-val _ = Theory.setup (Theory.at_begin reset_proofs);
-
-fun register_proofs ths thy =
-  let val entry = (serial (), Lazy.map_finished (map Thm.trim_context) ths)
-  in (Proofs.map o Inttab.update) entry thy end;
-
-fun force_proofs thy =
-  Proofs.get thy |> Inttab.dest |> maps (map (Thm.transfer thy) o Lazy.force o #2);
-
-val consolidate_theory = Thm.consolidate o force_proofs;
-
-fun expose_theory thy =
-  if Proofterm.export_enabled ()
-  then Thm.expose_proofs thy (force_proofs thy) else ();
 
 
 

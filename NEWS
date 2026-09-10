@@ -315,6 +315,37 @@ simplifies talking about logarithmic derivatives.
 
 *** ML ***
 
+* Minor improvements of overall inference kernel integrity and
+corresponding derived rules, concerning rare boundary cases:
+
+  - Thm.abstract_rule now properly handles situations where the
+  abstracted variable does not occur in the body (potentially bad theory
+  certificate or bad maxidx). This problem stems from Isabelle89 (bad
+  theory certificate) and Isabelle91 (bad maxidx --- due to introduction
+  of schematic type variables at that time).
+
+  - Extra checks for unification of variables with the same indexname
+  and different type were introduced in Isabelle2005, but accidentally
+  lost in Isabelle2015. Thus very unusual inferences may produce bad
+  results. After re-introducing the check, only Metis had to be adapted
+  in one of its workarounds for odd situations, which stem from its
+  non-Isabelle heritage.
+
+  - Proper treatment of initially bound variables in primitive
+  definitions of consts (due to Primitive_Defs.dest_def used in
+  Theory.add_def). The problem stems from Isabelle2008, and allowed to
+  get e.g. "!!x. c == x" accepted as definitional axiom, by using
+  internal primitives instead of regular user-interfaces like
+  Specification.definition (or better Local_Theory.define).
+
+  - Proper treatment of "internal" free variables in the "generalize"
+  family of functions, via the now explicit Term_Subst.generalize_index
+  (this is only relevant for term variables, not type variables).
+  Thm.generalize was OK, but the additional shortcut
+  Thm.generalize_cterm from Isabelle2018 could produce a malformed
+  result (bad maxidx), and its main application Thm.instantiate_frees
+  would leave variables uninstantiated.
+
 * ML antiquotation @{unchecked_name a} inlines a syntactically
 wellformed long name as string literal, without any formal checking in
 the logical context. This may be used as last resort, when Isabelle/ML
