@@ -405,8 +405,8 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
   let
     val compiler = ocamlN
 
-    val code_path = dir + Path.basic \<^unchecked_name>\<open>generated.ml\<close>
-    val driver_path = dir + Path.basic \<^unchecked_name>\<open>driver.ml\<close>
+    val code_path = dir + \<^path>\<open>generated.ml\<close>
+    val driver_path = dir + \<^path>\<open>driver.ml\<close>
     val driver =
       "let format_term = function\n" ^
       "  | None -> \"\"\n" ^
