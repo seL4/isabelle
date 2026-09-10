@@ -186,6 +186,11 @@ object Language_Server {
     override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
     override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
   }
+
+
+  /* supported active markup */
+
+  val active_elements = Markup.Elements(Markup.SENDBACK, Markup.DIALOG)
 }
 
 class Language_Server(
@@ -514,7 +519,7 @@ class Language_Server(
   }
 
 
-  /* code actions */
+  /* actions */
 
   private def text_edit(
     props: Properties.T,
@@ -562,7 +567,25 @@ class Language_Server(
           } yield LSP.CodeAction(snippet, List(document_edit)))
       channel.write(LSP.CodeActionRequest.reply(id, actions))
     }
-  }
+
+  def markup_action(active: XML.Elem, text: String): Unit =
+    active match {
+      case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
+        for {
+          id <- Position.Id.unapply(props)
+          command <- session.snapshot().get_command(id)
+          node_name = command.node_name
+          model <- resources.get_model(node_name)
+          text_edit <- text_edit(props, text, model)
+          file = resources.node_file(node_name)
+          end_pos = text_edit.range.start.advance(text_edit.new_text)
+        } channel.write(LSP.Document_Edit(file, model.version, text_edit, end_pos))
+
+      case Protocol.Dialog(id, serial, result) =>
+        session.dialog_result(id, serial, result)
+
+      case _ =>
+    }
 
 
   /* abbrevs */
@@ -608,6 +631,7 @@ class Language_Server(
           case LSP.Goto_Command(id, offset) => goto_command(id, offset)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case LSP.CodeActionRequest(id, file, range) => code_action_request(id, file, range)
+          case LSP.Markup_Action(active, text) => markup_action(active, text)
           case LSP.Decoration_Request(file) => decoration_request(file)
           case LSP.Caret_Update(caret) => update_caret(caret)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)

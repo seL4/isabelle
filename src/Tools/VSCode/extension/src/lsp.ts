@@ -9,7 +9,7 @@ Message formats for Language Server Protocol, with adhoc PIDE extensions
 "use strict";
 
 import { MarkdownString } from "vscode"
-import { NotificationType, RequestType0 } from "vscode-languageclient"
+import { NotificationType, RequestType0, TextEdit } from "vscode-languageclient"
 
 
 /* decorations */
@@ -52,6 +52,20 @@ export interface Caret_Update {
 
 export const caret_update_type =
   new NotificationType<Caret_Update>("PIDE/caret_update")
+
+
+/* edits */
+
+export interface Document_Edit {
+  uri: string
+  version?: number
+  edit: TextEdit
+  line: number
+  character: number
+}
+
+export const edit_command_type =
+  new NotificationType<Document_Edit>("PIDE/document_edit")
 
 
 /* dynamic output */

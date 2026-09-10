@@ -329,6 +329,17 @@ object LSP {
     def json: JSON.T = JSON.Object("range" -> Range(range), "newText" -> new_text)
   }
 
+  object Document_Edit {
+    def apply(file: JFile, version: Option[Long], edit: TextEdit, end_pos: Line.Position): JSON.T =
+      Notification("PIDE/document_edit",
+        JSON.Object(
+          "uri" -> Url.print_file(file),
+          "edit" -> edit.json,
+          "line" -> end_pos.line,
+          "character" -> end_pos.column) ++
+        JSON.optional("version" -> version))
+  }
+
   sealed case class TextDocumentEdit(file: JFile, version: Option[Long], edits: List[TextEdit]) {
     def json: JSON.T =
       JSON.Object(
@@ -552,7 +563,7 @@ object LSP {
   }
 
 
-  /* code actions */
+  /* actions */
 
   sealed case class CodeAction(title: String, edits: List[TextDocumentEdit]) {
     def json: JSON.T =
@@ -573,6 +584,23 @@ object LSP {
 
     def reply(id: Id, actions: List[CodeAction]): JSON.T =
       ResponseMessage(id, Some(actions.map(_.json)))
+  }
+
+  object Markup_Action {
+    def apply(active: XML.Elem, text: String): JSON.T =
+      Notification("PIDE/markup_action",
+        JSON.Object("active" -> YXML.string_of_tree(active), "text" -> text))
+
+    def unapply(json: JSON.T): Option[(XML.Elem, String)] =
+      json match {
+        case Notification("PIDE/markup_action", Some(params)) =>
+          for {
+            active <- JSON.string(params, "active")
+            text <- JSON.string(params, "text")
+            case XML.Elem(markup, body) <- Some(YXML.parse_elem(YXML.Source(active)))
+          } yield (XML.Elem(markup, body), text)
+        case _ => None
+      }
   }
 
 

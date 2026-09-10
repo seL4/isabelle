@@ -9,7 +9,9 @@ Isabelle/VSCode extension.
 
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation, Range, TextEditorRevealType } from "vscode"
-import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node"
+import { LanguageClient, LanguageClientOptions, ServerOptions,
+  TextDocumentEdit } from "vscode-languageclient/node"
+import {OptionalVersionedTextDocumentIdentifier} from "vscode-languageserver-types"
 
 import * as Platform from "./platform"
 import * as Library from "./library"
@@ -194,6 +196,21 @@ export async function activate(context: ExtensionContext) {
 
         language_client.onNotification(LSP.caret_update_type, goto_file)
       })
+
+
+    /* edits */
+
+    async function apply_edit(msg: LSP.Document_Edit) {
+      const doc = OptionalVersionedTextDocumentIdentifier.create(msg.uri, msg.version)
+      const edit =
+        language_client.protocol2CodeConverter.asWorkspaceEdit(
+          { documentChanges: [TextDocumentEdit.create(doc, [msg.edit])] })
+
+      workspace.applyEdit(edit).then(() => goto_file({ ...msg, focus: true }))
+    }
+
+    language_client.onReady().then(() =>
+      { language_client.onNotification(LSP.edit_command_type, apply_edit) })
 
 
     /* dynamic output */
