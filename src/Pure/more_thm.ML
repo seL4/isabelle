@@ -415,10 +415,11 @@ fun instantiate_frees (instT, inst) th =
         (Thm.maxidx_of th
           |> TFrees.fold (Integer.max o Thm.maxidx_of_ctyp o #2) instT
           |> Frees.fold (Integer.max o Thm.maxidx_of_cterm o #2) inst) + 1;
-      fun index ((a, A), b) = (((a, idx), A), b);
+
+      fun gen_index x = Term_Subst.generalize_index (x, idx);
 
       val instT' =
-        TVars.build (TFrees.fold (TVars.add o index) instT)
+        TVars.build (TFrees.fold (fn ((a, S), T) => TVars.add (((a, idx), S), T)) instT)
         |> not (Names.is_empty namesT) ? Thm.fold_atomic_ctyps {hyps = true}
             (fn tab => fn T => Term.is_TFree T andalso
               let val (a, S) = Term.dest_TFree T in
@@ -436,7 +437,7 @@ fun instantiate_frees (instT, inst) th =
         Thm.instantiate_cterm (instT', Vars.empty);
 
       val inst' =
-        Vars.build (Frees.fold (Vars.add o index) inst)
+        Vars.build (Frees.fold (fn ((x, T), t) => Vars.add ((gen_index x, T), t)) inst)
         |> not (Names.is_empty names) ? Thm.fold_atomic_cterms {hyps = true}
             (fn tab => fn t => Term.is_Free t andalso
               let val (x, T) = Term.dest_Free t in
@@ -446,7 +447,7 @@ fun instantiate_frees (instT, inst) th =
               end)
             (fn ct =>
               let val (x, T) = Term.dest_Free (Thm.term_of ct)
-              in Vars.add (((x, idx), inst_typ T), inst_ctyp ct) end) th;
+              in Vars.add ((gen_index x, inst_typ T), inst_ctyp ct) end) th;
 
       val hyps = Thm.chyps_of th;
     in
