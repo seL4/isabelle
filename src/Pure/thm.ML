@@ -142,6 +142,10 @@ sig
   val the_arity: theory -> string * sort list * class -> thm
   val sorts_zproof: theory -> ZTerm.sorts_proof
   val sorts_proof: theory -> Proofterm.sorts_proof
+  (*forked proofs*)
+  val register_proofs: thm list lazy -> theory -> theory
+  val consolidate_theory: theory -> unit
+  val expose_theory: theory -> unit
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
   val oracle_space: theory -> Name_Space.T
@@ -969,42 +973,49 @@ fun merge_classes
 (* data *)
 
 type data =
- {zproofs: {name: Thm_Name.P, thm: thm} Inttab.table,  (*stored zproof thms*)
+ {proofs: thm list lazy Inttab.table,  (*forked proofs*)
+  zproofs: {name: Thm_Name.P, thm: thm} Inttab.table,  (*stored zproof thms*)
   oracles: unit Name_Space.table,  (*oracles: authentic derivation names*)
   classes: classes};  (*type classes within the logic*)
 
-fun make_data (zproofs, oracles, classes) : data =
-  {zproofs = zproofs, oracles = oracles, classes = classes};
+fun make_data (proofs, zproofs, oracles, classes) : data =
+  {proofs = proofs, zproofs = zproofs, oracles = oracles, classes = classes};
 
 structure Data = Theory_Data
 (
   type T = data;
-  val empty = make_data (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
+  val empty =
+    make_data (Inttab.empty, Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
   fun merge
-    ({oracles = oracles1, classes = classes1, ...},
-     {oracles = oracles2, classes = classes2, ...}) =
+    ({proofs = proofs1, oracles = oracles1, classes = classes1, ...},
+     {proofs = proofs2, oracles = oracles2, classes = classes2, ...}) =
     make_data
-     (Inttab.empty,
+     (Inttab.merge (K true) (proofs1, proofs2),
+      Inttab.empty,
       Name_Space.merge_tables (oracles1, oracles2),
       merge_classes (classes1, classes2));
 );
 
 fun map_data f =
-  Data.map (fn {zproofs, oracles, classes} => make_data (f (zproofs, oracles, classes)));
+  Data.map (fn {proofs, zproofs, oracles, classes} =>
+    make_data (f (proofs, zproofs, oracles, classes)));
+
+val get_proofs = #proofs o Data.get;
+fun map_proofs f = map_data (fn (a, b, c, d) => (f a, b, c, d));
 
 val get_zproofs = #zproofs o Data.get;
-fun map_zproofs f = map_data (fn (a, b, c) => (f a, b, c));
+fun map_zproofs f = map_data (fn (a, b, c, d) => (a, f b, c, d));
 
 val get_oracles = #oracles o Data.get;
-fun map_oracles f = map_data (fn (a, b, c) => (a, f b, c));
+fun map_oracles f = map_data (fn (a, b, c, d) => (a, b, f c, d));
 
 val get_classes = (fn {classes = Classes args, ...} => args) o Data.get;
 val get_classrels = #classrels o get_classes;
 val get_arities = #arities o get_classes;
 
 fun map_classes f =
-  map_data (fn (a, b, Classes {classrels, arities}) =>
-    (a, b, make_classes (f (classrels, arities))));
+  map_data (fn (a, b, c, Classes {classrels, arities}) =>
+    (a, b, c, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
 
@@ -1202,6 +1213,27 @@ fun close_derivation pos =
 
 val trim_context = solve_constraints #> trim_context_thm;
 
+
+(* forked proofs *)
+
+fun reset_proofs thy =
+  if Inttab.is_empty (get_proofs thy) then NONE
+  else SOME (map_proofs (K Inttab.empty) thy);
+
+val _ = Theory.setup (Theory.at_begin reset_proofs);
+
+fun register_proofs ths thy =
+  let val entry = (serial (), Lazy.map_finished (map trim_context) ths)
+  in (map_proofs o Inttab.update) entry thy end;
+
+fun force_proofs thy =
+  get_proofs thy |> Inttab.dest |> maps (map (transfer thy) o Lazy.force o #2);
+
+val consolidate_theory = consolidate o force_proofs;
+
+fun expose_theory thy =
+  if Proofterm.export_enabled ()
+  then expose_proofs thy (force_proofs thy) else ();
 
 
 (*** Oracles ***)

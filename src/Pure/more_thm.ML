@@ -109,9 +109,6 @@ sig
   val tag: string * string -> attribute
   val untag: string -> attribute
   val kind: string -> attribute
-  val register_proofs: thm list lazy -> theory -> theory
-  val consolidate_theory: theory -> unit
-  val expose_theory: theory -> unit
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
@@ -710,36 +707,6 @@ fun simple_fact x = [(x, [])];
 fun tag tg = rule_attribute [] (K (tag_rule tg));
 fun untag s = rule_attribute [] (K (untag_rule s));
 fun kind k = rule_attribute [] (K (k <> "" ? kind_rule k));
-
-
-
-(** forked proofs **)
-
-structure Proofs = Theory_Data
-(
-  type T = thm list lazy Inttab.table;
-  val empty = Inttab.empty;
-  val merge = Inttab.merge (K true);
-);
-
-fun reset_proofs thy =
-  if Inttab.is_empty (Proofs.get thy) then NONE
-  else SOME (Proofs.put Inttab.empty thy);
-
-val _ = Theory.setup (Theory.at_begin reset_proofs);
-
-fun register_proofs ths thy =
-  let val entry = (serial (), Lazy.map_finished (map Thm.trim_context) ths)
-  in (Proofs.map o Inttab.update) entry thy end;
-
-fun force_proofs thy =
-  Proofs.get thy |> Inttab.dest |> maps (map (Thm.transfer thy) o Lazy.force o #2);
-
-val consolidate_theory = Thm.consolidate o force_proofs;
-
-fun expose_theory thy =
-  if Proofterm.export_enabled ()
-  then Thm.expose_proofs thy (force_proofs thy) else ();
 
 
 
