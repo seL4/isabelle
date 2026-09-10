@@ -2767,6 +2767,7 @@ fun add_classrel raw_th thy =
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
+    |> register_proofs (Lazy.value [th'])
     |> map_classrels (Symreltab.update ((c1, c2), th'))
     |> perhaps complete_classrels
     |> perhaps complete_arities
@@ -2782,6 +2783,7 @@ fun add_arity raw_th thy =
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
+    |> register_proofs (Lazy.value [th'])
     |> map_arities (Aritytab.update ar #> curry (insert_arity_completions thy ar) true #> #2)
   end;
 
