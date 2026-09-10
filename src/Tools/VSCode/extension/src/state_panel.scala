@@ -52,8 +52,7 @@ object State_Panel {
     def apply(): Unit = vscode.post(JSON.Object("command" -> "locate"))
   }
 
-  private def controls =
-    HTML.div(HTML.id("controls"), List(auto_update_button, update_button, locate_button))
+  private def controls = HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
 
 
   /* main */

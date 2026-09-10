@@ -96,18 +96,6 @@ textarea::placeholder {
   color: var(--vscode-input-placeholderForeground);
 }
 
-#controls {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-#controls > *{
-  margin-left: 5px;
-  margin-top: 5px;
-}
-
 sub, sup {
   font-size: 80%;
 }
