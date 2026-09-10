@@ -1,5 +1,5 @@
 theory Composition_Factor_Classes
-  imports Normal_Series Group_Iso_Classes "HOL-Library.Multiset"
+  imports Normal_Series Monoid_Iso_Classes "HOL-Library.Multiset"
 begin
 
 section \<open>Isomorphism classes of normal-series factors\<close>
@@ -16,16 +16,20 @@ text \<open>
 context normal_series
 begin
 
-definition series_factor_class :: "nat \<Rightarrow> 'a set group_iso_class"
-  where "series_factor_class i \<equiv> group_iso_class_of (group_structure (series_factor i))"
+definition series_factor_class :: "nat \<Rightarrow> 'a set monoid_iso_class"
+  where
+    "series_factor_class i =
+      monoid_iso_class_of (monoid (series_factor i))"
 
 text \<open>The class sequence is ordered by increasing factor index.\<close>
 
-definition series_factor_classes :: "'a set group_iso_class list"
-  where "series_factor_classes \<equiv> List.map series_factor_class [0..<n]"
+definition series_factor_classes :: "'a set monoid_iso_class list"
+  where
+    "series_factor_classes = List.map series_factor_class [0..<n]"
 
-definition series_factor_multiset :: "'a set group_iso_class multiset"
-  where "series_factor_multiset \<equiv> mset series_factor_classes"
+definition series_factor_multiset :: "'a set monoid_iso_class multiset"
+  where
+    "series_factor_multiset = mset series_factor_classes"
 
 lemma length_series_factor_classes:
   "length series_factor_classes = n"
@@ -49,8 +53,9 @@ lemma series_factor_class_eq_iff:
   assumes i: "i < n" and j: "j < n"
   shows "series_factor_class i = series_factor_class j \<longleftrightarrow>
     series_factor i \<cong>\<^sub>G series_factor j"
-  by (simp add: group_iso_class_of_group_structure_eq_iff i j series_factor_class_def
-      series_factor_group)
+  unfolding series_factor_class_def
+  by (rule monoid_iso_class_of_monoid_eq_iff_groups[OF
+        series_factor_group[OF i] series_factor_group[OF j]])
 
 end
 
