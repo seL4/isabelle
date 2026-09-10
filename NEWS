@@ -184,28 +184,6 @@ For example:
 
 *** HOL ***
 
-* SMT:
-  - Added option "smt_unique_dest_file" to add some pseudo-unique
-    suffix to the problem/proof files generated with through the options
-    "smt_problem_dest_dir" and "smt_proof_dest_dir"; this allows saving
-    the files of multiple SMT calls in one directory.
-  - Added option "smt_integer_induction" and "smt_structural_induction".
-  - update the reconstruction to the latest version of Alethe proof standard.
-  - reconstruction is now possible using the SMT solver cvc5. Remark that the
-    reconstruction works best if you have Reals imported, even if you are using
-    only integers.
-  - like veriT, cvc5 has strategies to improve the performance of reconstruction.
-  - Added options "smt_native_datatypes" and "smt_native_codatatypes" to
-    emit native SMT-LIB (co)datatype declarations. Both options are
-    honoured only by solvers that support the declaration.
-  - Datatype declarations now use the SMT-LIB 2.6 syntax, except for z3,
-    which keeps the pre-2.6 syntax.
-  - The solvers "vampire_smt_dt" and "vampire_smt_nodt" have been replaced
-    by "vampire_smt", controlled by "smt_native_datatypes".
-    INCOMPATIBILITY.
-  - Removed option "cvc_extensions"; use "smt_native_datatypes" and
-    "smt_native_codatatypes" instead. INCOMPATIBILITY.
-
 * Sledgehammer:
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
@@ -213,11 +191,36 @@ For example:
       . vampire-4.8 -- include arm64-darwin
       . veriT 2026.05
       . cvc5 1.3.4
-  - Sledgehammer can now suggest cvc5 as proof backend `by (smt (cvc5, ...))`
+  - Sledgehammer can now suggest cvc5 as proof backend:
+    "by (smt (cvc5, ...))"
   - Tuned output of proof search to use "using" for local facts in
     conjunction with "metis", "meson", and "smt".
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
+
+* SMT:
+  - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
+    to the problem/proof files generated with through the options
+    "smt_problem_dest_dir" and "smt_proof_dest_dir"; this allows saving
+    the files of multiple SMT calls in one directory.
+  - Added option "smt_integer_induction" and "smt_structural_induction".
+  - Update the reconstruction to the latest version of Alethe proof
+    standard.
+  - Reconstruction is now possible using the SMT solver cvc5. Remark
+    that the reconstruction works best if you have Reals imported, even
+    if you are using only integers.
+  - Like veriT, cvc5 has strategies to improve the performance of
+    reconstruction.
+  - Added options "smt_native_datatypes" and "smt_native_codatatypes" to
+    emit native SMT-LIB (co)datatype declarations. Both options are
+    honoured only by solvers that support the declaration.
+  - Datatype declarations now use the SMT-LIB 2.6 syntax, except for z3,
+    which keeps the pre-2.6 syntax.
+  - The solvers "vampire_smt_dt" and "vampire_smt_nodt" have been
+    replaced by "vampire_smt", controlled by "smt_native_datatypes".
+    INCOMPATIBILITY.
+  - Removed option "cvc_extensions"; use "smt_native_datatypes" and
+    "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
 * Theory "HOL.Finite_Set"
   - Added lemmas.
@@ -231,16 +234,8 @@ For example:
       inj_on_the_image_dom
       ran_conv_dom
 
-* Session "HOL-New_Algebra": a new library for abstract algebra,
-based on Clemens Ballarin's locale approach and  intended to replace 
-HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer 
-relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra. 
-Proofs that had referenced the internals of HOL-Number_Theory.Residues 
-should now import the new theory "HOL-Algebra.Residues_Algebra". 
-INCOMPATIBILITY.
-
-* Constant "enumerate" in theory HOL.List renamed to more specific
-"indexed_from". Corresponding theorems renamed:
+* Theory HOL.List: constant "enumerate" in theory renamed to more
+specific "indexed_from". Corresponding theorems renamed:
   enumerate_eq_zip ~> indexed_from_eq_zip
   enumerate_simps ~> indexed_from_simps
   length_enumerate ~> length_indexed_from
@@ -255,6 +250,14 @@ INCOMPATIBILITY.
   enumerate_map_upt ~> indexed_from_map_upt
   sorted_enumerate ~> sorted_indexed_from
   in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
+
+* Session "HOL-New_Algebra": a new library for abstract algebra, based
+on Clemens Ballarin's locale approach and intended to replace
+HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer
+relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra.
+Proofs that had referenced the internals of HOL-Number_Theory.Residues
+should now import the new theory "HOL-Algebra.Residues_Algebra".
+INCOMPATIBILITY.
 
 * Theory "HOL-Library.Finite_Map"
   - Removed function set_of_map. Use Map.graph instead. INCOMPATIBILITY.
@@ -309,7 +312,7 @@ the abbreviation "matrix_det". INCOMPATIBILITY
 indexed by arbitrary sets, generalising the existing treatment of
 the product of a sequence.
 
-* Session "HOL": New relation "has_log_derivative", which 
+* Session "HOL": New relation "has_log_derivative", which
 simplifies talking about logarithmic derivatives.
 
 
@@ -319,32 +322,32 @@ simplifies talking about logarithmic derivatives.
 corresponding derived rules, concerning rare boundary cases:
 
   - Thm.abstract_rule now properly handles situations where the
-  abstracted variable does not occur in the body (potentially bad theory
-  certificate or bad maxidx). This problem stems from Isabelle89 (bad
-  theory certificate) and Isabelle91 (bad maxidx --- due to introduction
-  of schematic type variables at that time).
+    abstracted variable does not occur in the body (potentially bad
+    theory certificate or bad maxidx). This problem stems from
+    Isabelle89 (bad theory certificate) and Isabelle91 (bad maxidx ---
+    due to introduction of schematic type variables at that time).
 
   - Extra checks for unification of variables with the same indexname
-  and different type were introduced in Isabelle2005, but accidentally
-  lost in Isabelle2015. Thus very unusual inferences may produce bad
-  results. After re-introducing the check, only Metis had to be adapted
-  in one of its workarounds for odd situations, which stem from its
-  non-Isabelle heritage.
+    and different type were introduced in Isabelle2005, but accidentally
+    lost in Isabelle2015. Thus very unusual inferences may produce bad
+    results. After re-introducing the check, only Metis had to be
+    adapted in one of its workarounds for odd situations, which stem
+    from its non-Isabelle heritage.
 
   - Proper treatment of initially bound variables in primitive
-  definitions of consts (due to Primitive_Defs.dest_def used in
-  Theory.add_def). The problem stems from Isabelle2008, and allowed to
-  get e.g. "!!x. c == x" accepted as definitional axiom, by using
-  internal primitives instead of regular user-interfaces like
-  Specification.definition (or better Local_Theory.define).
+    definitions of consts (due to Primitive_Defs.dest_def used in
+    Theory.add_def). The problem stems from Isabelle2008, and allowed to
+    get e.g. "!!x. c == x" accepted as definitional axiom, by using
+    internal primitives instead of regular user-interfaces like
+    Specification.definition (or better Local_Theory.define).
 
   - Proper treatment of "internal" free variables in the "generalize"
-  family of functions, via the now explicit Term_Subst.generalize_index
-  (this is only relevant for term variables, not type variables).
-  Thm.generalize was OK, but the additional shortcut
-  Thm.generalize_cterm from Isabelle2018 could produce a malformed
-  result (bad maxidx), and its main application Thm.instantiate_frees
-  would leave variables uninstantiated.
+    family of functions, via the now explicit
+    Term_Subst.generalize_index (this is only relevant for term
+    variables, not type variables). Thm.generalize was OK, but the
+    additional shortcut Thm.generalize_cterm from Isabelle2018 could
+    produce a malformed result (bad maxidx), and its main application
+    Thm.instantiate_frees would leave variables uninstantiated.
 
 * ML antiquotation @{unchecked_name a} inlines a syntactically
 wellformed long name as string literal, without any formal checking in
@@ -420,15 +423,6 @@ Isabelle2025-2 in src/Tools/misc_legacy.ML to ease transition.
 "Simplifier.add_proc" and "Simplifier.del_proc" instead. Minor
 INCOMPATIBILITY.
 
-
-*** System ***
-
-* System option "system_log" is enabled by default, so output from
-Output.system_message etc. appears on the PIDE session log: for
-command-line tools like "isabelle dump", "isabelle build", and
-derivatives, this is the console. Potential INCOMPATIBILITY: e.g. use
-"isabelle build -o system_log='' ..." to disable it explicitly.
-
 * Poly/ML 5.9.2 has been patched to support larger heap size in the
 special x86_64_32/arm64_32 mode with 32-bit values: the limit is now 32
 GiB, instead of 16 GiB before. The cost is a factor of 1.2 .. 1.5 more
@@ -437,6 +431,15 @@ memory requirement (due to alignment of values), and a slowdown factor
 speedup factor 1.9 .. 1.2, due to reduced GC time. It also avoids the
 need for bulky x86_64/arm64 mode with 64-bit values and excessive GC
 time.
+
+
+*** System ***
+
+* System option "system_log" is enabled by default, so output from
+Output.system_message etc. appears on the PIDE session log: for
+command-line tools like "isabelle dump", "isabelle build", and
+derivatives, this is the console. Potential INCOMPATIBILITY: e.g. use
+"isabelle build -o system_log='' ..." to disable it explicitly.
 
 * Both SHA1 and SHA256 are supported in Isabelle/Scala. SHA1 is still
 used routinely, but will be eventually phased out. Result is of type
@@ -500,8 +503,6 @@ system shell and its signals (e.g. CTRL-C). The default (new Progress)
 does not change interrupt handling at all. Subtle INCOMPATIBILITY in
 very rare situations.
 
-* Update to OpenJDK 25: the current long-term support version of Java.
-
 * The Java Access Bridge on JDK/x86_64-windows has been patched
 slightly, for more robust detection of text lines via the regular API
 for javax.accessibility.AccessibleExtendedTable.LINE instead of historic
@@ -516,6 +517,8 @@ calls.
 * Directory src/Tools/Scalajs_Demo provides a demonstration on how to
 compile an Isabelle/Scala component via Scala.js and run it on an
 Isabelle JavaScript environment.
+
+* Update to OpenJDK 25: the current long-term support version of Java.
 
 
 
