@@ -6,7 +6,6 @@ session HOL (main) = Pure +
   "
   options [strict_facts]
   sessions Tools
-  directories "Tools/SMT/alethe/rare_rewrites"
   theories
     Main (global)
     Complex_Main (global)
