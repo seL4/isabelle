@@ -39,7 +39,7 @@ fun index1 s i = "(_ " ^ s ^ " " ^ string_of_int i ^ ")"
 fun index2 s i j = "(_ " ^ s ^ " " ^ string_of_int i ^ " " ^ string_of_int j ^ ")"
 val mk_nat = HOLogic.mk_number \<^typ>\<open>nat\<close>
 
-fun remove_cast (Const ("Int.nat", _) $ x) = x |
+fun remove_cast (Const (\<^const_name>\<open>Int.nat\<close>, _) $ x) = x |
     remove_cast x = x
 
 fun if_fixed pred m n T ts =
@@ -129,7 +129,7 @@ fun slice m n (T as (Type(_,[_,Type(_,[Tx,U])]))) ts =
 fun take_bit m _ T ts =
     let
 
-      val ts = ts |> map (fn (Const ("Int.nat", _) $ x) => x | x => x)
+      val ts = ts |> map (fn (Const (\<^const_name>\<open>Int.nat\<close>, _) $ x) => x | x => x)
       val word= hd (tl ts)
       val U = Term.domain_type (Term.range_type T)
 
@@ -208,14 +208,14 @@ Wird zweimal uebersetzt wie alles...
 
       val bitwidth = U1  |> Term.dest_Type |> snd |> hd |> dest_binT
       val wordT = mk_wordT bitwidth
-      val one = Const("Groups.one_class.one",wordT)
+      val one = Const(\<^const_name>\<open>Groups.one_class.one\<close>, wordT)
       (*val shift_amount = Const ("Word.Word", @{typ "int"} --> wordT) $ (nth ts 1)*)
       val t1 = nth ts 1
       val (t2 $ t3) = t1
       val shift_amount =
         (case is_numeral t3 of
           NONE => @{term "unsigned"} $ t3 |
-          SOME _ => Const ("Num.numeral_class.numeral", @{typ "num"} --> wordT) $ t3)
+          SOME _ => Const (\<^const_name>\<open>Num.numeral_class.numeral\<close>, @{typ "num"} --> wordT) $ t3)
     in
 
          (SOME ("bvshl", 2, [one,shift_amount], (fn _ =>  mk_extend (m,T) ts) ))
