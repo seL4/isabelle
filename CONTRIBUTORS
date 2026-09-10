@@ -21,7 +21,7 @@ Contributions to Isabelle2026
   HOL-Analysis: Transfer setup to lift theorems about "real ^ 'n::finite" to
   "'a::euclidean_space". Used to prove change of variables for arbitrary
   euclidean spaces.
-  
+
 * August 2026: Larry Paulson and Manuel Eberl
   HOL-Analysis: Infinite products indexed by arbitrary sets in HOL-Analysis.
 
