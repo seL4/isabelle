@@ -47,6 +47,8 @@ object LSP {
   }
 
   class Notification0(name: String) {
+    def apply(): JSON.T = Message.empty + ("method" -> name)
+
     def unapply(json: JSON.T): Boolean =
       json match {
         case Notification(method, _) => method == name
@@ -808,6 +810,10 @@ object LSP {
   }
 
   object Sledgehammer_Request {
+    def apply(provers: String, isar: Boolean, try0: Boolean): JSON.T =
+      Notification("PIDE/sledgehammer_request",
+        JSON.Object("provers" -> provers, "isar" -> isar, "try0" -> try0))
+
     def unapply(json: JSON.T): Option[List[String]] =
       json match {
         case Notification("PIDE/sledgehammer_request", Some(params)) =>
