@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_replay_rules.ML
+(*  Title:      HOL/Tools/SMT/z3/z3_replay_rules.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Custom rules for Z3 proof replay.

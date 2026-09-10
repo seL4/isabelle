@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_isar.ML
+(*  Title:      HOL/Tools/SMT/z3/z3_isar.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Z3 proofs as generic ATP proofs for Isar proof reconstruction.

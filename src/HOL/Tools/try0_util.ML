@@ -1,4 +1,4 @@
-(* Title:      HOL/Tools/try0_hol.ML
+(* Title:      HOL/Tools/try0_util.ML
    Author:     Jasmin Blanchette, LMU Muenchen
    Author:     Martin Desharnais, LMU Muenchen
    Author:     Fabian Huch, TU Muenchen

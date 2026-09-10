@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_proof.ML
+(*  Title:      HOL/Tools/SMT/z3/z3_proof.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Z3 proofs: parsing and abstract syntax tree.
