@@ -33,7 +33,7 @@ lemmas [alethe_poly_norm] =
    div_by_1 divide_numeral_1 divide_divide_eq_right neg_equal_iff_equal numeral_One divide_divide_eq_left
   divide_self_if if_True if_False one_neq_zero more_arith_simps
   division_ring_class.times_divide_eq_right divide_cancel_left
-declare[[show_types]]
+
 
 section\<open>Lemmas to reconstruct alethe_poly_simp_rel\<close>
 
