@@ -63,6 +63,7 @@ val TF1 = TFF (Polymorphic, Without_FOOL)
 val TX0 = TFF (Monomorphic, With_FOOL {with_ite = true, with_let = true})
 val TX0_MINUS = TFF (Monomorphic, With_FOOL {with_ite = false, with_let = false})
 val TX1 = TFF (Polymorphic, With_FOOL {with_ite = true, with_let = true})
+val TX1_MINUS = TFF (Polymorphic, With_FOOL {with_ite = false, with_let = false})
 val TH0 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val TH0_MINUS = THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
 val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
@@ -451,17 +452,19 @@ val vampire_4_8_config : atp_config =
      (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
 
+(*Vampire 4.8's slices without $ite and $let, which Vampire 5.1 prints with an unbalanced
+  parenthesis*)
 val vampire_5_1_config : atp_config =
   make_vampire_config vampire_5_1_basic_options 256
-    [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
-     (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+    [(((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 1024, meshN), (TF1, "poly_native", liftingN, false, ""))),
      (((2, false, false,  256, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false, 1024, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
-     (((2, false, false,  256, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TF1, "poly_native", combsN, false, ""))),
-     (((2, false, false,  256, meshN), (TX1, "poly_native_fool", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TX1_MINUS, "poly_native_fool", liftingN, false, ""))),
      (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TF0, "mono_native", liftingN, false, ""))),
      (((2, false, false,   64, meshN), (TF1, "poly_native", combsN, false, ""))),
@@ -470,8 +473,8 @@ val vampire_5_1_config : atp_config =
      (((2, false, false,  256, meshN), (TF0, "mono_native", liftingN, false, ""))),
      (((2, false, false,   32, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
      (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
-     (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
-     (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
+     (((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX1_MINUS, "poly_native_fool", combsN, false, "")))]
 
 in
 
