@@ -480,18 +480,17 @@ class Resources(
     def loaded_files(
       name: Document.Node.Name,
       spans: List[Command_Span.Span]
-    ) : (String, List[Document.Node.Name]) = {
-      val theory = name.theory
+    ): List[Document.Node.Name] = {
       val syntax = get_syntax(name)
       val files1 = resources.loaded_files(syntax, name, spans)
-      val files2 = if (Sessions.is_Pure(theory)) pure_files(syntax) else Nil
-      (theory, files1 ::: files2)
+      val files2 = if (Sessions.is_Pure(name.theory)) pure_files(syntax) else Nil
+      files1 ::: files2
     }
 
     def loaded_files: List[Document.Node.Name] =
       for {
         (name, cmds) <- load_commands
-        file <- loaded_files(name, cmds.map(_._1))._2
+        file <- loaded_files(name, cmds.map(_._1))
       } yield file
 
     def imported_files: List[Path] = {

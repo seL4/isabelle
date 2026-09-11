@@ -291,8 +291,8 @@ object Sessions {
 
         val loaded_files: List[(String, List[Path])] =
           for ((name, cmds) <- load_commands) yield {
-            val (theory, files) = dependencies.loaded_files(name, cmds.map(_._1))
-            theory -> files.map(file => Path.explode(file.node))
+            val files = dependencies.loaded_files(name, cmds.map(_._1))
+            name.theory -> files.map(file => Path.explode(file.node))
           }
 
         val document_files =
