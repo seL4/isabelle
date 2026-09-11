@@ -342,8 +342,8 @@ class Resources(
     options: Options.Update = Nil,
     progress: Progress = new Progress
   ): Dependencies = {
-    Dependencies.require_thys(Dependencies.empty, session_conditions, theories,
-      options = options, progress = progress)
+    Dependencies.require_thys(Dependencies.empty, theories,
+      options = options, progress = progress, session_conditions = Some(session_conditions))
   }
 
   def session_dependencies(
@@ -353,9 +353,9 @@ class Resources(
     val session_conditions = Thy_Conditions.Context(info.options)
     info.theories.foldLeft(Dependencies.empty) {
       case (dependencies, (options, theories)) =>
-        Dependencies.require_thys(dependencies, session_conditions,
+        Dependencies.require_thys(dependencies,
           for { (s, pos) <- theories } yield (import_name(info, s), pos),
-          options = options, progress = progress)
+          options = options, progress = progress, session_conditions = Some(session_conditions))
     }
   }
 
@@ -373,10 +373,10 @@ class Resources(
 
     private [Resources] def require_thys(
       dependencies0: Dependencies,
-      session_conditions: Thy_Conditions.Context,
       theories: List[(Document.Node.Name, Position.T)],
       options: Options.Update = Nil,
-      progress: Progress = new Progress
+      progress: Progress = new Progress,
+      session_conditions: Option[Thy_Conditions.Context] = None
     ): Dependencies = {
       def require_thy(
         dependencies: Dependencies,
@@ -400,11 +400,18 @@ class Resources(
               progress.expose_interrupt()
               val thy =
                 try {
-                  with_thy_reader(name,
-                    { reader =>
-                      check_thy(name, reader,
-                        more_options = options, initiators = initiators, command = false)
-                    }).eval_conditions(session_conditions).cat_errors(message)
+                  val thy0 =
+                    with_thy_reader(name,
+                      { reader =>
+                        check_thy(name, reader,
+                          more_options = options, initiators = initiators, command = false)
+                      })
+                  val thy1 =
+                    session_conditions match {
+                      case None => thy0
+                      case Some(cond) => thy0.eval_conditions(cond)
+                    }
+                  thy1.cat_errors(message)
                 }
                 catch { case ERROR(msg) => cat_error(msg, message) }
               thy.imports.foldLeft(dependencies1)(require_thy(_, _, name :: initiators)).cons(thy)
