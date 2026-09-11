@@ -270,7 +270,6 @@ class Resources(
   }
 
   def check_thy(
-    session_conditions: Thy_Conditions.Context,
     node_name: Document.Node.Name,
     reader: Reader[Char],
     more_options: Options.Update = Nil,
@@ -297,7 +296,7 @@ class Resources(
           options = header.options ::: more_options,
           keywords = header.keywords,
           abbrevs = header.abbrevs,
-          initiators = initiators).eval_conditions(session_conditions)
+          initiators = initiators)
       }
       catch { case e: Throwable => Resources.Thy(name = node_name, errors = List(Exn.message(e))) }
     }
@@ -393,9 +392,9 @@ class Resources(
               val thy =
                 try {
                   with_thy_reader(name,
-                    check_thy(session_conditions, name, _,
+                    check_thy(name, _,
                       more_options = options, initiators = initiators, command = false)
-                    ).cat_errors(message)
+                    ).eval_conditions(session_conditions).cat_errors(message)
                 }
                 catch { case ERROR(msg) => cat_error(msg, message) }
               thy.imports.foldLeft(dependencies1)(require_thy(_, _, name :: initiators)).cons(thy)

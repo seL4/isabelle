@@ -425,8 +425,8 @@ case class File_Model(
 
   def get_thy(): Resources.Thy =
     PIDE.resources.special_thy(node_name) getOrElse
-      PIDE.resources.check_thy(
-        session.conditions, node_name, Scan.char_reader(content.text), strict = false)
+      PIDE.resources.check_thy(node_name, Scan.char_reader(content.text), strict = false)
+        .eval_conditions(session.conditions)
 
   override def get_text(range: Text.Range): Option[String] =
     range.try_substring(content.text)
@@ -515,8 +515,8 @@ class Buffer_Model private(
 
     PIDE.resources.special_thy(node_name) getOrElse
       JEdit_Lib.buffer_lock(buffer) {
-        PIDE.resources.check_thy(
-          session.conditions, node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
+        PIDE.resources.check_thy(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
+          .eval_conditions(session.conditions)
       }
   }
 
