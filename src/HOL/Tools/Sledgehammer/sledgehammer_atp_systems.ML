@@ -399,20 +399,14 @@ val vampire_5_1_basic_options =
    then []  (*time slicing is not support in the Windows version of Vampire*)
    else ["--mode portfolio", "--schedule snake_tptp_uns"])
 
-fun vampire_basic_options () =
-  (case getenv "VAMPIRE_VERSION" of
-    "4.8" => vampire_4_8_basic_options
-  | "5.1" => vampire_5_1_basic_options
-  | _ => vampire_5_1_basic_options)
-
 val vampire_full_proof_options =
   ["--proof_extra free",
    "--forced_options avatar=off:equality_proxy=off:general_splitting=off:inequality_splitting=0:naming=0"]
 
-fun make_vampire_config good_max_new_mono_instances good_slices : atp_config =
+fun make_vampire_config vampire_basic_options good_max_new_mono_instances good_slices : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
    arguments = fn _ => fn full_proofs => fn extra_options => fn timeout => fn problem =>
-     vampire_basic_options () @
+     vampire_basic_options @
      (if full_proofs then vampire_full_proof_options else []) @
      (if extra_options <> "" then [extra_options] else []) @
      ["-t " ^ string_of_int (to_secs 1 timeout),
@@ -434,9 +428,31 @@ fun make_vampire_config good_max_new_mono_instances good_slices : atp_config =
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = good_max_new_mono_instances}
 
-val vampire_config : atp_config =
+val vampire_4_8_config : atp_config =
   (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing version 4.8 HO - Sledgehammer schedules (2023-10-19) *)
-  make_vampire_config 256
+  make_vampire_config vampire_4_8_basic_options 256
+    [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TF1, "poly_native", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TX1, "poly_native_fool", liftingN, false, ""))),
+     (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   64, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TH1_MINUS, "poly_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   32, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
+
+val vampire_5_1_config : atp_config =
+  make_vampire_config vampire_5_1_basic_options 256
     [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
@@ -459,7 +475,10 @@ val vampire_config : atp_config =
 
 in
 
-val vampire = (vampireN, fn () => vampire_config)
+val vampire = (vampireN, fn () =>
+  (case getenv "VAMPIRE_VERSION" of
+    "4.8" => vampire_4_8_config
+  | _ => vampire_5_1_config))
 
 end
 
