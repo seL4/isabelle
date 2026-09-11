@@ -65,6 +65,14 @@ object Resources {
         val msg2 = make_msg2
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
       }
+
+    def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
+      Exn.result { session_conditions.eval_restrict(options) } match {
+        case Exn.Res(conditions) => copy(condition_bad = conditions.bad_message)
+        case Exn.Exn(exn) =>
+          val msg = Exn.message(exn)
+          if (errors.contains(msg)) this else append_errors(List(msg))
+      }
   }
 
   def bootstrap: Resources =
@@ -280,19 +288,14 @@ class Resources(
             else (name, pos)
           })
 
-        val options = header.options ::: more_options
-        val conditions = session_conditions.eval_restrict(options)
-
         Resources.Thy(
           name = node_name,
           pos = header.pos,
           imports = imports,
-          options = options,
+          options = header.options ::: more_options,
           keywords = header.keywords,
           abbrevs = header.abbrevs,
-          condition_bad = conditions.bad_message,
-          errors = conditions.errors,
-          initiators = initiators)
+          initiators = initiators).eval_conditions(session_conditions)
       }
       catch { case e: Throwable => Resources.Thy(name = node_name, errors = List(Exn.message(e))) }
     }
