@@ -55,9 +55,13 @@ object Resources {
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
-    def append_errors(msgs: List[String]): Thy =
-      if (msgs.isEmpty) this
-      else copy(errors = errors ::: msgs)
+    def append_errors(msgs: List[String]): Thy = {
+      val duplicate = errors.toSet
+      msgs.filter(msg => !duplicate(msg)) match {
+        case Nil => this
+        case errs => copy(errors = errors ::: errs)
+      }
+    }
 
     def cat_errors(make_msg2: => String): Thy =
       if (errors.isEmpty) this
@@ -69,9 +73,7 @@ object Resources {
     def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
       Exn.result { session_conditions.eval_restrict(options) } match {
         case Exn.Res(conditions) => copy(condition_bad = conditions.bad_message)
-        case Exn.Exn(exn) =>
-          val msg = Exn.message(exn)
-          if (errors.contains(msg)) this else append_errors(List(msg))
+        case Exn.Exn(exn) => append_errors(List(Exn.message(exn)))
       }
   }
 
