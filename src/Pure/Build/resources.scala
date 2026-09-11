@@ -439,14 +439,14 @@ class Resources(
       val regular = theories.toSet
       val irregular =
         (for {
-          entry <- entries.iterator
-          imp <- entry.imports_no_pos
-          if !regular(imp)
-        } yield imp).toSet
+          thy <- entries.iterator
+          name <- thy.imports_no_pos
+          if !regular(name)
+        } yield name).toSet
 
       Document.Node.Name.make_graph(
         irregular.toList.map(name => ((name, ()), Nil)) :::
-        entries.map(entry => ((entry.name, ()), entry.imports_no_pos)))
+        entries.map(thy => ((thy.name, ()), thy.imports_no_pos)))
     }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
