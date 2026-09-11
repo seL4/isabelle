@@ -55,7 +55,7 @@ object Resources {
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
-    def append_errors(msgs: List[String]): Thy = {
+    def include_errors(msgs: List[String]): Thy = {
       val duplicate = errors.toSet
       msgs.filter(msg => !duplicate(msg)) match {
         case Nil => this
@@ -73,7 +73,7 @@ object Resources {
     def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
       Exn.result { session_conditions.eval_restrict(options) } match {
         case Exn.Res(conditions) => copy(condition_bad = conditions.bad_message)
-        case Exn.Exn(exn) => append_errors(List(Exn.message(exn)))
+        case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
       }
   }
 
