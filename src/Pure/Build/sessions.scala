@@ -458,15 +458,13 @@ object Sessions {
 
       val session_bases =
         sessions_structure.imports_topological_order.foldLeft(Map(Base.bootstrap.session_entry)) {
-          case (session_bases, session_name) =>
+          case (bases, name) =>
             progress.expose_interrupt()
 
-            val info = sessions_structure(session_name)
-            val deps_base = info.deps_base(session_bases)
-            try {
-              val base = make_base(deps_base, info)
-              session_bases + base.session_entry
-            }
+            val info = sessions_structure(name)
+            val deps_base = info.deps_base(bases)
+
+            try { bases + make_base(deps_base, info).session_entry }
             catch {
               case ERROR(msg) =>
                 cat_error(msg, "The error(s) above occurred in session " +
