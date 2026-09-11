@@ -392,9 +392,10 @@ class Resources(
               val thy =
                 try {
                   with_thy_reader(name,
-                    check_thy(name, _,
-                      more_options = options, initiators = initiators, command = false)
-                    ).eval_conditions(session_conditions).cat_errors(message)
+                    { reader =>
+                      check_thy(name, reader,
+                        more_options = options, initiators = initiators, command = false)
+                    }).eval_conditions(session_conditions).cat_errors(message)
                 }
                 catch { case ERROR(msg) => cat_error(msg, message) }
               thy.imports.foldLeft(dependencies1)(require_thy(_, _, name :: initiators)).cons(thy)
