@@ -277,7 +277,7 @@ object Sessions {
               val resources = new Resources(session_background, Logger.none)
 
               progress.echo(
-                "Session " + info.chapter + "/" + session_name +
+                "Session " + info.chapter + "/" + info.name +
                   if_proper(info.groups, info.groups.mkString(" (", " ", ")")),
                 verbose = !list_files)
 
@@ -285,7 +285,7 @@ object Sessions {
 
               val proper_session_theories =
                 dependencies.theories.filter(name =>
-                  sessions_structure.theory_qualifier(name) == session_name)
+                  sessions_structure.theory_qualifier(name) == info.name)
 
               val theory_files = dependencies.theories.map(_.path)
 
@@ -363,7 +363,7 @@ object Sessions {
 
               val import_errors = {
                 val known_sessions =
-                  sessions_structure.imports_requirements(List(session_name)).toSet
+                  sessions_structure.imports_requirements(List(info.name)).toSet
                 for {
                   name <- dependencies.theories
                   qualifier = sessions_structure.theory_qualifier(name)
@@ -377,8 +377,8 @@ object Sessions {
                 {
                   case (thy, pos) =>
                     val build_hierarchy =
-                      if (sessions_structure.build_graph.defined(session_name)) {
-                        sessions_structure.build_hierarchy(session_name)
+                      if (sessions_structure.build_graph.defined(info.name)) {
+                        sessions_structure.build_hierarchy(info.name)
                       }
                       else Nil
 
