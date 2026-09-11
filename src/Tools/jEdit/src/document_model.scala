@@ -423,10 +423,12 @@ case class File_Model(
 
   def node_name: Document.Node.Name = content.node_name
 
-  def get_thy(): Resources.Thy =
-    PIDE.resources.special_thy(node_name) getOrElse
-      PIDE.resources.check_thy(node_name, Scan.char_reader(content.text), strict = false)
-        .eval_conditions(session.conditions)
+  def get_thy(): Resources.Thy = {
+    val thy0 =
+      PIDE.resources.special_thy(node_name) getOrElse
+        PIDE.resources.check_thy(node_name, Scan.char_reader(content.text), strict = false)
+    thy0.eval_conditions(session.conditions)
+  }
 
   override def get_text(range: Text.Range): Option[String] =
     range.try_substring(content.text)
@@ -513,11 +515,12 @@ class Buffer_Model private(
   def get_thy(): Resources.Thy = {
     GUI_Thread.require {}
 
-    PIDE.resources.special_thy(node_name) getOrElse
-      JEdit_Lib.buffer_lock(buffer) {
-        PIDE.resources.check_thy(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
-          .eval_conditions(session.conditions)
-      }
+    val thy0 =
+      PIDE.resources.special_thy(node_name) getOrElse
+        JEdit_Lib.buffer_lock(buffer) {
+          PIDE.resources.check_thy(node_name, JEdit_Lib.buffer_reader(buffer), strict = false)
+        }
+    thy0.eval_conditions(session.conditions)
   }
 
   override def get_text(range: Text.Range): Option[String] =
