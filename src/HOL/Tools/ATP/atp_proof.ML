@@ -300,7 +300,7 @@ and parse_inference_source x =
    -- parse_dependencies --| $$ "]" --| $$ ")") x
 and parse_introduced_source x =
   (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
-   --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
+   --| Scan.option ($$ "," |-- skip_terms) --| $$ ")") x
 and parse_define_source x =
   (Scan.this_string "define" |-- $$ "(" |-- skip_term --| $$ ")") x
 and parse_source x =
