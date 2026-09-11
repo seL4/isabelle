@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_replay_methods.ML
+(*  Title:      HOL/Tools/SMT/z3/z3_replay_methods.ML
     Author:     Sascha Boehme, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 

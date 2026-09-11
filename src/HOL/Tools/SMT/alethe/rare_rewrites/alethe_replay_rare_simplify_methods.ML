@@ -1,4 +1,4 @@
-(*  Title:      HOL/CVC/ML/alethe_replay_rare_simplify_methods.ML
+(*  Title:      HOL/Tools/SMT/alethe/rare_rewrites/alethe_replay_rare_simplify_methods.ML
     Author:     Mathias Fleury, MPII, JKU, University Freiburg
     Author:     Hanna Lachnitt, Stanford University
 

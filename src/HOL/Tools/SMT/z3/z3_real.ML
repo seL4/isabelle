@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/z3_real.ML
+(*  Title:      HOL/Tools/SMT/z3/z3_real.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Z3 setup for reals  based on a relaxed version of SMT-LIB (outside of LIRA).

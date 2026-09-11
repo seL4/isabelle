@@ -286,9 +286,9 @@ subsection \<open>Conjugation, Center, and Centralizer\<close>
 
 context Group begin
 
-text \<open>The conjugation action: @{term g} acts on @{term x} by @{text "g x g⁻¹"}.
-  We use @{text "g x g⁻¹"} rather than @{text "g⁻¹ x g"} so that the map
-  @{text "g \<mapsto> (x \<mapsto> g x g⁻¹)"} is a group homomorphism (not anti-homomorphism).\<close>
+text \<open>The conjugation action: @{term g} acts on @{term x} by @{text "g x g\<^sup>-\<^sup>1"}.
+  We use @{text "g x g\<^sup>-\<^sup>1"} rather than @{text "g\<^sup>-\<^sup>1 x g"} so that the map
+  @{text "g \<mapsto> (x \<mapsto> g x g\<^sup>-\<^sup>1)"} is a group homomorphism (not anti-homomorphism).\<close>
 
 definition conjugation :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
   where "conjugation g x = (if g \<in> G \<and> x \<in> G then g \<cdot> x \<cdot> inverse g else x)"
@@ -885,7 +885,7 @@ qed
 section \<open>The Second Sylow Theorem\<close>
 
 text \<open>If H is a subgroup of a group G and g is in G, then the conjugate
-  @{text "g H g⁻¹"} is again a subgroup of G.\<close>
+  @{text "g H g\<^sup>-\<^sup>1"} is again a subgroup of G.\<close>
 
 context Group begin
 
@@ -1458,7 +1458,7 @@ proof -
       using multiplicity_decompose[of concl:p]
       using assms(1) cardG_pos index_eq k_def not_prime_unit by auto
     \<comment> \<open>@{term P} acts on the left cosets @{text "G/Q"} by left multiplication.
-      A coset @{text "gQ"} is fixed by @{term P} iff @{text "P \<subseteq> gQg⁻¹"}.
+      A coset @{text "gQ"} is fixed by @{term P} iff @{text "P \<subseteq> gQg\<^sup>-\<^sup>1"}.
       Since @{text "[G:Q]"} is not divisible by @{term p} and every orbit of
       the @{term P}-action has size dividing @{text "p^k"}, there is a fixed coset.\<close>
     define L where "L = (\<lambda>g. g \<cdot>| Q) ` G"
@@ -1661,7 +1661,7 @@ proof -
       qed
       then obtain g where gG: "g \<in> G" and fixed: "\<forall>a \<in> P. (\<cdot>) a ` (g \<cdot>| Q) = g \<cdot>| Q"
         using L_def by blast
-      \<comment> \<open>A fixed coset @{text "gQ"} yields @{text "g⁻¹Pg \<subseteq> Q"}.\<close>
+      \<comment> \<open>A fixed coset @{text "gQ"} yields @{text "g\<^sup>-\<^sup>1Pg \<subseteq> Q"}.\<close>
       have conj_sub: "conjugate_subgroup (inverse g) P \<subseteq> Q"
       proof
         fix x assume xconj: "x \<in> conjugate_subgroup (inverse g) P"

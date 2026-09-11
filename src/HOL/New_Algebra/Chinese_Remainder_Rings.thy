@@ -881,7 +881,7 @@ qed
 interpretation prod: ring_family S quot_carrier quot_add quot_mult quot_zero quot_one
   by (rule ring_family.intro) (rule quot_Ring)
 
-text \<open>The coset map for each component — directly uses @{const Ji_Class}.\<close>
+text \<open>The coset map for each component --- directly uses @{const Ji_Class}.\<close>
 definition ncoset :: "'i \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "ncoset i a = Ji_Class i a"
 

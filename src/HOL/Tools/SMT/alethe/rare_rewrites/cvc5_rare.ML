@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/alethe/cvc5_rare.ML
+(*  Title:      HOL/Tools/SMT/alethe/rare_rewrites/cvc5_rare.ML
     Author:     Mathias Fleury, University of Freiburg
     Author:     Hanna Lachnitt, Stanford University
 

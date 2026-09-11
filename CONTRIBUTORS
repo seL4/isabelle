@@ -7,7 +7,7 @@ Contributions to Isabelle2026
 -----------------------------
 
 * September 2026: Manuel Eberl
-  HOL: new relation "has_log_derivative"
+  HOL: new relation "has_log_derivative".
 
 * June 2026: Manuel Eberl
   HOL-Complex_Analysis: new compositional relation "has_zorder" to simplify
@@ -18,20 +18,19 @@ Contributions to Isabelle2026
   multiset of vectors.
 
 * April 2026: Manuel Eberl and Larry Paulson
-  HOL-Analysis: Transfer setup to lift theorems about "real ^ 'n :: finite" to
-  "'a :: euclidean_space". Used to prove change of variables for arbitrary
+  HOL-Analysis: Transfer setup to lift theorems about "real ^ 'n::finite" to
+  "'a::euclidean_space". Used to prove change of variables for arbitrary
   euclidean spaces.
-  
+
 * August 2026: Larry Paulson and Manuel Eberl
-  HOL-Analysis: Infinite products indexed by arbitrary sets in HOL-Analysis
+  HOL-Analysis: Infinite products indexed by arbitrary sets in HOL-Analysis.
 
 * August 2026: Manuel Eberl and Larry Paulson
-  HOL-Analysis: Theory of infinite products on sets
+  HOL-Analysis: Theory of infinite products on sets.
 
 * 2026: Hanna Lachnitt (University Stanford), Mathias Fleury and
   Pascal Walter (University Freiburg)
-  Reconstructing cvc5 proofs in the SMT method, now included as part of Isabelle
-  with cvc5 as component.
+  HOL: Reconstructing cvc5 proofs in the method "smt".
 
 
 Contributions to Isabelle2025-1

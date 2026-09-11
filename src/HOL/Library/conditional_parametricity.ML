@@ -51,7 +51,7 @@ val default_settings =
 
 (* helper functions *)
 
-fun strip_imp_prems_concl (Const("Pure.imp", _) $ A $ B) = A :: strip_imp_prems_concl B
+fun strip_imp_prems_concl (Const(\<^const_name>\<open>Pure.imp\<close>, _) $ A $ B) = A :: strip_imp_prems_concl B
   | strip_imp_prems_concl C = [C];
 
 fun strip_prop_safe t = Logic.unprotect t handle TERM _ => t;
