@@ -47,7 +47,7 @@ object Resources {
     options: Options.Update = Nil,
     keywords: Thy_Header.Keywords = Nil,
     abbrevs: Thy_Header.Abbrevs = Nil,
-    condition_bad: String = "",
+    conditions: Option[Thy_Conditions] = None,
     errors: List[String] = Nil,
     initiators: List[Document.Node.Name] = Nil
   ) {
@@ -71,9 +71,18 @@ object Resources {
       }
 
     def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
-      Exn.result { session_conditions.eval_restrict(options) } match {
-        case Exn.Res(conditions) => copy(condition_bad = conditions.bad_message)
-        case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
+      if (conditions.isDefined) this
+      else {
+        Exn.result { session_conditions.eval_restrict(options) } match {
+          case Exn.Res(cond) => copy(conditions = Some(cond))
+          case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
+        }
+      }
+
+    def condition_bad: String =
+      conditions match {
+        case Some(cond) => cond.bad_message
+        case None => error("Theory conditions not evaluated: " + quote(name.toString))
       }
   }
 
