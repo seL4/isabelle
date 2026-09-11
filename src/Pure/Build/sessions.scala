@@ -321,15 +321,18 @@ object Sessions {
           }
 
           val required_sessions =
-            dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
-              .map(theory => sessions_structure.theory_qualifier(theory))
-              .filter(name => name != info.name && sessions_structure.defined(name))
+            Set.from(
+              for {
+                theory <- dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
+                qualifier = sessions_structure.theory_qualifier(theory)
+                if qualifier != info.name && sessions_structure.defined(qualifier)
+              } yield qualifier)
 
           val required_subgraph =
             sessions_structure.imports_graph
-              .restrict(sessions_structure.imports_graph.all_preds(required_sessions).toSet)
+              .restrict(sessions_structure.imports_graph.all_preds(required_sessions.toList).toSet)
               .transitive_closure
-              .restrict(required_sessions.toSet)
+              .restrict(required_sessions)
               .transitive_reduction_acyclic
 
           val graph0 =
