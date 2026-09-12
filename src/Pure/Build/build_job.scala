@@ -251,6 +251,8 @@ object Build_Job {
                   }
             }
 
+          val session_theories = session_background.base.used_theories
+
 
           /* session */
 
@@ -273,7 +275,7 @@ object Build_Job {
                 Document.Blobs.make(session_blobs(node_name))
 
               override val nodes_status_domain: List[Document.Node.Name] =
-                session_background.base.used_theories.map(_.name.symbolic_path)
+                session_theories.map(_.name.symbolic_path)
             }
 
           val export_consumer =
@@ -449,7 +451,7 @@ object Build_Job {
                     Library.runs[Theory](
                       List.from(
                         for {
-                          thy <- session_background.base.used_theories.iterator
+                          thy <- session_theories.iterator
                           (process_opts, thy_opts) =
                             process.options.check_update(thy.options)
                               .partition(opt => process.options.get(opt.name).get.for_ML_process)
