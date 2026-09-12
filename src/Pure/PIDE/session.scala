@@ -129,7 +129,7 @@ object Session {
 abstract class Session extends Document.Session {
   session =>
 
-  override def toString: String = resources.session_base.session_name
+  override def toString: String = resources.current_background.session_name
 
   def session_options: Options
   def interactive: Boolean
@@ -889,7 +889,7 @@ abstract class Session extends Document.Session {
 
   def recent_syntax(name: Document.Node.Name): Outer_Syntax =
     get_state().recent_finished.version.get_finished.nodes(name).syntax getOrElse
-    resources.session_base.overall_syntax
+    resources.current_background.base.overall_syntax
 
   def stable_tip_version[A](models: Iterable[Document.Model]): Option[Document.Version] =
     if (models.forall(model => model.pending_edits.isEmpty)) get_state().stable_tip_version
@@ -910,7 +910,7 @@ abstract class Session extends Document.Session {
     no_build: Boolean = false
   ): Build.Results = {
     Build.build(store.options,
-      selection = Sessions.Selection.session(resources.session_base.session_name),
+      selection = Sessions.Selection.session(resources.current_background.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
       infos = resources.current_background.infos)
   }

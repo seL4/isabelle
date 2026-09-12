@@ -62,7 +62,7 @@ object PIDE {
   def title: String =
     proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
       (get_plugin match {
-        case Some(main) => "/" + main.session.resources.session_base.session_name
+        case Some(main) => "/" + main.session.resources.current_background.session_name
         case None => ""
       })
 

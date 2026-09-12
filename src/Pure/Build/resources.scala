@@ -114,12 +114,11 @@ class Resources(
   resources =>
 
   def sessions_structure: Sessions.Structure = parent_background.sessions_structure
-  def session_base: Sessions.Base = current_background.base
 
-  def loaded_theory(name: String): Boolean = session_base.loaded_theory(name)
-  def loaded_theory(name: Document.Node.Name): Boolean = session_base.loaded_theory(name)
+  def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
+  def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
 
-  override def toString: String = "Resources(" + session_base.print_body + ")"
+  override def toString: String = "Resources(" + current_background.base.print_body + ")"
 
   object Delay extends Delay_Ops(log)
 
@@ -141,7 +140,7 @@ class Resources(
      (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
      (Scala.functions.map((fun: Scala.Fun) => (fun.name, (fun.single, fun.bytes, fun.position))),
      (sessions_structure.global_theories.toList,
-      session_base.loaded_theories.keys)))))))
+      current_background.base.loaded_theories.keys)))))))
   }
 
 
@@ -475,7 +474,7 @@ class Resources(
     }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
-      entries.foldLeft(session_base.loaded_theories) {
+      entries.foldLeft(current_background.base.loaded_theories) {
         case (graph, entry) =>
           val name = entry.name.theory
           val imports = entry.imports_no_pos.map(_.theory)
@@ -521,10 +520,10 @@ class Resources(
     def imported_files: List[Path] = {
       val base_theories =
         loaded_theories.all_preds(theories.map(_.theory)).
-          filter(session_base.loaded_theories.defined)
+          filter(current_background.base.loaded_theories.defined)
 
-      base_theories.map(theory => session_base.known_theories(theory).name.path) :::
-      base_theories.flatMap(session_base.known_loaded_files.withDefaultValue(Nil))
+      base_theories.map(theory => current_background.base.known_theories(theory).name.path) :::
+      base_theories.flatMap(current_background.base.known_loaded_files.withDefaultValue(Nil))
     }
 
     lazy val overall_syntax: Outer_Syntax =
