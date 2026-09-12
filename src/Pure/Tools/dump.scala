@@ -230,19 +230,9 @@ object Dump {
         thy <- deps(session_name).used_theories
         if !resources.loaded_theory(thy.name)
         if {
-          def warn(msg: String): Unit =
-            progress.echo_warning("Skipping theory " + thy.name + " " + msg)
-
           val theory_options = options ++ thy.options
-
-          val condition_bad =
-            Thy_Conditions.init(options).eval(theory_options).check_errors.bad_message
-          if (condition_bad.nonEmpty) {
-            warn(condition_bad)
-            false
-          }
-          else if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {
-            warn("(option skip_proofs)")
+          if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {
+            progress.echo_warning("Skipping theory " + thy.name + " (option skip_proofs)")
             false
           }
           else true
