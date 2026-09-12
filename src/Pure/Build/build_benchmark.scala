@@ -84,7 +84,7 @@ object Build_Benchmark {
 
         val result =
           Build_Job.start_session(local_build_context, session, progress, Logger.none, server,
-            background, session.sources_shasum, input_shasum, node_info, false).join
+            background, background, session.sources_shasum, input_shasum, node_info, false).join
 
         val timing =
           if (result.process_result.ok) result.process_result.timing

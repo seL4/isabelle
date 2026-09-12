@@ -139,7 +139,7 @@ abstract class Session extends Document.Session {
   def cache: Rich_Text.Cache = store.cache
 
   override lazy val conditions: Thy_Conditions.Context =
-    Thy_Conditions.Context(resources.session_background, session_options)
+    Thy_Conditions.Context(resources.current_background, session_options)
 
   def doc_contents: Doc.Contents = Doc.contents(store.ml_settings)
   def doc_entry(name: String): Option[Doc.Entry] = doc_contents.entries(name = _ == name).headOption
@@ -161,7 +161,7 @@ abstract class Session extends Document.Session {
     document_snapshot: Option[Document.Snapshot] = None
   ): Export.Session_Context = {
     Export.open_session_context(
-      store, resources.session_background, document_snapshot = document_snapshot)
+      store, resources.current_background, document_snapshot = document_snapshot)
   }
 
   private val read_theory_cache =
@@ -649,7 +649,7 @@ abstract class Session extends Document.Session {
         }
 
       if (init_ok) {
-        conditions.init(resources.session_background, session_options)
+        conditions.init(resources.current_background, session_options)
         prover.get.update_options(session_options ++ prover_options)
         prover.get.init_session(resources)
 
@@ -828,7 +828,7 @@ abstract class Session extends Document.Session {
 
             case Update_Options(options) =>
               if (prover.defined && is_ready) {
-                conditions.init(resources.session_background, options)
+                conditions.init(resources.current_background, options)
                 prover.get.update_options(options ++ prover_options)
                 handle_raw_edits()
               }
@@ -912,7 +912,7 @@ abstract class Session extends Document.Session {
     Build.build(store.options,
       selection = Sessions.Selection.session(resources.session_base.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
-      infos = resources.session_background.infos)
+      infos = resources.current_background.infos)
   }
 
   def start(start_prover: Prover.Receiver => Prover): Unit = {

@@ -319,7 +319,10 @@ class Main_Plugin extends EBPlugin {
         case _: EditorStarted =>
           val view = jEdit.getActiveView
 
-          try { session.resources.session_background.check_errors }
+          try {
+            session.resources.parent_background.check_errors
+            session.resources.current_background.check_errors
+          }
           catch {
             case ERROR(msg) =>
               GUI.warning_dialog(

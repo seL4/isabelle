@@ -93,8 +93,10 @@ object Resources {
       }
   }
 
-  def bootstrap: Resources =
-    new Resources(Sessions.Background(base = Sessions.Base.bootstrap), Logger.none)
+  def bootstrap: Resources = {
+    val background = Sessions.Background(base = Sessions.Base.bootstrap)
+    new Resources(background, background, Logger.none)
+  }
 
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
@@ -104,14 +106,15 @@ object Resources {
 }
 
 class Resources(
-  val session_background: Sessions.Background,
+  val parent_background: Sessions.Background,
+  val current_background: Sessions.Background,
   val log: Logger,
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>
 
-  def sessions_structure: Sessions.Structure = session_background.sessions_structure
-  def session_base: Sessions.Base = session_background.base
+  def sessions_structure: Sessions.Structure = parent_background.sessions_structure
+  def session_base: Sessions.Base = current_background.base
 
   def loaded_theory(name: String): Boolean = session_base.loaded_theory(name)
   def loaded_theory(name: Document.Node.Name): Boolean = session_base.loaded_theory(name)

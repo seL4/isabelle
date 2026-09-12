@@ -267,9 +267,8 @@ object Sessions {
       }
 
       def make_base(deps_base: Base, info: Info): Base = {
-        val session_background =
-          Background(base = deps_base, sessions_structure = sessions_structure)
-        val resources = new Resources(session_background, Logger.none)
+        val background = Background(base = deps_base, sessions_structure = sessions_structure)
+        val resources = new Resources(background, background, Logger.none)
 
         progress.echo(
           "Session " + info.chapter + "/" + info.name +

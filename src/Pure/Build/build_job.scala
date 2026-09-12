@@ -30,14 +30,15 @@ object Build_Job {
     progress: Progress,
     log: Logger,
     server: SSH.Server,
-    session_background: Sessions.Background,
+    parent_background: Sessions.Background,
+    current_background: Sessions.Background,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, session_context, progress, log, server,
-      session_background, sources_shasum, input_shasum, node_info, store_heap)
+    new Session_Job(build_context, session_context, progress, log, server, parent_background,
+      current_background, sources_shasum, input_shasum, node_info, store_heap)
   }
 
   object Session_Context {
@@ -157,11 +158,11 @@ object Build_Job {
     def nodes_status_progress(nodes_status: Session.Nodes_Status): Unit =
       progress.nodes_status(
         Progress.Nodes_Status(nodes_status.now, nodes_status_domain, nodes_status.new_status,
-          session = resources.session_background.session_name,
+          session = resources.current_background.session_name,
           old = Some(nodes_status.old_status)))
 
     def nodes_status_exit(): Unit =
-      progress.nodes_status(Progress.Nodes_Status.empty(resources.session_background.session_name))
+      progress.nodes_status(Progress.Nodes_Status.empty(resources.current_background.session_name))
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
       start_process_output()
@@ -188,17 +189,18 @@ object Build_Job {
     progress: Progress,
     log: Logger,
     server: SSH.Server,
-    session_background: Sessions.Background,
+    parent_background: Sessions.Background,
+    current_background: Sessions.Background,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ) extends Build_Job {
-    def session_name: String = session_background.session_name
+    def session_name: String = current_background.session_name
 
     private val future_result: Future[Result] =
       Future.thread("build", uninterruptible = true) {
-        val info = session_background.sessions_structure(session_name)
+        val info = current_background.sessions_structure(session_name)
         val options = Host.node_options(info.options, node_info)
         val store = build_context.store
 
@@ -206,16 +208,16 @@ object Build_Job {
           store.clean_output(database_server, session_name, session_init = true)
 
           val session_sources =
-            Store.Sources.load(session_background.base, cache = store.cache.compress)
+            Store.Sources.load(current_background.base, cache = store.cache.compress)
 
           val env =
             Isabelle_System.Settings.env(
               List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
           val session_heaps =
-            session_background.info.parent match {
+            current_background.info.parent match {
               case None => Nil
-              case Some(logic) => store.session_heaps(session_background, logic = logic)
+              case Some(logic) => store.session_heaps(current_background, logic = logic)
             }
 
           val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
@@ -229,10 +231,10 @@ object Build_Job {
             else Nil
 
           def session_blobs(node_name: Document.Node.Name): List[(Command.Blob, Document.Blobs.Item)] =
-            session_background.base.theory_load_commands.get(node_name.theory) match {
+            current_background.base.theory_load_commands.get(node_name.theory) match {
               case None => Nil
               case Some(load_commands) =>
-                val syntax = session_background.base.theory_syntax(node_name)
+                val syntax = current_background.base.theory_syntax(node_name)
                 val master_dir = Path.explode(node_name.master_dir)
                 for {
                   (command_span, command_offset) <- load_commands
@@ -251,10 +253,10 @@ object Build_Job {
                   }
             }
 
-          val session_conditions = Thy_Conditions.Context(session_background, options)
+          val session_conditions = Thy_Conditions.Context(current_background, options)
 
           val session_theories =
-            session_background.base.used_theories.map(_.eval_conditions(session_conditions))
+            current_background.base.used_theories.map(_.eval_conditions(session_conditions))
 
 
           /* session */
@@ -269,7 +271,7 @@ object Build_Job {
               override lazy val conditions: Thy_Conditions.Context = session_conditions
 
               override val resources: Resources =
-                new Resources(session_background, log,
+                new Resources(parent_background, current_background, log,
                   command_timings =
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
@@ -432,7 +434,7 @@ object Build_Job {
           /* process */
 
           val process =
-            Isabelle_Process.start(options, session, session_background, session_heaps,
+            Isabelle_Process.start(options, session, current_background, session_heaps,
               use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir, env = env)
 
           val timeout_request: Option[Event_Timer.Request] =
@@ -498,7 +500,7 @@ object Build_Job {
               if (Exn.is_res(build_errors) && result0.ok && info.documents.nonEmpty) {
                 using(Export.open_database_context(store, server = server)) { database_context =>
                   val documents =
-                    using(database_context.open_session(session_background)) {
+                    using(database_context.open_session(current_background)) {
                       session_context =>
                         Document_Build.build_documents(
                           Document_Build.context(session_context, progress = progress),

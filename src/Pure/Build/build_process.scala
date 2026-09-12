@@ -1233,7 +1233,7 @@ extends AutoCloseable {
 
       val build =
         Build_Job.start_session(build_context, session, progress, log, server,
-          background, sources_shasum, input_shasum, node_info, store_heap)
+          background, background, sources_shasum, input_shasum, node_info, store_heap)
 
       state.add_running(
         Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, start, Some(build)))
