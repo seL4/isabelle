@@ -274,7 +274,7 @@ object Sessions {
             if_proper(info.groups, info.groups.mkString(" (", " ", ")")),
           verbose = !list_files)
 
-        val dependencies = resources.session_dependencies(info)
+        val dependencies = resources.build_dependencies(info)
 
         val proper_session_theories =
           dependencies.theories.filter(name =>

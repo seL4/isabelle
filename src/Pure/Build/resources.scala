@@ -346,16 +346,15 @@ class Resources(
       options = options, progress = progress, session_conditions = Some(session_conditions))
   }
 
-  def session_dependencies(
+  def build_dependencies(
     info: Sessions.Info,
     progress: Progress = new Progress
   ) : Dependencies = {
-    val session_conditions = Thy_Conditions.Context(info.options)
     info.theories.foldLeft(Dependencies.empty) {
       case (dependencies, (options, theories)) =>
         Dependencies.require_thys(dependencies,
           for { (s, pos) <- theories } yield (import_name(info, s), pos),
-          options = options, progress = progress, session_conditions = Some(session_conditions))
+          options = options, progress = progress)
     }
   }
 

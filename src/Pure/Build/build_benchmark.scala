@@ -81,10 +81,12 @@ object Build_Benchmark {
         val node_info = Host.Node_Info(hostname, None, Nil)
 
         val local_build_context = build_context.copy(store = Store(local_options))
+        val session_conditions = Thy_Conditions.Context(local_options)
 
         val result =
           Build_Job.start_session(local_build_context, session, progress, Logger.none, server,
-            background, session.sources_shasum, input_shasum, node_info, false).join
+            background, session_conditions, session.sources_shasum, input_shasum, node_info, false
+          ).join
 
         val timing =
           if (result.process_result.ok) result.process_result.timing
