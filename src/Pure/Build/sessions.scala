@@ -268,7 +268,11 @@ object Sessions {
 
       def make_base(deps_base: Base, info: Info): Base = {
         val deps_background = Background(base = deps_base, sessions_structure = sessions_structure)
-        val deps_resources = new Resources(deps_background, deps_background, Logger.none)
+        val deps_resources =
+          new Resources(
+            parent_background = deps_background,
+            current_background = deps_background,
+            Logger.none)
 
         progress.echo(
           "Session " + info.chapter + "/" + info.name +
@@ -486,6 +490,9 @@ object Sessions {
   ) {
     def background(session: String): Background =
       Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
+
+    def parent_background(session: String): Background =
+      background(sessions_structure(session).parent getOrElse "")
 
     def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
     def apply(name: String): Base = session_bases(name)

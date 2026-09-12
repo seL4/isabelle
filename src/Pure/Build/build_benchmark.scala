@@ -76,7 +76,8 @@ object Build_Benchmark {
           ).output_shasum
 
         val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
-        val background = deps.background(benchmark_session_name)
+        val parent_background = deps.parent_background(benchmark_session_name)
+        val current_background = deps.background(benchmark_session_name)
         val input_shasum = get_shasum(benchmark_session_name)
         val node_info = Host.Node_Info(hostname, None, Nil)
 
@@ -84,7 +85,8 @@ object Build_Benchmark {
 
         val result =
           Build_Job.start_session(local_build_context, session, progress, Logger.none, server,
-            background, background, session.sources_shasum, input_shasum, node_info, false).join
+            parent_background = parent_background, current_background = current_background,
+            session.sources_shasum, input_shasum, node_info, false).join
 
         val timing =
           if (result.process_result.ok) result.process_result.timing
