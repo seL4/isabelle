@@ -11,13 +11,13 @@ import scala.collection.immutable.SortedMap
 
 
 object Thy_Conditions {
-  val option = "condition"
+  object Condition extends Shasum.Special_Entry("condition")
 
   def init(options: Options): Thy_Conditions =
     new Thy_Conditions(options, SortedMap.empty)
 
   def explode(options: Options): List[String] =
-    space_explode(',', options.string(option))
+    space_explode(',', options.string(Condition.name))
 
 
   /* context with mutable state (or cache) */
@@ -99,7 +99,7 @@ final class Thy_Conditions private(
     }
 
   def update_options(specs: Options.Update): Options =
-    options ++ specs.filter(p => p._1 == Thy_Conditions.option)
+    options ++ specs.filter(p => p._1 == Thy_Conditions.Condition.name)
 
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this

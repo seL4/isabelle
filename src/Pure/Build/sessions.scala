@@ -240,6 +240,8 @@ object Sessions {
 
   /* source dependencies */
 
+  object Build_Prefs extends Shasum.Special_Entry("build_prefs")
+
   object Deps {
     def load(sessions_structure: Structure,
       progress: Progress = new Progress,
@@ -503,7 +505,7 @@ object Sessions {
       val conditions =
         session_base.used_theories.map(_.options)
           .foldLeft(Thy_Conditions.init(session_info.options))(_ eval _)
-          .check_errors.dest((a, b) => Shasum.make(SHA1.digest(b), Condition.make(a)))
+          .check_errors.dest((a, b) => Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a)))
 
       val sources =
         Shasum.make_sorted(
@@ -563,26 +565,6 @@ object Sessions {
 
 
   /* cumulative session info */
-
-  class Special_Info(val name: String) {
-    override def toString: String = "<" + name + ">"
-
-    private val BG = "<" + name + ":"
-    private val EN = ">"
-
-    def make(value: String): String = BG + value + EN
-
-    def detect(s: String): Boolean = {
-      val i = s.indexOf('<')
-      i >= 0 && {
-        val s1 = s.drop(i)
-        s1.startsWith(BG) && s1.endsWith(EN)
-      }
-    }
-  }
-
-  object Condition extends Special_Info("condition")
-  object Build_Prefs extends Special_Info("build_prefs")
 
   sealed case class Chapter_Info(
     name: String,
