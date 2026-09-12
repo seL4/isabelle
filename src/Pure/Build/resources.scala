@@ -51,7 +51,20 @@ object Resources {
     errors: List[String] = Nil,
     initiators: List[Document.Node.Name] = Nil
   ) {
-    override def toString: String = name.toString
+    override def toString: String = {
+      val more =
+        conditions match {
+          case None => "(unevaluated conditions)"
+          case Some(cond) => cond.bad_message
+        }
+      quote(name.toString) + if_proper(more, " " + more)
+    }
+
+    def condition_bad: String =
+      conditions match {
+        case Some(cond) => cond.bad_message
+        case None => error("Unevaluated conditions for theory " + quote(name.toString))
+      }
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
@@ -77,12 +90,6 @@ object Resources {
           case Exn.Res(cond) => copy(conditions = Some(cond))
           case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
         }
-      }
-
-    def condition_bad: String =
-      conditions match {
-        case Some(cond) => cond.bad_message
-        case None => error("Theory conditions not evaluated: " + quote(name.toString))
       }
   }
 
