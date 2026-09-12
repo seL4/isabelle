@@ -229,14 +229,6 @@ object Dump {
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
         thy <- deps(session_name).used_theories
         if !resources.loaded_theory(thy.name)
-        if {
-          val theory_options = options ++ thy.options
-          if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {
-            progress.echo_warning("Skipping theory " + thy.name + " (option skip_proofs)")
-            false
-          }
-          else true
-        }
       } yield thy.name.theory
     }
 
