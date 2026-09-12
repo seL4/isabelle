@@ -80,10 +80,14 @@ final class Thy_Conditions private(
   def restrict(domain: Set[String]): Thy_Conditions =
     new Thy_Conditions(options, rep.filter(p => domain(p._1)))
 
-  def dest[A](f: (String, Boolean) => A): List[A] =
-    List.from(for (case (a, Exn.Res(b)) <- rep.iterator) yield f(a, b))
+  def shasum: Shasum =
+    Shasum.flat(List.from(
+      for (case (a, Exn.Res(b)) <- rep.iterator)
+        yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
+
   def errors: List[String] =
     List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
+
   def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
   def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
   def bad_message: String =

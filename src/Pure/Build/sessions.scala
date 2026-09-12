@@ -505,14 +505,14 @@ object Sessions {
       val conditions =
         session_base.used_theories.map(_.options)
           .foldLeft(Thy_Conditions.init(session_info.options))(_ eval _)
-          .check_errors.dest((a, b) => Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a)))
+          .check_errors.shasum
 
       val sources =
         Shasum.make_sorted(
           for ((path, digest) <- session_base.all_sources)
             yield digest -> File.symbolic_path(path))
 
-      meta_info ::: build_prefs ::: Shasum.flat(conditions) ::: sources
+      meta_info ::: build_prefs ::: conditions ::: sources
     }
 
     def errors: List[String] =
