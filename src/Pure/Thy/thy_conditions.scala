@@ -46,6 +46,8 @@ object Thy_Conditions {
       conditions = conditions.evaluate(conds)
       conditions.restrict(conds.toSet)
     }
+
+    def shasum: Shasum = synchronized { conditions.shasum }
   }
 
 

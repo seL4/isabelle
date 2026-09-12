@@ -502,10 +502,9 @@ object Sessions {
         Shasum.make_sorted(session_info.options.changed(filter = _.session_content)
           .map(ch => SHA1.digest(ch.print_prefs) -> Build_Prefs.make(ch.name)))
 
-      val conditions =
-        session_base.used_theories.map(_.options)
-          .foldLeft(Thy_Conditions.init(session_info.options))(_ eval _)
-          .shasum
+      val session_conditions = Thy_Conditions.Context(session_info.options)
+      for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
+      val conditions = session_conditions.shasum
 
       val sources =
         Shasum.make_sorted(
