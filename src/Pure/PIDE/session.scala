@@ -139,7 +139,7 @@ abstract class Session extends Document.Session {
   def cache: Rich_Text.Cache = store.cache
 
   override lazy val conditions: Thy_Conditions.Context =
-    Thy_Conditions.Context(resources.current_background, session_options)
+    Thy_Conditions.Context(resources.parent_background, session_options)
 
   def doc_contents: Doc.Contents = Doc.contents(store.ml_settings)
   def doc_entry(name: String): Option[Doc.Entry] = doc_contents.entries(name = _ == name).headOption
@@ -649,7 +649,7 @@ abstract class Session extends Document.Session {
         }
 
       if (init_ok) {
-        conditions.init(resources.current_background, session_options)
+        conditions.init(resources.parent_background, session_options)
         prover.get.update_options(session_options ++ prover_options)
         prover.get.init_session(resources)
 
@@ -828,7 +828,7 @@ abstract class Session extends Document.Session {
 
             case Update_Options(options) =>
               if (prover.defined && is_ready) {
-                conditions.init(resources.current_background, options)
+                conditions.init(resources.parent_background, options)
                 prover.get.update_options(options ++ prover_options)
                 handle_raw_edits()
               }
