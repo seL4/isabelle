@@ -267,15 +267,15 @@ object Sessions {
       }
 
       def make_base(deps_base: Base, info: Info): Base = {
-        val background = Background(base = deps_base, sessions_structure = sessions_structure)
-        val resources = new Resources(background, background, Logger.none)
+        val deps_background = Background(base = deps_base, sessions_structure = sessions_structure)
+        val deps_resources = new Resources(deps_background, deps_background, Logger.none)
 
         progress.echo(
           "Session " + info.chapter + "/" + info.name +
             if_proper(info.groups, info.groups.mkString(" (", " ", ")")),
           verbose = !list_files)
 
-        val dependencies = resources.build_dependencies(info)
+        val dependencies = deps_resources.build_dependencies(info)
 
         val proper_session_theories =
           dependencies.theories.filter(name =>
@@ -422,7 +422,7 @@ object Sessions {
           val errs4 =
             (for {
               name <- proper_session_theories.iterator
-              name1 <- resources.find_theory_node(name.theory)
+              name1 <- deps_resources.find_theory_node(name.theory)
               if name.node != name1.node
             } yield {
               "Incoherent theory file import:\n  " + quote(name.node) +
