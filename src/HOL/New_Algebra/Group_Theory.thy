@@ -196,7 +196,7 @@ proof -
   interpret Monoid G "(\<cdot>)" \<one>
     using assms(1-5) by unfold_locales blast+
   show ?thesis
-  proof unfold_locales
+  proof 
     fix u assume "u \<in> G"
     then obtain v where "v \<in> G" "u \<cdot> v = \<one>" "v \<cdot> u = \<one>" using inv by blast
     then show "invertible u" using invertibleI by blast
