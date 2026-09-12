@@ -80,13 +80,20 @@ final class Thy_Conditions private(
   def restrict(domain: Set[String]): Thy_Conditions =
     new Thy_Conditions(options, rep.filter(p => domain(p._1)))
 
-  def shasum: Shasum =
+  def errors: List[String] =
+    List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
+
+  def check_errors: Thy_Conditions =
+    errors match {
+      case Nil => this
+      case errs => error(cat_lines(errs))
+    }
+
+  def shasum: Shasum = {
     Shasum.flat(List.from(
       for (case (a, Exn.Res(b)) <- rep.iterator)
         yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
-
-  def errors: List[String] =
-    List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
+  }
 
   def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
   def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
@@ -94,12 +101,6 @@ final class Thy_Conditions private(
     bad match {
       case Nil => ""
       case xs => xs.map(x => "undefined " + x).mkString("(", ", ", ")")
-    }
-
-  def check_errors: Thy_Conditions =
-    errors match {
-      case Nil => this
-      case errs => error(cat_lines(errs))
     }
 
   def update_options(specs: Options.Update): Options =
