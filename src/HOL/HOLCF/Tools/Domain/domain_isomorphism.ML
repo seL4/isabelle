@@ -49,7 +49,6 @@ open HOLCF_Library
 infixr 6 ->>
 infixr -->>
 
-val udomT = \<^typ>\<open>udom\<close>
 val deflT = \<^typ>\<open>udom defl\<close>
 val udeflT = \<^typ>\<open>udom u defl\<close>
 

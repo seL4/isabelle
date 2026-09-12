@@ -1172,7 +1172,7 @@ extends AutoCloseable {
         build_thorough = build_context.sessions_structure(session_name).build_thorough,
         fresh_build = build_context.fresh_build,
         store_heap = store_heap,
-        build_debug = store.options.bool("build_debug"),
+        build_debug = build_options.bool("build_debug"),
         progress = progress)
     val output_shasum = build_output.output_shasum
 
@@ -1229,11 +1229,13 @@ extends AutoCloseable {
             ")") + " ...")
 
       val session = state.sessions(session_name)
-      val background = build_deps.background(session_name)
+      val parent_background = build_deps.parent_background(session_name)
+      val current_background = build_deps.background(session_name)
 
       val build =
         Build_Job.start_session(build_context, session, progress, log, server,
-          background, sources_shasum, input_shasum, node_info, store_heap)
+          parent_background = parent_background, current_background = current_background,
+          sources_shasum, input_shasum, node_info, store_heap)
 
       state.add_running(
         Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, start, Some(build)))

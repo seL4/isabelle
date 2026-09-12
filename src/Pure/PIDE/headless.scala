@@ -615,7 +615,7 @@ object Headless {
     val options: Options,
     session_background: Sessions.Background,
     log: Logger)
-  extends isabelle.Resources(session_background.check_errors, log) {
+  extends isabelle.Resources(session_background, session_background.check_errors, log) {
     resources =>
 
     val store: Store = Store(options)
@@ -660,7 +660,9 @@ object Headless {
 
           progress.expose_interrupt()
           val text = Symbol.output(unicode_symbols, File.read(path))
-          val thy = resources.check_thy(session.conditions, node_name, Scan.char_reader(text))
+          val thy =
+            resources.check_thy(node_name, Scan.char_reader(text))
+              .eval_conditions(session.conditions)
           new Resources.Theory(node_name, thy, text, true)
         }
 

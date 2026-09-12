@@ -11,34 +11,36 @@ import scala.collection.immutable.SortedMap
 
 
 object Thy_Conditions {
-  val option = "condition"
+  object Condition extends Shasum.Special_Entry("condition")
 
-  def init(options: Options): Thy_Conditions =
-    new Thy_Conditions(options, SortedMap.empty)
+  def init(background: Sessions.Background, options: Options): Thy_Conditions =
+    new Thy_Conditions(background, options, SortedMap.empty)
 
   def explode(options: Options): List[String] =
-    space_explode(',', options.string(option))
+    space_explode(',', options.string(Condition.name))
 
 
   /* context with mutable state (or cache) */
 
   object Context {
-    def apply(options: Options): Context = {
+    def apply(background: Sessions.Background, options: Options): Context = {
       val context = new Context
-      init(options)
+      context.init(background, options)
       context
     }
   }
 
   final class Context private {
-    private var conditions: Thy_Conditions = Thy_Conditions.init(Options.defaults)
+    private var conditions: Thy_Conditions =
+      Thy_Conditions.init(Sessions.background0(""), Options.defaults)
 
     override def toString: String = synchronized { conditions.toString }
 
+    def background: Sessions.Background = synchronized { conditions.background }
     def options: Options = synchronized { conditions.options }
 
-    def init(init_options: Options): Unit =
-      synchronized { conditions = Thy_Conditions.init(init_options) }
+    def init(init_background: Sessions.Background, init_options: Options): Unit =
+      synchronized { conditions = Thy_Conditions.init(init_background, init_options) }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
       val eval_options = conditions.update_options(specs)
@@ -46,6 +48,8 @@ object Thy_Conditions {
       conditions = conditions.evaluate(conds)
       conditions.restrict(conds.toSet)
     }
+
+    def shasum: Shasum = synchronized { conditions.shasum }
   }
 
 
@@ -74,16 +78,29 @@ object Thy_Conditions {
 }
 
 final class Thy_Conditions private(
+  val background: Sessions.Background,
   val options: Options,
   rep: SortedMap[String, Exn.Result[Boolean]]
 ) {
   def restrict(domain: Set[String]): Thy_Conditions =
-    new Thy_Conditions(options, rep.filter(p => domain(p._1)))
+    new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
 
-  def dest[A](f: (String, Boolean) => A): List[A] =
-    List.from(for (case (a, Exn.Res(b)) <- rep.iterator) yield f(a, b))
   def errors: List[String] =
     List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
+
+  def check_errors: Thy_Conditions =
+    errors match {
+      case Nil => this
+      case errs => error(cat_lines(errs))
+    }
+
+  def shasum: Shasum = {
+    check_errors
+    Shasum.flat(List.from(
+      for (case (a, Exn.Res(b)) <- rep.iterator)
+        yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
+  }
+
   def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
   def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
   def bad_message: String =
@@ -92,14 +109,8 @@ final class Thy_Conditions private(
       case xs => xs.map(x => "undefined " + x).mkString("(", ", ", ")")
     }
 
-  def check_errors: Thy_Conditions =
-    errors match {
-      case Nil => this
-      case errs => error(cat_lines(errs))
-    }
-
   def update_options(specs: Options.Update): Options =
-    options ++ specs.filter(p => p._1 == Thy_Conditions.option)
+    options ++ specs.filter(p => p._1 == Thy_Conditions.Condition.name)
 
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
@@ -119,7 +130,7 @@ final class Thy_Conditions private(
               }
           }
         )
-      new Thy_Conditions(options, rep + (cond -> result))
+      new Thy_Conditions(background, options, rep + (cond -> result))
     }
 
   def evaluate(conds: List[String]): Thy_Conditions = conds.foldLeft(this)(_ evaluate _)

@@ -182,7 +182,7 @@ object Session_Build {
     setVisible(true)
 
     Isabelle_Thread.fork(name = "session_build") {
-      progress.echo(Build.build_logic_started(PIDE.resources.session_base.session_name))
+      progress.echo(Build.build_logic_started(PIDE.resources.current_background.session_name))
 
       val (out, rc) =
         try { ("", JEdit_Session.session_build(progress)) }
@@ -197,7 +197,7 @@ object Session_Build {
       if (ok) JEdit_Session.session_start()
       else {
         progress.echo(
-          Build.build_logic_failed(PIDE.resources.session_base.session_name, editor = true))
+          Build.build_logic_failed(PIDE.resources.current_background.session_name, editor = true))
       }
 
       return_code(rc)

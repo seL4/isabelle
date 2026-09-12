@@ -443,7 +443,9 @@ object Command {
       // inlined errors
       case Thy_Header.THEORY =>
         val reader = span.content_reader
-        val thy = resources.check_thy(session.conditions, node_name, span.content_reader)
+        val thy =
+          resources.check_thy(node_name, span.content_reader)
+            .eval_conditions(session.conditions)
         val raw_imports =
           try {
             val read_imports = Thy_Header.read(node_name, reader).imports_no_pos

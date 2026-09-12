@@ -47,17 +47,34 @@ object Resources {
     options: Options.Update = Nil,
     keywords: Thy_Header.Keywords = Nil,
     abbrevs: Thy_Header.Abbrevs = Nil,
-    condition_bad: String = "",
+    conditions: Option[Thy_Conditions] = None,
     errors: List[String] = Nil,
     initiators: List[Document.Node.Name] = Nil
   ) {
-    override def toString: String = name.toString
+    override def toString: String = {
+      val more =
+        conditions match {
+          case None => "(unevaluated conditions)"
+          case Some(cond) => cond.bad_message
+        }
+      quote(name.toString) + if_proper(more, " " + more)
+    }
+
+    def condition_bad: String =
+      conditions match {
+        case Some(cond) => cond.bad_message
+        case None => error("Unevaluated conditions for theory " + quote(name.toString))
+      }
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
-    def append_errors(msgs: List[String]): Thy =
-      if (msgs.isEmpty) this
-      else copy(errors = errors ::: msgs)
+    def include_errors(msgs: List[String]): Thy = {
+      val duplicate = errors.toSet
+      msgs.filter(msg => !duplicate(msg)) match {
+        case Nil => this
+        case errs => copy(errors = errors ::: errs)
+      }
+    }
 
     def cat_errors(make_msg2: => String): Thy =
       if (errors.isEmpty) this
@@ -65,10 +82,21 @@ object Resources {
         val msg2 = make_msg2
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
       }
+
+    def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
+      if (conditions.isDefined) this
+      else {
+        Exn.result { session_conditions.eval_restrict(options) } match {
+          case Exn.Res(cond) => copy(conditions = Some(cond))
+          case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
+        }
+      }
   }
 
-  def bootstrap: Resources =
-    new Resources(Sessions.Background(base = Sessions.Base.bootstrap), Logger.none)
+  def bootstrap: Resources = {
+    val background = Sessions.Background(base = Sessions.Base.bootstrap)
+    new Resources(background, background, Logger.none)
+  }
 
   def hidden_node(name: Document.Node.Name): Boolean =
     !name.is_theory || name.theory == Sessions.root_name || File_Format.registry.is_theory(name)
@@ -78,19 +106,19 @@ object Resources {
 }
 
 class Resources(
-  val session_background: Sessions.Background,
+  val parent_background: Sessions.Background,
+  val current_background: Sessions.Background,
   val log: Logger,
   command_timings: List[Properties.T] = Nil
 ) {
   resources =>
 
-  def sessions_structure: Sessions.Structure = session_background.sessions_structure
-  def session_base: Sessions.Base = session_background.base
+  override def toString: String = "Resources(" + current_background.base.print_body + ")"
 
-  def loaded_theory(name: String): Boolean = session_base.loaded_theory(name)
-  def loaded_theory(name: Document.Node.Name): Boolean = session_base.loaded_theory(name)
+  def sessions_structure: Sessions.Structure = current_background.sessions_structure
 
-  override def toString: String = "Resources(" + session_base.print_body + ")"
+  def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
+  def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
 
   object Delay extends Delay_Ops(log)
 
@@ -112,7 +140,7 @@ class Resources(
      (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
      (Scala.functions.map((fun: Scala.Fun) => (fun.name, (fun.single, fun.bytes, fun.position))),
      (sessions_structure.global_theories.toList,
-      session_base.loaded_theories.keys)))))))
+      current_background.base.loaded_theories.keys)))))))
   }
 
 
@@ -260,7 +288,6 @@ class Resources(
   }
 
   def check_thy(
-    session_conditions: Thy_Conditions.Context,
     node_name: Document.Node.Name,
     reader: Reader[Char],
     more_options: Options.Update = Nil,
@@ -280,18 +307,13 @@ class Resources(
             else (name, pos)
           })
 
-        val options = header.options ::: more_options
-        val conditions = session_conditions.eval_restrict(options)
-
         Resources.Thy(
           name = node_name,
           pos = header.pos,
           imports = imports,
-          options = options,
+          options = header.options ::: more_options,
           keywords = header.keywords,
           abbrevs = header.abbrevs,
-          condition_bad = conditions.bad_message,
-          errors = conditions.errors,
           initiators = initiators)
       }
       catch { case e: Throwable => Resources.Thy(name = node_name, errors = List(Exn.message(e))) }
@@ -329,18 +351,17 @@ class Resources(
     options: Options.Update = Nil,
     progress: Progress = new Progress
   ): Dependencies = {
-    Dependencies.require_thys(Dependencies.empty, session_conditions, theories,
-      options = options, progress = progress)
+    Dependencies.require_thys(Dependencies.empty, theories,
+      options = options, progress = progress, session_conditions = Some(session_conditions))
   }
 
-  def session_dependencies(
+  def build_dependencies(
     info: Sessions.Info,
     progress: Progress = new Progress
   ) : Dependencies = {
-    val session_conditions = Thy_Conditions.Context(info.options)
     info.theories.foldLeft(Dependencies.empty) {
       case (dependencies, (options, theories)) =>
-        Dependencies.require_thys(dependencies, session_conditions,
+        Dependencies.require_thys(dependencies,
           for { (s, pos) <- theories } yield (import_name(info, s), pos),
           options = options, progress = progress)
     }
@@ -360,10 +381,10 @@ class Resources(
 
     private [Resources] def require_thys(
       dependencies0: Dependencies,
-      session_conditions: Thy_Conditions.Context,
       theories: List[(Document.Node.Name, Position.T)],
       options: Options.Update = Nil,
-      progress: Progress = new Progress
+      progress: Progress = new Progress,
+      session_conditions: Option[Thy_Conditions.Context] = None
     ): Dependencies = {
       def require_thy(
         dependencies: Dependencies,
@@ -387,10 +408,18 @@ class Resources(
               progress.expose_interrupt()
               val thy =
                 try {
-                  with_thy_reader(name,
-                    check_thy(session_conditions, name, _,
-                      more_options = options, initiators = initiators, command = false)
-                    ).cat_errors(message)
+                  val thy0 =
+                    with_thy_reader(name,
+                      { reader =>
+                        check_thy(name, reader,
+                          more_options = options, initiators = initiators, command = false)
+                      })
+                  val thy1 =
+                    session_conditions match {
+                      case None => thy0
+                      case Some(cond) => thy0.eval_conditions(cond)
+                    }
+                  thy1.cat_errors(message)
                 }
                 catch { case ERROR(msg) => cat_error(msg, message) }
               thy.imports.foldLeft(dependencies1)(require_thy(_, _, name :: initiators)).cons(thy)
@@ -434,18 +463,18 @@ class Resources(
       val regular = theories.toSet
       val irregular =
         (for {
-          entry <- entries.iterator
-          imp <- entry.imports_no_pos
-          if !regular(imp)
-        } yield imp).toSet
+          thy <- entries.iterator
+          name <- thy.imports_no_pos
+          if !regular(name)
+        } yield name).toSet
 
       Document.Node.Name.make_graph(
         irregular.toList.map(name => ((name, ()), Nil)) :::
-        entries.map(entry => ((entry.name, ()), entry.imports_no_pos)))
+        entries.map(thy => ((thy.name, ()), thy.imports_no_pos)))
     }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
-      entries.foldLeft(session_base.loaded_theories) {
+      entries.foldLeft(current_background.base.loaded_theories) {
         case (graph, entry) =>
           val name = entry.name.theory
           val imports = entry.imports_no_pos.map(_.theory)
@@ -475,27 +504,26 @@ class Resources(
     def loaded_files(
       name: Document.Node.Name,
       spans: List[Command_Span.Span]
-    ) : (String, List[Document.Node.Name]) = {
-      val theory = name.theory
+    ): List[Document.Node.Name] = {
       val syntax = get_syntax(name)
       val files1 = resources.loaded_files(syntax, name, spans)
-      val files2 = if (Sessions.is_Pure(theory)) pure_files(syntax) else Nil
-      (theory, files1 ::: files2)
+      val files2 = if (Sessions.is_Pure(name.theory)) pure_files(syntax) else Nil
+      files1 ::: files2
     }
 
     def loaded_files: List[Document.Node.Name] =
       for {
         (name, cmds) <- load_commands
-        file <- loaded_files(name, cmds.map(_._1))._2
+        file <- loaded_files(name, cmds.map(_._1))
       } yield file
 
     def imported_files: List[Path] = {
       val base_theories =
         loaded_theories.all_preds(theories.map(_.theory)).
-          filter(session_base.loaded_theories.defined)
+          filter(current_background.base.loaded_theories.defined)
 
-      base_theories.map(theory => session_base.known_theories(theory).name.path) :::
-      base_theories.flatMap(session_base.known_loaded_files.withDefaultValue(Nil))
+      base_theories.map(theory => current_background.base.known_theories(theory).name.path) :::
+      base_theories.flatMap(current_background.base.known_loaded_files.withDefaultValue(Nil))
     }
 
     lazy val overall_syntax: Outer_Syntax =

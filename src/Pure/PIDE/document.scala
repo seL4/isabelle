@@ -863,6 +863,7 @@ object Document {
     def session_options: Options
     def resources: Resources
     def store: Store
+    def conditions: Thy_Conditions.Context
   }
 
   trait Model {
@@ -897,7 +898,7 @@ object Document {
               }
               else Nil
             List(
-              Node.Thy(thy.append_errors(errors)),
+              Node.Thy(thy.include_errors(errors)),
               Node.Edits(text_edits), perspective)
           case Some(blob) => List(Node.Blob(blob), Node.Edits(text_edits))
         }
