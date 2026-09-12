@@ -31,14 +31,13 @@ object Build_Job {
     log: Logger,
     server: SSH.Server,
     session_background: Sessions.Background,
-    session_conditions: Thy_Conditions.Context,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
     new Session_Job(build_context, session_context, progress, log, server,
-      session_background, session_conditions, sources_shasum, input_shasum, node_info, store_heap)
+      session_background, sources_shasum, input_shasum, node_info, store_heap)
   }
 
   object Session_Context {
@@ -190,7 +189,6 @@ object Build_Job {
     log: Logger,
     server: SSH.Server,
     session_background: Sessions.Background,
-    session_conditions: Thy_Conditions.Context,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
@@ -252,6 +250,8 @@ object Build_Job {
                       Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
                   }
             }
+
+          val session_conditions = Thy_Conditions.Context(options)
 
           val session_theories =
             session_background.base.used_theories.map(_.eval_conditions(session_conditions))

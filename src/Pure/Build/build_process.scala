@@ -1230,11 +1230,10 @@ extends AutoCloseable {
 
       val session = state.sessions(session_name)
       val background = build_deps.background(session_name)
-      val session_conditions = Thy_Conditions.Context(build_options)
 
       val build =
         Build_Job.start_session(build_context, session, progress, log, server,
-          background, session_conditions, sources_shasum, input_shasum, node_info, store_heap)
+          background, sources_shasum, input_shasum, node_info, store_heap)
 
       state.add_running(
         Build_Process.Job(session_name, worker_uuid, build_uuid, node_info, start, Some(build)))
