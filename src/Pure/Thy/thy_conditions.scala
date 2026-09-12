@@ -90,6 +90,7 @@ final class Thy_Conditions private(
     }
 
   def shasum: Shasum = {
+    check_errors
     Shasum.flat(List.from(
       for (case (a, Exn.Res(b)) <- rep.iterator)
         yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))

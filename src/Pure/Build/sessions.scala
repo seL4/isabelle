@@ -505,7 +505,7 @@ object Sessions {
       val conditions =
         session_base.used_theories.map(_.options)
           .foldLeft(Thy_Conditions.init(session_info.options))(_ eval _)
-          .check_errors.shasum
+          .shasum
 
       val sources =
         Shasum.make_sorted(
