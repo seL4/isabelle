@@ -113,12 +113,12 @@ class Resources(
 ) {
   resources =>
 
+  override def toString: String = "Resources(" + current_background.base.print_body + ")"
+
   def sessions_structure: Sessions.Structure = current_background.sessions_structure
 
   def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
   def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
-
-  override def toString: String = "Resources(" + current_background.base.print_body + ")"
 
   object Delay extends Delay_Ops(log)
 
