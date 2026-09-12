@@ -227,13 +227,13 @@ object Dump {
       for {
         session_name <-
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
-        entry <- deps(session_name).used_theories
-        if !resources.loaded_theory(entry.name)
+        thy <- deps(session_name).used_theories
+        if !resources.loaded_theory(thy.name)
         if {
           def warn(msg: String): Unit =
-            progress.echo_warning("Skipping theory " + entry.name + " " + msg)
+            progress.echo_warning("Skipping theory " + thy.name + " " + msg)
 
-          val theory_options = options ++ entry.options
+          val theory_options = options ++ thy.options
 
           val condition_bad =
             Thy_Conditions.init(options).eval(theory_options).check_errors.bad_message
@@ -247,7 +247,7 @@ object Dump {
           }
           else true
         }
-      } yield entry
+      } yield thy
     }
 
 
