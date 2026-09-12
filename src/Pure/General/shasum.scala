@@ -67,4 +67,5 @@ final class Shasum private(val rep: List[String]) {
   def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
   def filter(pred: String => Boolean): Shasum = new Shasum(rep.filter(pred))
+  def remove(entry: Shasum.Special_Entry): Shasum = filter(s => !entry.detect(s))
 }
