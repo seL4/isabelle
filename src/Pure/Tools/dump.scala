@@ -223,7 +223,7 @@ object Dump {
         session_dirs = context.session_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
-    val used_theories: List[Resources.Thy] = {
+    val session_theories: List[String] = {
       for {
         session_name <-
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
@@ -247,7 +247,7 @@ object Dump {
           }
           else true
         }
-      } yield thy
+      } yield thy.name.theory
     }
 
 
@@ -314,7 +314,7 @@ object Dump {
 
       try {
         val use_theories_result =
-          session.use_theories(used_theories.map(_.name.theory),
+          session.use_theories(session_theories,
             unicode_symbols = unicode_symbols,
             progress = progress,
             commit = Some(Consumer.apply))
