@@ -113,7 +113,7 @@ class Resources(
 ) {
   resources =>
 
-  def sessions_structure: Sessions.Structure = parent_background.sessions_structure
+  def sessions_structure: Sessions.Structure = current_background.sessions_structure
 
   def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
   def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
