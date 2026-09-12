@@ -161,7 +161,7 @@ abstract class Session extends Document.Session {
     document_snapshot: Option[Document.Snapshot] = None
   ): Export.Session_Context = {
     Export.open_session_context(
-      store, resources.current_background, document_snapshot = document_snapshot)
+      store, resources.parent_background, document_snapshot = document_snapshot)
   }
 
   private val read_theory_cache =
