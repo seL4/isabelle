@@ -13,8 +13,8 @@ import scala.collection.immutable.SortedMap
 object Thy_Conditions {
   object Condition extends Shasum.Special_Entry("condition")
 
-  def init(options: Options): Thy_Conditions =
-    new Thy_Conditions(options, SortedMap.empty)
+  def init(background: Sessions.Background, options: Options): Thy_Conditions =
+    new Thy_Conditions(background, options, SortedMap.empty)
 
   def explode(options: Options): List[String] =
     space_explode(',', options.string(Condition.name))
@@ -23,22 +23,24 @@ object Thy_Conditions {
   /* context with mutable state (or cache) */
 
   object Context {
-    def apply(options: Options): Context = {
+    def apply(background: Sessions.Background, options: Options): Context = {
       val context = new Context
-      context.init(options)
+      context.init(background, options)
       context
     }
   }
 
   final class Context private {
-    private var conditions: Thy_Conditions = Thy_Conditions.init(Options.defaults)
+    private var conditions: Thy_Conditions =
+      Thy_Conditions.init(Sessions.background0(""), Options.defaults)
 
     override def toString: String = synchronized { conditions.toString }
 
+    def background: Sessions.Background = synchronized { conditions.background }
     def options: Options = synchronized { conditions.options }
 
-    def init(init_options: Options): Unit =
-      synchronized { conditions = Thy_Conditions.init(init_options) }
+    def init(init_background: Sessions.Background, init_options: Options): Unit =
+      synchronized { conditions = Thy_Conditions.init(init_background, init_options) }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
       val eval_options = conditions.update_options(specs)
@@ -76,11 +78,12 @@ object Thy_Conditions {
 }
 
 final class Thy_Conditions private(
+  val background: Sessions.Background,
   val options: Options,
   rep: SortedMap[String, Exn.Result[Boolean]]
 ) {
   def restrict(domain: Set[String]): Thy_Conditions =
-    new Thy_Conditions(options, rep.filter(p => domain(p._1)))
+    new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
 
   def errors: List[String] =
     List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
@@ -127,7 +130,7 @@ final class Thy_Conditions private(
               }
           }
         )
-      new Thy_Conditions(options, rep + (cond -> result))
+      new Thy_Conditions(background, options, rep + (cond -> result))
     }
 
   def evaluate(conds: List[String]): Thy_Conditions = conds.foldLeft(this)(_ evaluate _)

@@ -251,7 +251,7 @@ object Build_Job {
                   }
             }
 
-          val session_conditions = Thy_Conditions.Context(options)
+          val session_conditions = Thy_Conditions.Context(session_background, options)
 
           val session_theories =
             session_background.base.used_theories.map(_.eval_conditions(session_conditions))
