@@ -216,7 +216,7 @@ object Build_Job {
               List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
           val session_heaps =
-            current_background.info.parent match {
+            info.parent match {
               case None => Nil
               case Some(logic) => store.session_heaps(current_background, logic = logic)
             }
