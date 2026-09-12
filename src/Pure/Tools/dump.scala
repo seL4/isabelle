@@ -223,14 +223,13 @@ object Dump {
         session_dirs = context.session_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
-    val session_theories: List[String] = {
+    val session_theories: List[String] =
       for {
         session_name <-
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
         thy <- deps(session_name).used_theories
         if !resources.loaded_theory(thy.name)
       } yield thy.name.theory
-    }
 
 
     /* process */
