@@ -1172,7 +1172,7 @@ extends AutoCloseable {
         build_thorough = build_context.sessions_structure(session_name).build_thorough,
         fresh_build = build_context.fresh_build,
         store_heap = store_heap,
-        build_debug = store.options.bool("build_debug"),
+        build_debug = build_options.bool("build_debug"),
         progress = progress)
     val output_shasum = build_output.output_shasum
 
