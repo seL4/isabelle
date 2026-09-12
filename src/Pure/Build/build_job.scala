@@ -266,7 +266,7 @@ object Build_Job {
 
               override val store: Store = build_context.store
 
-              override val conditions: Thy_Conditions.Context = session_conditions
+              override lazy val conditions: Thy_Conditions.Context = session_conditions
 
               override val resources: Resources =
                 new Resources(session_background, log,
