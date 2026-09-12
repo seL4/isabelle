@@ -25,7 +25,7 @@ object Thy_Conditions {
   object Context {
     def apply(options: Options): Context = {
       val context = new Context
-      init(options)
+      context.init(options)
       context
     }
   }
