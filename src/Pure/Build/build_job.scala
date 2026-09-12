@@ -37,8 +37,9 @@ object Build_Job {
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, session_context, progress, log, server, parent_background,
-      current_background, sources_shasum, input_shasum, node_info, store_heap)
+    new Session_Job(build_context, session_context, progress, log, server,
+      parent_background = parent_background, current_background = current_background,
+      sources_shasum, input_shasum, node_info, store_heap)
   }
 
   object Session_Context {
@@ -271,7 +272,10 @@ object Build_Job {
               override lazy val conditions: Thy_Conditions.Context = session_conditions
 
               override val resources: Resources =
-                new Resources(parent_background, current_background, log,
+                new Resources(
+                  parent_background = parent_background,
+                  current_background = current_background,
+                  log = log,
                   command_timings =
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
