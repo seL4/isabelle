@@ -372,12 +372,16 @@ end;
 (* present_thy *)
 
 type segment =
-  {span: Command_Span.span, command: Toplevel.transition,
-   prev_state: Toplevel.state, state: Toplevel.state};
+ {span: Command_Span.span,
+  command: Toplevel.transition,
+  prev_state: Toplevel.state,
+  state: Toplevel.state};
 
 val segment_eof: segment =
-  {span = Command_Span.eof, command = Toplevel.empty,
-   prev_state = Toplevel.make_state NONE, state = Toplevel.make_state NONE};
+ {span = Command_Span.eof,
+  command = Toplevel.empty,
+  prev_state = Toplevel.make_state NONE,
+  state = Toplevel.make_state NONE};
 
 val segment_stopper =
   Scan.stopper (K segment_eof) (Command_Span.is_eof o #span);
@@ -391,9 +395,9 @@ val markup_false = "\\isamarkupfalse%\n";
 fun command_output output tok =
   if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
 
-fun segment_content (segment: segment) =
-  let val toks = Command_Span.content (#span segment) in
-    (case Toplevel.output_of (#state segment) of
+fun segment_content ({span, state, ...}: segment) =
+  let val toks = Command_Span.content span in
+    (case Toplevel.output_of state of
       NONE => toks
     | SOME output => map_filter (command_output output) toks)
   end;
