@@ -63,7 +63,7 @@ qed
 
 text \<open>Therefore @{term Phi} is irreducible over @{text "GF(2)"}.\<close>
 theorem Phi_irreducible: "GF2.poly_irreducible Phi"
-  by (rule GF2.degree2_no_root_irreducible[OF Phi_closed degree_Phi]) (rule Phi_no_root)
+  using GF2.degree23_no_root_irreducible[OF Phi_closed] degree_Phi Phi_no_root by blast
 
 text \<open>\<^emph>\<open>Kronecker.\<close>  The principal ideal @{text "(\<Phi>)"} is maximal in @{text "GF(2)[X]"}, so the
   quotient @{text "GF(2)[X]/(\<Phi>)"} is a field --- a four-element field, @{text "GF(4)"}.\<close>

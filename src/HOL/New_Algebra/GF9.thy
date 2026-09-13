@@ -62,7 +62,7 @@ qed
 
 text \<open>Therefore @{term Psi} is irreducible over @{text "GF(3)"}.\<close>
 theorem Psi_irreducible: "GF3.poly_irreducible Psi"
-  by (rule GF3.degree2_no_root_irreducible[OF Psi_closed degree_Psi]) (rule Psi_no_root)
+  using GF3.degree23_no_root_irreducible[OF Psi_closed] degree_Psi Psi_no_root by blast
 
 text \<open>\<^emph>\<open>Kronecker.\<close>  The quotient @{text "GF(3)[X]/(\<Psi>)"} is a field with \<open>3\<^sup>2 = 9\<close> elements.\<close>
 theorem GF9_is_field:
