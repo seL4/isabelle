@@ -73,13 +73,11 @@ object Resources {
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
-    def include_errors(msgs: List[String]): Thy = {
-      val duplicate = errors.toSet
-      msgs.filter(msg => !duplicate(msg)) match {
+    def include_errors(msgs: List[String]): Thy =
+      msgs.filterNot(errors.toSet) match {
         case Nil => this
         case errs => copy(errors = errors ::: errs)
       }
-    }
 
     def cat_errors(make_msg2: => String): Thy =
       if (errors.isEmpty) this
