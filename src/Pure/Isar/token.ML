@@ -101,6 +101,7 @@ sig
   val ident_or_symbolic: string -> bool
   val read_cartouche: Symbol_Pos.T list -> T
   val tokenize: Keyword.keywords -> {strict: bool} -> Symbol_Pos.T list -> T list
+  val explode_input: Keyword.keywords -> Input.source -> T list
   val explode: Keyword.keywords -> Position.T -> string -> T list
   val explode0: Keyword.keywords -> string -> T list
   val print_name: Keyword.keywords -> string -> string
@@ -753,6 +754,9 @@ end;
 fun tokenize keywords strict syms =
   Source.of_list syms |> make_source keywords strict |> Source.exhaust;
 
+fun explode_input keywords =
+  tokenize keywords {strict = false} o Input.source_explode;
+
 fun explode keywords pos text =
   Symbol_Pos.explode (text, pos) |> tokenize keywords {strict = false};
 
@@ -852,9 +856,10 @@ fun read ctxt scan src = syntax (Scan.lift scan) src ctxt |> #1;
 (* ML toplevel pretty-printing *)
 
 val _ =
-  ML_system_pp (fn depth => fn _ => fn Token (_, (kind, x), value) =>
+  ML_system_pp (fn depth => fn _ => fn Token ((_, (pos, _)), (kind, x), value) =>
     ML_Pretty.block [
-      ML_system_pretty (kind, depth), ML_Pretty.brk 1,
+      ML_system_pretty (kind, depth) |> Pretty.from_ML |> Pretty.mark_position pos |> Pretty.to_ML,
+      ML_Pretty.brk 1,
       (case value of
         Slot => ML_system_pretty (x, depth)
       | _ => ML_Pretty.pair ML_system_pretty ML_system_pretty ((x, value), depth))]);
