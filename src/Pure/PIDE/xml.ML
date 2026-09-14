@@ -41,8 +41,6 @@ sig
   val filter_elements: {remove: string -> bool, expose: string -> bool} -> body -> body
   val header: string
   val text: string -> string
-  val element: string -> attributes -> string list -> string
-  val output_markup: Markup.T -> Markup.output
   val string_of: tree -> string
   val pretty: int -> tree -> Pretty.T
   val parse_comments: string list -> unit * string list
@@ -129,31 +127,18 @@ fun encode "<" = "&lt;"
 val text = translate_string encode;
 
 
-(* elements *)
-
-fun elem name atts =
-  implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
-
-fun element name atts body =
-  let val b = implode body in
-    if b = "" then Library.enclose "<" "/>" (elem name atts)
-    else Library.enclose "<" ">" (elem name atts) ^ b ^ Library.enclose "</" ">" name
-  end;
-
-fun output_markup (markup as (name, atts)) =
-  if Markup.is_empty markup then Markup.no_output
-  else (Library.enclose "<" ">" (elem name atts), Library.enclose "</" ">" name);
-
-
 (* output content *)
+
+fun make_elem name atts =
+  implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
 
 fun content_depth depth =
   let
     fun traverse d (Elem (("", _), ts)) = traverse_body d ts
       | traverse _ (Elem ((name, atts), [])) =
-          Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
+          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add "/>"
       | traverse d (Elem ((name, atts), ts)) =
-          Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
+          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add ">" #>
           traverse_body d ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
       | traverse _ (Text s) = Buffer.add (text s)
