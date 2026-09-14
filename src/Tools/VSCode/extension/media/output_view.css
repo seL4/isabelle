@@ -122,3 +122,33 @@ span.active:hover {
     0 -1px 0 var(--vscode-button-hoverBackground),
     0 1px 0 var(--vscode-button-hoverBackground);
 }
+
+.source {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.information_message {
+  display: block;
+  background-color: color-mix(in srgb, var(--vscode-editorInfo-foreground) 20%, transparent);
+}
+.warning_message, .legacy_message {
+  display: block;
+  background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground) 20%, transparent);
+}
+.error_message {
+  display: block;
+  background-color: color-mix(in srgb, var(--vscode-editorError-foreground) 20%, transparent);
+}
+.writeln_message, .tracing_message {
+  display: block;
+  background-color: color-mix(in srgb, var(--vscode-editor-foreground) 20%, transparent);
+}
+.separator {
+  visibility: hidden;
+  overflow: hidden;
+  flex: 0 0 2px;
+  block-size: 2px;
+  line-height: 0;
+}
