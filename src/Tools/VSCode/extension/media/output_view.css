@@ -45,11 +45,6 @@ a:active {
   text-decoration: underline;
 }
 
-code {
-  font-size: var(--vscode-editor-font-size);
-  font-family: var(--vscode-editor-font-family);
-}
-
 button {
   border: none;
   padding: var(--input-padding-vertical) var(--input-padding-horizontal);
@@ -70,15 +65,6 @@ button:focus {
   outline-color: var(--vscode-focusBorder);
 }
 
-button.secondary {
-  color: var(--vscode-button-secondaryForeground);
-  background: var(--vscode-button-secondaryBackground);
-}
-
-button.secondary:hover {
-  background: var(--vscode-button-secondaryHoverBackground);
-}
-
 input:not([type='checkbox']),
 textarea {
   display: block;
@@ -89,11 +75,6 @@ textarea {
   color: var(--vscode-input-foreground);
   outline-color: var(--vscode-input-border);
   background-color: var(--vscode-input-background);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--vscode-input-placeholderForeground);
 }
 
 sub, sup {
