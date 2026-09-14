@@ -106,7 +106,9 @@ final class Thy_Conditions private(
   def bad_message: String =
     bad match {
       case Nil => ""
-      case xs => xs.map(x => x + " is undefined/false").mkString("(", ", ", ")")
+      case xs =>
+        xs.map(x => "condition " + quote(x) + " is undefined/false")
+          .mkString("(", ", ", ")")
     }
 
   def update_options(specs: Options.Update): Options =
