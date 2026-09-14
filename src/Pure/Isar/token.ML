@@ -848,6 +848,15 @@ fun syntax scan src = apsnd Context.the_proof o syntax_generic scan src o Contex
 
 fun read ctxt scan src = syntax (Scan.lift scan) src ctxt |> #1;
 
+
+(* ML toplevel pretty-printing *)
+
+val _ =
+  ML_system_pp (fn depth => fn _ => fn Token (_, (kind, x), y) =>
+    ML_Pretty.block [
+      ML_system_pretty (kind, depth), ML_Pretty.brk 1,
+      ML_Pretty.pair ML_system_pretty ML_system_pretty ((x, y), depth)]);
+
 end;
 
 type 'a parser = 'a Token.parser;
