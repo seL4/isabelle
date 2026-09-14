@@ -392,17 +392,20 @@ local
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
 
-fun segment_content ({span, state, ...}: segment) =
+fun segment_content ({span, prev_state, state, ...}: segment) =
   let
     val toks = Command_Span.content span;
+    val skip = Toplevel.is_skipped prev_state andalso Toplevel.is_skipped state;
     fun command_output output = toks |> map_filter (fn tok =>
       if Token.is_command tok then
-        SOME (Token.put_output output tok)
+        SOME (if skip then Token.no_output else Token.put_output output tok)
       else NONE);
   in
-    (case Toplevel.output_of state of
-      NONE => toks
-    | SOME output => command_output output)
+    if skip then command_output []
+    else
+      (case Toplevel.output_of state of
+        NONE => toks
+      | SOME output => command_output output)
   end;
 
 fun output_command keywords = Scan.some (fn tok =>
@@ -504,11 +507,7 @@ fun present_thy options keywords thy_name (segments: segment list) =
       Toplevel.setmp_thread_position tr (present_span command_tag span st st');
 
     fun present _ [] = I
-      | present st ((span, (tr, st')) :: rest) =
-          let
-            val skipped = Toplevel.is_skipped st;
-            val skipped' = Toplevel.is_skipped st';
-          in not (skipped andalso skipped') ? present_command tr span st st' #> present st' rest end;
+      | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
       (([], []), NONE, true, [], (I, I))

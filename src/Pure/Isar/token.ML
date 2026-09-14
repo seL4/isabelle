@@ -79,6 +79,7 @@ sig
   val put_files: file Exn.result list -> T -> T
   val get_output: T -> XML.body option
   val put_output: XML.body -> T -> T
+  val no_output: T
   val get_value: T -> value option
   val reports_of_value: T -> Position.report list
   val name_value: name_value -> value
@@ -434,6 +435,9 @@ fun get_output (Token (_, _, Value (SOME (Output output)))) = output
 
 fun put_output output (Token (x, y, Slot)) = Token (x, y, Value (SOME (Output (SOME output))))
   | put_output _ tok = raise Fail ("Cannot put document output here" ^ Position.here (pos_of tok));
+
+val no_output =
+  Token (("text", Position.no_range), (Command, "text"), Value (SOME (Output (SOME []))));
 
 
 (* access values *)
