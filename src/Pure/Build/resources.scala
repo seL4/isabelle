@@ -90,7 +90,7 @@ object Resources {
       if (conditions.isDefined) this
       else {
         Exn.result { session_conditions.eval_restrict(options) } match {
-          case Exn.Res(cond) => copy(conditions = Some(cond))
+          case Exn.Res(cond) => copy(conditions = Some(cond)).include_errors(cond.errors)
           case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
         }
       }
