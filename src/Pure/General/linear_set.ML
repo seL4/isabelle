@@ -133,7 +133,7 @@ fun delete_after hook set = set |> map_set (fn (start, entries) =>
           in (start, entries') end)));
 
 
-(* ML pretty-printing *)
+(* ML toplevel pretty-printing *)
 
 val _ =
   ML_system_pp (fn depth => fn pretty => fn set =>

@@ -497,7 +497,7 @@ fun inter set1 set2 =
 fun union set1 set2 = merge (set2, set1);
 
 
-(* ML pretty-printing *)
+(* ML toplevel pretty-printing *)
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn set =>

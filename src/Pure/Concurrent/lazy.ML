@@ -152,7 +152,7 @@ fun future params x =
   else (singleton o Future.forks) params (fn () => force x);
 
 
-(* toplevel pretty printing *)
+(* ML toplevel pretty-printing *)
 
 val _ =
   ML_system_pp (fn depth => fn pretty => fn x =>
