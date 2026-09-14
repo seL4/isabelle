@@ -71,6 +71,7 @@ object XML {
     }
   }
 
+  def elem(body: Body): XML.Elem = XML.Elem(Markup.Empty, body)
   def elem(markup: Markup): XML.Elem = XML.Elem(markup, Nil)
   def elem(name: String, body: Body): XML.Elem = XML.Elem(Markup(name, Nil), body)
   def elem(name: String): XML.Elem = XML.elem(name, Nil)

@@ -51,30 +51,33 @@ object Resources {
     errors: List[String] = Nil,
     initiators: List[Document.Node.Name] = Nil
   ) {
-    override def toString: String = {
-      val more =
-        conditions match {
-          case None => "(unevaluated conditions)"
-          case Some(cond) => cond.bad_message
-        }
-      quote(name.toString) + if_proper(more, " " + more)
-    }
+    override def toString: String =
+      if (name.is_empty) "Thy.empty"
+      else {
+        val more =
+          conditions match {
+            case None => "(unevaluated conditions)"
+            case Some(cond) => cond.bad_message
+          }
+        quote(name.toString) + if_proper(more, " " + more)
+      }
 
     def condition_bad: String =
-      conditions match {
-        case Some(cond) => cond.bad_message
-        case None => error("Unevaluated conditions for theory " + quote(name.toString))
+      if (name.is_empty) ""
+      else {
+        conditions match {
+          case Some(cond) => cond.bad_message
+          case None => error("Unevaluated conditions for theory " + quote(name.toString))
+        }
       }
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
-    def include_errors(msgs: List[String]): Thy = {
-      val duplicate = errors.toSet
-      msgs.filter(msg => !duplicate(msg)) match {
+    def include_errors(msgs: List[String]): Thy =
+      msgs.filterNot(errors.toSet) match {
         case Nil => this
         case errs => copy(errors = errors ::: errs)
       }
-    }
 
     def cat_errors(make_msg2: => String): Thy =
       if (errors.isEmpty) this
@@ -87,7 +90,7 @@ object Resources {
       if (conditions.isDefined) this
       else {
         Exn.result { session_conditions.eval_restrict(options) } match {
-          case Exn.Res(cond) => copy(conditions = Some(cond))
+          case Exn.Res(cond) => copy(conditions = Some(cond)).include_errors(cond.errors)
           case Exn.Exn(exn) => include_errors(List(Exn.message(exn)))
         }
       }

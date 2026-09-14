@@ -30,6 +30,7 @@ setup, later theories may work again uniformly on either variant.
 * The syntax of system option "condition" has been extended as follows:
   - "$NAME" refers to a process environment variable. INCOMPATIBILITY,
     was plain NAME before.
+  - "true" and "false" refer to literal Boolean values.
   - "name" refers to a system option; to be enabled, the value needs to
     be true (bool), non-empty (string), or > 0 (int, real).
   - "name()" refers to a predicate defined in Isabelle/Scala (via

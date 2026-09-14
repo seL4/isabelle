@@ -428,7 +428,7 @@ fun dequeue_deps thread deps (queue as Queue {groups, jobs, urgent, total}) =
   end;
 
 
-(* toplevel pretty printing *)
+(* ML toplevel pretty-printing *)
 
 val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o str_of_task);
 val _ = ML_system_pp (fn _ => fn _ => ML_Pretty.str o str_of_group);

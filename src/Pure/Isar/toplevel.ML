@@ -161,6 +161,9 @@ fun node_of (State ((node, _), _)) = node;
 fun previous_theory_of (State (_, (prev_thy, _))) = prev_thy;
 fun output_of (State (_, (_, output))) = Option.map Future.join output;
 
+fun reset_output (State (node_presentation, (prev_thy, _))) =
+  State ((node_presentation, (prev_thy, NONE)));
+
 fun make_state_node node = State (node_presentation node, (NONE, NONE));
 
 fun make_state opt_gthy =
@@ -735,7 +738,7 @@ fun app_state (tr as Transition {name, markers, trans, ...}) =
 fun command_transition tr st =
   let
     val (st', opt_err) =
-      if is_ignored tr then (st, NONE)
+      if is_ignored tr then (reset_output st, NONE)
       else
         Context.setmp_generic_context (try (Context.Proof o presentation_context0) st)
           (fn () => app_state tr st) ();
