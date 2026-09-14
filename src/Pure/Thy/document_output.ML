@@ -392,14 +392,17 @@ local
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
 
-fun command_output output tok =
-  if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
-
 fun segment_content ({span, state, ...}: segment) =
-  let val toks = Command_Span.content span in
+  let
+    val toks = Command_Span.content span;
+    fun command_output output = toks |> map_filter (fn tok =>
+      if Token.is_command tok then
+        SOME (Token.put_output output tok)
+      else NONE);
+  in
     (case Toplevel.output_of state of
       NONE => toks
-    | SOME output => map_filter (command_output output) toks)
+    | SOME output => command_output output)
   end;
 
 fun output_command keywords = Scan.some (fn tok =>
