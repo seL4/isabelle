@@ -419,12 +419,13 @@ fun output_command keywords = Scan.some (fn tok =>
 
 val opt_newline = Scan.option (Scan.one Token.is_newline);
 
+fun bad_nesting input =
+  Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) input;
+
 val ignore =
-  Scan.depend (fn d => opt_newline |-- Scan.one Token.is_begin_ignore
-    >> pair (d + 1)) ||
-  Scan.depend (fn d => Scan.one Token.is_end_ignore --|
-    (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
-    >> pair (d - 1));
+  Scan.depend (fn d =>
+    opt_newline |-- Scan.one Token.is_begin_ignore >> pair (d + 1) ||
+    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> pair (d - 1));
 
 in
 
