@@ -113,6 +113,8 @@ object Document {
           case _ => false
         }
 
+      def is_empty: Boolean = node.isEmpty
+
       def file_name: String = Url.get_base_name(node).getOrElse("")
 
       def path: Path = Path.explode(File.standard_path(node))
