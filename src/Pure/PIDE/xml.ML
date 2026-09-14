@@ -129,6 +129,8 @@ val text = translate_string encode;
 
 (* output content *)
 
+local
+
 fun make_elem name atts =
   implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
 
@@ -146,12 +148,15 @@ fun content_depth depth =
       | traverse_body d ts = fold (traverse (d - 1)) ts;
   in Buffer.build_content o traverse depth end;
 
+in
+
 val string_of = content_depth ~1;
 
 fun pretty depth tree = Pretty.str (content_depth (Int.max (0, depth)) tree);
 
 val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o pretty (FixedInt.toInt depth));
 
+end;
 
 
 (** XML parsing **)
