@@ -123,9 +123,13 @@ final class Thy_Conditions private(
               Library.try_unsuffix("()", cond) match {
                 case Some(a) => Thy_Conditions.the_predicate(a)(this)
                 case None =>
-                  try { options.proper_value(cond) }
-                  catch {
-                    case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
+                  cond match {
+                    case Value.Boolean(b) => b
+                    case _ =>
+                      try { options.proper_value(cond) }
+                      catch {
+                        case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
+                      }
                   }
               }
           }

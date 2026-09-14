@@ -493,6 +493,9 @@ final class Options private(
     tags: List[String],
     description: String
   ): Options = {
+    if (!Symbol.is_ascii_identifier(name) || Value.Boolean.unapply(name).isDefined) {
+      error("Bad option name " + quote(name) + Position.here(pos))
+    }
     get(name) match {
       case Some(other) =>
         error("Duplicate declaration of option " + quote(name) + Position.here(pos) +
