@@ -32,6 +32,7 @@ end;
 signature XML =
 sig
   include XML
+  val elem: body -> tree
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
@@ -60,6 +61,8 @@ struct
 (** XML trees **)
 
 open XML;
+
+fun elem body = XML.Elem (Markup.empty, body);
 
 val blob = map Text;
 
