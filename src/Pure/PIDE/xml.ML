@@ -149,7 +149,8 @@ fun output_markup (markup as (name, atts)) =
 
 fun content_depth depth =
   let
-    fun traverse _ (Elem ((name, atts), [])) =
+    fun traverse d (Elem (("", _), ts)) = traverse_body d ts
+      | traverse _ (Elem ((name, atts), [])) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
       | traverse d (Elem ((name, atts), ts)) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
