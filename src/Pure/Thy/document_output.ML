@@ -409,15 +409,24 @@ fun segment_content ({span, prev_state, state, ...}: segment) =
 
 (* meta-comments for ignored material *)
 
-val opt_newline = Scan.option (Scan.one Token.is_newline);
+fun err_bad_nesting ps = error ("Bad nesting of meta-comments" ^ Position.here_list ps);
 
-fun bad_nesting input =
-  Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) input;
+fun check_nesting [] [] = ()
+  | check_nesting stack [] = err_bad_nesting (rev stack)
+  | check_nesting stack (tok :: rest) =
+      if Token.is_begin_ignore tok then check_nesting (Token.pos_of tok :: stack) rest
+      else if Token.is_end_ignore tok then
+        (case stack of
+          [] => err_bad_nesting [Token.pos_of tok]
+        | _ :: stack' => check_nesting stack' rest)
+      else check_nesting stack rest;
+
+val opt_newline = Scan.option (Scan.one Token.is_newline);
 
 val ignored =
   Scan.depend (fn d =>
     opt_newline |-- Scan.one Token.is_begin_ignore >> K (d + 1, []) ||
-    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> K (d - 1, []));
+    Scan.one Token.is_end_ignore >> K (d - 1, []));
 
 
 (* document output commands *)
@@ -499,6 +508,7 @@ fun present_thy options keywords thy_name (segments: segment list) =
     val presentation_spans = segments
       |> maps segment_content
       |> drop_suffix Token.is_space
+      |> tap (check_nesting [])
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
       |> Source.source stopper (Scan.error (Scan.bulk span))
