@@ -453,16 +453,9 @@ val command = Scan.peek (fn d =>
         (Token cmd, (markup_false, d)))]));
 
 
-(* formal comments *)
-
-val cmt = Scan.peek (fn d =>
-  Scan.one Document_Source.is_black_comment >> (fn tok => [(NONE, (Token tok, ("", d)))]));
-
-
 (* other tokens *)
 
-val other = Scan.peek (fn d =>
-   Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
+val other = Scan.peek (fn d => Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
 
 
 (* spans *)
@@ -501,7 +494,7 @@ fun present_thy options keywords thy_name (segments: segment list) =
 
     (* presentation spans *)
 
-    val tokens = ignored || output keywords || command || cmt || other;
+    val tokens = ignored || output keywords || command || other;
 
     val presentation_spans = segments
       |> maps segment_content
