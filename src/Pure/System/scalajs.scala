@@ -211,12 +211,12 @@ object Scalajs {
 
   abstract class Fun_Unit extends Fun_Any {
     def apply(): Unit
-    final def invoke(u: Any): Unit = apply()
+    final def invoke(arg: Any): Unit = apply()
   }
 
   abstract class Fun[A] extends Fun_Any {
     def apply(a: A): Unit
-    final def invoke(u: Any): Unit = apply(u.asInstanceOf[A])
+    final def invoke(arg: Any): Unit = apply(arg.asInstanceOf[A])
   }
 
   object Functions {
