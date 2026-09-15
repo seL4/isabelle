@@ -214,6 +214,11 @@ object Scalajs {
     final def invoke(arg: Any): Unit = apply()
   }
 
+  abstract class Fun_JSON extends Fun_Any {
+    def apply(a: isabelle.JSON.T): Unit
+    final def invoke(arg: Any): Unit = apply(JSON.unapply(arg).get)
+  }
+
   abstract class Fun[A] extends Fun_Any {
     def apply(a: A): Unit
     final def invoke(arg: Any): Unit = apply(arg.asInstanceOf[A])
