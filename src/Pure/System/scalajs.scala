@@ -206,17 +206,17 @@ object Scalajs {
 
   abstract class Fun_Any {
     def invoke(arg: Any): Unit
-    val function = Functions.register(this)
+    final val function = Functions.register(this)
   }
 
   abstract class Fun_Unit extends Fun_Any {
     def apply(): Unit
-    def invoke(u: Any): Unit = apply()
+    final def invoke(u: Any): Unit = apply()
   }
 
   abstract class Fun[A] extends Fun_Any {
     def apply(a: A): Unit
-    def invoke(u: Any): Unit = apply(u.asInstanceOf[A])
+    final def invoke(u: Any): Unit = apply(u.asInstanceOf[A])
   }
 
   object Functions {
@@ -233,7 +233,7 @@ object Scalajs {
 
   class Function private[Scalajs](val name: String) {
     override def toString: String = name
-    def apply(args: JS.Source*): String = JS.function(Functions.lookup(name), args: _*)
+    def apply(args: JS.Source*): JS.Source = JS.function(Functions.lookup(name), args: _*)
   }
 
 
