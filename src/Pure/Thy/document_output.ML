@@ -212,8 +212,7 @@ end;
 (* presentation tokens *)
 
 datatype token =
-    Ignore
-  | Token of Token.T
+    Token of Token.T
   | Output of Latex.text;
 
 fun token_with pred (Token tok) = pred tok
@@ -226,8 +225,7 @@ val newline_token = token_with Token.is_newline;
 
 fun present_token ctxt tok =
   (case tok of
-    Ignore => []
-  | Token tok => output_token ctxt tok
+    Token tok => output_token ctxt tok
   | Output output => output);
 
 
@@ -428,19 +426,16 @@ val opt_newline = Scan.option (Scan.one Token.is_newline);
 fun bad_nesting input =
   Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) input;
 
-val ignore =
+val ignored =
   Scan.depend (fn d =>
-    opt_newline |-- Scan.one Token.is_begin_ignore >> pair (d + 1) ||
-    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> pair (d - 1));
+    opt_newline |-- Scan.one Token.is_begin_ignore >> K (d + 1, []) ||
+    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> K (d - 1, []));
 
 in
 
 fun present_thy options keywords thy_name (segments: segment list) =
   let
     (* tokens *)
-
-    val ignored = Scan.state --| ignore
-      >> (fn d => [(NONE, (Ignore, ("", d)))]);
 
     val output = Scan.peek (fn d =>
       Document_Source.improper |-- output_command keywords --| Document_Source.improper_end
