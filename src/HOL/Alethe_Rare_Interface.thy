@@ -28,13 +28,13 @@ val _ = Theory.setup (Context.theory_map (
   SMTLIB_Proof.add_term_parser alethe_term_parser)
 )\<close>
 
-subsection \<open>Replay rare_rules\<close>
+subsection \<open>Replay \<^verbatim>\<open>rare_rules\<close>\<close>
 
 ML_file \<open>Tools/SMT/alethe/rare_rewrites/cvc5_rare.ML\<close>
 
 
 
-subsection \<open>Register rare_rules\<close>
+subsection \<open>Register \<^verbatim>\<open>rare_rules\<close>\<close>
 
 (*Arithmetic*)
 (*Some rules are defined in Alethe_Rare_Interface_Real, others are omitted when including operators
