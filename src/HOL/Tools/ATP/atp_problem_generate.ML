@@ -2225,8 +2225,7 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
           val phi = phi |> do_formula pos
           val universal = Option.map (q = AExists ? not) pos
         in
-          AQuant (q, xs |> map (apsnd (fn NONE => NONE
-                                        | SOME T => do_bound_type type_enc T)),
+          AQuant (q, xs |> map (apsnd (Option.mapPartial (do_bound_type type_enc))),
                   (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
                       (map_filter
                            (fn (_, NONE) => NONE
