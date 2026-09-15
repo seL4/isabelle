@@ -640,8 +640,7 @@ fun iterm_of_term thy type_enc =
 val queries = ["?", "_query"]
 val ats = ["@", "_at"]
 
-fun try_unsuffixes ss s =
-  fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
+fun try_unsuffixes suffixes s = get_first (fn suffix => try (unsuffix suffix) s) suffixes
 
 fun type_enc_of_string strictness s =
   let
