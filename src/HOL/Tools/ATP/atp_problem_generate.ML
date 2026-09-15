@@ -2528,7 +2528,7 @@ fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
         |> not (null T_args) ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
 
-fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
+fun role_of_conj_sym in_conj = if in_conj then Hypothesis else Axiom
 
 val mk_bound_names : int -> (string * string) list =
   map_range (`I o make_bound_var o string_of_int o curry (op +) 1)
@@ -2537,7 +2537,7 @@ fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
     (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (role, maybe_negate) = honor_conj_sym_role in_conj
+    val role = role_of_conj_sym in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = mk_bound_names ary
     val bounds = map2 (fn name => fn T => IConst (name, T, [])) bound_names arg_Ts
@@ -2560,8 +2560,7 @@ fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
              |> formula_of_iformula ctxt mono type_enc
                                     always_guard_var_in_formula (SOME true)
              |> close_formula_universally
-             |> bound_tvars type_enc (n > 1) (atomic_types_of T)
-             |> maybe_negate,
+             |> bound_tvars type_enc (n > 1) (atomic_types_of T),
              NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
   end
 
@@ -2573,12 +2572,12 @@ fun lines_of_tags_sym_decl ctxt generate_isabelle_info mono type_enc n s
     val ident =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
-    val (role, maybe_negate) = honor_conj_sym_role in_conj
+    val role = role_of_conj_sym in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = mk_bound_names ary
     val bounds = bound_names |> map (fn name => ATerm ((name, []), []))
     val cst = mk_aterm type_enc (s, s') T_args
-    val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) [] pred_sym
+    val eq = eq_formula type_enc (atomic_types_of T) [] pred_sym
     val tag_with = tag_with_type ctxt mono type_enc NONE
     fun formula c =
       [Formula ((ident, ""), role, eq (tag_with res_T c) c, NONE,
@@ -2685,7 +2684,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_
     fun do_alias ary =
       let
         val thy = Proof_Context.theory_of ctxt
-        val (role, maybe_negate) = honor_conj_sym_role in_conj
+        val role = role_of_conj_sym in_conj
         val base_name = base_s0 |> `make_fixed_const
         val T = (case types of [T] => T | _ => robust_const_type thy base_s0)
         val T_args = robust_const_type_args thy (base_s0, T)
@@ -2714,7 +2713,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_
             (map (apsnd (do_bound_type type_enc)) bounds) false (atp_term_of tm1) (atp_term_of tm2)
       in
         ([tm1, tm2],
-         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq |> maybe_negate, NONE,
+         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq, NONE,
             isabelle_info generate_isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
