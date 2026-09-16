@@ -205,45 +205,51 @@ object Scalajs {
   /** registered functions **/
 
   sealed abstract class JS_Fun {
-    def invoke(arg: Any): Unit
+    val invoke: PartialFunction[List[Any], Unit]
     final val function = Functions.register(this)
   }
 
   abstract class Fun_Any extends JS_Fun {
-    def apply(a: Any): Unit
-    final def invoke(arg: Any): Unit = apply(arg)
+    def apply(arg: Any): Unit
+    final val invoke = { case arg :: Nil => apply(arg) }
   }
 
   abstract class Fun_Unit extends JS_Fun {
     def apply(): Unit
-    final def invoke(arg: Any): Unit = apply()
+    final val invoke = { case Nil => apply() }
   }
 
   abstract class Fun_JSON extends JS_Fun {
     def apply(a: isabelle.JSON.T): Unit
-    final def invoke(arg: Any): Unit = apply(JSON.unapply(arg).get)
+    final val invoke = { case JSON(json) :: Nil => apply(json) }
   }
 
   abstract class Fun[A] extends JS_Fun {
     def apply(a: A): Unit
-    final def invoke(arg: Any): Unit = apply(arg.asInstanceOf[A])
+    final val invoke = { case a :: Nil => apply(a.asInstanceOf[A]) }
   }
 
   object Functions {
-    private val functions = mutable.Map.empty[String, js.Function1[Any, Unit]]
+    private val functions = mutable.Map.empty[String, js.Function1[js.Array[Any], Unit]]
     if (Platform.is_scalajs) js.Dynamic.global.window.isabelle_functions = functions
 
     def lookup(name: String): String = JS.function("window.isabelle_functions", quote(name))
 
     def register(fun: JS_Fun): Function = {
-      if (Platform.is_scalajs) functions.update(fun.class_name, { arg => fun.invoke(arg) })
+      if (Platform.is_scalajs) {
+        functions.update(fun.class_name,
+          { args =>
+            fun.invoke.applyOrElse(args.toList,
+              _ => error("Function invocation with invalid JS arguments"))
+          })
+      }
       new Function(fun.class_name)
     }
   }
 
   class Function private[Scalajs](val name: String) {
     override def toString: String = name
-    def apply(args: JS.Source*): JS.Source = JS.function(Functions.lookup(name), args: _*)
+    def apply(args: JS.Source*): JS.Source = JS.function(Functions.lookup(name), JS.array(args: _*))
   }
 
 
