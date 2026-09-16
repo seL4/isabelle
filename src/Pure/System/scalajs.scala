@@ -204,22 +204,27 @@ object Scalajs {
 
   /** registered functions **/
 
-  abstract class Fun_Any {
+  sealed abstract class JS_Fun {
     def invoke(arg: Any): Unit
     final val function = Functions.register(this)
   }
 
-  abstract class Fun_Unit extends Fun_Any {
+  abstract class Fun_Any extends JS_Fun {
+    def apply(a: Any): Unit
+    final def invoke(arg: Any): Unit = apply(arg)
+  }
+
+  abstract class Fun_Unit extends JS_Fun {
     def apply(): Unit
     final def invoke(arg: Any): Unit = apply()
   }
 
-  abstract class Fun_JSON extends Fun_Any {
+  abstract class Fun_JSON extends JS_Fun {
     def apply(a: isabelle.JSON.T): Unit
     final def invoke(arg: Any): Unit = apply(JSON.unapply(arg).get)
   }
 
-  abstract class Fun[A] extends Fun_Any {
+  abstract class Fun[A] extends JS_Fun {
     def apply(a: A): Unit
     final def invoke(arg: Any): Unit = apply(arg.asInstanceOf[A])
   }
@@ -230,7 +235,7 @@ object Scalajs {
 
     def lookup(name: String): String = JS.function("window.isabelle_functions", quote(name))
 
-    def register(fun: Fun_Any): Function = {
+    def register(fun: JS_Fun): Function = {
       if (Platform.is_scalajs) functions.update(fun.class_name, { arg => fun.invoke(arg) })
       new Function(fun.class_name)
     }
