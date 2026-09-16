@@ -1657,10 +1657,10 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
             let val ary = length args in
               ((bool_vars, fun_var_Ts),
                (case Symtab.lookup sym_tab s of
-                 SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
+                 SOME (info as {pred_sym, min_ary, max_ary, types, in_conj}) =>
                  let
                    val pred_sym = pred_sym andalso top_level andalso not bool_vars
-                   val types' = types |> insert_type thy I T
+                   val types' = insert_type thy I T types
                    val in_conj = in_conj orelse conj_fact
                    val min_ary =
                      if (app_op_level = Sufficient_App_Op orelse
@@ -1669,9 +1669,10 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                        fold (consider_var_ary T) fun_var_Ts min_ary
                      else
                        min_ary
+                   val info' = {pred_sym = pred_sym, min_ary = Int.min (ary, min_ary),
+                     max_ary = Int.max (ary, max_ary), types = types', in_conj = in_conj}
                  in
-                   Symtab.update (s, {pred_sym = pred_sym, min_ary = Int.min (ary, min_ary),
-                     max_ary = Int.max (ary, max_ary), types = types', in_conj = in_conj}) sym_tab
+                   if info' = info then sym_tab else Symtab.update (s, info') sym_tab
                  end
                | NONE =>
                  let
