@@ -101,6 +101,7 @@ final class Thy_Conditions private(
         yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
   }
 
+  def failed: List[String] = List.from(for (case (a, Exn.Exn(_)) <- rep.iterator) yield a)
   def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
   def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
   def bad_message: String =
@@ -146,8 +147,9 @@ final class Thy_Conditions private(
   def eval(specs: Options.Update): Thy_Conditions = eval(update_options(specs))
 
   override def toString: String = {
-    val a = if_proper(good, "good = " + quote(good.mkString(",")))
-    val b = if_proper(bad, "bad = " + quote(bad.mkString(",")))
-    "Thy_Conditions(" + a + if_proper(a.nonEmpty && b.nonEmpty, ", ") + b + ")"
+    val a = if_proper(failed, "failed = " + quote(failed.mkString(",")))
+    val b = if_proper(good, "good = " + quote(good.mkString(",")))
+    val c = if_proper(bad, "bad = " + quote(bad.mkString(",")))
+    List(a, b, c).filterNot(_.isEmpty).mkString("Thy_Conditions(", ", ", ")")
   }
 }
