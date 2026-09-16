@@ -1,0 +1,53 @@
+(*  Title:      HOL/Metis_Examples/ATP_Util_Tests.thy
+    Author:     Martin Desharnais-Schäfer, LMU München
+
+Tests for the utility functions used by the ATP module.
+*)
+theory ATP_Util_Tests
+  imports HOL.ATP
+begin
+
+ML \<open>
+open ATP_Util
+
+(* Whitespace, and the single space kept between two ident characters *)
+val () = \<^assert> (strip_spaces_except_between_idents "" = "")
+val () = \<^assert> (strip_spaces_except_between_idents "cnf( 1 , plain )" = "cnf(1,plain)")
+val () = \<^assert> (strip_spaces_except_between_idents "foo  bar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "a   b" = "a b")
+val () = \<^assert> (strip_spaces_except_between_idents "foo (" = "foo(")
+val () = \<^assert> (strip_spaces_except_between_idents "a\t\nb" = "a b")
+val () = \<^assert> (strip_spaces_except_between_idents "a\127b" = "a b")
+val () = \<^assert> (strip_spaces_except_between_idents "a " = "a")
+
+(* Comments, including unterminated ones at the end of the string *)
+val () = \<^assert> (strip_spaces_except_between_idents "a/* x */b" = "ab")
+val () = \<^assert> (strip_spaces_except_between_idents "a/*b" = "a")
+val () = \<^assert> (strip_spaces_except_between_idents "a/*x*" = "a")
+val () = \<^assert> (strip_spaces_except_between_idents "a/" = "a/")
+val () = \<^assert> (strip_spaces_except_between_idents "a %" = "a")
+val () = \<^assert> (strip_spaces_except_between_idents "a/b" = "a/b")
+val () = \<^assert> (strip_spaces_except_between_idents "/*a*/ /*b*/c" = "c")
+
+(* A comment between two identifiers merges them, which is what this function is supposed to
+   prevent. The space is dropped because the character after the gap is "%" or "/", which is not
+   an ident character, and the comment is only removed afterwards. *)
+val () = \<^assert> (strip_spaces_except_between_idents "foo bar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo %c\nbar" = "foobar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo\n%c\nbar" = "foobar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo %c\n%d\nbar" = "foobar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo /* c */ bar" = "foobar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo/* c */bar" = "foobar")
+val () = \<^assert> (strip_spaces_except_between_idents "a %c\nb" = "ab")
+
+(* In real TSTP output the statements end with ".", which is not an ident character, so the
+   merge does no harm there *)
+val () = \<^assert> (strip_spaces_except_between_idents "cnf(1,a). %c\ncnf(2,b)."
+  = "cnf(1,a).cnf(2,b).")
+
+(* With skip_comments = false, "%" and "/*" are ordinary characters *)
+val () = \<^assert> (strip_spaces false Char.isAlphaNum "a %c\nb" = "a%c b")
+val () = \<^assert> (strip_spaces false (K true) "a %b\nc" = "a %b c")
+\<close>
+
+end

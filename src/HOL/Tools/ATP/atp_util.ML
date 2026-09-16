@@ -91,6 +91,9 @@ fun stringN_of_int 0 _ = ""
 
 fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where these come from *)
 
+(* Removes whitespace; with "skip_comments" also "%" to end of line and "/* ... */", an
+   unterminated "/*" removing the rest. Keeps one space where whitespace separated two
+   "is_evil" characters, inspecting the character after the gap before removing comments. *)
 fun strip_spaces skip_comments is_evil =
   let
     fun strip_c_style_comment [] accum = accum

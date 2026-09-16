@@ -408,6 +408,7 @@ session "HOL-Metis_Examples" (timing) in Metis_Examples = "HOL" +
     "HOL-Decision_Procs"
   theories
     Abstraction
+    ATP_Util_Tests
     Big_O
     Binary_Tree
     Clausification
