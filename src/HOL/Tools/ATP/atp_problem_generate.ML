@@ -1170,7 +1170,7 @@ and parse_mangled_types x =
   (parse_mangled_type ::: Scan.repeat ($$ "," |-- parse_mangled_type)) x
 
 fun unmangled_type s =
-  s |> suffix ")" |> raw_explode
+  s |> suffix ")" |> explode_string
     |> Scan.finite Symbol.stopper
            (Scan.error (!! (fn _ => raise Fail ("unrecognized mangled type " ^
                                                 quote s)) parse_mangled_type))

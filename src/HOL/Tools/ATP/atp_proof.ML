@@ -719,7 +719,7 @@ fun string_of_atp_step f g (name, role, x, y, names) =
 
 fun parse_proof full local_name problem =
   strip_spaces_except_between_idents
-  #> raw_explode
+  #> explode_string
   #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
        (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line full local_name problem))))
   #> (fn (proof, ss) => if null ss then proof else raise UNRECOGNIZED_ATP_PROOF ())

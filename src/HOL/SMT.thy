@@ -7,6 +7,7 @@ section \<open>Bindings to Satisfiability Modulo Theories (SMT) solvers based on
 
 theory SMT
   imports Numeral_Simprocs
+    ATP (* only to get access to atp_util.ML *)
   keywords
     "smt_status" :: diag
 begin
