@@ -1568,33 +1568,6 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) = is_maybe_universal_name s
   | is_maybe_universal_var (IVar _) = true
   | is_maybe_universal_var _ = false
 
-datatype site =
-  Top_Level of bool option |
-  Eq_Arg of bool option |
-  Arg of string * int * int |
-  Elsewhere
-
-fun should_tag_with_type _ _ _ (Top_Level _) _ = NONE
-  | should_tag_with_type ctxt mono (Tags (_, level)) site u =
-    let
-      val thy = Proof_Context.theory_of ctxt
-      val T = ityp_of u
-      val tag =
-        (case level of
-          Nonmono_Types (_, Non_Uniform) =>
-          (case (site, is_maybe_universal_var u) of
-            (Eq_Arg pos, true) =>
-            (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
-          | _ => false)
-        | Undercover_Types =>
-          (case (site, is_maybe_universal_var u) of
-            (Eq_Arg pos, true) => pos <> SOME false
-          | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
-          | _ => false)
-        | _ => should_encode_type ctxt mono level T)
-    in if tag then SOME T else NONE end
-  | should_tag_with_type _ _ _ _ _ = NONE
-
 (** predicators and application operators **)
 
 type sym_info = {pred_sym : bool, min_ary : int, max_ary : int, types : typ list, in_conj : bool}
@@ -2176,6 +2149,37 @@ fun do_bound_type type_enc =
     Native _ => native_atp_type_of_typ type_enc false 0 #> SOME
   | _ => K NONE)
 
+local
+
+datatype site =
+  Top_Level of bool option |
+  Eq_Arg of bool option |
+  Arg of string * int * int |
+  Elsewhere
+
+fun should_tag_with_type _ _ _ (Top_Level _) _ = NONE
+  | should_tag_with_type ctxt mono (Tags (_, level)) site u =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val T = ityp_of u
+      val tag =
+        (case level of
+          Nonmono_Types (_, Non_Uniform) =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) =>
+            (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
+          | _ => false)
+        | Undercover_Types =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) => pos <> SOME false
+          | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
+          | _ => false)
+        | _ => should_encode_type ctxt mono level T)
+    in if tag then SOME T else NONE end
+  | should_tag_with_type _ _ _ _ _ = NONE
+
+in
+
 fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm type_enc
@@ -2250,6 +2254,8 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
       | do_formula pos (AConn conn) = aconn_map pos do_formula conn
       | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
   in do_formula end
+
+end
 
 fun string_of_status General = ""
   | string_of_status Induction = inductionN
