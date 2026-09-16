@@ -1376,13 +1376,23 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
       NONE => if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then [] else T_args
     | SOME s'' => filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary T_args)
 
-fun filter_type_args_in_iterm thy ctrss type_enc =
+fun filter_type_args_in_iterm thy ctrss type_enc : iterm -> iterm =
   let
-    fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
-      | filt ary (IConst (name as (s, _), T, T_args)) =
-        filter_type_args_in_const thy ctrss type_enc ary s T_args
-        |> (fn T_args => IConst (name, T, T_args))
-      | filt _ (IAbs (bound, tm)) = IAbs (bound, filt 0 tm)
+    fun filt ary (tm as IApp (tm1, tm2)) =
+        let
+          val tm1' = filt (ary + 1) tm1
+          val tm2' = filt 0 tm2
+        in
+          if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2') then tm else IApp (tm1', tm2')
+        end
+      | filt ary (tm as IConst (name as (s, _), T, T_args)) =
+        let val T_args' = filter_type_args_in_const thy ctrss type_enc ary s T_args in
+          if pointer_eq (T_args, T_args') then tm else IConst (name, T, T_args')
+        end
+      | filt _ (tm as IAbs (bound, tm1)) =
+        let val tm1' = filt 0 tm1 in
+          if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+        end
       | filt _ tm = tm
   in filt 0 end
 
