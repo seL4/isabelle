@@ -397,6 +397,7 @@ fun segment_content ({span, prev_state, state, ...}: segment) =
     fun command_output output = toks |> map_filter (fn tok =>
       if Token.is_command tok then
         SOME (if skip then Token.no_output else Token.put_output output tok)
+      else if Token.is_begin_ignore tok orelse Token.is_end_ignore tok then SOME tok
       else NONE);
   in
     if skip then command_output []
