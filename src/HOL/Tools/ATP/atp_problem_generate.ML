@@ -1243,7 +1243,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                                   IConst (`I "Y", i_T, [])),
                             IConst (`I "Z", i_T, []))))
         end
-    fun intro top_level args (IApp (tm1, tm2)) =
+    fun intro top_level args (tm as IApp (tm1, tm2)) =
         let
           val tm1' = intro top_level (tm2 :: args) tm1
           val tm2' = intro false [] tm2
@@ -1269,9 +1269,9 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                 tm2'
             | _ => tm2')
         in
-          IApp (tm1', tm2'')
+          if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2'') then tm else IApp (tm1', tm2'')
         end
-      | intro top_level args (IConst (name as (s, _), T, T_args)) =
+      | intro top_level args (tm as IConst (name as (s, _), T, T_args)) =
         let val argc = length args in
           if has_ite andalso s = "c_If" andalso argc >= 3 then
             IConst (`I tptp_ite, T, [])
@@ -1281,7 +1281,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
             (case proxify_const s of
               SOME proxy_base =>
               let
-                fun plain_const () = IConst (name, T, [])
+                fun plain_const () = if null T_args then tm else IConst (name, T, [])
                 fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
                 fun handle_fool card x = if card = argc then x else proxy_const ()
                 fun handle_min_card card x = if argc < card then proxy_const () else x
@@ -1334,9 +1334,12 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                if s = tptp_choice then
                  tweak_ho_quant tptp_choice T args
                else
-                 IConst (name, T, T_args))
+                 tm)
         end
-      | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
+      | intro _ _ (tm as IAbs (bound, tm1)) =
+        let val tm1' = intro false [] tm1 in
+          if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+        end
       | intro _ _ tm = tm
   in intro true [] end
 
