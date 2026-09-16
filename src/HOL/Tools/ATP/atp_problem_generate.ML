@@ -1574,23 +1574,26 @@ datatype site =
   Arg of string * int * int |
   Elsewhere
 
-fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
-    let val thy = Proof_Context.theory_of ctxt in
-      (case level of
-        Nonmono_Types (_, Non_Uniform) =>
-        (case (site, is_maybe_universal_var u) of
-          (Eq_Arg pos, true) =>
-          (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
-        | _ => false)
-      | Undercover_Types =>
-        (case (site, is_maybe_universal_var u) of
-          (Eq_Arg pos, true) => pos <> SOME false
-        | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
-        | _ => false)
-      | _ => should_encode_type ctxt mono level T)
-    end
-  | should_tag_with_type _ _ _ _ _ _ = false
+fun should_tag_with_type _ _ _ (Top_Level _) _ = NONE
+  | should_tag_with_type ctxt mono (Tags (_, level)) site u =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val T = ityp_of u
+      val tag =
+        (case level of
+          Nonmono_Types (_, Non_Uniform) =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) =>
+            (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
+          | _ => false)
+        | Undercover_Types =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) => pos <> SOME false
+          | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
+          | _ => false)
+        | _ => should_encode_type ctxt mono level T)
+    in if tag then SOME T else NONE end
+  | should_tag_with_type _ _ _ _ _ = NONE
 
 (** predicators and application operators **)
 
@@ -2185,7 +2188,6 @@ and atp_term_of_iterm ctxt mono type_enc pos =
       let
         val (head, args) = strip_iterm_comb u
         val pos = (case site of Top_Level pos => pos | Eq_Arg pos => pos | _ => NONE)
-        val T = ityp_of u
         val t =
           (case head of
             IConst (name as (s, _), _, T_args) =>
@@ -2205,8 +2207,11 @@ and atp_term_of_iterm ctxt mono type_enc pos =
             else
               raise Fail "unexpected lambda-abstraction"
           | IApp _ => raise Fail "impossible \"IApp\"")
-        val tag = should_tag_with_type ctxt mono type_enc site u T
-      in t |> tag ? tag_with_type ctxt mono type_enc pos T end
+      in
+        (case should_tag_with_type ctxt mono type_enc site u of
+          SOME T => tag_with_type ctxt mono type_enc pos T t
+        | NONE => t)
+      end
   in term (Top_Level pos) end
 and formula_of_iformula ctxt mono type_enc should_guard_var =
   let
