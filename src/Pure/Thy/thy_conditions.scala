@@ -128,9 +128,15 @@ final class Thy_Conditions private(
                   cond match {
                     case Value.Boolean(b) => b
                     case _ =>
-                      try { options.proper_value(cond) }
-                      catch {
-                        case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
+                      options.get(cond).map(_.typ) match {
+                        case Some(Options.Bool) => options.bool(cond)
+                        case Some(Options.Int) => options.int(cond) > 0
+                        case Some(Options.Real) => options.real(cond) > 0.0
+                        case Some(Options.String) => options.string(cond).nonEmpty
+                        case Some(Options.Unknown) => false
+                        case None =>
+                          error("Condition " + quote(cond) + " cannot be evaluated as system option" +
+                            "\n(environment variables need to be given as \"$NAME\")")
                       }
                   }
               }
