@@ -1988,9 +1988,7 @@ fun helper_facts_of_sym_table ctxt format type_enc lam_trans completish sym_tab 
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
 
-fun set_insert (x, s) = Symtab.update (x, ()) s
-
-fun add_classes (cls, cset) = List.foldl set_insert cset (flat cls)
+fun add_classes (cls, cset) = fold (fold Symtab.insert_set) cls cset
 
 fun classes_of_terms get_Ts =
   map (map snd o get_Ts)
@@ -2000,7 +1998,7 @@ fun classes_of_terms get_Ts =
 val tfree_classes_of_terms = classes_of_terms Misc_Legacy.term_tfrees
 val tvar_classes_of_terms = classes_of_terms Misc_Legacy.term_tvars
 
-fun fold_type_ctrs f (Type (s, Ts)) x = fold (fold_type_ctrs f) Ts (f (s, x))
+fun fold_type_ctrs f (Type (s, Ts)) x = fold (fold_type_ctrs f) Ts (f s x)
   | fold_type_ctrs _ _ x = x
 
 (* Type constructors used to instantiate overloaded constants are the only ones
@@ -2010,7 +2008,7 @@ fun add_type_ctrs_in_term thy =
     fun add (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) = I
       | add (t $ u) = add t #> add u
       | add (Const x) =
-        x |> robust_const_type_args thy |> fold (fold_type_ctrs set_insert)
+        x |> robust_const_type_args thy |> fold (fold_type_ctrs Symtab.insert_set)
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
