@@ -131,8 +131,7 @@ final class Thy_Conditions private(
           case Some(Options.Int) => options.int(cond) > 0
           case Some(Options.Real) => options.real(cond) > 0.0
           case Some(Options.String) => options.string(cond).nonEmpty
-          case Some(Options.Unknown) => false
-          case None =>
+          case _ =>
             error("Condition " + quote(cond) + " cannot be evaluated as system option" +
               "\n(environment variables need to be given as \"$NAME\")")
         }
