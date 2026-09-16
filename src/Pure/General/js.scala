@@ -22,6 +22,8 @@ object JS {
 
   /* JSON values */
 
+  def array(args: Source*): Source = args.mkString("[", ", ", "]")
+
   def value(t: JSON.T): Source = JSON.Format(t)
   def string(s: String): Source = value(s)
 
