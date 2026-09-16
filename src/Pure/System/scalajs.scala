@@ -229,6 +229,18 @@ object Scalajs {
     final val invoke = { case a :: Nil => apply(a.asInstanceOf[A]) }
   }
 
+  abstract class Fun2[A, B] extends JS_Fun {
+    def apply(a: A, b: B): Unit
+    final val invoke = { case a :: b :: Nil => apply(a.asInstanceOf[A], b.asInstanceOf[B]) }
+  }
+
+  abstract class Fun3[A, B, C] extends JS_Fun {
+    def apply(a: A, b: B, c: C): Unit
+    final val invoke = { 
+      case a :: b :: c :: Nil => apply(a.asInstanceOf[A], b.asInstanceOf[B], c.asInstanceOf[C])
+    }
+  }
+
   object Functions {
     private val functions = mutable.Map.empty[String, js.Function1[js.Array[Any], Unit]]
     if (Platform.is_scalajs) js.Dynamic.global.window.isabelle_functions = functions
