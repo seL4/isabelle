@@ -1353,12 +1353,18 @@ fun mangle_type_args_in_const type_enc (name as (s, _)) T_args =
 fun mangle_type_args_in_iterm type_enc =
   if is_type_enc_mangling type_enc then
     let
-      fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
+      fun mangle (tm as IApp (tm1, tm2)) =
+          let val tm1' = mangle tm1 and tm2' = mangle tm2 in
+            if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2') then tm else IApp (tm1', tm2')
+          end
         | mangle (tm as IConst (_, _, [])) = tm
         | mangle (IConst (name, T, T_args)) =
           mangle_type_args_in_const type_enc name T_args
           |> (fn (name, T_args) => IConst (name, T, T_args))
-        | mangle (IAbs (bound, tm)) = IAbs (bound, mangle tm)
+        | mangle (tm as IAbs (bound, tm1)) =
+          let val tm1' = mangle tm1 in
+            if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+          end
         | mangle tm = tm
     in mangle end
   else
