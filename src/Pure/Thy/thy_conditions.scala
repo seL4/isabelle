@@ -80,7 +80,7 @@ object Thy_Conditions {
 final class Thy_Conditions private(
   val background: Sessions.Background,
   val options: Options,
-  rep: SortedMap[String, Exn.Result[Boolean]]
+  rep: SortedMap[String, Exn.Result[String]]
 ) {
   def restrict(domain: Set[String]): Thy_Conditions =
     new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
@@ -102,15 +102,15 @@ final class Thy_Conditions private(
   }
 
   def failed: List[String] = List.from(for (case (a, Exn.Exn(_)) <- rep.iterator) yield a)
-  def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
-  def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
-  def bad_message: String =
-    bad match {
-      case Nil => ""
-      case xs =>
-        xs.map(x => "condition " + quote(x) + " is undefined/false")
-          .mkString("(", ", ", ")")
-    }
+  def good: List[String] = List.from(for (case (a, Exn.Res("")) <- rep.iterator) yield a)
+  def bad: List[String] = List.from(for (case (a, Exn.Res(b)) <- rep.iterator if b.nonEmpty) yield a)
+  def bad_message: String = {
+    val bads =
+      List.from(
+        for (case (a, Exn.Res(b)) <- rep.iterator if b.nonEmpty)
+          yield "condition " + quote(a) + " is " + b)
+    if (bads.isEmpty) "" else bads.mkString("(", ", ", ")")
+  }
 
   def update_options(specs: Options.Update): Options =
     options ++ specs.filter(p => p._1 == Thy_Conditions.Condition.name)
@@ -118,20 +118,34 @@ final class Thy_Conditions private(
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
     else {
-      def eval_env: Option[Boolean] =
-        Library.try_unprefix("$", cond).map(a => Isabelle_System.getenv(a).nonEmpty)
+      def eval_env: Option[String] =
+        Library.try_unprefix("$", cond).map(a =>
+          if (Isabelle_System.getenv(a).nonEmpty) "" else "empty/unset")
 
-      def eval_pred: Option[Boolean] =
-        Library.try_unsuffix("()", cond).map(a => Thy_Conditions.the_predicate(a)(this))
+      def eval_pred: Option[String] =
+        Library.try_unsuffix("()", cond).map(a =>
+          if (Thy_Conditions.the_predicate(a)(this)) "" else "false")
 
-      def eval_bool: Option[Boolean] = Value.Boolean.unapply(cond)
+      def eval_bool: Option[String] =
+        Value.Boolean.unapply(cond).map(b => if (b) "" else "false")
 
-      def eval_option: Boolean =
+      def eval_option: String =
         options.get(cond).map(_.typ) match {
-          case Some(Options.Bool) => options.bool(cond)
-          case Some(Options.Int) => options.int(cond) > 0
-          case Some(Options.Real) => options.real(cond) > 0.0
-          case Some(Options.String) => options.string(cond).nonEmpty
+          case Some(Options.Bool) => if (options.bool(cond)) "" else "false"
+          case Some(Options.Int) =>
+            options.int(cond) match {
+              case x if x > 0 => ""
+              case x if x < 0 => "< 0"
+              case 0 => "0"
+            }
+          case Some(Options.Real) =>
+            options.real(cond) compare 0.0 match {
+              case x if x > 0.0 && java.lang.Double.isFinite(x) => ""
+              case x if x < 0.0 && java.lang.Double.isFinite(x) => "< 0"
+              case 0.0 => "0"
+              case x => "ill-defined"
+            }
+          case Some(Options.String) => if (options.string(cond).nonEmpty) "" else "empty"
           case _ =>
             error("Condition " + quote(cond) + " cannot be evaluated as system option" +
               "\n(environment variables need to be given as \"$NAME\")")
