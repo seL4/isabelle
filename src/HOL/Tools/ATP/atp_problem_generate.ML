@@ -2352,6 +2352,11 @@ fun decl_lines_of_classes type_enc =
 
 fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
   let
+    fun add_decl s decl =
+      Symtab.map_default (s, []) (fn decls =>
+        let val decls' = insert_type thy #3 decl decls in
+          if pointer_eq (decls, decls') then raise Symtab.SAME else decls'
+        end)
     fun add_iterm_syms tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
@@ -2366,11 +2371,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
               not (String.isPrefix let_bound_var_prefix s) andalso
               is_tptp_user_symbol s
           in
-            if decl_sym then
-              Symtab.map_default (s, [])
-                (insert_type thy #3 (s', T_args, T, pred_sym, length args, in_conj))
-            else
-              I
+            if decl_sym then add_decl s (s', T_args, T, pred_sym, length args, in_conj) else I
           end
         | IAbs (_, tm) => add_iterm_syms tm
         | _ => I)
@@ -2400,13 +2401,11 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
             else
               (name, [T])
         in
-          Symtab.map_default (s, []) (insert_type thy #3 (s', Ts, T, false, 0, false))
+          add_decl s (s', Ts, T, false, 0, false)
         end
     fun add_TYPE_const () =
       let val (s, s') = TYPE_name in
-        Symtab.map_default (s, [])
-            (insert_type thy #3
-                         (s', [tvar_a], \<^typ>\<open>'a itself\<close>, false, 0, false))
+        add_decl s (s', [tvar_a], \<^typ>\<open>'a itself\<close>, false, 0, false)
       end
   in
     Symtab.empty
