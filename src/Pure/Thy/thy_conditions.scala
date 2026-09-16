@@ -117,31 +117,27 @@ final class Thy_Conditions private(
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
     else {
-      val result =
-        Exn.result(
-          Library.try_unprefix("$", cond) match {
-            case Some(a) => Isabelle_System.getenv(a).nonEmpty
-            case None =>
-              Library.try_unsuffix("()", cond) match {
-                case Some(a) => Thy_Conditions.the_predicate(a)(this)
-                case None =>
-                  cond match {
-                    case Value.Boolean(b) => b
-                    case _ =>
-                      options.get(cond).map(_.typ) match {
-                        case Some(Options.Bool) => options.bool(cond)
-                        case Some(Options.Int) => options.int(cond) > 0
-                        case Some(Options.Real) => options.real(cond) > 0.0
-                        case Some(Options.String) => options.string(cond).nonEmpty
-                        case Some(Options.Unknown) => false
-                        case None =>
-                          error("Condition " + quote(cond) + " cannot be evaluated as system option" +
-                            "\n(environment variables need to be given as \"$NAME\")")
-                      }
-                  }
-              }
-          }
-        )
+      def eval_env: Option[Boolean] =
+        Library.try_unprefix("$", cond).map(a => Isabelle_System.getenv(a).nonEmpty)
+
+      def eval_pred: Option[Boolean] =
+        Library.try_unsuffix("()", cond).map(a => Thy_Conditions.the_predicate(a)(this))
+
+      def eval_bool: Option[Boolean] = Value.Boolean.unapply(cond)
+
+      def eval_option: Boolean =
+        options.get(cond).map(_.typ) match {
+          case Some(Options.Bool) => options.bool(cond)
+          case Some(Options.Int) => options.int(cond) > 0
+          case Some(Options.Real) => options.real(cond) > 0.0
+          case Some(Options.String) => options.string(cond).nonEmpty
+          case Some(Options.Unknown) => false
+          case None =>
+            error("Condition " + quote(cond) + " cannot be evaluated as system option" +
+              "\n(environment variables need to be given as \"$NAME\")")
+        }
+
+      val result = Exn.result(eval_env orElse eval_pred orElse eval_bool getOrElse eval_option)
       new Thy_Conditions(background, options, rep + (cond -> result))
     }
 
