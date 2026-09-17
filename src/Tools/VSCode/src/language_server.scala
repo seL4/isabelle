@@ -649,7 +649,6 @@ class Language_Server(
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)
           case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
           case LSP.Sledgehammer_Locate() => sledgehammer.locate()
-          case LSP.Sledgehammer_Sendback(text) => sledgehammer.sendback(text)
           case _ =>
             if (!LSP.ResponseMessage.is_empty(json)) channel.log_file.warning("IGNORED")
         }

@@ -37,17 +37,6 @@ class VSCode_Sledgehammer(server: Language_Server) {
   def request(args: List[String]): Unit =
     server.editor.send_dispatcher { query_operation.apply_query(args) }
 
-  def sendback(text: String): Unit =
-    server.editor.send_dispatcher {
-      for {
-        (snapshot, command) <- query_operation.query_command()
-        node_pos <- snapshot.find_command_position(command.id, 0)
-      } {
-        val node_pos1 = node_pos.advance(command.source(command.core_range))
-        server.channel.write(LSP.Sledgehammer_Insert(node_pos1, text))
-      }
-    }
-
   def cancel(): Unit = server.editor.send_dispatcher { query_operation.cancel_query() }
   def locate(): Unit = server.editor.send_dispatcher { query_operation.locate_query() }
 
