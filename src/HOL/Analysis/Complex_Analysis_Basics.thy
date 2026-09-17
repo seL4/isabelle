@@ -407,6 +407,9 @@ lemma analytic_imp_holomorphic: "f analytic_on S \<Longrightarrow> f holomorphic
 lemma analytic_on_open: "open S \<Longrightarrow> f analytic_on S \<longleftrightarrow> f holomorphic_on S"
   by (meson analytic_imp_holomorphic analytic_on_def holomorphic_on_subset openE)
 
+lemma analytic_on_empty: "f analytic_on {}"
+  by (auto simp: analytic_on_open holomorphic_on_empty)
+
 lemma constant_on_imp_analytic_on:
   assumes "f constant_on A" "open A"
   shows "f analytic_on A"

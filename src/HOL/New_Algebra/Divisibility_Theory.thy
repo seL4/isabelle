@@ -5,8 +5,7 @@ theory Divisibility_Theory
 begin
 
 text \<open>Elementary multiplicative divisibility theory for a commutative ring, in the locale idiom of
-  \<open>Ring_Theory\<close>.  This is the ring-element counterpart of HOL-Algebra's
-  \<open>Divisibility\<close>/\<open>Ring_Divisibility\<close>: we work directly with ring elements rather than lifting the
+  \<open>Ring_Theory\<close>. We work directly with ring elements rather than lifting the
   multiplicative monoid, which keeps the statements close to textbook divisibility.\<close>
 
 context commutative_ring
@@ -16,7 +15,7 @@ subsection \<open>Divisibility and units\<close>
 
 text \<open>@{term "divides a b"}: \<open>a\<close> divides \<open>b\<close>, i.e.\ \<open>b = a \<cdot> c\<close> for some ring element \<open>c\<close>.\<close>
 definition divides :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  where "divides a b \<longleftrightarrow> (\<exists>c\<in>R. b = a \<cdot> c)"
+  where "divides a b \<equiv> (\<exists>c\<in>R. b = a \<cdot> c)"
 
 lemma dividesI [intro]: "\<lbrakk> c \<in> R; b = a \<cdot> c \<rbrakk> \<Longrightarrow> divides a b"
   unfolding divides_def by blast
@@ -26,27 +25,22 @@ lemma dividesE [elim]:
   using assms unfolding divides_def by blast
 
 lemma divides_refl [simp]: "a \<in> R \<Longrightarrow> divides a a"
-  by (rule dividesI[of \<one>]) simp_all
+  using Monoid.unit_closed multiplicative.Monoid_axioms by fastforce
 
 lemma divides_trans [trans]:
   assumes "divides a b" "divides b c" and a: "a \<in> R"
   shows "divides a c"
-proof -
-  from assms obtain x where x: "x \<in> R" "b = a \<cdot> x" by blast
-  from assms obtain y where y: "y \<in> R" "c = b \<cdot> y" by blast
-  have "c = a \<cdot> (x \<cdot> y)" using x y a by (simp add: multiplicative.associative)
-  then show ?thesis using x y by blast
-qed
+  using a assms divides_def by auto
 
 lemma divides_zero [simp]: "a \<in> R \<Longrightarrow> divides a \<zero>"
   by (rule dividesI[of \<zero>]) simp_all
 
 lemma one_divides [simp]: "a \<in> R \<Longrightarrow> divides \<one> a"
-  by (rule dividesI[of a]) simp_all
+  by (simp add: divides_def)
 
 lemma divides_mult_right:
-  assumes "a \<in> R" "b \<in> R" shows "divides a (a \<cdot> b)"
-  using assms by (rule_tac dividesI[of b]) simp_all
+  assumes "b \<in> R" shows "divides a (a \<cdot> b)"
+  using assms by blast
 
 text \<open>A unit is an invertible element of the multiplicative monoid.\<close>
 abbreviation is_unit :: "'a \<Rightarrow> bool"
@@ -56,31 +50,16 @@ lemma is_unitI [intro]: "\<lbrakk> u \<cdot> v = \<one>; v \<cdot> u = \<one>; v
   by (rule multiplicative.invertibleI)
 
 lemma unit_divides_one:
-  assumes "is_unit u" "u \<in> R" shows "divides u \<one>"
-proof -
-  have "multiplicative.inverse u \<in> R" using assms by simp
-  moreover have "\<one> = u \<cdot> multiplicative.inverse u" using assms by simp
-  ultimately show ?thesis by blast
-qed
+  assumes "is_unit u" shows "divides u \<one>"
+  using assms by auto
 
 lemma one_divides_unit_iff:
   assumes u: "u \<in> R" shows "divides u \<one> \<longleftrightarrow> is_unit u"
-proof
-  assume "divides u \<one>"
-  then obtain v where v: "v \<in> R" "\<one> = u \<cdot> v" by blast
-  have uv: "u \<cdot> v = \<one>" using v by simp
-  have vu: "v \<cdot> u = \<one>" using v u uv by (simp add: multiplicative.commutative)
-  show "is_unit u" by (rule is_unitI[OF uv vu v(1)])
-next
-  assume "is_unit u" then show "divides u \<one>" using u by (rule unit_divides_one)
-qed
+  using is_unitI multiplicative.commutative u by blast
 
 lemma unit_divides_all:
   assumes "is_unit u" "u \<in> R" "a \<in> R" shows "divides u a"
-proof -
-  have "divides u \<one>" using assms by (simp add: unit_divides_one)
-  then show ?thesis using assms one_divides divides_trans by blast
-qed
+  using assms divides_trans one_divides one_divides_unit_iff by meson
 
 
 subsection \<open>Associated elements\<close>
@@ -146,24 +125,13 @@ text \<open>Any two gcds of the same pair are associated.\<close>
 lemma is_gcd_unique:
   assumes "is_gcd d a b" and "is_gcd d' a b"
   shows "associated d d'"
-proof (rule associatedI)
-  \<comment> \<open>\<open>d\<close> is a common divisor and \<open>d'\<close> a gcd, so \<open>d\<close> divides \<open>d'\<close>; and symmetrically.\<close>
-  have dR: "d \<in> R" and dda: "divides d a" and ddb: "divides d b" using is_gcdD[OF assms(1)] by blast+
-  have d'R: "d' \<in> R" and d'a: "divides d' a" and d'b: "divides d' b" using is_gcdD[OF assms(2)] by blast+
-  show "divides d d'" using is_gcdD(4)[OF assms(2) dR dda ddb] .
-  show "divides d' d" using is_gcdD(4)[OF assms(1) d'R d'a d'b] .
-qed
+  using assms associated_def is_gcd_def by force
 
 text \<open>Dually, any two lcms are associated.\<close>
 lemma is_lcm_unique:
   assumes "is_lcm m a b" and "is_lcm m' a b"
   shows "associated m m'"
-proof (rule associatedI)
-  show "divides m m'"
-    using assms unfolding is_lcm_def by blast
-  show "divides m' m"
-    using assms unfolding is_lcm_def by blast
-qed
+  using assms associated_def is_lcm_def by force
 
 end
 
@@ -225,15 +193,13 @@ lemma mult_cancel_left:
   shows "a = b"
 proof -
   have "c \<cdot> (a - b) = c \<cdot> a + c \<cdot> (- b)" using c a b by (simp add: distributive)
-  also have "\<dots> = c \<cdot> a - c \<cdot> b" using c a b by (simp add: right_minus)
-  also have "\<dots> = \<zero>" using eq a b c by simp
-  finally have "c \<cdot> (a - b) = \<zero>" .
-  moreover have "a - b \<in> R" using a b by simp
-  ultimately have "c = \<zero> \<or> a - b = \<zero>" using c no_zero_divisors by blast
+  then have "c \<cdot> (a - b) = \<zero>"
+    by (simp add: b c eq local.right_minus) 
+  then have "c = \<zero> \<or> a - b = \<zero>" 
+    using c no_zero_divisors by (simp add: a b)
   then have z: "a - b = \<zero>" using cnz by blast
-  have "a = (a - b) + b" using a b by (simp add: additive.associative)
-  also have "\<dots> = b" using z b by simp
-  finally show ?thesis .
+  then show ?thesis
+    using a additive.commutative additive.inverse_equality b by fastforce
 qed
 
 text \<open>The classical characterization of association in a domain: \<open>a\<close> and \<open>b\<close> are associated iff
@@ -251,50 +217,31 @@ proof
   show "\<exists>u. is_unit u \<and> u \<in> R \<and> b = u \<cdot> a"
   proof (cases "a = \<zero>")
     case True
-    \<comment> \<open>Both are zero; take the unit @{term \<one>}.\<close>
-    then have "b = \<zero>" using s a by simp
-    then show ?thesis using True a by (auto intro!: exI[of _ \<one>])
+    then show ?thesis using s a by force
   next
     case False
-    \<comment> \<open>@{term "a = a \<cdot> (s \<cdot> t)"}, so cancellation gives @{term "s \<cdot> t = \<one>"}: @{term s} is a unit.\<close>
-    have "a \<cdot> \<one> = a" using a by simp
-    also have "\<dots> = b \<cdot> t" using t by simp
-    also have "\<dots> = (a \<cdot> s) \<cdot> t" using s by simp
-    also have "\<dots> = a \<cdot> (s \<cdot> t)" using multiplicative.associative[OF a s(1) t(1)] .
-    finally have eq1: "a \<cdot> \<one> = a \<cdot> (s \<cdot> t)" .
+    have eq1: "a \<cdot> \<one> = a \<cdot> (s \<cdot> t)"
+      using multiplicative.associative a s t by force
     have stR: "s \<cdot> t \<in> R" using s t by simp
     have one_st: "\<one> = s \<cdot> t"
       by (rule mult_cancel_left[OF a multiplicative.unit_closed stR False eq1])
-    have st: "s \<cdot> t = \<one>" using one_st by (rule sym)
-    have ts: "t \<cdot> s = \<one>" using st s t by (simp add: multiplicative.commutative)
-    have "is_unit s" by (rule is_unitI[OF st ts t(1)])
-    moreover have "b = s \<cdot> a" using s a by (simp add: multiplicative.commutative)
-    ultimately show ?thesis using s(1) by blast
+    then show ?thesis using s(1)
+      using a is_unitI multiplicative.commutative s(2) t(1) by blast
   qed
 next
   assume "\<exists>u. is_unit u \<and> u \<in> R \<and> b = u \<cdot> a"
-  then obtain u where u: "is_unit u" "u \<in> R" and beq: "b = u \<cdot> a" by blast
+  then obtain u where u: "is_unit u" "u \<in> R" and beq: "b = u \<cdot> a" and iuR: "multiplicative.inverse u \<in> R" 
+    by blast
   show "associated a b"
   proof (rule associatedI)
     \<comment> \<open>\<open>divides a b\<close> since \<open>b = u \<cdot> a = a \<cdot> u\<close>.\<close>
     show "divides a b"
-    proof -
-      have "b = a \<cdot> u" using beq multiplicative.commutative[OF u(2) a] by simp
-      then show ?thesis using u(2) by blast
-    qed
-    \<comment> \<open>\<open>divides b a\<close> since \<open>a = u\<inverse> \<cdot> b\<close>.\<close>
+      using a beq multiplicative.commutative u(2) by blast
+        \<comment> \<open>\<open>divides b a\<close> since \<open>a = u\<inverse> \<cdot> b\<close>.\<close>
     show "divides b a"
-    proof -
-      have iuR: "multiplicative.inverse u \<in> R" using u by simp
-      have "multiplicative.inverse u \<cdot> b = multiplicative.inverse u \<cdot> (u \<cdot> a)" using beq by simp
-      also have "\<dots> = (multiplicative.inverse u \<cdot> u) \<cdot> a"
-        using iuR u(2) a by (simp add: multiplicative.associative)
-      also have "\<dots> = \<one> \<cdot> a" using u by simp
-      also have "\<dots> = a" using a by simp
-      finally have "a = b \<cdot> multiplicative.inverse u"
-        using iuR b by (simp add: multiplicative.commutative)
-      then show ?thesis using b iuR by blast
-    qed
+      unfolding divides_def
+      using a b beq iuR multiplicative.commutative multiplicative.invertible_left_inverse2 u
+      by metis
   qed
 qed
 
@@ -306,31 +253,24 @@ proof (rule irreducible_elemI)
     using p by (auto dest: prime_elemD)
   fix a b assume a: "a \<in> R" and b: "b \<in> R" and eq: "p = a \<cdot> b"
   \<comment> \<open>\<open>p\<close> divides \<open>a \<cdot> b\<close>, so it divides one factor; say \<open>p\<close> divides \<open>a\<close>, giving \<open>a = p \<cdot> d\<close>.\<close>
-  have "divides p (a \<cdot> b)" using eq pR by simp
-  then have "divides p a \<or> divides p b" using a b p by (auto dest: prime_elemD)
+  then have "divides p a \<or> divides p b" using a b p by (auto simp: prime_elem_def)
   then show "is_unit a \<or> is_unit b"
   proof
     assume "divides p a"
     then obtain d where d: "d \<in> R" "a = p \<cdot> d" by blast
-    \<comment> \<open>Then \<open>p = a \<cdot> b = p \<cdot> (d \<cdot> b)\<close>, so by cancellation \<open>\<one> = d \<cdot> b\<close>, making \<open>b\<close> a unit.\<close>
     have "p \<cdot> \<one> = p \<cdot> (d \<cdot> b)"
       using eq d a b pR by (simp add: multiplicative.associative)
     then have db: "d \<cdot> b = \<one>" using mult_cancel_left[OF pR _ _ pnz] d b pR by simp
-    have bd: "b \<cdot> d = \<one>" using db b d by (simp add: multiplicative.commutative)
-    have "is_unit b" by (rule is_unitI[OF bd db d(1)])
-    then show ?thesis ..
+    then show ?thesis
+      using b d(1) is_unitI multiplicative.commutative by blast
   next
     assume "divides p b"
     then obtain d where d: "d \<in> R" "b = p \<cdot> d" by blast
-    have "p \<cdot> \<one> = p" using pR by simp
-    also have "\<dots> = a \<cdot> b" using eq by simp
-    also have "\<dots> = a \<cdot> (p \<cdot> d)" using d by simp
-    also have "\<dots> = p \<cdot> (d \<cdot> a)" using a d pR by (simp add: mult_ac)
-    finally have "p \<cdot> \<one> = p \<cdot> (d \<cdot> a)" .
+    then have "p \<cdot> \<one> = p \<cdot> (d \<cdot> a)"
+      using a eq multiplicative.commutative multiplicative.left_commutative pR by force 
     then have da: "d \<cdot> a = \<one>" using mult_cancel_left[OF pR _ _ pnz] d a pR by simp
-    have ad: "a \<cdot> d = \<one>" using da a d by (simp add: multiplicative.commutative)
-    have "is_unit a" by (rule is_unitI[OF ad da d(1)])
-    then show ?thesis ..
+    then show ?thesis
+      using a d(1) is_unitI multiplicative.commutative by blast 
   qed
 qed
 
@@ -349,17 +289,7 @@ begin
 lemma divides_iff_mem_principal:
   assumes a: "a \<in> R" and b: "b \<in> R"
   shows "divides a b \<longleftrightarrow> b \<in> principal_ideal a"
-proof
-  assume "divides a b"
-  then obtain c where c: "c \<in> R" "b = a \<cdot> c" by blast
-  then have "b = c \<cdot> a" using a by (simp add: multiplicative.commutative)
-  then show "b \<in> principal_ideal a" using c principal_ideal_memI[of c a] by simp
-next
-  assume "b \<in> principal_ideal a"
-  then obtain r where r: "r \<in> R" "b = r \<cdot> a" unfolding principal_ideal_def by blast
-  then have "b = a \<cdot> r" using a by (simp add: multiplicative.commutative)
-  then show "divides a b" using r by blast
-qed
+  using a divides_def multiplicative.commutative principal_ideal_def by auto
 
 lemma divides_iff_principal_subset:
   assumes a: "a \<in> R" and b: "b \<in> R"
@@ -369,13 +299,10 @@ proof
   show "principal_ideal b \<subseteq> principal_ideal a"
   proof
     fix x assume "x \<in> principal_ideal b"
-    then obtain r where r: "r \<in> R" "x = r \<cdot> b" unfolding principal_ideal_def by blast
-    obtain c where c: "c \<in> R" "b = a \<cdot> c" using dvd by blast
-    have "x = r \<cdot> (a \<cdot> c)" using r c by simp
-    also have "\<dots> = r \<cdot> (c \<cdot> a)" using a c by (simp add: multiplicative.commutative)
-    also have "\<dots> = (r \<cdot> c) \<cdot> a" using r c a by (simp add: multiplicative.associative)
-    finally have "x = (r \<cdot> c) \<cdot> a" .
-    then show "x \<in> principal_ideal a" using r c principal_ideal_memI[of "r \<cdot> c" a] by simp
+    then obtain r c where "r \<in> R" "x = r \<cdot> b" and "c \<in> R" "b = a \<cdot> c"
+      unfolding principal_ideal_def using dvd by blast
+    then show "x \<in> principal_ideal a" using principal_ideal_memI[of "r \<cdot> c" a]
+      using a multiplicative.associative multiplicative.commutative by auto
   qed
 next
   assume "principal_ideal b \<subseteq> principal_ideal a"
@@ -408,21 +335,17 @@ lemma principal_ideal_eq_whole_iff_unit:
 proof
   assume "principal_ideal a = R"
   then have "\<one> \<in> principal_ideal a" by simp
-  then obtain r where r: "r \<in> R" "\<one> = r \<cdot> a" unfolding principal_ideal_def by blast
-  have ra: "r \<cdot> a = \<one>" using r by simp
-  have ar: "a \<cdot> r = \<one>" using r a ra by (simp add: multiplicative.commutative)
-  show "is_unit a" by (rule is_unitI[OF ar ra r(1)])
+  then obtain r where r: "r \<in> R" "r \<cdot> a = \<one>" "a \<cdot> r = \<one>" 
+    unfolding principal_ideal_def
+    using assms multiplicative.commutative by auto
+  then show "is_unit a"
+    using is_unitI by blast
 next
   assume u: "is_unit a"
   have "\<one> \<in> principal_ideal a"
-  proof -
-    have "a \<cdot> multiplicative.inverse a = \<one>" using u a by simp
-    then have "multiplicative.inverse a \<cdot> a = \<one>"
-      using u a by (simp add: multiplicative.commutative)
-    then show ?thesis using u a principal_ideal_memI[of "multiplicative.inverse a" a] by simp
-  qed
-  moreover have "Ideal (principal_ideal a) R (+) (\<cdot>) \<zero> \<one>" by (rule principal_ideal_is_ideal[OF a])
-  ultimately show "principal_ideal a = R" by (rule ideal_contains_one_eq_whole[rotated])
+    using multiplicative.invertibleE principal_ideal_memI u by metis
+  then show "principal_ideal a = R"
+    using assms ideal_proper_iff_one_notin principal_ideal_is_ideal by blast
 qed
 
 end
@@ -435,8 +358,7 @@ text \<open>A (two-sided) noetherian ring is one in which every ascending chain 
   form used by the factorisation arguments below.\<close>
 locale Noetherian_Ring = Ring +
   assumes ideal_chain_stabilises:
-    "\<lbrakk> \<And>n. Ideal (A n) R (+) (\<cdot>) \<zero> \<one>;
-       \<And>n. A n \<subseteq> A (Suc n) \<rbrakk> \<Longrightarrow>
+    "\<lbrakk> \<And>n. Ideal (A n) R (+) (\<cdot>) \<zero> \<one>; \<And>n. A n \<subseteq> A (Suc n) \<rbrakk> \<Longrightarrow>
      \<exists>N. \<forall>n. N \<le> n \<longrightarrow> A n = A N"
 
 text \<open>A noetherian domain is both noetherian and an integral domain.\<close>
@@ -476,26 +398,15 @@ proof -
     then show "J = principal_ideal p \<or> J = R"
     proof
       assume "is_unit q"
-      then have "J = R" using principal_ideal_eq_whole_iff_unit[OF q(1)] q(2) by blast
-      then show ?thesis ..
+      then show ?thesis using principal_ideal_eq_whole_iff_unit q by blast
     next
       assume ur: "is_unit r"
-      \<comment> \<open>\<open>r\<close> a unit makes \<open>p\<close> and \<open>q\<close> associated, so \<open>(p) = (q) = J\<close>.\<close>
-      have "divides p q"
-      proof -
-        have irR: "multiplicative.inverse r \<in> R" using ur r(1) by simp
-        have "p \<cdot> multiplicative.inverse r = (q \<cdot> r) \<cdot> multiplicative.inverse r" using r by simp
-        also have "\<dots> = q \<cdot> (r \<cdot> multiplicative.inverse r)"
-          using q(1) r(1) irR by (simp add: multiplicative.associative)
-        also have "\<dots> = q \<cdot> \<one>" using ur r(1) by simp
-        also have "\<dots> = q" using q(1) by simp
-        finally have "q = p \<cdot> multiplicative.inverse r" ..
-        then show ?thesis using pR irR by blast
-      qed
-      moreover have "divides q p" using r q(1) pR by blast
-      ultimately have "principal_ideal p = principal_ideal q"
-        using associated_iff_same_principal[OF pR q(1)] by (simp add: associated_def)
-      then show ?thesis using q(2) by simp
+      have "p \<cdot> multiplicative.inverse r = q"
+        by (simp add: multiplicative.associative q(1) r ur)
+      then have "divides p q"
+        using r(1) ur by auto 
+      then show ?thesis using q(2)
+        using divides_iff_principal_subset pR q(1) sub by blast 
     qed
   qed
 qed
@@ -510,18 +421,10 @@ proof -
     using p by (auto dest: irreducible_elemD)
   interpret P: ideal_in_comm_ring "principal_ideal p" R "(+)" "(\<cdot>)" \<zero> \<one>
     by (intro ideal_in_comm_ring.intro principal_ideal_is_ideal[OF pR] commutative_ring_axioms)
-  have "P.maximal_ideal" by (rule irreducible_imp_maximal_ideal[OF p])
-  then have prime: "P.prime_ideal" by (rule P.maximal_imp_prime_ideal)
+  have prime: "P.prime_ideal"
+    using P.maximal_imp_prime_ideal irreducible_imp_maximal_ideal p by blast
   show ?thesis
-  proof (rule prime_elemI[OF pR pnz pnu])
-    fix a b assume a: "a \<in> R" and b: "b \<in> R" and dvd: "divides p (a \<cdot> b)"
-    have abR: "a \<cdot> b \<in> R" using a b by simp
-    have "a \<cdot> b \<in> principal_ideal p" using divides_iff_mem_principal[OF pR abR] dvd by simp
-    then have "a \<in> principal_ideal p \<or> b \<in> principal_ideal p"
-      using prime a b unfolding P.prime_ideal_def by blast
-    then show "divides p a \<or> divides p b"
-      using divides_iff_mem_principal[OF pR a] divides_iff_mem_principal[OF pR b] by blast
-  qed
+    using P.prime_ideal_def divides_iff_mem_principal pR pnu pnz prime prime_elemI by auto
 qed
 
 
@@ -534,27 +437,9 @@ lemma Union_chain_ideal:
   shows "Ideal (\<Union>n. A n) R (+) (\<cdot>) \<zero> \<one>"
 proof -
   have mono_le: "A m \<subseteq> A n" if "m \<le> n" for m n
-    using that
-  proof (induct n)
-    case 0 then show ?case by simp
-  next
-    case (Suc n) show ?case
-    proof (cases "m = Suc n")
-      case True then show ?thesis by simp
-    next
-      case False
-      then have "m \<le> n" using Suc.prems le_Suc_eq by blast
-      then show ?thesis using Suc.hyps mono[of n] by blast
-    qed
-  qed
+    using that by (induct n) (simp_all add: lift_Suc_mono_le mono)
   have dir: "\<And>x y. x \<in> (\<Union>n. A n) \<Longrightarrow> y \<in> (\<Union>n. A n) \<Longrightarrow> \<exists>k. x \<in> A k \<and> y \<in> A k"
-  proof -
-    fix x y assume "x \<in> (\<Union>n. A n)" "y \<in> (\<Union>n. A n)"
-    then obtain i j where "x \<in> A i" "y \<in> A j" by blast
-    then have "x \<in> A (max i j)" "y \<in> A (max i j)"
-      using mono_le[of i "max i j"] mono_le[of j "max i j"] by auto
-    then show "\<exists>k. x \<in> A k \<and> y \<in> A k" by blast
-  qed
+    using mono mono_le by (metis UN_E not_less_eq_eq subset_eq)
   interpret A0: Ideal "A 0" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule I)
   have sub: "Subgroup (\<Union>n. A n) R (+) \<zero>"
   proof (rule additive.subgroupI)
@@ -577,21 +462,17 @@ proof -
     then obtain n where "g \<in> A n" by blast
     interpret An: Ideal "A n" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule I)
     show "additive.invertible g" using \<open>g \<in> A n\<close> An.additive.subset by auto
-  next
-    fix g assume "g \<in> (\<Union>n. A n)"
-    then obtain n where "g \<in> A n" by blast
-    interpret An: Ideal "A n" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule I)
     show "additive.inverse g \<in> (\<Union>n. A n)"
       using \<open>g \<in> A n\<close> An.additive.submonoid_inverse_closed An.additive.sub.invertible by blast
   qed
   interpret U: Subgroup "\<Union>n. A n" R "(+)" \<zero> by (rule sub)
   show ?thesis
-  proof unfold_locales
+  proof 
     fix a x assume a: "a \<in> R" and x: "x \<in> (\<Union>n. A n)"
     obtain n where "x \<in> A n" using x by blast
     interpret An: Ideal "A n" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule I)
-    show "a \<cdot> x \<in> (\<Union>n. A n)" using a \<open>x \<in> A n\<close> An.Ideal(1) by blast
-    show "x \<cdot> a \<in> (\<Union>n. A n)" using a \<open>x \<in> A n\<close> An.Ideal(2) by blast
+    show "a \<cdot> x \<in> (\<Union>n. A n)" "x \<cdot> a \<in> (\<Union>n. A n)" 
+      using a \<open>x \<in> A n\<close> An.Ideal by blast+
   qed
 qed
 
@@ -605,36 +486,24 @@ theorem ascending_chain_stabilises:
 proof -
   have mono_le: "A m \<subseteq> A n" if "m \<le> n" for m n
     using that
-  proof (induct n)
-    case 0 then show ?case by simp
-  next
-    case (Suc n) show ?case
-    proof (cases "m = Suc n")
-      case True then show ?thesis by simp
-    next
-      case False
-      then have "m \<le> n" using Suc.prems le_Suc_eq by blast
-      then show ?thesis using Suc.hyps mono[of n] by blast
-    qed
-  qed
+    by (induct n) (simp_all add: lift_Suc_mono_le mono)
   have Uideal: "Ideal (\<Union>n. A n) R (+) (\<cdot>) \<zero> \<one>"
     using I mono by (rule Union_chain_ideal)
   obtain c where c: "c \<in> R" and Uc: "(\<Union>n. A n) = principal_ideal c"
-    using principal[OF Uideal] by blast
-  have "c \<in> (\<Union>n. A n)" using Uc c by (simp add: principal_ideal_contains)
-  then obtain N where cN: "c \<in> A N" by blast
+    using principal[OF Union_chain_ideal] I mono by metis
+  then obtain N where cN: "c \<in> A N"
+    using Uc c principal_ideal_contains by auto
   have "A n = A N" if "N \<le> n" for n
   proof
     show "A N \<subseteq> A n" using mono_le that .
     show "A n \<subseteq> A N"
     proof
       fix x assume "x \<in> A n"
-      then have "x \<in> (\<Union>k. A k)" by blast
-      then have "x \<in> principal_ideal c" using Uc by simp
+      then have "x \<in> principal_ideal c" using Uc by blast
       then obtain r where r: "r \<in> R" "x = r \<cdot> c" unfolding principal_ideal_def by blast
-      interpret AN: Ideal "A N" R "(+)" "(\<cdot>)" \<zero> \<one> by (rule I)
-      have "r \<cdot> c \<in> A N" using r(1) cN AN.Ideal(1) by blast
-      then show "x \<in> A N" using r(2) by simp
+      interpret AN: Ideal "A N" R "(+)" "(\<cdot>)" \<zero> \<one> 
+        by (rule I)
+      show "x \<in> A N" using r cN AN.Ideal(1) by blast 
     qed
   qed
   then show ?thesis using that by blast
@@ -645,7 +514,7 @@ subsubsection \<open>Bezout: existence of greatest common divisors\<close>
 
 text \<open>The ideal generated by two elements, \<open>(a, b) = {x \<cdot> a + y \<cdot> b}\<close>.\<close>
 definition bezout_ideal :: "'a \<Rightarrow> 'a \<Rightarrow> 'a set"
-  where "bezout_ideal a b = {x \<cdot> a + y \<cdot> b | x y. x \<in> R \<and> y \<in> R}"
+  where "bezout_ideal a b \<equiv> {x \<cdot> a + y \<cdot> b | x y. x \<in> R \<and> y \<in> R}"
 
 lemma bezout_ideal_memI:
   "\<lbrakk> x \<in> R; y \<in> R \<rbrakk> \<Longrightarrow> x \<cdot> a + y \<cdot> b \<in> bezout_ideal a b"
@@ -658,56 +527,40 @@ proof -
   have sg: "Subgroup (bezout_ideal a b) R (+) \<zero>"
   proof (rule additive.subgroupI)
     show "bezout_ideal a b \<subseteq> R"
-    proof
-      fix z assume "z \<in> bezout_ideal a b"
-      then obtain x y where "x \<in> R" "y \<in> R" "z = x \<cdot> a + y \<cdot> b"
-        unfolding bezout_ideal_def by blast
-      then show "z \<in> R" using a b by simp
-    qed
-  next
-    have "\<zero> \<cdot> a + \<zero> \<cdot> b \<in> bezout_ideal a b" using bezout_ideal_memI[of \<zero> \<zero> a b] by simp
-    then show "\<zero> \<in> bezout_ideal a b" using a b by simp
+      using a b principal_ideal_domain.bezout_ideal_def principal_ideal_domain_axioms by fastforce
+    show "\<zero> \<in> bezout_ideal a b" using a b
+      using additive.left_unit additive.unit_closed bezout_ideal_memI left_zero by metis
   next
     fix g h assume "g \<in> bezout_ideal a b" "h \<in> bezout_ideal a b"
     then obtain x1 y1 x2 y2 where
-      g: "x1 \<in> R" "y1 \<in> R" "g = x1 \<cdot> a + y1 \<cdot> b" and
-      h: "x2 \<in> R" "y2 \<in> R" "h = x2 \<cdot> a + y2 \<cdot> b" unfolding bezout_ideal_def by blast
+      g: "x1 \<in> R" "y1 \<in> R" "g = x1 \<cdot> a + y1 \<cdot> b" and h: "x2 \<in> R" "y2 \<in> R" "h = x2 \<cdot> a + y2 \<cdot> b" 
+      unfolding bezout_ideal_def by blast
     have "g + h = (x1 + x2) \<cdot> a + (y1 + y2) \<cdot> b"
-    proof -
-      have p1: "x1 \<cdot> a \<in> R" and q1: "y1 \<cdot> b \<in> R" and p2: "x2 \<cdot> a \<in> R" and q2: "y2 \<cdot> b \<in> R"
-        using g h a b by simp_all
-      have "g + h = (x1 \<cdot> a + y1 \<cdot> b) + (x2 \<cdot> a + y2 \<cdot> b)" using g h by simp
-      also have "\<dots> = (x1 \<cdot> a + x2 \<cdot> a) + (y1 \<cdot> b + y2 \<cdot> b)"
-        using p1 q1 p2 q2 by (simp add: add_ac)
-      also have "\<dots> = (x1 + x2) \<cdot> a + (y1 + y2) \<cdot> b"
-        using g h a b by (simp add: distributive)
-      finally show ?thesis .
-    qed
-    then show "g + h \<in> bezout_ideal a b" using g h bezout_ideal_memI[of "x1+x2" "y1+y2" a b] by simp
+      by (simp add: a additive.commutative additive.left_commutative b distributive(2) g h)
+    then show "g + h \<in> bezout_ideal a b" 
+      using g h bezout_ideal_memI[of "x1+x2" "y1+y2" a b] by simp
   next
     fix g assume "g \<in> bezout_ideal a b"
-    then obtain x y where "x \<in> R" "y \<in> R" "g = x \<cdot> a + y \<cdot> b" unfolding bezout_ideal_def by blast
-    then have "g \<in> R" using a b by simp
-    then show "additive.invertible g" by simp
-  next
-    fix g assume "g \<in> bezout_ideal a b"
-    then obtain x y where g: "x \<in> R" "y \<in> R" "g = x \<cdot> a + y \<cdot> b" unfolding bezout_ideal_def by blast
-    have "additive.inverse g = (- x) \<cdot> a + (- y) \<cdot> b"
-      using g a b by (simp add: left_minus additive.inverse_composition_commute additive.commutative)
-    moreover have "(- x) \<cdot> a + (- y) \<cdot> b \<in> bezout_ideal a b"
-      using g bezout_ideal_memI[of "- x" "- y" a b] by simp
-    ultimately show "additive.inverse g \<in> bezout_ideal a b" by simp
+    then obtain x y where xy: "x \<in> R" "y \<in> R" "g = x \<cdot> a + y \<cdot> b" 
+      unfolding bezout_ideal_def by blast
+    show "additive.invertible g" 
+      using xy a b by simp
+    show "additive.inverse g \<in> bezout_ideal a b" 
+      using xy a b bezout_ideal_memI[of "- x" "- y" a b] 
+      by (simp add: left_minus additive.inverse_composition_commute additive.commutative)
   qed
   interpret S: Subgroup "bezout_ideal a b" R "(+)" \<zero> by (rule sg)
   show ?thesis
-  proof unfold_locales
+  proof 
     fix r z assume r: "r \<in> R" and "z \<in> bezout_ideal a b"
-    then obtain x y where z: "x \<in> R" "y \<in> R" "z = x \<cdot> a + y \<cdot> b" unfolding bezout_ideal_def by blast
+    then obtain x y where z: "x \<in> R" "y \<in> R" "z = x \<cdot> a + y \<cdot> b"
+      unfolding bezout_ideal_def by blast
     have "r \<cdot> z = (r \<cdot> x) \<cdot> a + (r \<cdot> y) \<cdot> b"
       using r z a b by (simp add: distributive multiplicative.associative)
     then show "r \<cdot> z \<in> bezout_ideal a b"
       using r z bezout_ideal_memI[of "r \<cdot> x" "r \<cdot> y" a b] by simp
-    then show "z \<cdot> r \<in> bezout_ideal a b" using r z a b by (simp add: multiplicative.commutative)
+    then show "z \<cdot> r \<in> bezout_ideal a b" 
+      using r z a b by (simp add: multiplicative.commutative)
   qed
 qed
 
@@ -718,10 +571,8 @@ lemma a_in_bezout_ideal: "\<lbrakk> a \<in> R; b \<in> R \<rbrakk> \<Longrightar
 lemma b_in_bezout_ideal: "\<lbrakk> a \<in> R; b \<in> R \<rbrakk> \<Longrightarrow> b \<in> bezout_ideal a b"
   using bezout_ideal_memI[of \<zero> \<one> a b] by simp
 
-text \<open>\<^emph>\<open>Bezout's theorem.\<close>  In a PID every pair \<open>a, b\<close> has a greatest common divisor \<open>d\<close>, and \<open>d\<close>
-  is an \<open>R\<close>-linear combination \<open>d = x \<cdot> a + y \<cdot> b\<close> of \<open>a\<close> and \<open>b\<close>.  The gcd generates the ideal
-  \<open>(a, b)\<close>: divisibility of \<open>a\<close> and \<open>b\<close> is membership, and any common divisor divides every element
-  of \<open>(a, b)\<close>, in particular \<open>d\<close>.\<close>
+text \<open>\<^emph>\<open>Bezout's theorem.\<close>  The gcd generates the ideal \<open>(a, b)\<close>: divisibility of \<open>a\<close> and \<open>b\<close> 
+  is membership, and any common divisor divides every element of \<open>(a, b)\<close>, in particular \<open>d\<close>.\<close>
 theorem bezout:
   assumes a: "a \<in> R" and b: "b \<in> R"
   obtains d x y where "is_gcd d a b" "x \<in> R" "y \<in> R" "d = x \<cdot> a + y \<cdot> b"
@@ -729,30 +580,18 @@ proof -
   have I: "Ideal (bezout_ideal a b) R (+) (\<cdot>) \<zero> \<one>" by (rule bezout_ideal_is_ideal[OF a b])
   obtain d where d: "d \<in> R" and gen: "bezout_ideal a b = principal_ideal d"
     using principal[OF I] by blast
-  \<comment> \<open>\<open>d \<in> (a, b)\<close>, hence \<open>d = x \<cdot> a + y \<cdot> b\<close>.\<close>
   have "d \<in> bezout_ideal a b" using gen d by (simp add: principal_ideal_contains)
   then obtain x y where xy: "x \<in> R" "y \<in> R" "d = x \<cdot> a + y \<cdot> b"
     unfolding bezout_ideal_def by blast
-  \<comment> \<open>\<open>d\<close> divides \<open>a\<close> and \<open>b\<close> since they lie in \<open>(a, b) = (d)\<close>.\<close>
-  have dda: "divides d a"
-    using a_in_bezout_ideal[OF a b] gen divides_iff_mem_principal[OF d a] by simp
-  have ddb: "divides d b"
-    using b_in_bezout_ideal[OF a b] gen divides_iff_mem_principal[OF d b] by simp
+  obtain dda: "divides d a" and ddb: "divides d b"
+    using a_in_bezout_ideal b_in_bezout_ideal gen divides_iff_mem_principal[OF d] a b by metis
   \<comment> \<open>Any common divisor \<open>c\<close> divides \<open>d = x \<cdot> a + y \<cdot> b\<close>.\<close>
   have "is_gcd d a b"
   proof (rule is_gcdI[OF d dda ddb])
     fix c assume c: "c \<in> R" and ca: "divides c a" and cb: "divides c b"
-    obtain s where s: "s \<in> R" "a = c \<cdot> s" using ca by blast
-    obtain t where t: "t \<in> R" "b = c \<cdot> t" using cb by blast
-    have "d = c \<cdot> (x \<cdot> s + y \<cdot> t)"
-    proof -
-      have mv: "u \<cdot> (c \<cdot> v) = c \<cdot> (u \<cdot> v)" if "u \<in> R" "v \<in> R" for u v
-        using that c by (simp add: mult_ac)
-      have "d = x \<cdot> (c \<cdot> s) + y \<cdot> (c \<cdot> t)" using xy s t by simp
-      also have "\<dots> = c \<cdot> (x \<cdot> s) + c \<cdot> (y \<cdot> t)" using mv[OF xy(1) s(1)] mv[OF xy(2) t(1)] by simp
-      also have "\<dots> = c \<cdot> (x \<cdot> s + y \<cdot> t)" using c s t xy by (simp add: distributive)
-      finally show ?thesis .
-    qed
+    obtain s t where s: "s \<in> R" "a = c \<cdot> s" and t: "t \<in> R" "b = c \<cdot> t" using ca cb by blast
+    then have "d = c \<cdot> (x \<cdot> s + y \<cdot> t)"
+      by (simp add: c distributive(1) multiplicative.left_commutative xy)
     moreover have "x \<cdot> s + y \<cdot> t \<in> R" using xy s t by simp
     ultimately show "divides c d" by (blast intro: dividesI)
   qed
@@ -775,14 +614,7 @@ proof unfold_locales
   assume I: "\<And>n. Ideal (A n) R (+) (\<cdot>) \<zero> \<one>"
     and mono: "\<And>n. A n \<subseteq> A (Suc n)"
   show "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> A n = A N"
-  proof (rule ascending_chain_stabilises)
-    show "\<And>n. Ideal (A n) R (+) (\<cdot>) \<zero> \<one>" by (rule I)
-    show "\<And>n. A n \<subseteq> A (Suc n)" by (rule mono)
-  next
-    fix N
-    assume N: "\<And>n. N \<le> n \<Longrightarrow> A n = A N"
-    show "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> A n = A N" using N by blast
-  qed
+    using I ascending_chain_stabilises mono by meson
 qed
 
 
@@ -809,22 +641,18 @@ proof unfold_locales
   proof (cases "I = {\<zero>}")
     case True
     have "principal_ideal \<zero> = {\<zero>}"
-    proof
-      show "principal_ideal \<zero> \<subseteq> {\<zero>}" unfolding principal_ideal_def by auto
-      show "{\<zero>} \<subseteq> principal_ideal \<zero>" using principal_ideal_memI[of \<zero> \<zero>] by simp
-    qed
+      using principal_ideal_memI[of \<zero> \<zero>] by (force simp: principal_ideal_def)
     then show ?thesis using True by auto
   next
     case False
     \<comment> \<open>Choose \<open>a\<close> in the nonzero part of \<open>I\<close> minimising \<open>\<phi>\<close>.\<close>
-    define Inz where "Inz = {x \<in> I. x \<noteq> \<zero>}"
+    define Inz where "Inz \<equiv> {x \<in> I. x \<noteq> \<zero>}"
     have ne: "Inz \<noteq> {}" using False I.additive.sub_unit_closed Inz_def by blast
-    define \<phi>img where "\<phi>img = \<phi> ` Inz"
+    define \<phi>img where "\<phi>img \<equiv> \<phi> ` Inz"
     have "\<phi>img \<noteq> {}" using ne \<phi>img_def by simp
-    then obtain m where m: "m \<in> \<phi>img" and mle: "\<And>k. k \<in> \<phi>img \<Longrightarrow> m \<le> k"
-      using exists_least_iff[of "\<lambda>n. n \<in> \<phi>img"] not_less by force
-    obtain a where a: "a \<in> Inz" and amin: "\<And>b. b \<in> Inz \<Longrightarrow> \<phi> a \<le> \<phi> b"
-      using m mle \<phi>img_def by blast
+    then obtain a where a: "a \<in> Inz" and amin: "\<And>b. b \<in> Inz \<Longrightarrow> \<phi> a \<le> \<phi> b"
+      using exists_least_iff[of "\<lambda>n. n \<in> \<phi>img"] unfolding \<phi>img_def image_def mem_Collect_eq
+      by (metis ne all_not_in_conv linorder_not_le)
     have aI: "a \<in> I" using a Inz_def by blast
     have aR: "a \<in> R" using aI I.additive.subset by blast
     have anz: "a \<noteq> \<zero>" using a Inz_def by blast
@@ -832,11 +660,7 @@ proof unfold_locales
     proof
       \<comment> \<open>\<open>(a) \<subseteq> I\<close> since \<open>a \<in> I\<close> and \<open>I\<close> absorbs products.\<close>
       show "principal_ideal a \<subseteq> I"
-      proof
-        fix x assume "x \<in> principal_ideal a"
-        then obtain r where r: "r \<in> R" "x = r \<cdot> a" unfolding principal_ideal_def by blast
-        then show "x \<in> I" using aI I.Ideal(1) by auto
-      qed
+        using I.Ideal(1) aI principal_ideal_def by auto
     next
       \<comment> \<open>\<open>I \<subseteq> (a)\<close> by Euclidean division against \<open>a\<close>.\<close>
       show "I \<subseteq> principal_ideal a"
@@ -851,27 +675,18 @@ proof unfold_locales
           obtain q r where q: "q \<in> R" and rR: "r \<in> R" and beq: "b = a \<cdot> q + r"
             and rem: "r = \<zero> \<or> \<phi> r < \<phi> a"
             using euclidean_division[OF bR aR bnz anz] by blast
-          \<comment> \<open>\<open>r = b - a \<cdot> q \<in> I\<close>.\<close>
-          have aqR: "a \<cdot> q \<in> R" using aR q by simp
           have aqI: "a \<cdot> q \<in> I" using I.Ideal(2)[OF q aI] .
-          have "b - a \<cdot> q = (a \<cdot> q + r) - a \<cdot> q" using beq by simp
-          also have "\<dots> = r" using aqR rR by (simp add: additive.commutative additive.associative)
-          finally have req: "r = b - a \<cdot> q" ..
+          then have req: "r = b - a \<cdot> q"
+            using I.additive.sub additive.commutative additive.commute_iff_inverse beq rR by metis
           have "- (a \<cdot> q) \<in> I" using aqI by simp
           then have "b + (- (a \<cdot> q)) \<in> I"
             using bI I.additive.sub_composition_closed by blast
           then have rI: "r \<in> I" using req by simp
           \<comment> \<open>Minimality of \<open>\<phi> a\<close> rules out \<open>\<phi> r < \<phi> a\<close>, so \<open>r = \<zero>\<close> and \<open>a\<close> divides \<open>b\<close>.\<close>
           have "r = \<zero>"
-          proof (rule ccontr)
-            assume "r \<noteq> \<zero>"
-            then have "r \<in> Inz" using rI Inz_def by blast
-            then have "\<phi> a \<le> \<phi> r" by (rule amin)
-            then show False using rem \<open>r \<noteq> \<zero>\<close> by simp
-          qed
-          then have "b = a \<cdot> q" using beq aR q by simp
-          then have "b = q \<cdot> a" using aR q by (simp add: multiplicative.commutative)
-          then show ?thesis using q principal_ideal_memI[of q a] by simp
+            using rI rem Inz_def amin linorder_not_less by blast
+          then show ?thesis using q principal_ideal_memI[of q a]
+            using aR beq multiplicative.commutative by auto
         qed
       qed
     qed
@@ -884,19 +699,12 @@ end
 text \<open>A field is a Euclidean domain with the constant degree function (division with remainder is
   exact: \<open>a = b \<cdot> (b\<inverse> \<cdot> a) + \<zero>\<close>).\<close>
 sublocale Field \<subseteq> Euclidean_Domain R "(+)" "(\<cdot>)" \<zero> \<one> "\<lambda>_. 0"
-proof unfold_locales
+proof 
   fix a b assume a: "a \<in> R" and b: "b \<in> R" and bnz: "b \<noteq> \<zero>"
-  have inv: "multiplicative.inverse b \<in> R" using b bnz field_inverse by simp
   have "a = b \<cdot> (multiplicative.inverse b \<cdot> a) + \<zero>"
-  proof -
-    have "b \<cdot> (multiplicative.inverse b \<cdot> a) = (b \<cdot> multiplicative.inverse b) \<cdot> a"
-      using b inv a by (simp add: multiplicative.associative)
-    also have "\<dots> = \<one> \<cdot> a" using b bnz field_inverse by simp
-    also have "\<dots> = a" using a by simp
-    finally show ?thesis using a by simp
-  qed
+    by (simp add: a b bnz field_inverse multiplicative.invertible_right_inverse2)
   then show "\<exists>q\<in>R. \<exists>r\<in>R. a = b \<cdot> q + r \<and> (r = \<zero> \<or> (0::nat) < 0)"
-    using inv a by blast
+    using a b bnz field_inverse by auto
 qed
 
 
@@ -921,7 +729,7 @@ lemma list_prod_closed [intro, simp]:
 
 text \<open>A factorization of \<open>a\<close> is a list of irreducible ring elements whose product is \<open>a\<close>.\<close>
 definition factorization :: "'a list \<Rightarrow> 'a \<Rightarrow> bool"
-  where "factorization fs a \<longleftrightarrow> (\<forall>p\<in>set fs. irreducible_elem p) \<and> list_prod fs = a"
+  where "factorization fs a \<equiv> (\<forall>p\<in>set fs. irreducible_elem p) \<and> list_prod fs = a"
 
 lemma factorizationI:
   "\<lbrakk> \<And>p. p \<in> set fs \<Longrightarrow> irreducible_elem p; list_prod fs = a \<rbrakk> \<Longrightarrow> factorization fs a"
@@ -940,30 +748,17 @@ lemma list_prod_append [simp]:
   assumes "set xs \<subseteq> R" "set ys \<subseteq> R"
   shows "list_prod (xs @ ys) = list_prod xs \<cdot> list_prod ys"
   using assms
-proof (induct xs)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs)
-  then show ?case by (simp add: multiplicative.associative)
-qed
+  by (induct xs) (simp_all add: multiplicative.associative)
 
 text \<open>An irreducible element has the one-item factorization \<open>[p]\<close>.\<close>
 lemma factorization_single: "irreducible_elem p \<Longrightarrow> factorization [p] p"
-  by (rule factorizationI) (auto simp: irreducible_elemD(1))
+  by (simp add: factorization_def irreducible_elemD)
 
 text \<open>Concatenating factorizations multiplies the factored elements.\<close>
 lemma factorization_append:
   assumes "factorization fs a" "factorization gs b"
   shows "factorization (fs @ gs) (a \<cdot> b)"
-proof (rule factorizationI)
-  fix p assume "p \<in> set (fs @ gs)"
-  then show "irreducible_elem p"
-    using assms by (auto dest: factorization_irreducible)
-next
-  show "list_prod (fs @ gs) = a \<cdot> b"
-    using assms factorization_set_R[OF assms(1)] factorization_set_R[OF assms(2)]
-    by (simp add: factorization_prod)
-qed
+  using assms factorization_def factorization_set_R by auto
 
 end
 
@@ -979,24 +774,14 @@ lemma prime_divides_list_prod:
   shows "\<exists>f\<in>set fs. divides p f"
   using fs dvd
 proof (induct fs)
-  case Nil
-  \<comment> \<open>\<open>p\<close> divides \<open>\<one>\<close> would make it a unit, contradicting primeness.\<close>
-  have "divides p \<one>" using Nil by simp
-  then have "is_unit p" using prime_elemD(1)[OF p] one_divides_unit_iff by simp
-  then show ?case using prime_elemD(3)[OF p] by blast
+  case Nil with one_divides_unit_iff p prime_elem_def show ?case 
+    by force
 next
   case (Cons f fs)
-  have fR: "f \<in> R" and fsR: "set fs \<subseteq> R" using Cons.prems(1) by auto
-  have "divides p (f \<cdot> list_prod fs)" using Cons.prems(2) by simp
   then have "divides p f \<or> divides p (list_prod fs)"
-    using prime_elemD(4)[OF p fR list_prod_closed[OF fsR]] by simp
+    using p prime_elem_def by auto
   then show ?case
-  proof
-    assume "divides p f" then show ?case by auto
-  next
-    assume "divides p (list_prod fs)"
-    then show ?case using Cons.hyps[OF fsR] by auto
-  qed
+    using Cons by force
 qed
 
 text \<open>If an irreducible \<open>q\<close> divides an irreducible \<open>p\<close> then they are associated.\<close>
@@ -1010,13 +795,10 @@ proof -
   have "is_unit q \<or> is_unit c" using irreducible_elemD(4)[OF p qR c(1) c(2)] .
   then have cu: "is_unit c" using irreducible_elemD(3)[OF q] by blast
   have "divides p q"
-  proof -
-    have "q = p \<cdot> multiplicative.inverse c"
-      using c qR pR cu by (metis multiplicative.associative multiplicative.invertible_inverse_closed
-            multiplicative.invertible_right_inverse multiplicative.right_unit)
-    then show ?thesis using pR cu c(1) by blast
-  qed
-  then show ?thesis using dvd by (rule associatedI[rotated])
+    using associated_iff_unit_multiple c cu local.associatedD2 multiplicative.commutative pR qR
+    by metis
+  then show ?thesis using dvd
+    by blast
 qed
 
 text \<open>Cancellation for association: a common nonzero factor may be dropped.\<close>
@@ -1030,16 +812,16 @@ proof (rule associatedI)
   show "divides x y"
   proof -
     obtain d where d: "d \<in> R" "c \<cdot> y = (c \<cdot> x) \<cdot> d" using d1 by blast
-    have "c \<cdot> y = c \<cdot> (x \<cdot> d)" using d c x by (simp add: multiplicative.associative)
-    then have "y = x \<cdot> d" using mult_cancel_left[OF c y _ cnz, of "x \<cdot> d"] x d by simp
+    then have "y = x \<cdot> d" 
+      using mult_cancel_left[OF c y _ cnz] x d c by auto
     then show ?thesis using d by blast
   qed
   show "divides y x"
   proof -
     obtain d where d: "d \<in> R" "c \<cdot> x = (c \<cdot> y) \<cdot> d" using d2 by blast
-    have "c \<cdot> x = c \<cdot> (y \<cdot> d)" using d c y by (simp add: multiplicative.associative)
-    then have "x = y \<cdot> d" using mult_cancel_left[OF c x _ cnz, of "y \<cdot> d"] y d by simp
-    then show ?thesis using d by blast
+    then show ?thesis using d
+      using \<open>divides x y\<close> c cnz divides_def local.mult_cancel_left multiplicative.associative
+        multiplicative.composition_closed x by metis
   qed
 qed
 
@@ -1049,13 +831,7 @@ lemma associated_unit_mult:
   shows "associated (u \<cdot> b) b"
 proof (rule associatedI)
   show "divides (u \<cdot> b) b"
-  proof -
-    have "b = (u \<cdot> b) \<cdot> multiplicative.inverse u"
-      using u b by (metis multiplicative.associative multiplicative.commutative
-            multiplicative.invertible_inverse_closed multiplicative.invertible_right_inverse
-            multiplicative.right_unit)
-    then show ?thesis using u b by blast
-  qed
+    using associated_iff_unit_multiple b local.associatedD2 u by blast
   show "divides b (u \<cdot> b)" using u b by (metis dividesI multiplicative.commutative)
 qed
 
@@ -1065,28 +841,21 @@ lemma list_prod_remove1:
   shows "list_prod gs = g \<cdot> list_prod (remove1 g gs)"
   using assms
 proof (induct gs)
-  case Nil then show ?case by simp
-next
   case (Cons h hs)
   have hR: "h \<in> R" and hsR: "set hs \<subseteq> R" using Cons.prems(1) by auto
   show ?case
   proof (cases "g = h")
-    case True then show ?thesis by simp
-  next
     case False
-    then have gs: "g \<in> set hs" using Cons.prems(2) by simp
-    have gR: "g \<in> R" using gs hsR by auto
     have tR: "list_prod (remove1 g hs) \<in> R"
-      using hsR by (simp add: set_remove1_subset[THEN subset_trans])
-    have "list_prod (h # hs) = h \<cdot> list_prod hs" by simp
-    also have "\<dots> = h \<cdot> (g \<cdot> list_prod (remove1 g hs))" using Cons.hyps[OF hsR gs] by simp
-    also have "\<dots> = g \<cdot> (h \<cdot> list_prod (remove1 g hs))"
-      using hR gR tR by (simp add: mult_ac)
-    also have "\<dots> = g \<cdot> list_prod (h # remove1 g hs)" by simp
+      using hsR set_remove1_subset by fastforce
+    have "list_prod (h # hs) = h \<cdot> (g \<cdot> list_prod (remove1 g hs))"
+      using Cons.hyps Cons.prems(2) False hsR by force 
+    also have "\<dots> = g \<cdot> list_prod (h # remove1 g hs)"      
+      using Cons.prems tR by (auto simp: mult_ac)
     also have "h # remove1 g hs = remove1 g (h # hs)" using False by simp
     finally show ?thesis .
-  qed
-qed
+  qed auto
+qed auto
 
 text \<open>\<^emph>\<open>Uniqueness of factorization\<close> (length form): any two prime factorizations of associated
   products have the same number of factors.  This is the well-definedness of the number of
@@ -1100,24 +869,23 @@ proof (induct fs arbitrary: gs)
   case Nil
   \<comment> \<open>Empty on the left: the right product is a unit, so it too must be empty.\<close>
   have "associated \<one> (list_prod gs)" using Nil.prems(3) by simp
-  then have "divides (list_prod gs) \<one>" by (auto dest: associatedD2)
+  then have 1: "divides (list_prod gs) \<one>" by (auto dest: associatedD2)
   have "gs = []"
   proof (rule ccontr)
-    assume "gs \<noteq> []"
+    assume "gs \<noteq> []" 
     then obtain g gs' where gs: "gs = g # gs'" using list.exhaust by blast
     have gp: "prime_elem g" using Nil.prems(2) gs by simp
     have gR: "g \<in> R" and gsR: "set gs' \<subseteq> R"
       using gp gs Nil.prems(2) by (auto dest: prime_elemD(1))
     have "divides g (list_prod gs)" using gs gR gsR by (auto intro: dividesI)
-    then have "divides g \<one>" using \<open>divides (list_prod gs) \<one>\<close> gR divides_trans by blast
-    then have "is_unit g" using gR one_divides_unit_iff by simp
-    then show False using prime_elemD(3)[OF gp] by blast
+    then show False using prime_elemD(3)[OF gp]
+      using 1 divides_trans gR one_divides_unit_iff by blast
   qed
   then show ?case by simp
 next
   case (Cons f fs')
   have fp: "prime_elem f" using Cons.prems(1) by simp
-  have fR: "f \<in> R" and fnz: "f \<noteq> \<zero>" using fp by (auto dest: prime_elemD)
+  then have fR: "f \<in> R" and fnz: "f \<noteq> \<zero>" by (auto dest: prime_elemD)
   have fs'p: "\<And>x. x \<in> set fs' \<Longrightarrow> prime_elem x" using Cons.prems(1) by simp
   have fsR: "set fs' \<subseteq> R" using fs'p prime_elemD(1) by blast
   have gsR: "set gs \<subseteq> R" using Cons.prems(2) prime_elemD(1) by blast
@@ -1126,28 +894,23 @@ next
   then have "divides f (list_prod gs)"
     using Cons.prems(3) fR list_prod_closed[OF gsR] by (meson associatedD1 divides_trans)
   then obtain g where g: "g \<in> set gs" and fg: "divides f g"
-    using prime_divides_list_prod[OF fp gsR] by blast
+    using Cons.prems(1) prime_divides_list_prod[OF _ gsR] by auto
   have gp: "prime_elem g" using Cons.prems(2) g by simp
   have gR: "g \<in> R" and gnz: "g \<noteq> \<zero>" using gp by (auto dest: prime_elemD)
   have assoc_fg: "associated f g"
-    using irreducible_dvd_irreducible_assoc[OF prime_imp_irreducible[OF fp]
-          prime_imp_irreducible[OF gp] fg] .
-  \<comment> \<open>Remove \<open>g\<close> from \<open>gs\<close>; the remaining products are associated after cancelling \<open>f \<sim> g\<close>.\<close>
-  define rest where "rest = remove1 g gs"
-  have restR: "set rest \<subseteq> R" using gsR rest_def by (meson set_remove1_subset subset_trans)
+    by (simp add: Cons.prems(1) fg gp irreducible_dvd_irreducible_assoc prime_imp_irreducible)
+  define rest where "rest \<equiv> remove1 g gs"
+  have restR: "set rest \<subseteq> R"
+    using gsR rest_def by force
   have restp: "\<And>x. x \<in> set rest \<Longrightarrow> prime_elem x"
-    using Cons.prems(2) rest_def set_remove1_subset by (meson subset_iff)
+    unfolding rest_def using Cons.prems(2) set_remove1_subset by (meson subset_iff)
   have gs_split: "list_prod gs = g \<cdot> list_prod rest"
     using list_prod_remove1[OF gsR g] rest_def by simp
   \<comment> \<open>\<open>g = f \<cdot> u\<close> for a unit \<open>u\<close>; substitute and cancel \<open>f\<close>.\<close>
   obtain u where u: "u \<in> R" "g = f \<cdot> u"
     using assoc_fg by (auto dest: associatedD1)
-  have uu: "is_unit u"
-  proof -
-    have "is_unit f \<or> is_unit u"
-      using irreducible_elemD(4)[OF prime_imp_irreducible[OF gp] fR u(1) u(2)] .
-    then show ?thesis using prime_elemD(3)[OF fp] by blast
-  qed
+  then have uu: "is_unit u"
+    using fp gp irreducible_elem_def prime_imp_irreducible by metis
   have "associated (f \<cdot> list_prod fs') (g \<cdot> list_prod rest)"
     using Cons.prems(3) gs_split by simp
   then have "associated (f \<cdot> list_prod fs') (f \<cdot> (u \<cdot> list_prod rest))"
@@ -1159,10 +922,9 @@ next
   ultimately have "associated (list_prod fs') (list_prod rest)"
     using fsR restR u(1) associated_trans by (meson associated_def divides_trans list_prod_closed)
   then have eqlen: "length fs' = length rest" using Cons.hyps[OF fs'p restp] by simp
-  have pos: "0 < length gs" using g by (cases gs) auto
-  have "Suc (length rest) = length gs"
-    using g rest_def pos by (simp add: length_remove1)
-  then show ?case using eqlen by simp
+  have "0 < length gs" using g by (cases gs) auto
+  then show ?case using eqlen
+    using g rest_def by (simp add: length_remove1)
 qed
 
 end
@@ -1184,73 +946,54 @@ theorem factorization_exists:
   assumes a: "a \<in> R" and anz: "a \<noteq> \<zero>" and anu: "\<not> is_unit a"
   shows "\<exists>fs. factorization fs a"
 proof (rule ccontr)
-  assume "\<not> (\<exists>fs. factorization fs a)"
+  define bad where "bad x \<equiv> x \<in> R \<and> x \<noteq> \<zero> \<and> \<not> is_unit x \<and> \<not> (\<exists>fs. factorization fs x)" for x
+  assume non: "\<not> (\<exists>fs. factorization fs a)"
   \<comment> \<open>\<open>bad x\<close>: nonzero non-unit with no factorization.\<close>
-  define bad where "bad x \<longleftrightarrow> x \<in> R \<and> x \<noteq> \<zero> \<and> \<not> is_unit x \<and> \<not> (\<exists>fs. factorization fs x)" for x
-  have bad_a: "bad a" using assms \<open>\<not> (\<exists>fs. factorization fs a)\<close> bad_def by simp
+  then have bad_a: "bad a" using assms bad_def by simp
   \<comment> \<open>Every bad element has a bad proper divisor.\<close>
   have step: "\<exists>y. bad y \<and> divides y x \<and> \<not> divides x y" if bx: "bad x" for x
   proof -
     have xR: "x \<in> R" and xnz: "x \<noteq> \<zero>" and xnu: "\<not> is_unit x"
       and xnf: "\<not> (\<exists>fs. factorization fs x)" using bx bad_def by auto
-    \<comment> \<open>\<open>x\<close> is not irreducible (else \<open>[x]\<close> factorizes it), so it splits into two non-units.\<close>
     have "\<not> irreducible_elem x" using xnf factorization_single by blast
     then obtain p q where pq: "p \<in> R" "q \<in> R" "x = p \<cdot> q" "\<not> is_unit p" "\<not> is_unit q"
       using irreducible_elemI[OF xR xnz xnu] by blast
     have pnz: "p \<noteq> \<zero>" and qnz: "q \<noteq> \<zero>" using pq(3) xnz pq(1,2) by auto
     \<comment> \<open>If both \<open>p\<close> and \<open>q\<close> had factorizations, so would \<open>x = p \<cdot> q\<close>; hence one is bad.\<close>
     have "\<not> (\<exists>fs. factorization fs p) \<or> \<not> (\<exists>fs. factorization fs q)"
-    proof (rule ccontr)
-      assume "\<not> ?thesis"
-      then obtain ps qs where "factorization ps p" "factorization qs q" by blast
-      then have "factorization (ps @ qs) (p \<cdot> q)" by (rule factorization_append)
-      then show False using xnf pq(3) by auto
-    qed
+      using factorization_append pq(3) xnf by blast
     then show ?thesis
     proof
       assume npf: "\<not> (\<exists>fs. factorization fs p)"
       have "bad p" using pq(1) pnz pq(4) npf bad_def by simp
-      moreover have "divides p x" using pq(2,3) by blast
       moreover have "\<not> divides x p"
       proof
         assume "divides x p"
         \<comment> \<open>\<open>x | p\<close> and \<open>x = p \<cdot> q\<close> force \<open>q\<close> to be a unit, contradiction.\<close>
         then obtain d where d: "d \<in> R" "p = x \<cdot> d" by blast
-        have "x \<cdot> \<one> = x" using xR by simp
-        also have "\<dots> = p \<cdot> q" using pq(3) .
-        also have "\<dots> = (x \<cdot> d) \<cdot> q" using d(2) by simp
-        also have "\<dots> = x \<cdot> (d \<cdot> q)" using xR d(1) pq(2) by (simp add: multiplicative.associative)
-        also have "\<dots> = x \<cdot> (q \<cdot> d)" using d(1) pq(2) by (simp add: multiplicative.commutative)
-        finally have "x \<cdot> \<one> = x \<cdot> (q \<cdot> d)" .
+        then have "x \<cdot> \<one> = x \<cdot> (q \<cdot> d)"
+          using d multiplicative.associative multiplicative.commutative pq(2,3) xR by force 
         then have qd: "q \<cdot> d = \<one>" using mult_cancel_left[OF xR _ _ xnz] pq(2) d by simp
         have "d \<cdot> q = \<one>" using qd pq(2) d(1) by (simp add: multiplicative.commutative)
-        then have "is_unit q" using is_unitI[OF qd _ d(1)] by simp
-        then show False using pq(5) by blast
+        then show False
+          using d is_unitI pq(5) qd by blast
       qed
-      ultimately show ?thesis by blast
+      ultimately show ?thesis using pq by blast
     next
       assume nqf: "\<not> (\<exists>fs. factorization fs q)"
       have "bad q" using pq(2) qnz pq(5) nqf bad_def by simp
       moreover have "divides q x"
-      proof -
-        have "x = q \<cdot> p" using pq(3) pq(1,2) by (simp add: multiplicative.commutative)
-        then show ?thesis using pq(1) by blast
-      qed
+        using multiplicative.commutative pq by blast
       moreover have "\<not> divides x q"
       proof
         assume "divides x q"
         then obtain d where d: "d \<in> R" "q = x \<cdot> d" by blast
-        have "x \<cdot> \<one> = x" using xR by simp
-        also have "\<dots> = p \<cdot> q" using pq(3) .
-        also have "\<dots> = p \<cdot> (x \<cdot> d)" using d(2) by simp
-        also have "\<dots> = (p \<cdot> x) \<cdot> d" using xR d(1) pq(1) by (simp add: multiplicative.associative)
-        also have "\<dots> = (x \<cdot> p) \<cdot> d" using xR pq(1) by (simp add: multiplicative.commutative)
-        also have "\<dots> = x \<cdot> (p \<cdot> d)" using xR d(1) pq(1) by (simp add: multiplicative.associative)
-        finally have "x \<cdot> \<one> = x \<cdot> (p \<cdot> d)" .
+        then have "x \<cdot> \<one> = x \<cdot> (p \<cdot> d)"
+          using multiplicative.left_commutative pq xR by auto
         then have pd: "p \<cdot> d = \<one>" using mult_cancel_left[OF xR _ _ xnz] pq(1) d by simp
         have "d \<cdot> p = \<one>" using pd pq(1) d(1) by (simp add: multiplicative.commutative)
-        then have "is_unit p" using is_unitI[OF pd _ d(1)] by simp
-        then show False using pq(4) by blast
+        then show False
+          using d(1) is_unitI pd pq(4) by presburger
       qed
       ultimately show ?thesis by blast
     qed
@@ -1263,20 +1006,15 @@ proof (rule ccontr)
     by blast
   have fR: "\<And>n. f n \<in> R" using fbad bad_def by simp
   \<comment> \<open>The principal ideals \<open>(f n)\<close> ascend strictly.\<close>
-  define A where "A n = principal_ideal (f n)" for n
-  have Aideal: "\<And>n. Ideal (A n) R (+) (\<cdot>) \<zero> \<one>" using A_def principal_ideal_is_ideal[OF fR] by simp
-  have Amono: "\<And>n. A n \<subseteq> A (Suc n)"
+  define A where "A n \<equiv> principal_ideal (f n)" for n
+  have "\<And>n. A n \<subseteq> A (Suc n)"
     using A_def fdvd divides_iff_principal_subset[OF fR fR] by simp
-  have chain: "\<exists>N. \<forall>n. N \<le> n \<longrightarrow> A n = A N"
-    using Aideal Amono by (rule ideal_chain_stabilises)
-  then obtain N where stab: "\<And>n. N \<le> n \<Longrightarrow> A n = A N" by blast
-  \<comment> \<open>\<open>A N = A (Suc N)\<close> makes \<open>f N\<close> and \<open>f (Suc N)\<close> mutually divide --- contradiction.\<close>
+  then obtain N where stab: "\<And>n. N \<le> n \<Longrightarrow> A n = A N"
+    using A_def principal_ideal_is_ideal[OF fR] ideal_chain_stabilises by force
+  \<comment> \<open>\<open>A N = A (Suc N)\<close> makes \<open>f N\<close> and \<open>f (Suc N)\<close> mutually divide.\<close>
   have "A (Suc N) = A N" using stab[of "Suc N"] by simp
-  then have "principal_ideal (f (Suc N)) \<subseteq> principal_ideal (f N)"
-    by (simp add: A_def)
-  then have "divides (f N) (f (Suc N))"
-    using divides_iff_principal_subset[OF fR fR] by simp
-  then show False using fndvd by blast
+  then show False using fndvd
+    unfolding A_def using divides_iff_mem_principal fR principal_ideal_contains by metis
 qed
 
 end
