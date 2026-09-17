@@ -15,7 +15,7 @@ sig
   val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
-  val explode_spaces_except_between_idents : string -> string list
+  val explode_spaces_except_between_idents_and_append : string -> string list -> string list
   val explode_string : string -> string list
   val elide_string : int -> string -> string
   val find_enclosed : string -> string -> string -> string list
@@ -131,8 +131,8 @@ fun strip_spaces skip_comments is_evil s =
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_idents = strip_spaces true is_ident_char
 
-fun explode_spaces_except_between_idents s =
-  rev (fold_stripped_spaces true is_ident_char (cons o String.str) s [])
+fun explode_spaces_except_between_idents_and_append s tail =
+  List.revAppend (fold_stripped_spaces true is_ident_char (cons o String.str) s [], tail)
 
 (* Tail-recursive version of raw_explode *)
 fun explode_string s = fold_rev_string cons s []

@@ -717,11 +717,19 @@ fun string_of_atp_step f g (name, role, x, y, names) =
     "(" ^ name' ^ ", " ^ role' ^ ", " ^ x' ^ ", " ^ y' ^ ", " ^ names' ^ ")"
   end
 
-fun parse_proof full local_name problem =
-  explode_spaces_except_between_idents
-  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line full local_name problem))))
-  #> (fn (proof, ss) => if null ss then proof else raise UNRECOGNIZED_ATP_PROOF ())
+local
+
+val eof = [Symbol.eof]
+
+in
+
+fun parse_proof full local_name problem s =
+  explode_spaces_except_between_idents_and_append s eof
+  |> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+       (Scan.permissive (Scan.repeats1 (parse_line full local_name problem))))
+  |> (fn (proof, ss) => if ss = eof then proof else raise UNRECOGNIZED_ATP_PROOF ())
+
+end
 
 fun atp_proof_of_tstplike_proof _ _ _ "" = []
   | atp_proof_of_tstplike_proof full local_prover problem tstp =
