@@ -52,9 +52,7 @@ fun !!! l text scan =
 
 fun read_while pred l =
   !!! l "empty token"
-  (Scan.permissive (
-    (!!! l "unexpected character" (Scan.one pred)) ::: (Scan.finite Symbol.stopper (Scan.many pred))
-  ))
+  (Scan.permissive ((!!! l "unexpected character" (Scan.one pred)) ::: chop_prefix pred))
 
 (* The library version does not keep track of the bit-width and cannot be used for
 bases bigger than 10. It also fails silently if no int can be parsed*)
