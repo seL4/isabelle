@@ -35,29 +35,27 @@ val () = \<^assert> (strip_spaces_except_between_idents "a %" = "a")
 val () = \<^assert> (strip_spaces_except_between_idents "a %c" = "a")
 val () = \<^assert> (strip_spaces_except_between_idents "/*" = "")
 val () = \<^assert> (strip_spaces_except_between_idents "/*x*/b" = "b")
-val () = \<^assert> (strip_spaces_except_between_idents "a/* x */b" = "ab")
+val () = \<^assert> (strip_spaces_except_between_idents "a/* x */b" = "a b")
 val () = \<^assert> (strip_spaces_except_between_idents "a/*b" = "a")
 val () = \<^assert> (strip_spaces_except_between_idents "a/*x*" = "a")
-val () = \<^assert> (strip_spaces_except_between_idents "a/*x*//*y*/b" = "ab")
+val () = \<^assert> (strip_spaces_except_between_idents "a/*x*//*y*/b" = "a b")
 val () = \<^assert> (strip_spaces_except_between_idents "/*a*/ /*b*/c" = "c")
 val () = \<^assert> (strip_spaces_except_between_idents "*/" = "*/")
 val () = \<^assert> (strip_spaces_except_between_idents "a/" = "a/")
 val () = \<^assert> (strip_spaces_except_between_idents "/a" = "/a")
 val () = \<^assert> (strip_spaces_except_between_idents "a/b" = "a/b")
 
-(* A comment between two identifiers merges them, which is what this function is supposed to
-   prevent. The space is dropped because the character after the gap is "%" or "/", which is not
-   an ident character, and the comment is only removed afterwards. *)
+(* A comment separates two identifiers just like whitespace, with or without whitespace of its
+   own around it *)
 val () = \<^assert> (strip_spaces_except_between_idents "foo bar" = "foo bar")
-val () = \<^assert> (strip_spaces_except_between_idents "foo %c\nbar" = "foobar")
-val () = \<^assert> (strip_spaces_except_between_idents "foo\n%c\nbar" = "foobar")
-val () = \<^assert> (strip_spaces_except_between_idents "foo %c\n%d\nbar" = "foobar")
-val () = \<^assert> (strip_spaces_except_between_idents "foo /* c */ bar" = "foobar")
-val () = \<^assert> (strip_spaces_except_between_idents "foo/* c */bar" = "foobar")
-val () = \<^assert> (strip_spaces_except_between_idents "a %c\nb" = "ab")
+val () = \<^assert> (strip_spaces_except_between_idents "foo %c\nbar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo\n%c\nbar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo %c\n%d\nbar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo /* c */ bar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "foo/* c */bar" = "foo bar")
+val () = \<^assert> (strip_spaces_except_between_idents "a %c\nb" = "a b")
 
-(* In real TSTP output the statements end with ".", which is not an ident character, so the
-   merge does no harm there *)
+(* no space here: "." is not an ident character *)
 val () = \<^assert> (strip_spaces_except_between_idents "cnf(1,a). %c\ncnf(2,b)."
   = "cnf(1,a).cnf(2,b).")
 

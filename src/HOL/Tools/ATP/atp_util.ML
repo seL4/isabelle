@@ -94,35 +94,36 @@ fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where th
 
 (* Emits the characters of "s" with whitespace removed; with "skip_comments" also "%" to end of
    line and "/* ... */", an unterminated "/*" removing the rest. Emits one space where whitespace
-   separated two "is_evil" characters, inspecting the character after the gap before removing
-   comments. *)
+   or a comment separated two "is_evil" characters. *)
 fun fold_stripped_spaces skip_comments is_evil f s =
   let
     val n = size s
     fun chr i = String.nth s i
-    fun spaceish i = is_spaceish (chr i)
     fun line_end i = if i < n andalso chr i <> #"\n" then line_end (i + 1) else i
     fun comment_end i =
       if i + 1 < n then
         (if chr i = #"*" andalso chr (i + 1) = #"/" then i + 2 else comment_end (i + 1))
       else n
-    fun spaces_end i = if i < n andalso spaceish i then spaces_end (i + 1) else i
+    (* first character that survives, skipping whitespace and comments alike *)
+    fun gap_end i =
+      if i >= n then n
+      else if is_spaceish (chr i) then gap_end (i + 1)
+      else if skip_comments andalso chr i = #"%" then gap_end (line_end (i + 1))
+      else if skip_comments andalso chr i = #"/" andalso i + 1 < n andalso chr (i + 1) = #"*" then
+        gap_end (comment_end (i + 2))
+      else i
     fun scan i x =
       if i >= n then x
-      else if skip_comments andalso chr i = #"%" then scan (line_end (i + 1)) x
-      else if skip_comments andalso chr i = #"/" andalso i + 1 < n andalso chr (i + 1) = #"*" then
-        scan (comment_end (i + 2)) x
-      else if spaceish i then scan (i + 1) x
       else
         let
           val c = chr i
-          val j = spaces_end (i + 1)
+          val j = gap_end (i + 1)
           val x = f c x
         in
           scan j (if j > i + 1 andalso j < n andalso is_evil c andalso is_evil (chr j)
                   then f #" " x else x)
         end
-  in scan 0 end
+  in scan (gap_end 0) end
 
 fun strip_spaces skip_comments is_evil s =
   String.implode (rev (fold_stripped_spaces skip_comments is_evil cons s []))
