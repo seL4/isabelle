@@ -277,6 +277,25 @@ object Scalajs {
           key
         }).toSet
       elem.attributes.keys.filterNot(seen).foreach(elem.removeAttribute)
+
+      elem match {
+        case input: dom.HTMLInputElement =>
+          if (input.value != input.defaultValue) input.value = input.defaultValue
+          if (input.checked != input.defaultChecked) input.checked = input.defaultChecked
+
+        case option: dom.HTMLOptionElement =>
+          if (option.selected != option.defaultSelected) option.selected = option.defaultSelected
+
+        case textarea: dom.HTMLTextAreaElement =>
+          if (textarea.value != textarea.defaultValue) textarea.value = textarea.defaultValue
+
+        case media: dom.HTMLMediaElement =>
+          if (media.playbackRate != media.defaultPlaybackRate) {
+            media.playbackRate = media.defaultPlaybackRate
+          }
+
+        case _ =>
+      }
     }
 
     private def create(tree: XML.Tree): dom.Node =
