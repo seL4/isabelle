@@ -103,7 +103,6 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
         NONE => (SOME GaveUp, "")
       | SOME {command, ...} => (NONE, command))
       handle ERROR _ => (SOME GaveUp, "")
-           | Exn.Interrupt_Breakdown => (SOME GaveUp, "")
            | Timeout.TIMEOUT _ => (SOME TimedOut, "")
     val run_time = Timer.checkRealTimer timer
 
