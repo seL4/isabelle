@@ -17,8 +17,7 @@ media/ViewSource.svg
 media/symbols_view.css
 media/documentation.css
 media/documentation.js
-media/sledgehammer.css
-media/sledgehammer.js
+media/sledgehammer_view.css
 package.json
 README.md
 src/decorations.ts
@@ -31,7 +30,7 @@ src/output_view.ts
 src/platform.ts
 src/preview_panel.ts
 src/script_decorations.ts
-src/sledgehammer_panel.ts
+src/sledgehammer_view.ts
 src/state_panel.ts
 src/symbol.ts
 src/symbols_view.ts

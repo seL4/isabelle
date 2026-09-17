@@ -38,11 +38,13 @@ sources = \
   $ISABELLE_HOME/src/Pure/System/scalajs.scala \
   $ISABELLE_HOME/src/Pure/library.scala \
   $ISABELLE_VSCODE_HOME/src/lsp.scala \
+  $ISABELLE_VSCODE_HOME/src/language_server.scala \
   src/no_message_digest.scala \
   src/output_view.scala \
   src/dom_metric.scala \
   src/history_text_field.scala \
   src/pretty_text_view.scala \
+  src/sledgehammer_view.scala \
   src/state_panel.scala \
   src/symbols_view.scala \
   src/webview_api.scala

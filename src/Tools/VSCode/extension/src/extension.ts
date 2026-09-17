@@ -24,7 +24,7 @@ import * as State_Panel from "./state_panel"
 import * as Output_View from "./output_view"
 import * as Symbols_View from "./symbols_view"
 import * as Documentation_Panel from "./documentation_panel"
-import * as Sledgehammer_Panel from "./sledgehammer_panel"
+import * as Sledgehammer_View from "./sledgehammer_view"
 import * as Script_Decorations from "./script_decorations"
 
 
@@ -253,9 +253,9 @@ export async function activate(context: ExtensionContext) {
     /* sledgehammer panel */
 
     const sledgehammer_provider =
-      new Sledgehammer_Panel.Provider(context.extensionUri, language_client)
+      new Sledgehammer_View.Provider(context.extensionUri, language_client)
     context.subscriptions.push(
-      window.registerWebviewViewProvider(Sledgehammer_Panel.view_type, sledgehammer_provider))
+      window.registerWebviewViewProvider(Sledgehammer_View.view_type, sledgehammer_provider))
 
     language_client.onReady().then(() => sledgehammer_provider.setup())
 
