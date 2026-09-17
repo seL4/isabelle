@@ -163,12 +163,15 @@ fun elide_string threshold s =
     s
 
 fun find_enclosed left right s =
-  case first_field left s of
-    SOME (_, s) =>
-    (case first_field right s of
-       SOME (enclosed, s) => enclosed :: find_enclosed left right s
-     | NONE => [])
-  | NONE => []
+  let
+    fun find ss =
+      (case first_field_substring left ss of
+        SOME (_, ss) =>
+        (case first_field_substring right ss of
+          SOME (enclosed, ss) => Substring.string enclosed :: find ss
+        | NONE => [])
+      | NONE => [])
+  in find (Substring.full s) end
 
 val subscript = implode o map (prefix "\<^sub>") o explode_string  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
