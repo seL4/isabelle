@@ -874,16 +874,6 @@ lemma contour_integral_diff:
                 contour_integral g f1 - contour_integral g f2"
   by (simp add: contour_integral_unique has_contour_integral_integral has_contour_integral_diff)
 
-lemma contour_integral_lmul:
-  shows "f contour_integrable_on g
-           \<Longrightarrow> contour_integral g (\<lambda>x. c * f x) = c*contour_integral g f"
-  by (simp add: contour_integral_unique has_contour_integral_integral has_contour_integral_lmul)
-
-lemma contour_integral_rmul:
-  shows "f contour_integrable_on g
-        \<Longrightarrow> contour_integral g (\<lambda>x. f x * c) = contour_integral g f * c"
-  by (simp add: contour_integral_unique has_contour_integral_integral has_contour_integral_rmul)
-
 lemma contour_integral_div:
   shows "f contour_integrable_on g
         \<Longrightarrow> contour_integral g (\<lambda>x. f x / c) = contour_integral g f / c"
@@ -971,6 +961,27 @@ lemma contour_integrable_rmul_iff:
 lemma contour_integrable_div_iff:
     "c \<noteq> 0 \<Longrightarrow> (\<lambda>x. f x / c) contour_integrable_on g \<longleftrightarrow> f contour_integrable_on g"
   using contour_integrable_rmul_iff[of "inverse c"] by (simp add: field_simps)
+
+lemma contour_integral_rmul: "contour_integral g (\<lambda>x. f x * c) = contour_integral g f * c"
+proof (cases "c = 0")
+  case [simp]: False
+  show ?thesis
+  proof (cases "f contour_integrable_on g")
+    case True
+    thus ?thesis
+      by (simp add: contour_integral_unique has_contour_integral_integral has_contour_integral_rmul)
+  next
+    case False
+    thus ?thesis
+      using contour_integrable_rmul_iff not_integrable_contour_integral by force
+  qed
+qed auto
+
+lemma contour_integral_lmul: "contour_integral g (\<lambda>x. c * f x) = c * contour_integral g f"
+  by (subst (1 2) mult.commute) (rule contour_integral_rmul)
+
+lemma contour_integral_divide: "contour_integral g (\<lambda>x. f x / c) = contour_integral g f / c"
+  using contour_integral_rmul[of g f "inverse c"] by (simp add: field_simps)
 
 (* TODO: generalise to any path *)
 lemma uniform_limit_contour_integral_linepath:
@@ -1214,9 +1225,6 @@ proof -
     have "\<And>x. x \<in> {0..1} \<Longrightarrow>
          continuous_on {0..1} (\<lambda>xa. f (g x) (h xa))"
     by (subst fgh1) (rule fcon_im1 hcon continuous_intros | simp)+
-    then show "\<And>x. x \<in> {0..1} \<Longrightarrow> f (g x) contour_integrable_on h"
-      unfolding contour_integrable_on
-      using continuous_on_mult hvcon integrable_continuous_real by blast
   qed
   also have "\<dots> = integral {0..1}
                      (\<lambda>y. contour_integral g (\<lambda>x. f x (h y) * vector_derivative h (at y)))"
@@ -1870,6 +1878,84 @@ proof (rule contour_integral_unique)
     apply (force simp: circlepath)
     done
 qed
+
+(* TODO: generalise to any path *)
+lemma uniform_limit_contour_integral_circlepath:
+  assumes u: "uniform_limit (path_image (circlepath z r)) f g F"
+  assumes c: "\<And>n. continuous_on (path_image (circlepath z r)) (f n)"
+  assumes [simp]: "F \<noteq> bot"
+  obtains I J where
+    "\<And>n. (f n has_contour_integral I n) (circlepath z r)"
+    "(g has_contour_integral J) (circlepath z r)"
+    "(I \<longlongrightarrow> J) F"
+proof (rule uniform_limit_integral)
+  note [continuous_intros] = continuous_on_compose2[OF c]
+
+  show "uniform_limit {0..2*pi} (\<lambda>x t. f x (z + of_real r * cis t) * (of_real r * \<i> * cis t))
+          (\<lambda>t. g (z + of_real r * cis t) * (of_real r * \<i> * cis t)) F"
+  proof (rule uniform_lim_mult)
+    show "uniform_limit {0..2*pi} (\<lambda>x t. f x (z + of_real r * cis t))
+            (\<lambda>t. g (z + of_real r * cis t)) F"
+      using u by (rule uniform_limit_compose') (auto simp: dist_norm norm_mult)
+  next
+    show "uniform_limit {0..2*pi} (\<lambda>a b. complex_of_real r * \<i> * cis b) (\<lambda>a. complex_of_real r * \<i> * cis a) F"
+      by (intro uniform_limit_intros)
+  next
+    have "continuous_on (path_image (circlepath z r)) g"
+      by (rule uniform_limit_theorem[OF _ u]) (use c in \<open>auto intro!: always_eventually\<close>)
+    note [continuous_intros] = continuous_on_compose2[OF this]
+    have "compact ((\<lambda>a. g (z + complex_of_real r * cis a)) ` {0..2*pi})"
+      by (intro compact_continuous_image continuous_intros) (auto simp: dist_norm norm_mult)
+    thus "bounded ((\<lambda>a. g (z + complex_of_real r * cis a)) ` {0..2*pi})"
+      by (rule compact_imp_bounded)
+  next
+    show "bounded ((\<lambda>a. complex_of_real r * \<i> * cis a) ` {0..2*pi})"
+      by (intro compact_imp_bounded compact_continuous_image continuous_intros) auto
+  qed
+
+  show "continuous_on {0..2*pi} (\<lambda>t. f n (z + complex_of_real r * cis t) *
+          (complex_of_real r * \<i> * cis t))" for n
+    by (intro continuous_intros) (auto simp: dist_norm norm_mult)
+
+  fix I J
+  assume I: "\<And>n. ((\<lambda>t. f n (z + of_real r * cis t) * (of_real r * \<i> * cis t)) has_integral I n) {0..2*pi}"
+     and J: "((\<lambda>t. g (z + of_real r * cis t) * (of_real r * \<i> * cis t)) has_integral J) {0..2*pi}"
+     and lim: "(I \<longlongrightarrow> J) F"
+  show ?thesis
+    by (rule that[of I J])
+        (use I J lim in \<open>simp_all add: circlepath_def has_contour_integral_part_circlepath_iff mult_ac\<close>)
+qed auto
+
+(* TODO: generalise to any path *)
+lemma contour_integral_sums_circlepath:
+  assumes u: "uniform_limit (path_image (circlepath z r)) (\<lambda>N w. \<Sum>n<N. f n w) g sequentially"
+  assumes c: "\<And>n. continuous_on (path_image (circlepath z r)) (f n)"
+  obtains J where
+    "(g has_contour_integral J) (circlepath z r)"
+    "(\<lambda>n. contour_integral (circlepath z r) (f n)) sums J"
+  using u
+proof (rule uniform_limit_contour_integral_circlepath)
+  show "continuous_on (path_image (circlepath z r)) (\<lambda>w. \<Sum>n<N. f n w)" for N
+    by (intro continuous_intros c)
+next
+  fix I J
+  assume 1: "\<And>N. ((\<lambda>w. \<Sum>n<N. f n w) has_contour_integral I N) (circlepath z r)"
+  assume 2: "(g has_contour_integral J) (circlepath z r)" and 3: "(I \<longlongrightarrow> J) sequentially"
+  have 4: "I = (\<lambda>N. (\<Sum>n<N. contour_integral (circlepath z r) (f n)))"
+  proof
+    fix N :: nat
+    have "f n contour_integrable_on (circlepath z r)" for n
+      by (intro contour_integrable_continuous_circlepath assms)
+    hence "((\<lambda>w. \<Sum>n<N. f n w) has_contour_integral (\<Sum>n<N. contour_integral (circlepath z r) (f n))) (circlepath z r)"
+      using c by (intro has_contour_integral_sum) (simp_all add: has_contour_integral_integral)
+    with 1[of N] show "I N = (\<Sum>n<N. contour_integral (circlepath z r) (f n))"
+      using contour_integral_unique by metis
+  qed
+  have 5: "(\<lambda>n. contour_integral (circlepath z r) (f n)) sums J"
+    using 1 2 3 4 unfolding sums_def by blast
+  from that[OF 2 5] show ?thesis .
+qed auto
+
 
 subsection\<open> Uniform convergence of path integral\<close>
 

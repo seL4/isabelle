@@ -623,10 +623,33 @@ lemma conv_radius_geI_ex':
   fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
   assumes "\<And>r. 0 < r \<Longrightarrow> ereal r < R \<Longrightarrow> summable (\<lambda>n. f n * of_real r^n)"
   shows   "conv_radius f \<ge> R"
-proof (rule conv_radius_geI_ex)
-  fix r assume "0 < r" "ereal r < R"
-  with assms[of r] show "\<exists>z. norm z = r \<and> summable (\<lambda>n. f n * z ^ n)"
-    by (intro exI[of _ "of_real r :: 'a"]) auto
+  using assms conv_radius_geI_ex[of R f] order_less_le[of "0"] by fastforce
+
+(* TODO: version in the library is unnecessarily weak (?) *)
+lemma conv_radius_geI_ex'':
+  fixes f :: "nat \<Rightarrow> 'a :: {banach, real_normed_div_algebra}"
+  assumes "\<And>r. c < r \<Longrightarrow> ereal r < R \<Longrightarrow> summable (\<lambda>n. f n * of_real r ^ n)"
+  assumes "ereal c < R"
+  shows   "conv_radius f \<ge> R"
+proof (rule ccontr)
+  assume "\<not>R \<le> conv_radius f"
+  hence "conv_radius f < R"
+    by simp
+  hence "max (conv_radius f) c < R"
+    using assms(2) by simp
+  then obtain x where "max (conv_radius f) c < ereal x" "x < R"
+    by (meson ereal_dense2 less_max_iff_disj)
+  hence x: "conv_radius f < ereal x" "c < x" "x < R"
+    by simp_all
+  have "conv_radius f \<ge> 0"
+    by (simp add: conv_radius_nonneg)
+  with x(1) have "x \<ge> 0"
+    using ereal_less_eq(5) not_le less_trans by meson
+  from x(1) and \<open>x \<ge> 0\<close> have "\<not>summable (\<lambda>n. f n * of_real x ^ n)"
+    using not_summable_outside_conv_radius[of f "of_real x"] by auto
+  moreover have "summable (\<lambda>n. f n * of_real x ^ n)"
+    by (intro assms) (use x in auto)
+  ultimately show False by contradiction
 qed
 
 lemma conv_radius_leI_ex:

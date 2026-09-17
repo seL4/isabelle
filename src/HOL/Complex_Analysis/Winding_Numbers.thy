@@ -1376,6 +1376,22 @@ next
   finally show ?thesis .
 qed
 
+lemma winding_number_circlepath':
+  assumes "r \<ge> 0" "dist w z \<noteq> r"
+  shows   "winding_number (circlepath z r) w = indicator (ball z r) w"
+proof (cases "dist w z < r")
+  case True
+  thus ?thesis
+    using winding_number_circlepath[of w z r] by (auto simp: dist_norm norm_minus_commute)
+next
+  case False
+  have "winding_number (circlepath z r) w = 0"
+    by (rule winding_number_zero_outside[of _ "cball z r"])
+       (use assms False in \<open>auto simp: dist_commute\<close>)
+  thus ?thesis
+    using False assms by (auto simp: dist_commute)
+qed
+
 lemma no_bounded_connected_component_imp_winding_number_zero:
   assumes g: "path g" "path_image g \<subseteq> S" "pathfinish g = pathstart g" "z \<notin> S"
       and nb: "\<And>z. bounded (connected_component_set (- S) z) \<Longrightarrow> z \<in> S"
