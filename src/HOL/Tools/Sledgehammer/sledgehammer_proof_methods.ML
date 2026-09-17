@@ -119,7 +119,8 @@ fun merge_indexed_facts (facts: Pretty.T list) : Pretty.T list =
   let
     fun split (p: Pretty.T) : (string * string) option =
       try (unsuffix ")" o content_of_pretty) p
-      |> Option.mapPartial (first_field "(")
+      |> Option.mapPartial (first_field_substring "(" o Substring.full)
+      |> Option.map (apply2 Substring.string)
 
     fun add_pretty (name,is) = (SOME (name,is),Pretty.str (name ^ "(" ^ is ^ ")"))
 

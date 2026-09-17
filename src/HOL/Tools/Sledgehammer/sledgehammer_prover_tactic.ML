@@ -78,10 +78,11 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
               else
                 (case try (unsuffix ")") name of
                   SOME s' =>
-                  (case first_field "(" s' of
+                  (case ATP_Util.first_field_substring "(" (Substring.full s') of
                     SOME (name', num) =>
-                    (case Int.fromString num of
-                      SOME n => Facts.Named ((name', Position.none), SOME [Facts.Single n])
+                    (case Int.fromString (Substring.string num) of
+                      SOME n =>
+                      Facts.Named ((Substring.string name', Position.none), SOME [Facts.Single n])
                     | NONE => Facts.named name)
                   | NONE => Facts.named name)
                 | NONE => Facts.named name)
