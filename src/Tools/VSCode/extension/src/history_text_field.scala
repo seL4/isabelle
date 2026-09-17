@@ -122,8 +122,8 @@ object History_Text_Field {
         case Some(s) =>
           val history1 = Library.remove(s)(history)
           val item_focus1 =
-            if (item_focus > 0 && index <= item_focus) wrap_index(history1.length, item_focus - 1)
-            else item_focus
+            if (item_focus < 0 || index > item_focus) item_focus
+            else wrap_index(history1.length, (item_focus - 1) max 0)
           copy(history = history1, item_focus = item_focus1)
       }
   }

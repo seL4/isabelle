@@ -130,6 +130,8 @@ object Sledgehammer_View {
   /* output text area */
 
   private var current_output: XML.Body = Nil
+  private val pretty_text_area =
+    new Pretty_Text_Area(output => { current_output = output; update() })
 
 
   /* main */
@@ -141,14 +143,6 @@ object Sledgehammer_View {
 
   def main(): Unit = {
     State.load()
-
-    Pretty_Text_View.on_update { output =>
-      current_output = output
-      update()
-    }
-
-    dom.window.onresize = { _ => Pretty_Text_View.on_resize() }
-    dom.window.onload = { _ => Pretty_Text_View.on_load() }
 
     Webview_Api.on_message { e =>
       val json = Scalajs.JSON.unapply(e.data).get
@@ -162,8 +156,7 @@ object Sledgehammer_View {
           update()
         case Some("result") =>
           val output = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
-          
-          Pretty_Text_View.handle_update(output)
+          pretty_text_area.handle_update(output)
         case _ =>
       }
     }

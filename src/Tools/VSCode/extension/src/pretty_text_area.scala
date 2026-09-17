@@ -1,7 +1,7 @@
-/*  Title:      Tools/VSCode/extension/pretty_text_view.scala
+/*  Title:      Tools/VSCode/extension/pretty_text_area.scala
     Author:     Fabian Huch
 
-Webview for pretty-printed text with markup.
+GUI component for pretty-printed text with markup within Isabelle/VSCode.
 */
 
 package isabelle.vscode.extension
@@ -12,7 +12,7 @@ import isabelle._
 import isabelle.vscode._
 
 
-object Pretty_Text_View {
+object Pretty_Text_Area {
   private val vscode = Webview_Api.acquire
   private val elements =
     Browser_Info.extra_elements.copy(entity = Markup.Elements.full,
@@ -47,15 +47,18 @@ object Pretty_Text_View {
       }
     }
 
-  private var on_update: XML.Body => Unit = { _ => }
-  def on_update(f: XML.Body => Unit): Unit = { on_update = f }
+  def make_html(formatted: XML.Body): XML.Body = node_context.make_html(elements, formatted)
+}
 
-
+class Pretty_Text_Area(
+  on_update: XML.Body => Unit,
+  container: dom.HTMLElement = dom.document.body
+) {
   /* gui state */
 
   private var current_output: XML.Body = Nil
   private var current_metric: DOM_Metric = DOM_Metric()
-  private var current_margin: Double = current_metric.content()
+  private var current_margin: Double = current_metric.content(container)
   private var resize_timeout: Option[Int] = None
   private var window_loaded = false
 
@@ -70,7 +73,7 @@ object Pretty_Text_View {
 
   def on_load(): Unit = {
     current_metric = DOM_Metric()
-    current_margin = current_metric.content()
+    current_margin = current_metric.content(container)
     window_loaded = true
     update()
   }
@@ -80,7 +83,7 @@ object Pretty_Text_View {
       val formatted =
         Pretty.formatted(Pretty.separate(current_output), margin = current_margin,
           metric = current_metric)
-      on_update(List(HTML.source(node_context.make_html(elements, formatted))))
+      on_update(List(HTML.source(Pretty_Text_Area.make_html(formatted))))
     }
   }
 
@@ -92,7 +95,7 @@ object Pretty_Text_View {
   }
 
   def handle_resize(): Unit = {
-    val margin = current_metric.content()
+    val margin = current_metric.content(container)
 
     if (margin != current_margin) {
       current_margin = margin
