@@ -188,15 +188,15 @@ fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
     "Prover error" ^ (if s = "" then " (pass the \"verbose\" option for details)" else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =
-  (case first_field begin_delim output of
+  (case first_field_substring begin_delim (Substring.full output) of
     SOME (_, tail) =>
-    (case first_field "\n" tail of
+    (case first_field_substring "\n" tail of
       SOME (_, tail') =>
       if end_delim = "" then
-        tail'
+        Substring.string tail'
       else
-        (case first_field end_delim tail' of
-          SOME (body, _) => body
+        (case first_field_substring end_delim tail' of
+          SOME (body, _) => Substring.string body
         | NONE => "")
     | NONE => "")
   | NONE => "")
