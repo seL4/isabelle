@@ -41,6 +41,7 @@ sources = \
   src/no_message_digest.scala \
   src/output_view.scala \
   src/dom_metric.scala \
+  src/history_text_field.scala \
   src/pretty_text_view.scala \
   src/state_panel.scala \
   src/symbols_view.scala \
