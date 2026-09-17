@@ -666,10 +666,13 @@ fun parse_line full local_name problem =
   else parse_tstp_line full problem
 
 fun core_of_agsyhol_proof s =
-  (case split_lines s of
-    "The transformed problem consists of the following conjectures:" :: conj ::
-    _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
-  | _ => NONE)
+  if String.isPrefix "The transformed problem consists of the following conjectures:\n" s then
+    (case split_lines s of
+      _ :: conj :: _ :: proof_term :: _ =>
+      SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
+    | _ => NONE)
+  else
+    NONE
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
