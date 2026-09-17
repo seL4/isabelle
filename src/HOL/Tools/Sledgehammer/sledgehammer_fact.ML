@@ -353,8 +353,8 @@ fun if_thm_before th th' =
 (* Hack: Conflate the facts about a class as seen from the outside with the corresponding low-level
    facts, so that MaSh can learn from the low-level proofs. *)
 fun un_class_ify s =
-  (case first_field "_class" s of
-    SOME (pref, suf) => [s, pref ^ suf]
+  (case first_field_substring "_class" (Substring.full s) of
+    SOME (pref, suf) => [s, Substring.string pref ^ Substring.string suf]
   | NONE => [s])
 
 fun build_name_tables name_of facts =
