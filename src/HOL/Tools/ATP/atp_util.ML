@@ -95,7 +95,7 @@ fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where th
 (* Emits the characters of "s" with whitespace removed; with "skip_comments" also "%" to end of
    line and "/* ... */", an unterminated "/*" removing the rest. Emits one space where whitespace
    or a comment separated two "is_evil" characters. *)
-fun fold_stripped_spaces skip_comments is_evil f s =
+fun fold_stripped_spaces skip_comments is_evil (f : char -> 'a -> 'a) (s : string) : 'a -> 'a =
   let
     val n = size s
     fun chr i = String.nth s i
