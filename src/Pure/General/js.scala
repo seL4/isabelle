@@ -26,6 +26,9 @@ object JS {
 
   def value(t: JSON.T): Source = JSON.Format(t)
   def string(s: String): Source = value(s)
+  def boolean(b: Boolean): Source = value(b)
+  def int(i: Int): Source = value(i)
+  def double(d: Double): Source = value(d)
 
   def json_parse(arg: Source): Source = function("JSON.parse", arg)
   def json_print(arg: Source): Source = function("JSON.stringify", arg)
