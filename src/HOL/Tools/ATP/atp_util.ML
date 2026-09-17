@@ -15,6 +15,7 @@ sig
   val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
+  val explode_spaces_except_between_idents : string -> string list
   val explode_string : string -> string list
   val elide_string : int -> string -> string
   val find_enclosed : string -> string -> string -> string list
@@ -91,40 +92,46 @@ fun stringN_of_int 0 _ = ""
 
 fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where these come from *)
 
-(* Removes whitespace; with "skip_comments" also "%" to end of line and "/* ... */", an
-   unterminated "/*" removing the rest. Keeps one space where whitespace separated two
-   "is_evil" characters, inspecting the character after the gap before removing comments. *)
-fun strip_spaces skip_comments is_evil =
+(* Emits the characters of "s" with whitespace removed; with "skip_comments" also "%" to end of
+   line and "/* ... */", an unterminated "/*" removing the rest. Emits one space where whitespace
+   separated two "is_evil" characters, inspecting the character after the gap before removing
+   comments. *)
+fun fold_stripped_spaces skip_comments is_evil f s =
   let
-    fun strip_c_style_comment [] accum = accum
-      | strip_c_style_comment (#"*" :: #"/" :: cs) accum = strip_spaces_in_list true cs accum
-      | strip_c_style_comment (_ :: cs) accum = strip_c_style_comment cs accum
-    and strip_spaces_in_list _ [] accum = accum
-      | strip_spaces_in_list true (#"%" :: cs) accum =
-        strip_spaces_in_list true (cs |> drop_prefix (not_equal #"\n")) accum
-      | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum = strip_c_style_comment cs accum
-      | strip_spaces_in_list _ [c1] accum = accum |> not (is_spaceish c1) ? cons c1
-      | strip_spaces_in_list skip_comments (cs as [_, _]) accum =
-        accum |> fold (strip_spaces_in_list skip_comments o single) cs
-      | strip_spaces_in_list skip_comments (c1 :: c2 :: c3 :: cs) accum =
-        if is_spaceish c1 then
-          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) accum
-        else if is_spaceish c2 then
-          if is_spaceish c3 then
-            strip_spaces_in_list skip_comments (c1 :: c3 :: cs) accum
-          else
-            strip_spaces_in_list skip_comments (c3 :: cs)
-              (c1 :: accum |> forall is_evil [c1, c3] ? cons #" ")
-        else
-          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) (cons c1 accum)
-  in
-    String.explode
-    #> rpair [] #-> strip_spaces_in_list skip_comments
-    #> rev #> String.implode
-  end
+    val n = size s
+    fun chr i = String.nth s i
+    fun spaceish i = is_spaceish (chr i)
+    fun line_end i = if i < n andalso chr i <> #"\n" then line_end (i + 1) else i
+    fun comment_end i =
+      if i + 1 < n then
+        (if chr i = #"*" andalso chr (i + 1) = #"/" then i + 2 else comment_end (i + 1))
+      else n
+    fun spaces_end i = if i < n andalso spaceish i then spaces_end (i + 1) else i
+    fun scan i x =
+      if i >= n then x
+      else if skip_comments andalso chr i = #"%" then scan (line_end (i + 1)) x
+      else if skip_comments andalso chr i = #"/" andalso i + 1 < n andalso chr (i + 1) = #"*" then
+        scan (comment_end (i + 2)) x
+      else if spaceish i then scan (i + 1) x
+      else
+        let
+          val c = chr i
+          val j = spaces_end (i + 1)
+          val x = f c x
+        in
+          scan j (if j > i + 1 andalso j < n andalso is_evil c andalso is_evil (chr j)
+                  then f #" " x else x)
+        end
+  in scan 0 end
+
+fun strip_spaces skip_comments is_evil s =
+  String.implode (rev (fold_stripped_spaces skip_comments is_evil cons s []))
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_idents = strip_spaces true is_ident_char
+
+fun explode_spaces_except_between_idents s =
+  rev (fold_stripped_spaces true is_ident_char (cons o String.str) s [])
 
 (* Tail-recursive version of raw_explode *)
 fun explode_string s = fold_rev_string cons s []
