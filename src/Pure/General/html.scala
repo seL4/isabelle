@@ -372,6 +372,14 @@ object HTML {
     def onclick(script: String): Attribute = new Attribute("onclick", script)
     def onchange(script: String): Attribute = new Attribute("onchange", script)
     def oninput(script: String): Attribute = new Attribute("oninput", script)
+    def onfocus(script: String): Attribute = new Attribute("onfocus", script)
+    def onblur(script: String): Attribute = new Attribute("onblur", script)
+    def onfocusin(script: String): Attribute = new Attribute("onfocusin", script)
+    def onfocusout(script: String): Attribute = new Attribute("onfocusout", script)
+    def onkeydown(script: String): Attribute = new Attribute("onkeydown", script)
+    def onkeyup(script: String): Attribute = new Attribute("onkeyup", script)
+    def onmousedown(script: String): Attribute = new Attribute("onmousedown", script)
+    def onmouseup(script: String): Attribute = new Attribute("onmouseup", script)
 
     private def optional_value(text: String): XML.Attributes =
       proper_string(text).map(a => "value" -> a).toList
