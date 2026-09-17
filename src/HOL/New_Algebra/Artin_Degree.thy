@@ -76,10 +76,7 @@ proof
     using artin_lemma[where x = id and J = B, OF K finH H_auto finB lt xK] .
   have descended:
       "\<exists>c. (\<forall>j \<in> B. c j \<in> fixed_field K H) \<and> (\<exists>j \<in> B. c j \<noteq> 0) \<and> (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)"
-  proof (intro dep finB Hsub artin_solution_over_fixed_field[where x = id and J = B and F = F])
-    show "Subfield K" by (rule K)
-    show "\<And>j. j \<in> B \<Longrightarrow> id j \<in> K" by (rule xK)
-  qed
+    by (intro xK K dep finB Hsub artin_solution_over_fixed_field[where F = F])
   then obtain c where cfix: "\<And>j. j \<in> B \<Longrightarrow> c j \<in> fixed_field K H"
     and cnz: "\<exists>j \<in> B. c j \<noteq> 0"
     and ceq_all: "\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0" by blast
@@ -97,9 +94,8 @@ proof
   have eF: "e \<in> B \<rightarrow>\<^sub>E fixed_field K H" using cfix by (simp add: e_def)
   have "T.vs.lincomb e B = (\<Sum>j \<in> B. e j * j)"
     using finB BK eF by (intro T.vs_lincomb_eq_sum) auto
-  also have "\<dots> = (\<Sum>j \<in> B. j * c j)"
-    by (simp add: e_def mult.commute)
-  also have "\<dots> = 0" by (rule ceq)
+  also have "\<dots> = 0"
+    by (simp add: ceq e_def mult.commute)
   finally have lc0: "T.vs.lincomb e B = 0" .
   \<comment> \<open>Independence would force every coefficient to vanish, contradicting nontriviality.\<close>
   have "\<forall>v \<in> B. e v = 0" using indep eF lc0 by (simp add: T.vs.lin_indep_def)
@@ -191,10 +187,10 @@ proof -
     using z by (auto simp: T.vs.spanning_def)
   have cEv: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> E" using cE by auto
   have zsum: "z = (\<Sum>v \<in> B. c v * v)"
-    using zeq T.vs_lincomb_eq_sum[OF finB BK cEv] by simp
+    using zeq cE T.vs_lincomb_eq_sum[OF finB BK] by auto
   \<comment> \<open>Expand each @{term "\<sigma> z"} by linearity and exchange the two sums.\<close>
   have "(\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = (\<Sum>\<sigma> \<in> S. a \<sigma> * (\<Sum>v \<in> B. c v * \<sigma> v))"
-    using SG finB BK cEv by (intro sum.cong refl) (simp add: zsum field_auto_lincomb subset_iff)
+    using SG finB BK cEv by (simp add: zsum field_auto_lincomb subset_iff)
   also have "\<dots> = (\<Sum>\<sigma> \<in> S. \<Sum>v \<in> B. c v * (a \<sigma> * \<sigma> v))"
     by (simp add: sum_distrib_left mult.commute mult.left_commute)
   also have "\<dots> = (\<Sum>v \<in> B. c v * (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> v))"
@@ -210,8 +206,7 @@ theorem galois_group_card_le:
     and finS: "finite S" and SG: "S \<subseteq> field_auto K E"
   shows "card S \<le> card B"
 proof (rule ccontr)
-  assume "\<not> card S \<le> card B"
-  then have lt: "card B < card S" by simp
+  assume non: "\<not> card S \<le> card B"
   have finB: "finite B" and BK: "B \<subseteq> K" using basis by (auto simp: T.vs.basis_def)
   \<comment> \<open>One equation per basis vector, one unknown per automorphism: more unknowns than equations.
     The coefficient matrix @{term "\<lambda>v \<sigma>. \<sigma> v"} is indexed by vectors then automorphisms.\<close>
@@ -219,7 +214,7 @@ proof (rule ccontr)
     using SG BK by (blast intro: field_auto_closed)
   have "\<exists>a. (\<forall>\<sigma>. a \<sigma> \<in> K) \<and> (\<exists>\<sigma> \<in> S. a \<sigma> \<noteq> 0) \<and> (\<forall>v \<in> B. (\<Sum>\<sigma> \<in> S. \<sigma> v * a \<sigma>) = 0)"
     using Subfield.underdetermined_solution[OF K, where A = "\<lambda>v \<sigma>. \<sigma> v" and I = B and J = S]
-    using entries finB finS lt by blast
+    using entries finB finS non by force
   then obtain a where anz: "\<exists>\<sigma> \<in> S. a \<sigma> \<noteq> 0" and arel: "\<forall>v \<in> B. (\<Sum>\<sigma> \<in> S. \<sigma> v * a \<sigma>) = 0"
     by fastforce
   \<comment> \<open>Rewrite into the orientation Dedekind's lemma expects.\<close>
@@ -228,9 +223,8 @@ proof (rule ccontr)
   \<comment> \<open>The relation extends from the basis to all of @{term K}, so Dedekind applies.\<close>
   have "\<And>z. z \<in> K \<Longrightarrow> (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = 0"
     by (rule character_relation_from_basis[OF finS SG basis arel'])
-  then have "\<forall>\<sigma> \<in> S. a \<sigma> = 0"
-    using dedekind_independence[OF K, where S = S and a = a and F = E] finS SG by blast
-  then show False using anz by blast
+  then show False using anz
+    using dedekind_independence[OF K, of S] finS SG by blast
 qed
 
 end
@@ -294,15 +288,8 @@ proof -
   \<comment> \<open>Lower bound: the Galois group of the fixed field is no larger than the basis.  Its finiteness
     comes from the same bound, since a set exceeding @{term "card B"} could not inject.\<close>
   have finG: "finite (field_auto K (fixed_field K H))"
-  proof (rule ccontr)
-    assume inf: "infinite (field_auto K (fixed_field K H))"
-    \<comment> \<open>An infinite set has a finite subset larger than @{term "card B"}, which the bound forbids.\<close>
-    then obtain S where S: "S \<subseteq> field_auto K (fixed_field K H)"
-      and finS: "finite S" and cardS: "card S = card B + 1"
-      by (meson infinite_arbitrarily_large)
-    have "card S \<le> card B" by (rule galois_group_card_le[OF K tower basis finS S])
-    then show False using cardS by simp
-  qed
+    using galois_group_card_le[OF K tower basis] infinite_arbitrarily_large
+    by (meson finite_if_finite_subsets_card_bdd)
   have le2: "card (field_auto K (fixed_field K H)) \<le> card B"
     by (rule galois_group_card_le[OF K tower basis finG subset_refl])
   have card_le: "card (field_auto K (fixed_field K H)) \<le> card H" using le1 le2 by simp

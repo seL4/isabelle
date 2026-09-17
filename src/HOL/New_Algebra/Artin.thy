@@ -16,14 +16,7 @@ text \<open>Let \<open>H\<close> be a \<^emph>\<open>finite\<close> group of aut
   in the unknowns @{term "c\<^sub>j"}.  There are more unknowns than equations, so
   @{thm [source] Subfield.underdetermined_solution} supplies a nontrivial solution in \<open>K\<close> --- and
   the equation belonging to the identity automorphism is precisely the required dependence
-  @{text "\<Sum>\<^sub>j x\<^sub>j c\<^sub>j = 0"}.
-
-  Two things deserve emphasis.  First, the solution produced this way has its coefficients in
-  \<^emph>\<open>@{term K}\<close>.  The simultaneous-system descent below, \<open>artin_solution_over_fixed_field\<close>,
-  is what puts a nontrivial solution into the fixed field; the vector-space degree assembly and the
-  final group equality live in \<open>Artin_Degree\<close>.  Second, the argument never mentions
-  separability or normality: finiteness of @{term H} is the only hypothesis, which is what makes this
-  lemma the engine of the finite half of the Galois correspondence.\<close>
+  @{text "\<Sum>\<^sub>j x\<^sub>j c\<^sub>j = 0"}.\<close>
 
 
 subsection \<open>Artin's lemma\<close>
@@ -120,7 +113,7 @@ lemma field_auto_transports_dependence:
 proof -
   interpret K: Subfield K by (rule K)
   have "(\<Sum>j \<in> J. \<sigma> (x j) * \<sigma> (c j)) = (\<Sum>j \<in> J. \<sigma> (x j * c j))"
-    using xK cK by (intro sum.cong refl) (simp add: field_auto_mult[OF s])
+    using xK cK by (simp add: field_auto_mult[OF s])
   also have "\<dots> = \<sigma> (\<Sum>j \<in> J. x j * c j)"
     using xK cK by (intro field_auto_sum[OF K s, symmetric]) (blast intro: K.mult_closed)
   also have "\<dots> = 0" using dep field_auto_zero[OF K s] by simp
@@ -198,8 +191,8 @@ proof -
   interpret KS: Subfield K by (rule K)
   define Sol where
     "Sol \<equiv> (\<lambda>c :: 'j \<Rightarrow> 'a. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> J. c j \<noteq> 0) \<and> (\<forall>\<rho> \<in> H. (\<Sum>j \<in> J. \<rho> (x j) * c j) = 0))"
-  define supp where "supp = (\<lambda>c :: 'j \<Rightarrow> 'a. {j \<in> J. c j \<noteq> 0})"
-  define Q where "Q = (\<lambda>n. \<exists>c. Sol c \<and> card (supp c) = n)"
+  define supp where "supp \<equiv> (\<lambda>c :: 'j \<Rightarrow> 'a. {j \<in> J. c j \<noteq> 0})"
+  define Q where "Q \<equiv> (\<lambda>n. \<exists>c. Sol c \<and> card (supp c) = n)"
   have "Q (LEAST n. Q n)" using exsol by (metis LeastI Sol_def Q_def)
   then obtain c where solc: "Sol c" and cmin: "card (supp c) = (LEAST n. Q n)"
     unfolding Q_def by blast
@@ -211,12 +204,12 @@ proof -
     by (auto simp: Sol_def)
   define e where "e \<equiv> (\<lambda>j. c j / c k)"
   have eK: "\<And>j. e j \<in> K" using cK by (simp add: e_def KS.divide_closed)
-  have ek: "e k = 1" using cknz by (simp add: e_def)
+  have ekeq1: "e k = 1" using cknz by (simp add: e_def)
   have esupp: "supp e = supp c" using cknz by (auto simp: supp_def e_def)
   have eeq: "(\<Sum>j \<in> J. \<rho> (x j) * e j) = 0" if r: "\<rho> \<in> H" for \<rho>
     using ceq[OF r] by (simp add: e_def divide_simps flip: sum_divide_distrib)
   have depe: "Sol e"
-    unfolding Sol_def using eK ek kJ eeq by (intro conjI allI bexI[of _ k]) (simp_all)
+    unfolding Sol_def using eK ekeq1 kJ eeq by (intro conjI allI bexI[of _ k]) (simp_all)
   have fixed: "\<sigma> (e j) = e j" if s: "\<sigma> \<in> H" and jJ: "j \<in> J" for \<sigma> j
   proof (rule ccontr)
     assume ne: "\<sigma> (e j) \<noteq> e j"
@@ -235,11 +228,11 @@ proof -
       unfolding d_def using eK sG by (blast intro: KS.diff_closed field_auto_closed)
     have depd: "Sol d"
       using Sol_def dK d_def dep_d jJ ne by force
-    have dk: "d k = 0" using ek field_auto_one[OF sG] by (simp add: d_def)
+    have dk: "d k = 0" using ekeq1 field_auto_one[OF sG] by (simp add: d_def)
     have sub: "supp d \<subseteq> supp e - {k}"
       using field_auto_zero K d_def dk sG supp_def by fastforce
     have fin_e: "finite (supp e)" using finJ by (simp add: supp_def)
-    have k_e: "k \<in> supp e" using kJ ek by (simp add: supp_def)
+    have k_e: "k \<in> supp e" using kJ ekeq1 by (simp add: supp_def)
     have "card (supp d) \<le> card (supp e - {k})" using sub fin_e by (intro card_mono) blast
     also have "\<dots> < card (supp e)"
       using fin_e k_e by (meson card_Diff1_less)
@@ -402,41 +395,33 @@ next
       using s0G tG tne by (metis (no_types, lifting) ext PiE_E field_auto_mem_iff)
     \<comment> \<open>Two relations on @{term "insert \<sigma>\<^sub>0 S"}: the original scaled by @{term "\<sigma>\<^sub>0 y"}, and the one
       obtained by evaluating at @{term "y * z"}.  Both have the same @{term \<sigma>\<^sub>0} term.\<close>
-    define b where "b = (\<lambda>\<sigma>. a \<sigma> * (\<sigma> y - \<sigma>\<^sub>0 y))"
+    define b where "b \<equiv> (\<lambda>\<sigma>. a \<sigma> * (\<sigma> y - \<sigma>\<^sub>0 y))"
     have "(\<Sum>\<sigma> \<in> S. b \<sigma> * \<sigma> z) = 0" if zK: "z \<in> K" for z
     proof -
       have scaled: "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma> y) * \<sigma> z) = 0"
         by (rule character_relation_scaled[OF K _ insG insrel yK zK]) (simp add: insert.hyps)
-      have orig: "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma>\<^sub>0 y) * \<sigma> z) = 0"
-      proof -
-        have "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma>\<^sub>0 y) * \<sigma> z) = \<sigma>\<^sub>0 y * (\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. a \<sigma> * \<sigma> z)"
-          by (simp add: sum_distrib_left mult.commute mult.left_commute)
-        also have "\<dots> = 0" using insrel zK by simp
-        finally show ?thesis .
-      qed
-      \<comment> \<open>Subtract.  Splitting the sum of differences into a difference of sums is done as an explicit
-        calculation: left to one @{method simp} the goal is a three-way rearrangement of products and
-        it does not close.\<close>
+      have "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma>\<^sub>0 y) * \<sigma> z) = \<sigma>\<^sub>0 y * (\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. a \<sigma> * \<sigma> z)"
+        by (simp add: sum_distrib_left mult.commute mult.left_commute)
+      also have "\<dots> = 0" using insrel zK by simp
+      finally have orig: "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma>\<^sub>0 y) * \<sigma> z) = 0" .
       have "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. b \<sigma> * \<sigma> z)
             = (\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma> y) * \<sigma> z) - (\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. (a \<sigma> * \<sigma>\<^sub>0 y) * \<sigma> z)"
         unfolding b_def by (simp add: sum_subtractf left_diff_distrib right_diff_distrib mult.assoc)
       also have "\<dots> = 0" using scaled orig by simp
       finally have "(\<Sum>\<sigma> \<in> insert \<sigma>\<^sub>0 S. b \<sigma> * \<sigma> z) = 0" .
-      moreover have "b \<sigma>\<^sub>0 = 0" by (simp add: b_def)
-      ultimately show ?thesis using insert.hyps by simp
+      then show ?thesis using insert.hyps
+        using b_def by force
     qed
     \<comment> \<open>So the induction hypothesis applies to @{term S} with coefficients @{term b} --- but
       @{term "b \<tau>"} is a product of two nonzero factors.\<close>
-    then have "\<forall>\<sigma> \<in> S. b \<sigma> = 0" using insert.IH[where a = b, OF SG] by blast
-    then show False using \<open>\<tau> \<in> S\<close> atnz diff by (force simp: b_def)
+    then show False  using insert.IH[where a = b, OF SG] \<open>\<tau> \<in> S\<close> atnz diff 
+      by (force simp: b_def)
   qed
   \<comment> \<open>Finally the leading coefficient.\<close>
-  have "a \<sigma>\<^sub>0 = 0"
-  proof -
-    have "a \<sigma>\<^sub>0 * \<sigma>\<^sub>0 1 + (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using rel K.one_closed by blast
-    moreover have "(\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using S_zero by simp
-    ultimately show ?thesis using field_auto_one[OF s0G] by simp
-  qed
+  have "a \<sigma>\<^sub>0 * \<sigma>\<^sub>0 1 + (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using rel K.one_closed by blast
+  moreover have "(\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> 1) = 0" using S_zero by simp
+  ultimately   have "a \<sigma>\<^sub>0 = 0"
+    using field_auto_one[OF s0G] by simp
   then show ?case using S_zero by blast
 qed
 
@@ -450,7 +435,6 @@ text \<open>This theory supplies the two difficult
   vectors already fixed by @{term H}.  The corrected simultaneous-system theorem
   \<open>artin_solution_over_fixed_field\<close> is the interface used by the degree layer, so the public
   \<open>artin_theorem\<close> no longer exposes either that fixed-vector premise or an explicit basis
-  premise.  This theory remains the reusable dependence layer and does not acquire a second
-  vector-space construction.\<close>
+  premise.\<close>
 
 end
