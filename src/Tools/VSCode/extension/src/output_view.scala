@@ -21,9 +21,6 @@ object Output_View {
   /* main */
 
   def main(): Unit = {
-    dom.window.onresize = { _ => pretty_text_area.on_resize() }
-    dom.window.onload = { _ => pretty_text_area.on_load() }
-
     Webview_Api.on_message { e =>
       pretty_text_area.handle_update(YXML.parse_body(YXML.Source(e.data.toString)))
     }

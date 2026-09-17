@@ -102,4 +102,10 @@ class Pretty_Text_Area(
       update()
     }
   }
+
+
+  /* handlers */
+
+  Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => on_resize())
+  Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => on_load())
 }

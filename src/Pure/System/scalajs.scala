@@ -337,5 +337,21 @@ object Scalajs {
     }
 
     def update(body: XML.Body): Unit = update_children(dom.document.body, body)
+
+
+    /* handlers */
+
+    final class Handler(val handle: scala.PartialFunction[dom.Event, Unit])
+
+    class Event_Handler(register: js.Function1[dom.Event, Unit] => Unit) {
+      private var handlers: List[Handler] = Nil
+      register(e => handlers.foreach(_.handle.lift(e)))
+
+      def += (h: Handler): Unit = { handlers = Library.update(h)(handlers) }
+      def -= (h: Handler): Unit = { handlers = Library.remove(h)(handlers) }
+    }
+
+    val onresize = new Event_Handler(handler => dom.window.onresize = handler)
+    val onload = new Event_Handler(handler => dom.window.onload = handler)
   }
 }

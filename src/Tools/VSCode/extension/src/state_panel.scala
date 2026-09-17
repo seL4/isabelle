@@ -65,9 +65,6 @@ object State_Panel {
   /* main */
 
   def main(): Unit = {
-    dom.window.onresize = { _ => pretty_text_area.on_resize() }
-    dom.window.onload = { _ => pretty_text_area.on_load() }
-
     Webview_Api.on_message { e =>
       val json = Scalajs.JSON.unapply(e.data).get
 
