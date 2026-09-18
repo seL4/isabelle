@@ -63,7 +63,7 @@ function extract_ranges(doc: TextDocument) {
         break
       case arrows.bsup:
       case arrows.bsub:
-        const close = text[i] === arrows.bsub ? arrows.esub : arrows.bsup
+        const close = text[i] === arrows.bsub ? arrows.esub : arrows.esup
         const script_ranges = text[i] === arrows.bsub ? sub_ranges : sup_ranges
         const close_index = find_closing(close, text, i)
 
