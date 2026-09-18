@@ -82,7 +82,7 @@ export class Provider implements WebviewViewProvider{
   }
 
   private _get_html(): string {
-    return Webview.get_html(this._view.webview, this._extension_uri.fsPath, "Sledgehammer Panel",
-      "sledgehammer_view.js", "sledgehammer_view.css")
+    return Webview.get_html(
+      this._view.webview, this._extension_uri.fsPath, "Sledgehammer Panel", "sledgehammer_view.js")
   }
 }

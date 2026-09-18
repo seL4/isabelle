@@ -34,8 +34,7 @@ export class Provider implements WebviewViewProvider {
     view.webview.options = { enableScripts: true, localResourceRoots: [this._extension_uri]}
 
     view.webview.html =
-      Webview.get_html(this._view.webview, this._extension_uri.fsPath, "Output", "output_view.js",
-        "output_view.css")
+      Webview.get_html(this._view.webview, this._extension_uri.fsPath, "Output", "output_view.js")
     view.webview.onDidReceiveMessage(async message =>
       {
         switch (message.command) {

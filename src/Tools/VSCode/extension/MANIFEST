@@ -8,14 +8,12 @@ media/documentation-panel.svg
 media/symbol-panel.svg
 media/sledgehammer-panel.svg
 media/output-panel.svg
-media/output_view.css
 media/PreviewOnRightPane_16x_dark.svg
 media/PreviewOnRightPane_16x.svg
 media/Preview.svg
 media/ViewSource_inverse.svg
 media/ViewSource.svg
-media/symbols_view.css
-media/sledgehammer_view.css
+media/vscode.css
 package.json
 README.md
 src/decorations.ts
