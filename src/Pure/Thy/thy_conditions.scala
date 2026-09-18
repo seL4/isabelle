@@ -94,7 +94,7 @@ final class Thy_Conditions private(
     check_errors
     Shasum.flat(List.from(
       for (case (a, Exn.Res(b)) <- rep.iterator)
-        yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
+        yield Shasum.make(SHA1.digest(b.isEmpty), Thy_Conditions.Condition.make(a))))
   }
 
   def failed: List[String] = List.from(for (case (a, Exn.Exn(_)) <- rep.iterator) yield a)
