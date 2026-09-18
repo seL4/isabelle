@@ -1,28 +1,30 @@
 diff -Nru -- vscode.orig/src/vs/code/node/cli.ts vscode/src/vs/code/node/cli.ts
---- vscode.orig/src/vs/code/node/cli.ts	2025-11-11 15:34:41.567132460 +0100
-+++ vscode/src/vs/code/node/cli.ts	2025-11-11 15:34:42.202463807 +0100
-@@ -482,13 +482,15 @@
+--- vscode.orig/src/vs/code/node/cli.ts	2026-09-18 17:29:56.958846833 +0200
++++ vscode/src/vs/code/node/cli.ts	2026-09-18 17:19:15.687205488 +0200
+@@ -488,6 +488,7 @@
  		}
  
  		let child: ChildProcess;
 +		const app_arg = '--app=' + process.env['ISABELLE_VSCODIUM_APP'];
-+		const electron_args = [app_arg].concat(argv.slice(2));
- 		if (!isMacOSBigSurOrNewer) {
+ 		if (!isMacintosh) {
  			if (!args.verbose && args.status) {
  				options['stdio'] = ['ignore', 'pipe', 'ignore']; // restore ability to see output when --status is used
- 			}
+@@ -499,7 +500,8 @@
+ 			const spawnArgs = isWindows ? combineUriFlags(argv.slice(2)) : argv.slice(2);
  
- 			// We spawn process.execPath directly
--			child = spawn(process.execPath, argv.slice(2), options);
+ 			// We spawn the resolved executable directly
+-			child = spawn(process.execPath, spawnArgs, options);
++			const electron_args = [app_arg].concat(spawnArgs);
 +			child = spawn(process.execPath, electron_args, options);
  		} else {
- 			// On Big Sur, we spawn using the open command to obtain behavior
+ 			// On macOS, we spawn using the open command to obtain behavior
  			// similar to if the app was launched from the dock
-@@ -548,7 +550,7 @@
+@@ -558,7 +560,8 @@
  				}
  			}
  
 -			spawnArgs.push('--args', ...argv.slice(2)); // pass on our arguments
++			const electron_args = [app_arg].concat(...argv.slice(2));
 +			spawnArgs.push('--args', ...electron_args); // pass on our arguments
  
  			if (env['VSCODE_DEV']) {

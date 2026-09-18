@@ -12,7 +12,7 @@ package isabelle
 object Nodejs {
   /** independent installation **/
 
-  val default_version = "22.18.0"
+  val default_version = "24.18.1"
 
   def setup(
     base_dir: Path,

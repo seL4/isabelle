@@ -32,7 +32,7 @@ object Component_VSCodium {
   /* vscode parameters */
 
   val default_node_version = Nodejs.default_version
-  val default_vscodium_version = "1.105.17075"
+  val default_vscodium_version = "1.135.06055"
 
   val vscodium_repository = "https://github.com/VSCodium/vscodium.git"
   val vscodium_download = "https://github.com/VSCodium/vscodium/releases/download"
@@ -67,7 +67,9 @@ object Component_VSCodium {
       "VSCODE_LATEST=no",
       "CI_BUILD=no",
       "SKIP_ASSETS=yes",
-      "SHOULD_BUILD=yes")
+      "SHOULD_BUILD=yes",
+      "SHOULD_BUILD_REH=no",
+      "SHOULD_BUILD_REH_WEB=no")
 
   def build_upstream_env(dir: Path): List[String] = {
     val str = File.read(dir + Path.explode("upstream/stable.json"))
@@ -227,7 +229,7 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        for (name <- Seq("cli", "isabelle_encoding")) {
+        for (name <- Seq("cli", "gulpfile", "isabelle_encoding")) {
           Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
@@ -305,7 +307,7 @@ object Component_VSCodium {
   }
 
 
-  // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.js
+  // see https://github.com/microsoft/vscode/blob/main/build/gulpfile.vscode.ts
   // function computeChecksum(filename)
   private def file_checksum(path: Path): String = {
     val digest = MessageDigest.getInstance("SHA-256").nn

@@ -1,16 +1,17 @@
 diff --git a/prepare_vscode.sh b/prepare_vscode.sh
-index d89246a..f0cb185 100755
+index 1ac30e0..66efd47 100755
 --- a/prepare_vscode.sh
 +++ b/prepare_vscode.sh
-@@ -173,7 +173,6 @@ done
- set -x
+@@ -225,13 +225,16 @@ for i in {1..5}; do # try 5 times
+   sleep $(( 15 * (i + 1)))
+ done
  
- # {{{ install dependencies
--export ELECTRON_SKIP_BINARY_DOWNLOAD=1
- export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
++# see https://github.com/electron/electron/blob/v42.8.1/docs/breaking-changes.md
++npx install-electron --no
++
+ mv .npmrc.bak .npmrc
+ # }}}
  
- if [[ "${OS_NAME}" == "linux" ]]; then
-@@ -217,7 +216,7 @@ mv .npmrc.bak .npmrc
  # package.json
  cp package.json{,.bak}
  
@@ -18,4 +19,4 @@ index d89246a..f0cb185 100755
 +setpath "package" "version" "$MS_TAG"
  
  replace 's|Microsoft Corporation|VSCodium|' package.json
- 
+ replace "s|--max-old-space-size=8192|--max-old-space-size=${MAX_OLD_SPACE_SIZE}|" package.json
