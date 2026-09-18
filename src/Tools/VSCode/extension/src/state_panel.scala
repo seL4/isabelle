@@ -52,20 +52,19 @@ object State_Panel {
     def apply(): Unit = vscode.post(JSON.Object("command" -> "locate"))
   }
 
-  private def controls =
-    HTML.div(HTML.id("controls"), List(auto_update_button, update_button, locate_button))
+  private def controls = HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
+
+
+  /* text area */
+
+  private val pretty_text_area =
+    new Pretty_Text_Area(output =>
+      Scalajs.DOM.update(HTML.control_markup(controls :: output, hidden = true)))
 
 
   /* main */
 
   def main(): Unit = {
-    Pretty_Text_View.on_update { output =>
-      Scalajs.DOM.update(HTML.control_markup(controls :: output, hidden = true))
-    }
-
-    dom.window.onresize = { _ => Pretty_Text_View.on_resize() }
-    dom.window.onload = { _ => Pretty_Text_View.on_load() }
-
     Webview_Api.on_message { e =>
       val json = Scalajs.JSON.unapply(e.data).get
 
@@ -74,7 +73,7 @@ object State_Panel {
         auto_update <- JSON.bool(json, "auto_update")
       } {
         auto_update_enabled = auto_update
-        Pretty_Text_View.handle_update(YXML.parse_body(YXML.Source(content)))
+        pretty_text_area.handle_update(YXML.parse_body(YXML.Source(content)))
       }
     }
 

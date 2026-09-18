@@ -69,8 +69,7 @@ class Panel {
         }
       })
     this.webview_panel.webview.html =
-      Webview.get_html(this.webview_panel.webview, this._extension_path, "Output", "state_panel.js",
-        "output_view.css")
+      Webview.get_html(this.webview_panel.webview, this._extension_path, "Output", "state_panel.js")
   }
 }
 

@@ -372,6 +372,14 @@ object HTML {
     def onclick(script: String): Attribute = new Attribute("onclick", script)
     def onchange(script: String): Attribute = new Attribute("onchange", script)
     def oninput(script: String): Attribute = new Attribute("oninput", script)
+    def onfocus(script: String): Attribute = new Attribute("onfocus", script)
+    def onblur(script: String): Attribute = new Attribute("onblur", script)
+    def onfocusin(script: String): Attribute = new Attribute("onfocusin", script)
+    def onfocusout(script: String): Attribute = new Attribute("onfocusout", script)
+    def onkeydown(script: String): Attribute = new Attribute("onkeydown", script)
+    def onkeyup(script: String): Attribute = new Attribute("onkeyup", script)
+    def onmousedown(script: String): Attribute = new Attribute("onmousedown", script)
+    def onmouseup(script: String): Attribute = new Attribute("onmouseup", script)
 
     private def optional_value(text: String): XML.Attributes =
       proper_string(text).map(a => "value" -> a).toList
@@ -427,6 +435,9 @@ object HTML {
     def parameter(text: String = "", name: String = ""): XML.Elem =
       XML.elem(
         Markup("input", List("type" -> "hidden") ::: optional_value(text) ::: optional_name(name)))
+
+    def label(text: String, label_for: String): XML.Elem =
+      XML.Elem(Markup("label", List("for" -> label_for)), HTML.text(text))
 
     def form(body: XML.Body, name: String = "", action: String = "", http_post: Boolean = false)
         : XML.Elem =

@@ -55,13 +55,28 @@
         },
         "views": {
             "isabelle-symbols": [
-                { "id": "isabelle-symbols", "name": "Symbols", "type": "webview", "icon": "./media/symbol-panel.svg" }
+                { 
+                    "id": "isabelle-symbols",
+                    "name": "Symbols",
+                    "type": "webview",
+                    "icon": "./media/symbol-panel.svg"
+                }
             ],
             "isabelle-documentation": [
-                { "id": "isabelle-documentation", "name": "Documentation", "type": "webview", "icon": "./media/documentation-panel.svg" }
+                {
+                    "id": "isabelle-documentation",
+                    "name": "Documentation",
+                    "type": "tree",
+                    "icon": "./media/documentation-panel.svg"
+                }
             ],
             "isabelle-sledgehammer": [
-                { "id": "isabelle-sledgehammer", "name": "Sledgehammer", "type": "webview" , "icon": "./media/sledgehammer-panel.svg" }
+                {
+                    "id": "isabelle-sledgehammer",
+                    "name": "Sledgehammer",
+                    "type": "webview",
+                    "icon": "./media/sledgehammer-panel.svg"
+                }
             ],
             "isabelle": [
                 {

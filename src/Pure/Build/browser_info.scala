@@ -163,7 +163,8 @@ object Browser_Info {
   sealed case class Elements(
     html: Markup.Elements = Markup.Elements.empty,
     entity: Markup.Elements = Markup.Elements.empty,
-    language: Markup.Elements = Markup.Elements.empty)
+    language: Markup.Elements = Markup.Elements.empty,
+    active: Markup.Elements = Markup.Elements.empty)
 
   val default_elements: Elements =
     Elements(
@@ -464,6 +465,8 @@ object Browser_Info {
     def make_ref(props: Properties.T, body: XML.Body): Option[XML.Elem] = None
     def make_file_ref(file: String, body: XML.Body): Option[XML.Elem] = None
 
+    def make_active(active: XML.Elem, body: XML.Body): Option[XML.Elem] = None
+
     val div_elements: Set[String] =
       Set(HTML.div.name, HTML.pre.name, HTML.par.name, HTML.list.name, HTML.`enum`.name,
         HTML.descr.name)
@@ -524,6 +527,12 @@ object Browser_Info {
             val (body1, offset) = html_body(body, end_offset)
             if (kind == Markup.ENUMERATE) (List(HTML.`enum`(body1)), offset)
             else (List(HTML.list(body1)), offset)
+          case XML.Elem(Markup(name, props), body) if elements.active(name) =>
+            val (body1, offset) = html_body(body, end_offset)
+            make_active(XML.Elem(Markup(name, props), body), body1) match {
+              case Some(active) => (List(active), offset)
+              case None => (body1, offset)
+            }
           case XML.Elem(markup, body) =>
             val (body1, offset) = html_body(body, end_offset)
             val html =

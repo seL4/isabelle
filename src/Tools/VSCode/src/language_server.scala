@@ -186,6 +186,11 @@ object Language_Server {
     override def send_dispatcher(body: => Unit): Unit = session.send_dispatcher(body)
     override def send_wait_dispatcher(body: => Unit): Unit = session.send_wait_dispatcher(body)
   }
+
+
+  /* supported active markup */
+
+  val active_elements = Markup.Elements(Markup.SENDBACK, Markup.DIALOG)
 }
 
 class Language_Server(
@@ -514,14 +519,40 @@ class Language_Server(
   }
 
 
-  /* code actions */
+  /* actions */
 
-  def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit = {
+  private def text_edit(
+    props: Properties.T,
+    text: String,
+    model: VSCode_Model
+  ): Option[LSP.TextEdit] = {
+    val snapshot = resources.snapshot(model)
+    val doc = model.content.doc
+
+    for {
+      id <- Position.Id.unapply(props)
+      command <- snapshot.get_command(id)
+      start <- snapshot.command_start(command)
+      range = snapshot.convert(command.core_range + start)
+      current_text <- model.get_text(range)
+    } yield {
+      val line_range = doc.range(range)
+      val edit_text =
+        if (props.contains(Markup.PADDING_COMMAND)) {
+          val whole_line = doc.lines(line_range.start.line)
+          val indent = whole_line.text.takeWhile(_.isWhitespace)
+          current_text + "\n" + Library.prefix_lines(indent, text)
+        }
+        else current_text + text
+      LSP.TextEdit(line_range, resources.output_edit(edit_text))
+    }
+  }
+
+  def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit =
     for {
       model <- resources.get_model(file)
       version <- model.version
-      doc = model.content.doc
-      text_range <- doc.text_range(range)
+      text_range <- model.content.doc.text_range(range)
     } {
       val snapshot = resources.snapshot(model)
       val results =
@@ -531,26 +562,30 @@ class Language_Server(
         List.from(
           for {
             (snippet, props) <- Protocol.sendback_snippets(results).iterator
-            id <- Position.Id.unapply(props)
-            command <- snapshot.get_command(id)
-            start <- snapshot.command_start(command)
-            range = command.core_range + start
-            current_text <- model.get_text(range)
-          } yield {
-            val line_range = doc.range(range)
-            val edit_text =
-              if (props.contains(Markup.PADDING_COMMAND)) {
-                val whole_line = doc.lines(line_range.start.line)
-                val indent = whole_line.text.takeWhile(_.isWhitespace)
-                current_text + "\n" + Library.prefix_lines(indent, snippet)
-              }
-              else current_text + snippet
-            val edit = LSP.TextEdit(line_range, resources.output_edit(edit_text))
-            LSP.CodeAction(snippet, List(LSP.TextDocumentEdit(file, Some(version), List(edit))))
-          })
+            text_edit <- text_edit(props, snippet, model)
+            document_edit = LSP.TextDocumentEdit(file, Some(version), List(text_edit))
+          } yield LSP.CodeAction(snippet, List(document_edit)))
       channel.write(LSP.CodeActionRequest.reply(id, actions))
     }
-  }
+
+  def markup_action(active: XML.Elem, text: String): Unit =
+    active match {
+      case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
+        for {
+          id <- Position.Id.unapply(props)
+          command <- session.snapshot().get_command(id)
+          node_name = command.node_name
+          model <- resources.get_model(node_name)
+          text_edit <- text_edit(props, text, model)
+          file = resources.node_file(node_name)
+          end_pos = text_edit.range.start.advance(text_edit.new_text)
+        } channel.write(LSP.Document_Edit(file, model.version, text_edit, end_pos))
+
+      case Protocol.Dialog(id, serial, result) =>
+        session.dialog_result(id, serial, result)
+
+      case _ =>
+    }
 
 
   /* abbrevs */
@@ -596,6 +631,7 @@ class Language_Server(
           case LSP.Goto_Command(id, offset) => goto_command(id, offset)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
           case LSP.CodeActionRequest(id, file, range) => code_action_request(id, file, range)
+          case LSP.Markup_Action(active, text) => markup_action(active, text)
           case LSP.Decoration_Request(file) => decoration_request(file)
           case LSP.Caret_Update(caret) => update_caret(caret)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)
@@ -613,7 +649,6 @@ class Language_Server(
           case LSP.Sledgehammer_Request(args) => sledgehammer.request(args)
           case LSP.Sledgehammer_Cancel() => sledgehammer.cancel()
           case LSP.Sledgehammer_Locate() => sledgehammer.locate()
-          case LSP.Sledgehammer_Sendback(text) => sledgehammer.sendback(text)
           case _ =>
             if (!LSP.ResponseMessage.is_empty(json)) channel.log_file.warning("IGNORED")
         }

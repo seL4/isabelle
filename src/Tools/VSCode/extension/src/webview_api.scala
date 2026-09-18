@@ -28,8 +28,8 @@ object Webview_Api {
 
   lazy val acquire = new Webview_Api(acquireVsCodeApi())
 
-  object Post extends Scalajs.Fun_Any {
-    def invoke(arg: Any): Unit = { Scalajs.JSON.unapply(arg).foreach(acquire.post) }
+  object Post extends Scalajs.Fun_JSON {
+    def apply(msg: JSON.T): Unit = { acquire.post(msg) }
   }
 
   def on_message(f: dom.MessageEvent => Unit): Unit = dom.window.addEventListener("message", f)

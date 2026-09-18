@@ -9,13 +9,13 @@ Message formats for Language Server Protocol, with adhoc PIDE extensions
 "use strict";
 
 import { MarkdownString } from "vscode"
-import { NotificationType, RequestType0 } from "vscode-languageclient"
+import { NotificationType, RequestType0, TextEdit } from "vscode-languageclient"
 
 
 /* decorations */
 
 export interface Decoration_Options {
-  range: number[],
+  range: number[]
   hover_message?: MarkdownString | MarkdownString[]
 }
 
@@ -52,6 +52,20 @@ export interface Caret_Update {
 
 export const caret_update_type =
   new NotificationType<Caret_Update>("PIDE/caret_update")
+
+
+/* edits */
+
+export interface Document_Edit {
+  uri: string
+  version?: number
+  edit: TextEdit
+  line: number
+  character: number
+}
+
+export const edit_command_type =
+  new NotificationType<Document_Edit>("PIDE/document_edit")
 
 
 /* dynamic output */
@@ -146,18 +160,19 @@ export const documentation_request_type =
   new NotificationType<void>("PIDE/documentation_request")
 
 export interface Doc_Entry {
-  print_html: string,
-  platform_path: string
+  name: string
+  path: string
+  title: string
 }
 
 export interface Doc_Section {
-  title: string,
-  important: boolean,
-  entries: Array<Doc_Entry>
+  title: string
+  important: boolean
+  entries: Doc_Entry[]
 }
 
 export interface Documentation_Response {
-  sections: Array<Doc_Section>
+  sections: Doc_Section[]
 }
 
 export const documentation_response_type =
@@ -167,8 +182,8 @@ export const documentation_response_type =
 /* Sledgehammer */
 
 export interface Sledgehammer_Request {
-  provers: string,
-  isar: boolean,
+  provers: string
+  isar: boolean
   try0: boolean
 }
 
@@ -177,29 +192,7 @@ export interface Sledgehammer_Status {
 }
 
 export interface Sledgehammer_Output {
-  content: string,
-  position: {
-    uri: string,
-    line: number,
-    character: number
-  },
-  sendback_id: number,
-  state_location: {
-    uri: string,
-    line: number,
-    character: number
-  }
-}
-
-export interface Sledgehammer_Sendback {
-  text: string
-}
-
-export interface Sledgehammer_Insert {
-  uri: string,
-  line: number,
-  character: number,
-  text: string
+  content: string
 }
 
 export interface Sledgehammer_Provers {
@@ -214,12 +207,6 @@ export const sledgehammer_cancel_type =
 
 export const sledgehammer_locate_type =
   new NotificationType<void>("PIDE/sledgehammer_locate")
-
-export const sledgehammer_sendback_type =
-  new NotificationType<Sledgehammer_Sendback>("PIDE/sledgehammer_sendback")
-
-export const sledgehammer_insert_type =
-  new NotificationType<Sledgehammer_Insert>("PIDE/sledgehammer_insert")
 
 export const sledgehammer_provers_request_type =
   new NotificationType<void>("PIDE/sledgehammer_provers_request")

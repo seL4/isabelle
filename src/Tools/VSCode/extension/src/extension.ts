@@ -9,7 +9,9 @@ Isabelle/VSCode extension.
 
 import { Uri, TextEditor, ViewColumn, Selection, Position, ExtensionContext, workspace, window,
   commands, ProgressLocation, Range, TextEditorRevealType } from "vscode"
-import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node"
+import { LanguageClient, LanguageClientOptions, ServerOptions,
+  TextDocumentEdit } from "vscode-languageclient/node"
+import {OptionalVersionedTextDocumentIdentifier} from "vscode-languageserver-types"
 
 import * as Platform from "./platform"
 import * as Library from "./library"
@@ -21,8 +23,8 @@ import * as LSP from "./lsp"
 import * as State_Panel from "./state_panel"
 import * as Output_View from "./output_view"
 import * as Symbols_View from "./symbols_view"
-import * as Documentation_Panel from "./documentation_panel"
-import * as Sledgehammer_Panel from "./sledgehammer_panel"
+import * as Documentation_Treeview from "./documentation_treeview"
+import * as Sledgehammer_View from "./sledgehammer_view"
 import * as Script_Decorations from "./script_decorations"
 
 
@@ -65,6 +67,7 @@ function isabelle_options(args: Args): string[] {
   add_values("-d", "session_dirs")
   add_values("-i", "include_sessions")
   add_values("-m", "modes")
+  add_values("-n", "no_build")
   add_value("-L", "log_file")
   if (args.verbose) { add("-v") }
 
@@ -196,6 +199,21 @@ export async function activate(context: ExtensionContext) {
       })
 
 
+    /* edits */
+
+    async function apply_edit(msg: LSP.Document_Edit) {
+      const doc = OptionalVersionedTextDocumentIdentifier.create(msg.uri, msg.version)
+      const edit =
+        language_client.protocol2CodeConverter.asWorkspaceEdit(
+          { documentChanges: [TextDocumentEdit.create(doc, [msg.edit])] })
+
+      workspace.applyEdit(edit).then(() => goto_file({ ...msg, focus: true }))
+    }
+
+    language_client.onReady().then(() =>
+      { language_client.onNotification(LSP.edit_command_type, apply_edit) })
+
+
     /* dynamic output */
 
     const output_provider = new Output_View.Provider(context.extensionUri, language_client)
@@ -211,17 +229,15 @@ export async function activate(context: ExtensionContext) {
 
     /* documentation panel */
 
-    const documentation_provider =
-      new Documentation_Panel.Provider(context.extensionUri, language_client)
+    const documentation_provider = new Documentation_Treeview.Provider()
     context.subscriptions.push(
-      window.registerWebviewViewProvider(
-        Documentation_Panel.view_type, documentation_provider))
+      window.createTreeView(Documentation_Treeview.view_type,
+        { treeDataProvider: documentation_provider}),
+      commands.registerCommand(Documentation_Treeview.open_document_command,
+        documentation_provider.open_document)
+    )
 
-    language_client.onReady().then(() =>
-      {
-        documentation_provider.request(language_client)
-        documentation_provider.setupDocumentation(language_client)
-      })
+    language_client.onReady().then(() => documentation_provider.setup(language_client))
 
 
     /* symbols panel */
@@ -236,23 +252,11 @@ export async function activate(context: ExtensionContext) {
     /* sledgehammer panel */
 
     const sledgehammer_provider =
-      new Sledgehammer_Panel.Provider(context.extensionUri, language_client)
+      new Sledgehammer_View.Provider(context.extensionUri, language_client)
     context.subscriptions.push(
-      window.registerWebviewViewProvider(Sledgehammer_Panel.view_type, sledgehammer_provider)
-    )
-    language_client.onReady().then(() => sledgehammer_provider.request_provers(language_client))
+      window.registerWebviewViewProvider(Sledgehammer_View.view_type, sledgehammer_provider))
 
-    language_client.onReady().then(() =>
-      {
-        language_client.onNotification(LSP.sledgehammer_status_type, msg =>
-          sledgehammer_provider.update_status(msg.message))
-        language_client.onNotification(LSP.sledgehammer_output_type, msg =>
-          sledgehammer_provider.update_output(msg))
-        language_client.onNotification(LSP.sledgehammer_insert_type, msg =>
-          sledgehammer_provider.insert(msg))
-        language_client.onNotification(LSP.sledgehammer_provers_response_type, msg =>
-          sledgehammer_provider.update_provers(msg.provers))
-      })
+    language_client.onReady().then(() => sledgehammer_provider.setup())
 
 
     /* state panel */

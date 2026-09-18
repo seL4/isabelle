@@ -204,36 +204,64 @@ object Scalajs {
 
   /** registered functions **/
 
-  abstract class Fun_Any {
-    def invoke(arg: Any): Unit
-    val function = Functions.register(this)
+  sealed abstract class JS_Fun {
+    val invoke: PartialFunction[List[Any], Unit]
+    final val function = Functions.register(this)
   }
 
-  abstract class Fun_Unit extends Fun_Any {
+  abstract class Fun_Any extends JS_Fun {
+    def apply(arg: Any): Unit
+    final val invoke = { case arg :: Nil => apply(arg) }
+  }
+
+  abstract class Fun_Unit extends JS_Fun {
     def apply(): Unit
-    def invoke(u: Any): Unit = apply()
+    final val invoke = { case Nil => apply() }
   }
 
-  abstract class Fun[A] extends Fun_Any {
+  abstract class Fun_JSON extends JS_Fun {
+    def apply(a: isabelle.JSON.T): Unit
+    final val invoke = { case JSON(json) :: Nil => apply(json) }
+  }
+
+  abstract class Fun[A] extends JS_Fun {
     def apply(a: A): Unit
-    def invoke(u: Any): Unit = apply(u.asInstanceOf[A])
+    final val invoke = { case a :: Nil => apply(a.asInstanceOf[A]) }
+  }
+
+  abstract class Fun2[A, B] extends JS_Fun {
+    def apply(a: A, b: B): Unit
+    final val invoke = { case a :: b :: Nil => apply(a.asInstanceOf[A], b.asInstanceOf[B]) }
+  }
+
+  abstract class Fun3[A, B, C] extends JS_Fun {
+    def apply(a: A, b: B, c: C): Unit
+    final val invoke = { 
+      case a :: b :: c :: Nil => apply(a.asInstanceOf[A], b.asInstanceOf[B], c.asInstanceOf[C])
+    }
   }
 
   object Functions {
-    private val functions = mutable.Map.empty[String, js.Function1[Any, Unit]]
+    private val functions = mutable.Map.empty[String, js.Function1[js.Array[Any], Unit]]
     if (Platform.is_scalajs) js.Dynamic.global.window.isabelle_functions = functions
 
     def lookup(name: String): String = JS.function("window.isabelle_functions", quote(name))
 
-    def register(fun: Fun_Any): Function = {
-      if (Platform.is_scalajs) functions.update(fun.class_name, { arg => fun.invoke(arg) })
+    def register(fun: JS_Fun): Function = {
+      if (Platform.is_scalajs) {
+        functions.update(fun.class_name,
+          { args =>
+            fun.invoke.applyOrElse(args.toList,
+              _ => error("Function invocation with invalid JS arguments"))
+          })
+      }
       new Function(fun.class_name)
     }
   }
 
   class Function private[Scalajs](val name: String) {
     override def toString: String = name
-    def apply(args: JS.Source*): String = JS.function(Functions.lookup(name), args: _*)
+    def apply(args: JS.Source*): JS.Source = JS.function(Functions.lookup(name), JS.array(args: _*))
   }
 
 
@@ -249,6 +277,25 @@ object Scalajs {
           key
         }).toSet
       elem.attributes.keys.filterNot(seen).foreach(elem.removeAttribute)
+
+      elem match {
+        case input: dom.HTMLInputElement =>
+          if (input.value != input.defaultValue) input.value = input.defaultValue
+          if (input.checked != input.defaultChecked) input.checked = input.defaultChecked
+
+        case option: dom.HTMLOptionElement =>
+          if (option.selected != option.defaultSelected) option.selected = option.defaultSelected
+
+        case textarea: dom.HTMLTextAreaElement =>
+          if (textarea.value != textarea.defaultValue) textarea.value = textarea.defaultValue
+
+        case media: dom.HTMLMediaElement =>
+          if (media.playbackRate != media.defaultPlaybackRate) {
+            media.playbackRate = media.defaultPlaybackRate
+          }
+
+        case _ =>
+      }
     }
 
     private def create(tree: XML.Tree): dom.Node =
@@ -290,5 +337,21 @@ object Scalajs {
     }
 
     def update(body: XML.Body): Unit = update_children(dom.document.body, body)
+
+
+    /* handlers */
+
+    final class Handler(val handle: scala.PartialFunction[dom.Event, Unit])
+
+    class Event_Handler(register: js.Function1[dom.Event, Unit] => Unit) {
+      private var handlers: List[Handler] = Nil
+      register(e => handlers.foreach(_.handle.lift(e)))
+
+      def += (h: Handler): Unit = { handlers = Library.update(h)(handlers) }
+      def -= (h: Handler): Unit = { handlers = Library.remove(h)(handlers) }
+    }
+
+    val onresize = new Event_Handler(handler => dom.window.onresize = handler)
+    val onload = new Event_Handler(handler => dom.window.onload = handler)
   }
 }

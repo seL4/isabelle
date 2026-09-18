@@ -134,7 +134,7 @@ object VSCode_Main {
     val current = old_shasum.isDefined && old_shasum.get == new_shasum
 
     if (!current) {
-      run_vscodium(List("--install-extension", File.bash_platform_path(vsix_path))).check
+      run_vscodium(List("--install-extension", File.platform_path(vsix_path))).check
       locate_extension() match {
         case None => error("Missing Isabelle/VSCode extension after installation")
         case Some(dir) =>
