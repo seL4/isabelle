@@ -1157,6 +1157,12 @@ extends AutoCloseable {
     session_name: String,
     ancestor_results: List[Build_Process.Result]
   ): Build_Process.State = {
+    val parent_background = build_deps.parent_background(session_name)
+    val current_background = build_deps.background(session_name)
+
+    val session_info = build_context.sessions_structure(session_name)
+    val session_conditions = Thy_Conditions.Context(parent_background, session_info.options)
+
     val sources_shasum = state.sessions(session_name).sources_shasum
     val input_shasum = store.make_shasum(ancestor_results.map(_.output_shasum))
     val store_heap = build_context.store_heap || state.sessions.store_heap(session_name)
@@ -1169,7 +1175,7 @@ extends AutoCloseable {
 
     val current =
       build_output.current(
-        build_thorough = build_context.sessions_structure(session_name).build_thorough,
+        build_thorough = session_info.build_thorough,
         fresh_build = build_context.fresh_build,
         store_heap = store_heap,
         build_debug = build_options.bool("build_debug"),
@@ -1229,11 +1235,9 @@ extends AutoCloseable {
             ")") + " ...")
 
       val session = state.sessions(session_name)
-      val parent_background = build_deps.parent_background(session_name)
-      val current_background = build_deps.background(session_name)
 
       val build =
-        Build_Job.start_session(build_context, session, progress, log, server,
+        Build_Job.start_session(build_context, session, session_conditions, progress, log, server,
           parent_background = parent_background, current_background = current_background,
           sources_shasum, input_shasum, node_info, store_heap)
 

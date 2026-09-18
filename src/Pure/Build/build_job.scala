@@ -27,6 +27,7 @@ object Build_Job {
   def start_session(
     build_context: Build.Context,
     session_context: Session_Context,
+    session_conditions: Thy_Conditions.Context,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -37,7 +38,7 @@ object Build_Job {
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, session_context, progress, log, server,
+    new Session_Job(build_context, session_context, session_conditions, progress, log, server,
       parent_background = parent_background, current_background = current_background,
       sources_shasum, input_shasum, node_info, store_heap)
   }
@@ -187,6 +188,7 @@ object Build_Job {
   class Session_Job private[Build_Job](
     build_context: Build.Context,
     session_context: Session_Context,
+    session_conditions: Thy_Conditions.Context,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -253,8 +255,6 @@ object Build_Job {
                       Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
                   }
             }
-
-          val session_conditions = Thy_Conditions.Context(parent_background, info.options)
 
           val session_theories =
             current_background.base.used_theories.map(_.eval_conditions(session_conditions))

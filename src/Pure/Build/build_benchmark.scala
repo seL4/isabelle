@@ -72,6 +72,9 @@ object Build_Benchmark {
         val parent_background = deps.parent_background(benchmark_session_name)
         val current_background = deps.background(benchmark_session_name)
 
+        val session_info = full_sessions(benchmark_session_name)
+        val session_conditions = Thy_Conditions.Context(parent_background, session_info.options)
+
         def get_shasum(name: String): Shasum =
           store.check_output(name,
             opened_db = database_server,
@@ -85,9 +88,10 @@ object Build_Benchmark {
         val local_build_context = build_context.copy(store = Store(local_options))
 
         val result =
-          Build_Job.start_session(local_build_context, session, progress, Logger.none, server,
-            parent_background = parent_background, current_background = current_background,
-            session.sources_shasum, input_shasum, node_info, false).join
+          Build_Job.start_session(local_build_context, session, session_conditions, progress,
+            Logger.none, server, parent_background = parent_background,
+            current_background = current_background, session.sources_shasum, input_shasum,
+            node_info, false).join
 
         val timing =
           if (result.process_result.ok) result.process_result.timing
