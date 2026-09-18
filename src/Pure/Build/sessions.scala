@@ -484,15 +484,15 @@ object Sessions {
     val sessions_structure: Structure,
     val session_bases: Map[String, Base]
   ) {
+    def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
+    def apply(name: String): Base = session_bases(name)
+    def get(name: String): Option[Base] = session_bases.get(name)
+
     def background(session: String): Background =
       Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
     def parent_background(session: String): Background =
       background(sessions_structure(session).parent getOrElse "")
-
-    def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
-    def apply(name: String): Base = session_bases(name)
-    def get(name: String): Option[Base] = session_bases.get(name)
 
     def sources_shasum(name: String): Shasum = {
       val session_info = sessions_structure(name)
