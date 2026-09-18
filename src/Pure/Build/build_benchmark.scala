@@ -69,11 +69,9 @@ object Build_Benchmark {
         }
 
         val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
+        val session_conditions = deps.eval_conditions(benchmark_session_name)
         val parent_background = deps.parent_background(benchmark_session_name)
         val current_background = deps.background(benchmark_session_name)
-
-        val session_info = full_sessions(benchmark_session_name)
-        val session_conditions = Thy_Conditions.Context(parent_background, session_info.options)
 
         def get_shasum(name: String): Shasum =
           store.check_output(name,

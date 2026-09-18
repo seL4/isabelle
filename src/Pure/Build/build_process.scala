@@ -1157,11 +1157,10 @@ extends AutoCloseable {
     session_name: String,
     ancestor_results: List[Build_Process.Result]
   ): Build_Process.State = {
+    val session_info = build_context.sessions_structure(session_name)
+    val session_conditions = build_deps.eval_conditions(session_name)
     val parent_background = build_deps.parent_background(session_name)
     val current_background = build_deps.background(session_name)
-
-    val session_info = build_context.sessions_structure(session_name)
-    val session_conditions = Thy_Conditions.Context(parent_background, session_info.options)
 
     val sources_shasum = state.sessions(session_name).sources_shasum
     val input_shasum = store.make_shasum(ancestor_results.map(_.output_shasum))

@@ -494,6 +494,14 @@ object Sessions {
     def parent_background(session: String): Background =
       background(sessions_structure(session).parent getOrElse "")
 
+    def eval_conditions(name: String): Thy_Conditions.Context = {
+      val session_info = sessions_structure(name)
+      val session_base = apply(name)
+      val session_conditions = Thy_Conditions.Context(parent_background(name), session_info.options)
+      for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
+      session_conditions
+    }
+
     def sources_shasum(name: String): Shasum = {
       val session_info = sessions_structure(name)
       val session_base = apply(name)
@@ -504,9 +512,7 @@ object Sessions {
         Shasum.make_sorted(session_info.options.changed(filter = _.session_content)
           .map(ch => SHA1.digest(ch.print_prefs) -> Build_Prefs.make(ch.name)))
 
-      val session_conditions = Thy_Conditions.Context(parent_background(name), session_info.options)
-      for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
-      val conditions = session_conditions.shasum
+      val conditions = eval_conditions(name).shasum
 
       val sources =
         Shasum.make_sorted(
