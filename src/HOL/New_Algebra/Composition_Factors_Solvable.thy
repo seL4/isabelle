@@ -338,4 +338,20 @@ next
     using series.solvable_iff_abelian_factors by blast
 qed
 
+text \<open>Read the other way, the criterion says an abelian group has only abelian composition factors:
+  an abelian group is solvable, and solvability is equivalent to all factors being abelian.\<close>
+lemma abelian_group_composition_factors_abelian:
+  assumes ab: "Abelian_Group G comp e"
+    and series: "composition_series G comp e H m"
+  shows "composition_series.abelian_factors comp e H m"
+proof -
+  interpret ab: Abelian_Group G comp e by (rule ab)
+  interpret S: composition_series G comp e H m by (rule series)
+  \<comment> \<open>@{thm [source] Group.abelian_imp_solvable} wants the \<^emph>\<open>commutative monoid\<close> component, which an
+    abelian group supplies as one of its axioms.\<close>
+  have "Group.solvable G comp e"
+    by (rule ab.abelian_imp_solvable) (rule ab.commutative_monoid_axioms)
+  then show ?thesis using S.solvable_iff_abelian_factors by blast
+qed
+
 end

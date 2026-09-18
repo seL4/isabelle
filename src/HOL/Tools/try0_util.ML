@@ -1,4 +1,4 @@
-(* Title:      HOL/Tools/try0_hol.ML
+(* Title:      HOL/Tools/try0_util.ML
    Author:     Jasmin Blanchette, LMU Muenchen
    Author:     Martin Desharnais, LMU Muenchen
    Author:     Fabian Huch, TU Muenchen
@@ -85,7 +85,13 @@ fun parse_method ctxt s =
 fun run_tac timeout_opt tac st =
   let val with_timeout =
     (case timeout_opt of SOME timeout => Timeout.apply_physical timeout | NONE => I)
-  in with_timeout (Seq.pull o tac) st |> Option.map fst end
+  in
+    (case Exn.capture (with_timeout (Seq.pull o tac)) st of
+      Exn.Res res => Option.map fst res
+    | Exn.Exn exn =>
+        (* the thread ran out of stack, e.g. because of a looping simp rule *)
+        if Exn.is_interrupt_breakdown exn then NONE else Exn.reraise exn)
+  end
 
 val num_goals = Thm.nprems_of o #goal o Proof.goal
 

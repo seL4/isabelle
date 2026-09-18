@@ -142,6 +142,10 @@ sig
   val the_arity: theory -> string * sort list * class -> thm
   val sorts_zproof: theory -> ZTerm.sorts_proof
   val sorts_proof: theory -> Proofterm.sorts_proof
+  (*forked proofs*)
+  val register_proofs: thm list lazy -> theory -> theory
+  val consolidate_theory: theory -> unit
+  val expose_theory: theory -> unit
   (*oracles*)
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
   val oracle_space: theory -> Name_Space.T
@@ -341,7 +345,7 @@ val dest_abs_global = gen_dest_abs Term.dest_abs_global;
 
 (* constructors *)
 
-fun rename_tvar (a, i) (Ctyp {cert, T, maxidx, sorts}) =
+fun rename_tvar (a, i) (Ctyp {cert, T, maxidx = _, sorts = _}) =
   let
     val S =
       (case T of
@@ -349,7 +353,7 @@ fun rename_tvar (a, i) (Ctyp {cert, T, maxidx, sorts}) =
       | TVar (_, S) => S
       | _ => raise TYPE ("rename_tvar: no variable", [T], []));
     val _ = if i < 0 then raise TYPE ("rename_tvar: bad index", [TVar ((a, i), S)], []) else ();
-  in Ctyp {cert = cert, T = TVar ((a, i), S), maxidx = Int.max (i, maxidx), sorts = sorts} end;
+  in Ctyp {cert = cert, T = TVar ((a, i), S), maxidx = i, sorts = [S]} end;
 
 fun free (x, Ctyp {cert, T, maxidx, sorts}) =
   Cterm {cert = cert, t = Free (x, T), T = T, maxidx = maxidx, sorts = sorts};
@@ -390,7 +394,7 @@ fun adjust_maxidx_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   else if maxidx < i then
     Cterm {maxidx = i, cert = cert, t = t, T = T, sorts = sorts}
   else
-    Cterm {maxidx = Int.max (maxidx_of_term t, i), cert = cert, t = t, T = T, sorts = sorts};
+    Cterm {maxidx = Term.maxidx_term t i, cert = cert, t = t, T = T, sorts = sorts};
 
 fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   if i < 0 then raise CTERM ("negative increment", [ct])
@@ -929,7 +933,7 @@ fun adjust_maxidx_thm i
     Thm (der, {maxidx = i, cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop})
   else
-    Thm (der, {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i),
+    Thm (der, {maxidx = maxidx_tpairs tpairs (Term.maxidx_term prop i),
       cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop});
 
@@ -968,40 +972,59 @@ fun merge_classes
 
 (* data *)
 
+type data =
+ {proofs: thm list lazy Inttab.table,  (*forked proofs*)
+  zproofs: {name: Thm_Name.P, thm: thm} Inttab.table,  (*stored zproof thms*)
+  oracles: unit Name_Space.table,  (*oracles: authentic derivation names*)
+  classes: classes};  (*type classes within the logic*)
+
+fun make_data (proofs, zproofs, oracles, classes) : data =
+  {proofs = proofs, zproofs = zproofs, oracles = oracles, classes = classes};
+
 structure Data = Theory_Data
 (
-  type T =
-    {name: Thm_Name.P, thm: thm} Inttab.table *  (*stored zproof thms*)
-    unit Name_Space.table *  (*oracles: authentic derivation names*)
-    classes;  (*type classes within the logic*)
-
-  val empty : T = (Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
-  fun merge ((_, oracles1, sorts1), (_, oracles2, sorts2)) : T =
-   (Inttab.empty,
-    Name_Space.merge_tables (oracles1, oracles2),
-    merge_classes (sorts1, sorts2));
+  type T = data;
+  val empty =
+    make_data (Inttab.empty, Inttab.empty, Name_Space.empty_table Markup.oracleN, empty_classes);
+  fun merge
+    ({proofs = proofs1, oracles = oracles1, classes = classes1, ...},
+     {proofs = proofs2, oracles = oracles2, classes = classes2, ...}) =
+    make_data
+     (Inttab.merge (K true) (proofs1, proofs2),
+      Inttab.empty,
+      Name_Space.merge_tables (oracles1, oracles2),
+      merge_classes (classes1, classes2));
 );
 
-val get_zproofs = #1 o Data.get;
-fun map_zproofs f = Data.map (fn (a, b, c) => (f a, b, c));
+val _ =
+  (Theory.setup o Theory.at_begin) (fn thy =>
+    let val {proofs, zproofs, oracles, classes} = Data.get thy in
+      if Inttab.is_empty proofs andalso Inttab.is_empty zproofs then NONE
+      else SOME (Data.put (make_data (Inttab.empty, Inttab.empty, oracles, classes)) thy)
+    end);
 
-val get_oracles = #2 o Data.get;
-fun map_oracles f = Data.map (fn (a, b, c) => (a, f b, c));
+fun map_data f =
+  Data.map (fn {proofs, zproofs, oracles, classes} =>
+    make_data (f (proofs, zproofs, oracles, classes)));
 
-val get_classes = (fn (_, _, Classes args) => args) o Data.get;
+val get_proofs = #proofs o Data.get;
+fun map_proofs f = map_data (fn (a, b, c, d) => (f a, b, c, d));
+
+val get_zproofs = #zproofs o Data.get;
+fun map_zproofs f = map_data (fn (a, b, c, d) => (a, f b, c, d));
+
+val get_oracles = #oracles o Data.get;
+fun map_oracles f = map_data (fn (a, b, c, d) => (a, b, f c, d));
+
+val get_classes = (fn {classes = Classes args, ...} => args) o Data.get;
 val get_classrels = #classrels o get_classes;
 val get_arities = #arities o get_classes;
 
 fun map_classes f =
-  Data.map (fn (a, b, Classes {classrels, arities}) =>
-    (a, b, make_classes (f (classrels, arities))));
+  map_data (fn (a, b, c, Classes {classrels, arities}) =>
+    (a, b, c, make_classes (f (classrels, arities))));
 fun map_classrels f = map_classes (fn (classrels, arities) => (f classrels, arities));
 fun map_arities f = map_classes (fn (classrels, arities) => (classrels, f arities));
-
-val _ =
-  (Theory.setup o Theory.at_begin) (fn thy =>
-    if Inttab.is_empty (get_zproofs thy) then NONE
-    else SOME (map_zproofs (K Inttab.empty) thy));
 
 
 (* type classes *)
@@ -1034,7 +1057,7 @@ fun thm_digest (Thm (Deriv {body = PBody {oracles, thms, ...}, ...}, _)) = (orac
 fun constraint_digest ({theory = thy, typ, sort, ...}: constraint) =
   Sorts.of_sort_derivation (Sign.classes_of thy)
    {class_relation = fn _ => fn _ => fn (digest, c1) => fn c2 =>
-      if c1 = c2 then ([], []) else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
+      if c1 = c2 then digest else union_digest digest (thm_digest (the_classrel thy (c1, c2))),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val arity_digest = thm_digest (the_arity thy (a, (map o map) #2 dom, c))
       in (fold o fold) (union_digest o #1) dom arity_digest end,
@@ -1192,6 +1215,21 @@ fun close_derivation pos =
 
 val trim_context = solve_constraints #> trim_context_thm;
 
+
+(* forked proofs *)
+
+fun register_proofs ths thy =
+  let val entry = (serial (), Lazy.map_finished (map trim_context) ths)
+  in (map_proofs o Inttab.update) entry thy end;
+
+fun force_proofs thy =
+  get_proofs thy |> Inttab.dest |> maps (map (transfer thy) o Lazy.force o #2);
+
+val consolidate_theory = consolidate o force_proofs;
+
+fun expose_theory thy =
+  if Proofterm.export_enabled ()
+  then expose_proofs thy (force_proofs thy) else ();
 
 
 (*** Oracles ***)
@@ -1598,7 +1636,7 @@ fun eta_long_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
 *)
 fun abstract_rule b
     (ct as Cterm {t = x, T, sorts, ...})
-    (th as Thm (der, {cert, maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
+    (th as Thm (der, {maxidx, hyps, constraints, shyps, tpairs, prop, ...})) =
   let
     val (U, t, u) =
       (case prop of
@@ -1609,6 +1647,7 @@ fun abstract_rule b
         raise THM ("abstract_rule: variable " ^ quote a ^ " free in assumptions", 0, [th])
       else
         let
+          val cert = join_certificate1 (ct, th);
           val f = Abs (b, T, abstract_over (x, t));
           val g = Abs (b, T, abstract_over (x, u));
           fun zproof p =
@@ -1621,7 +1660,7 @@ fun abstract_rule b
           Thm (deriv_rule1 zproof proof der,
            {cert = cert,
             tags = [],
-            maxidx = maxidx,
+            maxidx = Term.maxidx_typ T maxidx,
             constraints = constraints,
             shyps = Sorts.union sorts shyps,
             hyps = hyps,
@@ -1846,18 +1885,18 @@ fun generalize_cterm (tfrees, frees) idx (ct as Cterm {cert, t, T, maxidx, sorts
   if Names.is_empty tfrees andalso Names.is_empty frees then ct
   else if idx <= maxidx then raise CTERM ("generalize_cterm: bad index", [ct])
   else
-    Cterm {cert = cert, sorts = sorts,
-      T = Term_Subst.generalizeT tfrees idx T,
-      t = Term_Subst.generalize (tfrees, frees) idx t,
-      maxidx = Int.max (maxidx, idx)};
+    let
+      val T' = Term_Subst.generalizeT tfrees idx T;
+      val t' = Term_Subst.generalize (tfrees, frees) idx t;
+      val maxidx' = maxidx_of_term t';
+    in Cterm {cert = cert, sorts = sorts, T = T', t = t', maxidx = maxidx'} end;
 
 fun generalize_ctyp tfrees idx (cT as Ctyp {cert, T, maxidx, sorts}) =
   if Names.is_empty tfrees then cT
   else if idx <= maxidx then raise CTERM ("generalize_ctyp: bad index", [])
   else
-    Ctyp {cert = cert, sorts = sorts,
-      T = Term_Subst.generalizeT tfrees idx T,
-      maxidx = Int.max (maxidx, idx)};
+    let val T' = Term_Subst.generalizeT tfrees idx T
+    in Ctyp {cert = cert, sorts = sorts, T = T', maxidx = Int.max (maxidx, idx)} end;
 
 
 (*Instantiation of schematic variables
@@ -2728,6 +2767,7 @@ fun add_classrel raw_th thy =
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
+    |> register_proofs (Lazy.value [th'])
     |> map_classrels (Symreltab.update ((c1, c2), th'))
     |> perhaps complete_classrels
     |> perhaps complete_arities
@@ -2743,6 +2783,7 @@ fun add_arity raw_th thy =
   in
     thy
     |> Sign.primitive_arity (t, Ss, [c])
+    |> register_proofs (Lazy.value [th'])
     |> map_arities (Aritytab.update ar #> curry (insert_arity_completions thy ar) true #> #2)
   end;
 

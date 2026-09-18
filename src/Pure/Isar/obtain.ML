@@ -107,7 +107,7 @@ fun mk_all_internal ctxt (y, z) t =
     val T =
       Frees.get_first (fn ((x, T), _) => if x = z then SOME T else NONE) frees
       |> \<^if_none>\<open>the_default dummyT (Variable.default_type ctxt z)\<close>;
-  in Logic.all_const T $ Term.lambda_name (y, Free (z, T)) t end;
+  in Logic.all_name (y, Free (z, T)) t end;
 
 fun prepare_clause prep_var parse_prop mk_all ctxt thesis raw_vars raw_props =
   let

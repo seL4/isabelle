@@ -422,6 +422,23 @@ fun is_isabelle_literal_genuine t =
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
+fun unify_var_types ctxt thm =
+  let
+    val context = Context.Proof ctxt;
+    fun unify_vars (T :: Us) = fold (fn U => Pattern.unify_types context (T, U)) Us
+      | unify_vars _ = I;
+    val vars =
+      Vartab.build (thm |>
+        (Thm.fold_terms {hyps = false} o fold_aterms)
+          (fn Var v => Vartab.insert_list (op =) v | _ => I));
+    val tyenv =
+      Envir.type_env (Vartab.fold (unify_vars o #2) vars (Envir.empty (Thm.maxidx_of thm)))
+        handle Pattern.Unif => raise THM ("unify_var_types", 0, [thm]);
+    val instT =
+      TVars.build (tyenv |> Vartab.fold (fn (xi, (S, T)) =>
+        TVars.add ((xi, S), Thm.ctyp_of ctxt (Envir.norm_type tyenv T))));
+  in Thm.instantiate (instT, Vars.empty) thm end
+
 (*Seldomly needed hack. A Metis clause is represented as a set, so duplicate
   disjuncts are impossible. In the Isabelle proof, in spite of efforts to
   eliminate them, duplicates sometimes appear with slightly different (but
@@ -436,12 +453,13 @@ fun resynchronize ctxt fol_th th =
       th
     else
       let
-        val (prems0, concl) = th |> Thm.prop_of |> Logic.strip_horn
+        val th' = unify_var_types ctxt th
+        val (prems0, concl) = th' |> Thm.prop_of |> Logic.strip_horn
         val prems = prems0 |> map normalize_literal |> distinct Term.aconv_untyped
         val goal = Logic.list_implies (prems, concl)
-        val ctxt' = fold Thm.declare_hyps (Thm.chyps_of th) ctxt
+        val ctxt' = fold Thm.declare_hyps (Thm.chyps_of th') ctxt
         val tac =
-          cut_tac th 1 THEN
+          cut_tac th' 1 THEN
           rewrite_goals_tac ctxt' meta_not_not THEN
           ALLGOALS (assume_tac ctxt')
       in

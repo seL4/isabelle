@@ -8,6 +8,8 @@ theory SMT_Word_Examples
 imports "HOL-Library.Word"
 begin
 
+external_file \<open>SMT_Word_Examples.certs\<close>
+
 declare [[smt_oracle = true]]
 declare [[z3_extensions = true]]
 declare [[smt_certificates = "SMT_Word_Examples.certs"]]
@@ -45,7 +47,7 @@ lemma "0xF0 XOR 0xFF = (0x0F :: 8 word)" by smt
 lemma "NOT (0xF0 :: 16 word) = 0xFF0F" by smt
 lemma "word_cat (27::4 word) (27::8 word) = (2843::12 word)" by smt
 lemma "word_cat (0b0011::4 word) (0b1111::6word) = (0b0011001111 :: 10 word)" by smt
-lemma "slice 1 (0b10110 :: 4 word) = (0b11 :: 2 word)" by smt
+lemma "slice 1 (0b110 :: 3 word) = (0b11 :: 2 word)"  by smt
 lemma "ucast (0b1010 :: 4 word) = (0b1010 :: 10 word)" by smt
 lemma "scast (0b1010 :: 4 word) = (0b111010 :: 6 word)" by smt
 lemma "push_bit 2 0b10011 = (0b1001100::8 word)" by smt

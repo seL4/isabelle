@@ -563,7 +563,7 @@ fun transfer_rule_of_term ctxt equiv t =
     val idx = Thm.maxidx_of thm + 1
     fun tinst (a, _) = (((a, idx), \<^sort>\<open>type\<close>), \<^ctyp>\<open>bool\<close>)
     fun inst (a, t) =
-      ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
+      ((Term_Subst.generalize_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
     |> Thm.generalize (Names.make_set tfrees, Names.make_set (rnames @ frees)) idx
@@ -584,7 +584,7 @@ fun transfer_rule_of_lhs ctxt t =
     val idx = Thm.maxidx_of thm + 1
     fun tinst (a, _) = (((a, idx), \<^sort>\<open>type\<close>), \<^ctyp>\<open>bool\<close>)
     fun inst (a, t) =
-      ((Name.clean_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
+      ((Term_Subst.generalize_index (prep a, idx), \<^typ>\<open>bool \<Rightarrow> bool \<Rightarrow> bool\<close>), Thm.cterm_of ctxt' t)
   in
     thm
     |> Thm.generalize (Names.make_set tfrees, Names.make_set (rnames @ frees)) idx

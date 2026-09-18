@@ -6,8 +6,7 @@ begin
 
 text \<open>The import of \<open>FiniteProduct\<close> (through \<open>Module\<close>) re-merges HOL's @{text "+"}/@{text "-"} concrete
   syntax alongside the ring locale's, which is harmless in term positions (type inference disambiguates)
-  but ambiguous in a locale-header instantiation argument.  We therefore remove the HOL syntax again,
-  as \<open>Ring_Theory\<close> does.\<close>
+  but ambiguous in a locale-header instantiation argument.\<close>
 no_notation plus (infixl \<open>+\<close> 65)
 no_notation minus (infixl \<open>-\<close> 65)
 unbundle no uminus_syntax
@@ -17,8 +16,7 @@ text \<open>A vector space over the field @{term R} (with field operations @{tex
   scalar multiplication @{text "\<odot>"} satisfying the module axioms.  The purpose of this layer is the
   structural theorem that a finite field has prime-power order: such a field is a
   finite-dimensional vector space over its prime subfield, so its cardinality is
-  @{text "\<bar>F\<bar>\<^bsup>dim\<^esup>"}.  We develop just enough for that (spans, bases, and the cardinality of a span),
-   deferring a full dimension theory.\<close>
+  @{text "\<bar>F\<bar>\<^bsup>dim\<^esup>"}.\<close>
 
 locale Vector_Space = Field +
   fixes vadd :: "'b \<Rightarrow> 'b \<Rightarrow> 'b" (infixl \<open>\<oplus>\<close> 65)
@@ -55,36 +53,28 @@ lemma submodule_vector_space:
 proof (intro Vector_Space.intro Vector_Space_axioms.intro)
   show "Field R (+) (\<cdot>) \<zero> \<one>" by unfold_locales
   have N_subgroup: "Subgroup N V (\<oplus>) \<zero>\<^sub>V"
-  proof (rule vadd.subgroupI)
-    show "N \<subseteq> V" using N by (rule mod.submodule_subset)
-    show "\<zero>\<^sub>V \<in> N" using N by (rule mod.submodule_zero)
-    show "\<And>u v. \<lbrakk>u \<in> N; v \<in> N\<rbrakk> \<Longrightarrow> u \<oplus> v \<in> N"
-      using N by (rule mod.submodule_add)
-  next
+  proof (intro vadd.subgroupI mod.submodule_subset mod.submodule_zero mod.submodule_add mod.submodule_neg)
     fix v assume v: "v \<in> N"
-    then have "v \<in> V" using N mod.submodule_subset by blast
-    then show "vadd.invertible v" by simp
-    show "vadd.inverse v \<in> N" using N v by (rule mod.submodule_neg)
-  qed
+    then show "vadd.invertible v"
+      using N mod.submodule_def by auto
+  qed (use N in auto)
   interpret Nadd: Subgroup N V "(\<oplus>)" "\<zero>\<^sub>V" by (rule N_subgroup)
   have comm: "u \<oplus> v = v \<oplus> u" if "u \<in> N" "v \<in> N" for u v
     using N that mod.submodule_subset vadd.commutative by blast
   show "Abelian_Group N (\<oplus>) \<zero>\<^sub>V"
-    unfolding Abelian_Group_def commutative_monoid_def commutative_monoid_axioms_def
-    using Nadd.sub.Group_axioms Nadd.sub.Monoid_axioms comm by auto
+    by (simp add: Abelian_Group_def Nadd.sub.Group_axioms Nadd.sub.Monoid_axioms comm
+        commutative_monoid.intro commutative_monoid_axioms.intro)
   show "\<And>a v. \<lbrakk>a \<in> R; v \<in> N\<rbrakk> \<Longrightarrow> a \<odot> v \<in> N"
     using N by (rule mod.submodule_scale)
   show "\<And>a u v. \<lbrakk>a \<in> R; u \<in> N; v \<in> N\<rbrakk> \<Longrightarrow>
       a \<odot> (u \<oplus> v) = (a \<odot> u) \<oplus> (a \<odot> v)"
     using N mod.submodule_subset by (blast intro: scale_distrib_vadd)
-  show "\<And>a b v. \<lbrakk>a \<in> R; b \<in> R; v \<in> N\<rbrakk> \<Longrightarrow>
-      (a + b) \<odot> v = (a \<odot> v) \<oplus> (b \<odot> v)"
-    using N mod.submodule_subset by (blast intro: scale_distrib_add)
-  show "\<And>a b v. \<lbrakk>a \<in> R; b \<in> R; v \<in> N\<rbrakk> \<Longrightarrow>
-      (a \<cdot> b) \<odot> v = a \<odot> (b \<odot> v)"
-    using N mod.submodule_subset by (blast intro: scale_scale)
   show "\<And>v. v \<in> N \<Longrightarrow> \<one> \<odot> v = v"
     using N mod.submodule_subset by (blast intro: scale_one)
+  fix a b v
+  assume "a \<in> R" "b \<in> R" "v \<in> N"
+  then show "(a + b) \<odot> v = (a \<odot> v) \<oplus> (b \<odot> v)" "(a \<cdot> b) \<odot> v = a \<odot> (b \<odot> v)"
+    using N mod.submodule_subset by (blast intro: scale_distrib_add scale_scale)+
 qed
 
 text \<open>Basic closure and unit facts.\<close>
@@ -154,32 +144,25 @@ proof
   show "mod.spanning B"
   proof (rule mod.spanningI[OF BV])
     fix v assume v: "v \<in> V"
-    with \<open>spanning B\<close> obtain c where c: "c \<in> B \<rightarrow>\<^sub>E R" "v = lincomb c B"
-      unfolding spanning_def by blast
-    show "v \<in> mod.span B"
-      by (rule mod.spanI[OF finB subset_refl _ c(2)])
-         (use c(1) in \<open>auto intro!: mod.coeffs_onI\<close>)
+    with \<open>spanning B\<close> mod.Module_axioms show "v \<in> mod.span B"
+      using mod.spanI Module.spanI finB mod.coeffs_on_def 
+      by (fastforce simp: PiE_iff spanning_def)
   qed
 next
   assume ms: "mod.spanning B"
   have "\<forall>v\<in>V. \<exists>c\<in>B \<rightarrow>\<^sub>E R. v = lincomb c B"
   proof (rule ballI)
     fix v assume "v \<in> V"
-    then have "v \<in> mod.span B" by (rule mod.spanningD[OF ms])
     then obtain c A where A: "finite A" "A \<subseteq> B" "mod.coeffs_on c A" "v = lincomb c A"
-      by (rule mod.spanE)
-    \<comment> \<open>Extend @{term c} by @{term \<zero>} off @{term A} and make it extensional on @{term B}; the
-      combination is unchanged because the added coefficients are @{term \<zero>}.\<close>
-    define c' where "c' = (\<lambda>u. if u \<in> A then c u else \<zero>)"
+      using mod.spanE mod.spanning_def ms by metis
+    \<comment> \<open>Extend @{term c} by @{term \<zero>} off @{term A} and make it extensional on @{term B}.\<close>
+    define c' where "c' \<equiv> (\<lambda>u. if u \<in> A then c u else \<zero>)"
     have c'R: "mod.coeffs_on c' B"
-      by (rule mod.coeffs_onI) (use mod.coeffs_onD[OF A(3)] in \<open>simp add: c'_def\<close>)
+      using A(3) c'_def mod.coeffs_on_def by force
     have "lincomb c' A = lincomb c' B"
-    proof (rule mod.lincomb_mono_zero[OF finB A(2) BV])
-      show "\<And>u. u \<in> B \<setminus> A \<Longrightarrow> c' u = \<zero>" unfolding c'_def by simp
-      show "mod.coeffs_on c' B" by (rule c'R)
-    qed
+      using \<open>A \<subseteq> B\<close> BV c'R c'_def finB mod.lincomb_mono_zero by force
     moreover have "lincomb c' A = lincomb c A"
-      using A(2) BV mod.coeffs_onD[OF A(3)]
+      using \<open>A \<subseteq> B\<close> BV mod.coeffs_onD[OF A(3)]
       by (intro mod.lincomb_cong) (auto simp: c'_def intro!: mod.coeffs_onI)
     ultimately have vc': "v = lincomb c' B" using A(4) by simp
     \<comment> \<open>Make it extensional on @{term B}; that changes no value on @{term B}.\<close>
@@ -204,37 +187,27 @@ proof
   show "mod.lin_indep B"
   proof (rule mod.lin_indepI[OF BV])
     fix c A v
-    assume A: "finite A" "A \<subseteq> B" and cA: "mod.coeffs_on c A"
+    assume "finite A" "A \<subseteq> B" and cA: "mod.coeffs_on c A"
       and zero: "lincomb c A = \<zero>\<^sub>V" and vA: "v \<in> A"
     define c' where "c' = restrict (\<lambda>u. if u \<in> A then c u else \<zero>) B"
     have c'R: "mod.coeffs_on c' B"
       by (rule mod.coeffs_onI) (use mod.coeffs_onD[OF cA] in \<open>simp add: c'_def\<close>)
     have c'PiE: "c' \<in> B \<rightarrow>\<^sub>E R" using mod.coeffs_onD[OF c'R] by (auto simp: c'_def)
     have "lincomb c' A = lincomb c A"
-      using A(2) BV mod.coeffs_onD[OF cA]
+      using \<open>A \<subseteq> B\<close> BV mod.coeffs_onD[OF cA]
       by (intro mod.lincomb_cong) (auto simp: c'_def intro!: mod.coeffs_onI)
     moreover have "lincomb c' A = lincomb c' B"
-    proof (rule mod.lincomb_mono_zero[OF finB A(2) BV])
-      show "\<And>u. u \<in> B \<setminus> A \<Longrightarrow> c' u = \<zero>" unfolding c'_def by simp
-      show "mod.coeffs_on c' B" by (rule c'R)
-    qed
+      using \<open>A \<subseteq> B\<close> BV c'R c'_def finB mod.lincomb_mono_zero by force
     ultimately have "lincomb c' B = \<zero>\<^sub>V" using zero by simp
-    with li c'PiE have all0: "\<forall>u\<in>B. c' u = \<zero>" unfolding lin_indep_def by blast
-    have vB: "v \<in> B" using vA A(2) by blast
-    then have "c' v = \<zero>" using all0 by blast
-    then show "c v = \<zero>" using vA vB unfolding c'_def by simp
+    then have "c' v = \<zero>" using c'PiE li  using \<open>A \<subseteq> B\<close> vA by (auto simp: lin_indep_def)
+    then show "c v = \<zero>" using \<open>A \<subseteq> B\<close> c'_def vA by auto
   qed
 next
   assume ms: "mod.lin_indep B"
   \<comment> \<open>@{method rule} twice, not @{method intro}: \<open>intro\<close> is greedy and would also strip the inner
     bounded quantifier, leaving a goal the @{command show} below cannot match.\<close>
   have "\<forall>c\<in>B \<rightarrow>\<^sub>E R. lincomb c B = \<zero>\<^sub>V \<longrightarrow> (\<forall>v\<in>B. c v = \<zero>)"
-  proof (rule ballI, rule impI)
-    fix c assume c: "c \<in> B \<rightarrow>\<^sub>E R" and zero: "lincomb c B = \<zero>\<^sub>V"
-    have cB: "mod.coeffs_on c B" using c by (auto intro!: mod.coeffs_onI)
-    show "\<forall>v\<in>B. c v = \<zero>"
-      using mod.lin_indepD[OF ms finB subset_refl cB zero] by blast
-  qed
+    using finB mod.coeffs_on_def mod.lin_indepD ms by (meson PiE_mem subset_refl)
   with finB BV show "lin_indep B" unfolding lin_indep_def by blast
 qed
 
@@ -242,12 +215,7 @@ text \<open>A basis spans: surjectivity of the coordinate map.\<close>
 lemma basis_spanning:
   assumes "basis B" shows "spanning B"
   unfolding spanning_def
-proof (intro conjI ballI)
-  show "finite B" and "B \<subseteq> V" using assms by (auto simp: basis_def)
-  fix v assume "v \<in> V"
-  then show "\<exists>c\<in>B \<rightarrow>\<^sub>E R. v = lincomb c B"
-    using assms by (force simp: basis_def bij_betw_def)
-qed
+  using assms basis_def by (metis (no_types, lifting) bij_betw_def imageE)
 
 text \<open>\<^emph>\<open>The dimension counting theorem.\<close>  Over a finite field, a space with a basis of size
   @{term n} has exactly @{term "card R ^ n"} elements: its coordinate map is a bijection onto
@@ -259,8 +227,7 @@ theorem card_eq_card_base_pow_dim:
 
 text \<open>\<^emph>\<open>Over a finite field, any two bases have the same size\<close> --- so the dimension is well defined.
   (Both give @{term "card V = card R ^ card B\<^sub>i"}, and @{term "card R \<ge> 2"} is injective as a base of
-  exponentiation.)  The general (infinite-field) case needs the Steinitz exchange lemma and is left
-  for later; the finite case already covers finite fields and their extensions.\<close>
+  exponentiation.)\<close>
 theorem basis_card_unique_finite:
   assumes finR: "finite R" and B1: "basis B\<^sub>1" and B2: "basis B\<^sub>2"
   shows "card B\<^sub>1 = card B\<^sub>2"
@@ -269,9 +236,7 @@ proof -
   also have "\<dots> = card R ^ card B\<^sub>2" using card_eq_card_base_pow_dim[OF B2] by simp
   finally have eq: "card R ^ card B\<^sub>1 = card R ^ card B\<^sub>2" .
   \<comment> \<open>The field has at least two elements (@{term "\<one> \<noteq> \<zero>"}), so exponentiation is injective.\<close>
-  have sub: "{\<one>, \<zero>} \<subseteq> R" by auto
-  have "card {\<one>, \<zero>} = 2" using nontrivial by simp
-  then have "card R \<ge> 2" using card_mono[OF finR sub] by simp
+  have "card R \<ge> 2" using nontrivial card_mono[OF finR, of "{\<one>,\<zero>}"] by auto
   then show ?thesis using eq by simp
 qed
 

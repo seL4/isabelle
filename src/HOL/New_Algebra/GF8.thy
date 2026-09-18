@@ -7,10 +7,8 @@ begin
 text \<open>A cubic witness for the carrier-set field machinery: the polynomial \<open>X\<^sup>3 + X + 1\<close> is
   irreducible over \<open>GF(2)\<close> (degree 3 with no root), so by Kronecker's theorem the quotient
   \<open>GF(2)[X] / (X\<^sup>3 + X + 1)\<close> is a field, and by @{thm [source] Field.card_poly_quotient} it has
-  \<open>2\<^sup>3 = 8\<close> elements --- the field \<open>GF(8)\<close>.  This exercises @{thm [source]
-  Field.degree3_no_root_irreducible}.  The @{text GF2} qualifier below refers to the canonical
-  interpretation of the @{locale Field} locale on the two-element field, installed once in
-  \<open>GF2_Field\<close>.\<close>
+  \<open>2\<^sup>3 = 8\<close> elements --- the field \<open>GF(8)\<close>. The @{text GF2} qualifier below refers to the canonical
+  interpretation of the @{locale Field} locale on the two-element field.\<close>
 
 text \<open>The witness polynomial \<open>\<Theta> = X\<^sup>3 + X + 1\<close> over \<open>GF(2)\<close>.\<close>
 definition Theta :: "nat \<Rightarrow> nat"
@@ -71,7 +69,8 @@ qed
 
 text \<open>Therefore @{term Theta} is irreducible over @{text "GF(2)"}.\<close>
 theorem Theta_irreducible: "GF2.poly_irreducible Theta"
-  by (rule GF2.degree3_no_root_irreducible[OF Theta_closed degree_Theta]) (rule Theta_no_root)
+  using GF2.degree23_no_root_irreducible[OF Theta_closed] degree_Theta Theta_no_root
+  by blast
 
 text \<open>\<^emph>\<open>Kronecker.\<close>  The quotient @{text "GF(2)[X]/(\<Theta>)"} is a field with \<open>2\<^sup>3 = 8\<close> elements.\<close>
 theorem GF8_is_field:

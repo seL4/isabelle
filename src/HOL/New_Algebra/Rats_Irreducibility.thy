@@ -9,24 +9,7 @@ text \<open>A complex polynomial all of whose coefficients are rational is the \
 lemma poly_over_Rats_imp_map_of_rat:
   assumes "p \<in> poly_over (\<rat> :: complex set)"
   shows "\<exists>r :: rat poly. p = map_poly of_rat r"
-proof -
-  have coeffs_rat: "coeff p i \<in> \<rat>" for i
-    using Rats_0 assms poly_over_iff_aux by blast
-  have inv0: "inv of_rat (0::complex) = 0"
-    by (metis injI inv_f_f of_rat_0 of_rat_eq_iff)
-  define r where "r = map_poly (inv of_rat) p"
-  have cr: "coeff r i = inv of_rat (coeff p i)" for i
-    unfolding r_def by (rule coeff_map_poly) (rule inv0)
-  have "p = map_poly of_rat r"
-  proof (rule poly_eqI)
-    fix i
-    have "of_rat (inv of_rat (coeff p i)) = coeff p i"
-      by (metis Rats_def coeffs_rat f_inv_into_f)
-    then show "coeff p i = coeff (map_poly of_rat r) i"
-      by (simp add: cr coeff_map_poly)
-  qed
-  then show ?thesis by blast
-qed
+  using assms by (meson Rats_0 poly_over_iff_aux ratpolyE)
 
 lemma map_poly_of_rat_mult:
   "map_poly of_rat (a * b) = (map_poly of_rat a :: complex poly) * map_poly of_rat b"
@@ -37,7 +20,7 @@ lemma map_poly_of_rat_inj: "inj (map_poly of_rat :: rat poly \<Rightarrow> compl
 
 lemma degree_map_poly_of_rat:
   "degree (map_poly of_rat r :: complex poly) = degree r"
-  by (rule degree_map_poly) (simp_all add: of_rat_eq_0_iff)
+  by (simp add: degree_map_poly)
 
 text \<open>Irreducibility of a rational polynomial transfers to irreducibility \<^emph>\<open>over @{term \<rat>}\<close>
   of its complex image: a factorisation over @{term \<rat>} pulls back along the injective ring
@@ -58,16 +41,11 @@ next
     and eq: "map_poly of_rat r = b * c"
   obtain b' where b': "b = map_poly of_rat b'" using bover poly_over_Rats_imp_map_of_rat by blast
   obtain c' where c': "c = map_poly of_rat c'" using cover poly_over_Rats_imp_map_of_rat by blast
-  have key: "(map_poly of_rat r :: complex poly) = map_poly of_rat (b' * c')"
+  have "(map_poly of_rat r :: complex poly) = map_poly of_rat (b' * c')"
     by (simp add: b' c' eq map_poly_of_rat_mult)
-  have rbc: "r = b' * c'" using key map_poly_of_rat_inj by (simp add: inj_eq)
-  have unit_deg0: "degree u = 0" if "(u :: rat poly) dvd 1" for u
-    using that by (auto simp: is_unit_poly_iff)
-  have "b' dvd 1 \<or> c' dvd 1" using irreducibleD[OF irr rbc] .
-  then have "degree b' = 0 \<or> degree c' = 0"
-    using unit_deg0 by presburger
-  then show "degree b = 0 \<or> degree c = 0"
-    using b' c' degree_map_poly_of_rat by presburger
+  then have rbc: "r = b' * c'" using map_poly_of_rat_inj by (simp add: inj_eq)
+  show "degree b = 0 \<or> degree c = 0"
+    using irreducibleD[OF irr rbc] b' c' degree_map_poly_of_rat poly_dvd_1 by auto
 qed
 
 end

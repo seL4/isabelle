@@ -7,6 +7,8 @@ Collections of message digests in canonical order.
 package isabelle
 
 object Shasum {
+  /* shasum */
+
   val none: Shasum = new Shasum(Nil)
   def flat(list: List[Shasum]): Shasum = new Shasum(list.flatMap(_.rep))
   def fake(text: String): Shasum = new Shasum(Library.trim_split_lines(text))
@@ -17,6 +19,26 @@ object Shasum {
     make(digest, isabelle.setup.Build.META_INFO.nn)
   def make_sorted(args: List[(Message_Digest.T, String)]): Shasum =
     flat(args.sortBy(_._2).map(make))
+
+
+  /* special entries */
+
+  class Special_Entry(val name: String) {
+    override def toString: String = "<" + name + ">"
+
+    private val BG = "<" + name + ":"
+    private val EN = ">"
+
+    def make(value: String): String = BG + value + EN
+
+    def detect(s: String): Boolean = {
+      val i = s.indexOf('<')
+      i >= 0 && {
+        val s1 = s.drop(i)
+        s1.startsWith(BG) && s1.endsWith(EN)
+      }
+    }
+  }
 }
 
 final class Shasum private(val rep: List[String]) {
@@ -45,4 +67,5 @@ final class Shasum private(val rep: List[String]) {
   def :::(other: Shasum): Shasum = new Shasum(other.rep ::: rep)
 
   def filter(pred: String => Boolean): Shasum = new Shasum(rep.filter(pred))
+  def remove(entry: Shasum.Special_Entry): Shasum = filter(s => !entry.detect(s))
 }

@@ -15,6 +15,9 @@ sig
   val stringN_of_int : int -> int -> string
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
+  val explode_spaces_except_between_idents_and_append : string -> string list -> string list
+  val explode_string : string -> string list
+  val first_field_substring : string -> substring -> (substring * substring) option
   val elide_string : int -> string -> string
   val find_enclosed : string -> string -> string -> string list
   val nat_subscript : int -> string
@@ -90,37 +93,67 @@ fun stringN_of_int 0 _ = ""
 
 fun is_spaceish c = Char.isSpace c orelse c = #"\127" (* DEL -- no idea where these come from *)
 
-fun strip_spaces skip_comments is_evil =
+(* Emits the characters of "s" with whitespace removed; with "skip_comments" also "%" to end of
+   line and "/* ... */", an unterminated "/*" removing the rest. Emits one space where whitespace
+   or a comment separated two "is_evil" characters. *)
+fun fold_stripped_spaces skip_comments is_evil (f : char -> 'a -> 'a) (s : string) : 'a -> 'a =
   let
-    fun strip_c_style_comment [] accum = accum
-      | strip_c_style_comment (#"*" :: #"/" :: cs) accum = strip_spaces_in_list true cs accum
-      | strip_c_style_comment (_ :: cs) accum = strip_c_style_comment cs accum
-    and strip_spaces_in_list _ [] accum = accum
-      | strip_spaces_in_list true (#"%" :: cs) accum =
-        strip_spaces_in_list true (cs |> drop_prefix (not_equal #"\n")) accum
-      | strip_spaces_in_list true (#"/" :: #"*" :: cs) accum = strip_c_style_comment cs accum
-      | strip_spaces_in_list _ [c1] accum = accum |> not (is_spaceish c1) ? cons c1
-      | strip_spaces_in_list skip_comments (cs as [_, _]) accum =
-        accum |> fold (strip_spaces_in_list skip_comments o single) cs
-      | strip_spaces_in_list skip_comments (c1 :: c2 :: c3 :: cs) accum =
-        if is_spaceish c1 then
-          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) accum
-        else if is_spaceish c2 then
-          if is_spaceish c3 then
-            strip_spaces_in_list skip_comments (c1 :: c3 :: cs) accum
-          else
-            strip_spaces_in_list skip_comments (c3 :: cs)
-              (c1 :: accum |> forall is_evil [c1, c3] ? cons #" ")
-        else
-          strip_spaces_in_list skip_comments (c2 :: c3 :: cs) (cons c1 accum)
-  in
-    String.explode
-    #> rpair [] #-> strip_spaces_in_list skip_comments
-    #> rev #> String.implode
-  end
+    val n = size s
+    fun chr i = String.nth s i
+    fun line_end i = if i < n andalso chr i <> #"\n" then line_end (i + 1) else i
+    fun comment_end i =
+      if i + 1 < n then
+        (if chr i = #"*" andalso chr (i + 1) = #"/" then i + 2 else comment_end (i + 1))
+      else n
+    (* first character that survives, skipping whitespace and comments alike *)
+    fun gap_end i =
+      if i >= n then n
+      else if is_spaceish (chr i) then gap_end (i + 1)
+      else if skip_comments andalso chr i = #"%" then gap_end (line_end (i + 1))
+      else if skip_comments andalso chr i = #"/" andalso i + 1 < n andalso chr (i + 1) = #"*" then
+        gap_end (comment_end (i + 2))
+      else i
+    fun scan i x =
+      if i >= n then x
+      else
+        let
+          val c = chr i
+          val j = gap_end (i + 1)
+          val x = f c x
+        in
+          scan j (if j > i + 1 andalso j < n andalso is_evil c andalso is_evil (chr j)
+                  then f #" " x else x)
+        end
+  in scan (gap_end 0) end
+
+fun strip_spaces skip_comments is_evil s =
+  String.implode (rev (fold_stripped_spaces skip_comments is_evil cons s []))
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_idents = strip_spaces true is_ident_char
+
+fun explode_spaces_except_between_idents_and_append s tail =
+  List.revAppend (fold_stripped_spaces true is_ident_char (cons o String.str) s [], tail)
+
+(* Tail-recursive version of raw_explode *)
+fun explode_string s = fold_rev_string cons s []
+
+(* Nonallocating version of first_field: prefix and suffix are views of the substring, with
+   Substring.string prefix ^ pattern ^ Substring.string suffix = Substring.string s *)
+fun first_field_substring (pattern : string) (s : substring) : (substring * substring) option =
+  let
+    val (str, start, len) = Substring.base s
+    val n = size pattern
+    val stop = start + len
+    fun matches i j = j >= n orelse
+      (String.sub (str, i + j) = String.sub (pattern, j) andalso matches i (j + 1))
+    fun find i =
+      if i + n > stop then NONE
+      else if matches i 0 then
+        SOME (Substring.substring (str, start, i - start),
+          Substring.substring (str, i + n, stop - i - n))
+      else find (i + 1)
+  in find start end
 
 fun elide_string threshold s =
   if size s > threshold then
@@ -130,14 +163,17 @@ fun elide_string threshold s =
     s
 
 fun find_enclosed left right s =
-  case first_field left s of
-    SOME (_, s) =>
-    (case first_field right s of
-       SOME (enclosed, s) => enclosed :: find_enclosed left right s
-     | NONE => [])
-  | NONE => []
+  let
+    fun find ss =
+      (case first_field_substring left ss of
+        SOME (_, ss) =>
+        (case first_field_substring right ss of
+          SOME (enclosed, ss) => Substring.string enclosed :: find ss
+        | NONE => [])
+      | NONE => [])
+  in find (Substring.full s) end
 
-val subscript = implode o map (prefix "\<^sub>") o raw_explode  (* FIXME Symbol.explode (?) *)
+val subscript = implode o map (prefix "\<^sub>") o explode_string  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
   n |> string_of_int |> not (print_mode_active Print_Mode.ASCII) ? subscript
 

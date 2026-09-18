@@ -188,15 +188,15 @@ fun string_of_atp_failure MaybeUnprovable = "Problem maybe unprovable"
     "Prover error" ^ (if s = "" then " (pass the \"verbose\" option for details)" else ":\n" ^ s)
 
 fun extract_delimited (begin_delim, end_delim) output =
-  (case first_field begin_delim output of
+  (case first_field_substring begin_delim (Substring.full output) of
     SOME (_, tail) =>
-    (case first_field "\n" tail of
+    (case first_field_substring "\n" tail of
       SOME (_, tail') =>
       if end_delim = "" then
-        tail'
+        Substring.string tail'
       else
-        (case first_field end_delim tail' of
-          SOME (body, _) => body
+        (case first_field_substring end_delim tail' of
+          SOME (body, _) => Substring.string body
         | NONE => "")
     | NONE => "")
   | NONE => "")
@@ -300,7 +300,7 @@ and parse_inference_source x =
    -- parse_dependencies --| $$ "]" --| $$ ")") x
 and parse_introduced_source x =
   (Scan.this_string "introduced" |-- $$ "(" |-- scan_general_id
-   --| Scan.option ($$ "," |-- skip_term) --| $$ ")") x
+   --| Scan.option ($$ "," |-- skip_terms) --| $$ ")") x
 and parse_define_source x =
   (Scan.this_string "define" |-- $$ "(" |-- skip_term --| $$ ")") x
 and parse_source x =
@@ -666,10 +666,13 @@ fun parse_line full local_name problem =
   else parse_tstp_line full problem
 
 fun core_of_agsyhol_proof s =
-  (case split_lines s of
-    "The transformed problem consists of the following conjectures:" :: conj ::
-    _ :: proof_term :: _ => SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
-  | _ => NONE)
+  if String.isPrefix "The transformed problem consists of the following conjectures:\n" s then
+    (case split_lines s of
+      _ :: conj :: _ :: proof_term :: _ =>
+      SOME (unprefix " " conj :: find_enclosed "<<" ">>" proof_term)
+    | _ => NONE)
+  else
+    NONE
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
@@ -717,12 +720,19 @@ fun string_of_atp_step f g (name, role, x, y, names) =
     "(" ^ name' ^ ", " ^ role' ^ ", " ^ x' ^ ", " ^ y' ^ ", " ^ names' ^ ")"
   end
 
-fun parse_proof full local_name problem =
-  strip_spaces_except_between_idents
-  #> raw_explode
-  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-       (Scan.finite Symbol.stopper (Scan.repeats1 (parse_line full local_name problem))))
-  #> (fn (proof, ss) => if null ss then proof else raise UNRECOGNIZED_ATP_PROOF ())
+local
+
+val eof = [Symbol.eof]
+
+in
+
+fun parse_proof full local_name problem s =
+  explode_spaces_except_between_idents_and_append s eof
+  |> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+       (Scan.permissive (Scan.repeats1 (parse_line full local_name problem))))
+  |> (fn (proof, ss) => if ss = eof then proof else raise UNRECOGNIZED_ATP_PROOF ())
+
+end
 
 fun atp_proof_of_tstplike_proof _ _ _ "" = []
   | atp_proof_of_tstplike_proof full local_prover problem tstp =

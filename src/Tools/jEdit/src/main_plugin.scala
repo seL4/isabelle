@@ -62,7 +62,7 @@ object PIDE {
   def title: String =
     proper_string(Isabelle_System.getenv("ISABELLE_IDENTIFIER")).getOrElse("Isabelle") +
       (get_plugin match {
-        case Some(main) => "/" + main.session.resources.session_base.session_name
+        case Some(main) => "/" + main.session.resources.current_background.session_name
         case None => ""
       })
 
@@ -319,7 +319,10 @@ class Main_Plugin extends EBPlugin {
         case _: EditorStarted =>
           val view = jEdit.getActiveView
 
-          try { session.resources.session_background.check_errors }
+          try {
+            session.resources.parent_background.check_errors
+            session.resources.current_background.check_errors
+          }
           catch {
             case ERROR(msg) =>
               GUI.warning_dialog(

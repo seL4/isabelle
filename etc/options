@@ -147,7 +147,7 @@ option context : string = "" for content
   -- "free-form information for session content (to be interpreted in Isabelle/ML)"
 
 option condition : string = "" for content
-  -- "required environment variables for subsequent theories (separated by commas)"
+  -- "pre-conditions to evaluate theory body (separated by commas)"
 
 option timeout : real = 0 for build
   -- "timeout for session build job (seconds > 0)"

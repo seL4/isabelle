@@ -367,7 +367,7 @@ qed
 
 end (* subfield_tower *)
 
-subsection \<open>The tower law (Steinitz-free, for a two-step simple tower)\<close>
+subsection \<open>The tower law, for a two-step simple tower\<close>
 
 text \<open>For a two-step tower \<open>K \<subseteq> K(a) \<subseteq> K(a)(b)\<close> the products \<open>a\<^sup>i b\<^sup>j\<close> (with \<open>i\<close> below
   \<open>ext_degree K a\<close> and \<open>j\<close> below \<open>ext_degree (eval_img K a) b\<close>) form a \<open>K\<close>-basis of \<open>K(a)(b)\<close>: the

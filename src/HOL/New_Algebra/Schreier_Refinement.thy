@@ -16,8 +16,7 @@ lemma mset_map_upt:
   by (induction n) (simp_all add: sum.lessThan_Suc)
 
 lemma mset_concat_map_upt:
-  "mset (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) =
-    (\<Sum>i<m. \<Sum>j<n. {#f i j#})"
+  "mset (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) = (\<Sum>i<m. \<Sum>j<n. {#f i j#})"
 proof (induction m)
   case 0
   show ?case by simp
@@ -26,20 +25,15 @@ next
   have row: "mset (List.map (f m) [0..<n]) = (\<Sum>j<n. {#f m j#})"
     by (rule mset_map_upt)
   have "mset (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<Suc m])) =
-      mset (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) +
-        mset (List.map (f m) [0..<n])"
+      mset (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) + mset (List.map (f m) [0..<n])"
     by simp
-  also have "... = (\<Sum>i<m. \<Sum>j<n. {#f i j#}) +
-      (\<Sum>j<n. {#f m j#})"
-    by (rule arg_cong2[OF Suc.IH row])
   also have "... = (\<Sum>i<Suc m. \<Sum>j<n. {#f i j#})"
-    by (simp add: sum.lessThan_Suc)
+    using Suc row by auto
   finally show ?case .
 qed
 
 lemma length_concat_map_upt:
-  "length (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) =
-    m * n"
+  "length (concat (List.map (\<lambda>i. List.map (f i) [0..<n]) [0..<m])) = m * n"
   by (induction m) (simp_all add: algebra_simps)
 
 text \<open>
@@ -55,58 +49,24 @@ lemma subgroup_product_with_trivial_left:
   shows "(case_prod composition) ` ({unit} \<times> K) = K"
 proof -
   interpret K: Subgroup K G composition unit by fact
-  have K_monoid: "Monoid K composition unit"
-    by (rule K.sub.Monoid_axioms)
   show ?thesis
-  proof (intro equalityI subsetI)
-    fix x
-    assume "x \<in> (case_prod composition) ` ({unit} \<times> K)"
-    then obtain k where k: "k \<in> K" and x: "x = composition unit k"
-      by auto
-    then show "x \<in> K" using Monoid.left_unit[OF K_monoid k] by simp
-  next
-    fix x
-    assume x: "x \<in> K"
-    show "x \<in> (case_prod composition) ` ({unit} \<times> K)"
-    proof (rule image_eqI[where x="(unit, x)"])
-      show "x = case_prod composition (unit, x)"
-        using Monoid.left_unit[OF K_monoid x] by simp
-      show "(unit, x) \<in> {unit} \<times> K" using x by simp
-    qed
-  qed
+    by force
 qed
 
 lemma subgroup_product_with_carrier_left:
   assumes K: "Subgroup K H composition unit"
   shows "(case_prod composition) ` (H \<times> K) = H"
 proof -
-  have K_submonoid: "Submonoid K H composition unit"
-    by (rule Subgroup.axioms(1)[OF K])
-  have H_monoid: "Monoid H composition unit"
-    by (rule Submonoid.axioms(1)[OF K_submonoid])
-  have K_subset: "K \<subseteq> H"
-    by (rule Submonoid.subset[OF K_submonoid])
+  obtain K_submonoid: "Submonoid K H composition unit" and H_monoid: "Monoid H composition unit"
+    using assms by (meson Subgroup_def Submonoid.axioms(1))
   have unit_K: "unit \<in> K"
     by (rule Submonoid.sub_unit_closed[OF K_submonoid])
   show ?thesis
   proof (intro equalityI subsetI)
-    fix x
-    assume "x \<in> (case_prod composition) ` (H \<times> K)"
-    then obtain h k where h: "h \<in> H" and k: "k \<in> K"
-      and x: "x = composition h k" by auto
-    show "x \<in> H"
-      unfolding x
-      by (rule Monoid.composition_closed[OF H_monoid h K_subset[THEN subsetD, OF k]])
-  next
-    fix x
-    assume x: "x \<in> H"
-    show "x \<in> (case_prod composition) ` (H \<times> K)"
-    proof (rule image_eqI[where x="(x, unit)"])
-      show "x = case_prod composition (x, unit)"
-        using Monoid.right_unit[OF H_monoid x] by simp
-      show "(x, unit) \<in> H \<times> K"
-        using x unit_K by simp
-    qed
+    show "\<And>x. x \<in> (\<lambda>(x, y). composition x y) ` (H \<times> K) \<Longrightarrow> x \<in> H"
+      using H_monoid K_submonoid Monoid.composition_closed Submonoid.sub by fastforce
+    show "\<And>x. x \<in> H \<Longrightarrow> x \<in> (\<lambda>(x, y). composition x y) ` (H \<times> K)"
+      using H_monoid unit_K by (metis Monoid.right_unit SigmaI pair_imageI)
   qed
 qed
 
@@ -119,25 +79,14 @@ lemma intersection_normal_product_subgroup:
     G composition unit"
 proof -
   interpret N: normal_subgroup K H composition unit by fact
-  have intersection_G: "Subgroup (H \<inter> L) G composition unit"
-    by (rule Group.subgroup_intersection[OF G H L])
-  have intersection_H: "Subgroup (H \<inter> L) H composition unit"
-    by (rule subgroup_restrict[OF intersection_G H]) simp
   have intersection_group:
       "subgroup_of_group (H \<inter> L) H composition unit"
-    by (rule subgroup_of_groupI[OF intersection_H N.Group_axioms])
-  have product:
-      "normal_subgroup_product K (H \<inter> L) H composition unit"
-    by (rule normal_subgroup_product.intro[OF N intersection_group])
-  have product_subgroup:
-      "Subgroup (normal_subgroup_product.HK K (H \<inter> L) composition)
-        H composition unit"
-    by (rule normal_subgroup_product.HK_subgroup[OF product])
-  have "Subgroup ((case_prod composition) ` ((H \<inter> L) \<times> K))
-      H composition unit"
-    using product_subgroup
-    by (simp only: normal_subgroup_product.HK_def[OF product])
-  then show ?thesis by (rule subgroup_transitive[OF _ H])
+    using G H L N.Group_axioms
+    by (meson Group.subgroup_intersection inf_le1 subgroup_of_group_def subgroup_restrict)
+  show ?thesis
+    using H N intersection_group
+    by (metis normal_subgroup_product.HK_def normal_subgroup_product.HK_subgroup
+        normal_subgroup_product.intro subgroup_transitive)
 qed
 
 context normal_series_pair
@@ -152,17 +101,8 @@ text \<open>
 lemma series_refinement_cellI:
   assumes i: "i < m" and j: "j < n"
   shows "series_refinement_cell G (\<cdot>) \<one> A m B n i j"
-proof (rule series_refinement_cell.intro)
-  show "normal_series_pair G (\<cdot>) \<one> A m B n"
-  proof (rule normal_series_pair.intro)
-    show "normal_series G (\<cdot>) \<one> A m"
-      by (rule A.normal_series_axioms)
-    show "normal_series G (\<cdot>) \<one> B n"
-      by (rule B.normal_series_axioms)
-  qed
-  show "series_refinement_cell_axioms m n i j"
-    by (rule series_refinement_cell_axioms.intro[OF i j])
-qed
+  by (simp add: i j normal_series_pair_axioms series_refinement_cell_axioms.intro
+      series_refinement_cell_def)
 
 subsection \<open>Refinement rows\<close>
 
@@ -184,8 +124,7 @@ proof -
     using B.bottom ASi.sub_unit_closed by auto
   show ?thesis
     unfolding left_refinement_term_def intersection
-    by (rule subgroup_product_with_trivial_left[OF A.term_subgroup])
-      (use i in simp)
+    using subgroup_product_with_trivial_left[OF A.term_subgroup] i by simp
 qed
 
 lemma left_refinement_end:
@@ -211,8 +150,7 @@ proof -
     using A.bottom BSj.sub_unit_closed by auto
   show ?thesis
     unfolding right_refinement_term_def intersection
-    by (rule subgroup_product_with_trivial_left[OF B.term_subgroup])
-      (use j in simp)
+    using subgroup_product_with_trivial_left[OF B.term_subgroup] j by simp
 qed
 
 lemma right_refinement_end:
@@ -230,74 +168,42 @@ qed
 
 lemma left_refinement_step:
   assumes i: "i < m" and j: "j < n"
-  shows "normal_subgroup (left_refinement_term i j)
-      (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
-proof -
-  have C: "series_refinement_cell G (\<cdot>) \<one> A m B n i j"
-    by (rule series_refinement_cellI[OF i j])
-  show ?thesis
-    by (rule series_refinement_cell.left_refinement_normal[OF C])
-qed
+  shows "normal_subgroup (left_refinement_term i j) (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
+  using i j series_refinement_cellI by (meson series_refinement_cell.left_refinement_normal)
 
 lemma left_refinement_term_subgroup:
   assumes i: "i < m" and j: "j \<le> n"
   shows "Subgroup (left_refinement_term i j) G (\<cdot>) \<one>"
   unfolding left_refinement_term_def
-  by (rule intersection_normal_product_subgroup[OF A.G.Group_axioms
-        A.normal_step[OF i] A.term_subgroup B.term_subgroup])
-    (use i j in simp_all)
+  by (simp add: A.G.Group_axioms A.normal_step A.term_subgroup B.term_subgroup Suc_leI i
+      intersection_normal_product_subgroup j)
 
 lemma right_refinement_step:
   assumes i: "i < m" and j: "j < n"
-  shows "normal_subgroup (right_refinement_term j i)
-      (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
-proof -
-  have C: "series_refinement_cell G (\<cdot>) \<one> A m B n i j"
-    by (rule series_refinement_cellI[OF i j])
-  show ?thesis
-    by (rule series_refinement_cell.right_refinement_normal[OF C])
-qed
+  shows "normal_subgroup (right_refinement_term j i) (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
+  using i j series_refinement_cellI by (meson series_refinement_cell.right_refinement_normal)
 
 lemma right_refinement_term_subgroup:
   assumes i: "i \<le> m" and j: "j < n"
   shows "Subgroup (right_refinement_term j i) G (\<cdot>) \<one>"
   unfolding right_refinement_term_def
-  by (rule intersection_normal_product_subgroup[OF A.G.Group_axioms
-        B.normal_step[OF j] B.term_subgroup A.term_subgroup])
-    (use i j in simp_all)
+  by (simp add: A.G.Group_axioms A.term_subgroup B.normal_step B.term_subgroup Suc_leI i
+      intersection_normal_product_subgroup j)
 
 lemma left_refinement_row:
   assumes i: "i < m"
   shows "normal_chain G (\<cdot>) \<one> (left_refinement_term i) n"
-proof (intro normal_chain.intro)
-  show "Group G (\<cdot>) \<one>" by (rule A.G.Group_axioms)
+proof (intro normal_chain.intro A.G.Group_axioms)
   show "normal_chain_axioms G (\<cdot>) \<one> (left_refinement_term i) n"
-  proof (rule normal_chain_axioms.intro)
-    show "\<And>j. j \<le> n \<Longrightarrow>
-        Subgroup (left_refinement_term i j) G (\<cdot>) \<one>"
-      by (rule left_refinement_term_subgroup[OF i])
-    show "\<And>j. j < n \<Longrightarrow>
-        normal_subgroup (left_refinement_term i j)
-          (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
-      by (rule left_refinement_step[OF i])
-  qed
+    by (simp add: i left_refinement_step left_refinement_term_subgroup normal_chain_axioms_def)
 qed
 
 lemma right_refinement_row:
   assumes j: "j < n"
   shows "normal_chain G (\<cdot>) \<one> (right_refinement_term j) m"
-proof (intro normal_chain.intro)
-  show "Group G (\<cdot>) \<one>" by (rule A.G.Group_axioms)
+proof (intro normal_chain.intro A.G.Group_axioms)
   show "normal_chain_axioms G (\<cdot>) \<one> (right_refinement_term j) m"
-  proof (rule normal_chain_axioms.intro)
-    show "\<And>i. i \<le> m \<Longrightarrow>
-        Subgroup (right_refinement_term j i) G (\<cdot>) \<one>"
-      by (rule right_refinement_term_subgroup[OF _ j])
-    show "\<And>i. i < m \<Longrightarrow>
-        normal_subgroup (right_refinement_term j i)
-          (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
-      by (rule right_refinement_step[OF _ j])
-  qed
+    by (simp add: j normal_chain_axioms_def right_refinement_step right_refinement_term_subgroup)
 qed
 
 subsection \<open>Factor-class refinements\<close>
@@ -308,29 +214,24 @@ text \<open>
   normal-chain factor; repeated or trivial factors are retained.
 \<close>
 
-definition left_refinement_factor_class ::
-    "nat \<Rightarrow> nat \<Rightarrow> 'a set group_iso_class"
+definition left_refinement_factor_class :: "nat \<Rightarrow> nat \<Rightarrow> 'a set monoid_iso_class"
   where
-    "left_refinement_factor_class i j =
-      normal_factor_class (left_refinement_term i j)
-        (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
+    "left_refinement_factor_class i j \<equiv>
+      normal_factor_class (left_refinement_term i j) (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
 
-definition right_refinement_factor_class ::
-    "nat \<Rightarrow> nat \<Rightarrow> 'a set group_iso_class"
+definition right_refinement_factor_class :: "nat \<Rightarrow> nat \<Rightarrow> 'a set monoid_iso_class"
   where
-    "right_refinement_factor_class j i =
-      normal_factor_class (right_refinement_term j i)
-        (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
+    "right_refinement_factor_class j i \<equiv>
+      normal_factor_class (right_refinement_term j i) (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
 
-definition left_refinement_factor_classes :: "'a set group_iso_class list"
+definition left_refinement_factor_classes :: "'a set monoid_iso_class list"
   where
-    "left_refinement_factor_classes =
-      concat (List.map
-        (\<lambda>i. List.map (left_refinement_factor_class i) [0..<n]) [0..<m])"
+    "left_refinement_factor_classes \<equiv>
+      concat (List.map (\<lambda>i. List.map (left_refinement_factor_class i) [0..<n]) [0..<m])"
 
-definition right_refinement_factor_classes :: "'a set group_iso_class list"
+definition right_refinement_factor_classes :: "'a set monoid_iso_class list"
   where
-    "right_refinement_factor_classes =
+    "right_refinement_factor_classes \<equiv>
       concat (List.map
         (\<lambda>j. List.map (right_refinement_factor_class j) [0..<m]) [0..<n])"
 
@@ -344,8 +245,7 @@ lemma length_right_refinement_factor_classes:
 
 lemma refinement_factor_class_eq:
   assumes i: "i < m" and j: "j < n"
-  shows "left_refinement_factor_class i j =
-    right_refinement_factor_class j i"
+  shows "left_refinement_factor_class i j = right_refinement_factor_class j i"
 proof -
   have C: "series_refinement_cell G (\<cdot>) \<one> A m B n i j"
     by (rule series_refinement_cellI[OF i j])
@@ -361,21 +261,15 @@ text \<open>
   This is the native, factor-class form of the Schreier refinement theorem.
 \<close>
 theorem schreier_refinement:
-  "mset left_refinement_factor_classes =
-    mset right_refinement_factor_classes"
+  "mset left_refinement_factor_classes = mset right_refinement_factor_classes"
 proof -
   have transpose:
       "(\<Sum>i<m. \<Sum>j<n. {#left_refinement_factor_class i j#}) =
-        (\<Sum>i<m. \<Sum>j<n. {#right_refinement_factor_class j i#})"
-    by (intro sum.cong) (auto simp: refinement_factor_class_eq)
-  have swap:
-      "(\<Sum>i<m. \<Sum>j<n. {#right_refinement_factor_class j i#}) =
-        (\<Sum>j<n. \<Sum>i<m. {#right_refinement_factor_class j i#})"
-    by (rule sum.swap)
+       (\<Sum>j<n. \<Sum>i<m. {#right_refinement_factor_class j i#})"
+    using refinement_factor_class_eq sum.swap by auto
   show ?thesis
-    unfolding left_refinement_factor_classes_def right_refinement_factor_classes_def
-      mset_concat_map_upt
-    by (rule trans[OF transpose swap])
+    unfolding left_refinement_factor_classes_def right_refinement_factor_classes_def mset_concat_map_upt
+    using transpose by blast
 qed
 
 end

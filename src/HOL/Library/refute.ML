@@ -2932,15 +2932,15 @@ val _ =
     add_interpreter "IDT"             IDT_interpreter #>
     add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
     add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
-    add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter #>
-    add_interpreter "Finite_Set.finite"  Finite_Set_finite_interpreter #>
-    add_interpreter "Nat_Orderings.less" Nat_less_interpreter #>
-    add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
-    add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
-    add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
-    add_interpreter "List.append" List_append_interpreter #>
-    add_interpreter "Product_Type.prod.fst" Product_Type_fst_interpreter #>
-    add_interpreter "Product_Type.prod.snd" Product_Type_snd_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Finite_Set.card\<close>    Finite_Set_card_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Finite_Set.finite\<close>  Finite_Set_finite_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Nat_Orderings.less\<close> Nat_less_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Nat_HOL.plus\<close>       Nat_plus_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Nat_HOL.minus\<close>      Nat_minus_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Nat_HOL.times\<close>      Nat_times_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>List.append\<close> List_append_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Product_Type.prod.fst\<close> Product_Type_fst_interpreter #>
+    add_interpreter \<^unchecked_name>\<open>Product_Type.prod.snd\<close> Product_Type_snd_interpreter #>
     add_printer "stlc" stlc_printer #>
     add_printer "set" set_printer #>
     add_printer "IDT"  IDT_printer);

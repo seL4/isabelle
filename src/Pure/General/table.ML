@@ -614,7 +614,7 @@ fun unsynchronized_cache f =
 fun apply_unsynchronized_cache f = #apply (unsynchronized_cache f);
 
 
-(* ML pretty-printing *)
+(* ML toplevel pretty-printing *)
 
 val _ =
   ML_system_pp (fn depth => fn pretty => fn tab =>

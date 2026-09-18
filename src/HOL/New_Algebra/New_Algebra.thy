@@ -5,23 +5,21 @@ theory New_Algebra
     (* groups *)
     Subgroup_Lattice
     Simple_Group
-    Group_Iso_Classes
+    Monoid_Iso_Classes
     Normal_Series
     Composition_Series
     Composition_Factor_Classes
     Normal_Chain
     Group_Product
     Group_Family_Product
-    Zassenhaus_Sanity
     Series_Refinement
     Schreier_Refinement
-    Schreier_Sanity
     Reduced_Schreier_Refinement
     Simple_Factor_Chain
     Jordan_Hoelder_Uniqueness
     Maximal_Normal_Subgroup
     Finite_Composition_Series
-    Composition_Sanity
+    Sn_Composition_Factors
     Abel_Ruffini
     P_Group
     (* rings, ideals, divisibility *)
@@ -46,14 +44,11 @@ theory New_Algebra
     Field_Extension
     Field_Mult_Cyclic
     Rats_Irreducibility
-    Galois_Degree
-    Galois_Simple_Degree
     Galois_Restriction_Splitting
-    Artin_Degree
-    Finite_Extension
-    Primitive_Element
+    Galois_Finite_Correspondence
     Normal_Closure
     (* finite fields *)
+    Finite_Field_Galois
     GF4
     GF8
     GF9

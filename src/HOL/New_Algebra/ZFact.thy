@@ -49,7 +49,7 @@ proof (rule GroupI)
 next
   fix x assume x: "x \<in> {0..<n}"
   then have key: "(x + (n - x) mod n) mod n = 0"
-    by (cases "x = 0") (simp_all add: mod_add_right_eq)
+    by (simp_all add: mod_add_right_eq)
   then show "\<exists>y\<in>{0..<n}. gfp_add n x y = 0 \<and> gfp_add n y x = 0"
     by (metis add.commute add.right_neutral gfp_add_closed gfp_add_def)
 qed (use zero_mem n_gt_0 in \<open>simp_all add: add.commute gfp_add_def\<close>)
@@ -70,8 +70,7 @@ proof
 qed (use one_mem n_gt_1 in \<open>simp_all add: mult.commute gfp_mult_def\<close>)
 
 lemma zfact_ring: "Ring {0..<n} (gfp_add n) (gfp_mult n) 0 1"
-proof (rule Ring.intro)
-  show "Abelian_Group {0..<n} (gfp_add n) 0" by (rule gfp_additive)
+proof (intro Ring.intro gfp_additive)
   show "Monoid {0..<n} (gfp_mult n) 1"
     by (rule commutative_monoid.axioms(1) [OF gfp_multiplicative])
   show "Ring_axioms {0..<n} (gfp_add n) (gfp_mult n)"

@@ -640,8 +640,7 @@ fun iterm_of_term thy type_enc =
 val queries = ["?", "_query"]
 val ats = ["@", "_at"]
 
-fun try_unsuffixes ss s =
-  fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
+fun try_unsuffixes suffixes s = get_first (fn suffix => try (unsuffix suffix) s) suffixes
 
 fun type_enc_of_string strictness s =
   let
@@ -675,6 +674,10 @@ fun type_enc_of_string strictness s =
 
     fun native_of_string s =
       let
+        val (_, s) =
+          (case try (unsuffix "_datatypes") s of
+            SOME s => (true, s)
+          | NONE => (false, s))
         val (_, s) =
           (case try (unsuffix "_arith") s of
             SOME s => (true, s)
@@ -1167,7 +1170,7 @@ and parse_mangled_types x =
   (parse_mangled_type ::: Scan.repeat ($$ "," |-- parse_mangled_type)) x
 
 fun unmangled_type s =
-  s |> suffix ")" |> raw_explode
+  s |> suffix ")" |> explode_string
     |> Scan.finite Symbol.stopper
            (Scan.error (!! (fn _ => raise Fail ("unrecognized mangled type " ^
                                                 quote s)) parse_mangled_type))
@@ -1240,7 +1243,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                                   IConst (`I "Y", i_T, [])),
                             IConst (`I "Z", i_T, []))))
         end
-    fun intro top_level args (IApp (tm1, tm2)) =
+    fun intro top_level args (tm as IApp (tm1, tm2)) =
         let
           val tm1' = intro top_level (tm2 :: args) tm1
           val tm2' = intro false [] tm2
@@ -1266,9 +1269,9 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                 tm2'
             | _ => tm2')
         in
-          IApp (tm1', tm2'')
+          if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2'') then tm else IApp (tm1', tm2'')
         end
-      | intro top_level args (IConst (name as (s, _), T, T_args)) =
+      | intro top_level args (tm as IConst (name as (s, _), T, T_args)) =
         let val argc = length args in
           if has_ite andalso s = "c_If" andalso argc >= 3 then
             IConst (`I tptp_ite, T, [])
@@ -1278,7 +1281,7 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
             (case proxify_const s of
               SOME proxy_base =>
               let
-                fun plain_const () = IConst (name, T, [])
+                fun plain_const () = if null T_args then tm else IConst (name, T, [])
                 fun proxy_const () = IConst (proxy_base |>> prefix const_prefix, T, T_args)
                 fun handle_fool card x = if card = argc then x else proxy_const ()
                 fun handle_min_card card x = if argc < card then proxy_const () else x
@@ -1331,9 +1334,12 @@ fun introduce_builtins_and_proxies_in_iterm type_enc =
                if s = tptp_choice then
                  tweak_ho_quant tptp_choice T args
                else
-                 IConst (name, T, T_args))
+                 tm)
         end
-      | intro _ _ (IAbs (bound, tm)) = IAbs (bound, intro false [] tm)
+      | intro _ _ (tm as IAbs (bound, tm1)) =
+        let val tm1' = intro false [] tm1 in
+          if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+        end
       | intro _ _ tm = tm
   in intro true [] end
 
@@ -1347,12 +1353,18 @@ fun mangle_type_args_in_const type_enc (name as (s, _)) T_args =
 fun mangle_type_args_in_iterm type_enc =
   if is_type_enc_mangling type_enc then
     let
-      fun mangle (IApp (tm1, tm2)) = IApp (mangle tm1, mangle tm2)
+      fun mangle (tm as IApp (tm1, tm2)) =
+          let val tm1' = mangle tm1 and tm2' = mangle tm2 in
+            if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2') then tm else IApp (tm1', tm2')
+          end
         | mangle (tm as IConst (_, _, [])) = tm
         | mangle (IConst (name, T, T_args)) =
           mangle_type_args_in_const type_enc name T_args
           |> (fn (name, T_args) => IConst (name, T, T_args))
-        | mangle (IAbs (bound, tm)) = IAbs (bound, mangle tm)
+        | mangle (tm as IAbs (bound, tm1)) =
+          let val tm1' = mangle tm1 in
+            if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+          end
         | mangle tm = tm
     in mangle end
   else
@@ -1364,13 +1376,23 @@ fun filter_type_args_in_const _ _ _ _ _ [] = []
       NONE => if level_of_type_enc type_enc = No_Types orelse s = tptp_choice then [] else T_args
     | SOME s'' => filter_type_args thy ctrss type_enc (unmangled_invert_const s'') ary T_args)
 
-fun filter_type_args_in_iterm thy ctrss type_enc =
+fun filter_type_args_in_iterm thy ctrss type_enc : iterm -> iterm =
   let
-    fun filt ary (IApp (tm1, tm2)) = IApp (filt (ary + 1) tm1, filt 0 tm2)
-      | filt ary (IConst (name as (s, _), T, T_args)) =
-        filter_type_args_in_const thy ctrss type_enc ary s T_args
-        |> (fn T_args => IConst (name, T, T_args))
-      | filt _ (IAbs (bound, tm)) = IAbs (bound, filt 0 tm)
+    fun filt ary (tm as IApp (tm1, tm2)) =
+        let
+          val tm1' = filt (ary + 1) tm1
+          val tm2' = filt 0 tm2
+        in
+          if pointer_eq (tm1, tm1') andalso pointer_eq (tm2, tm2') then tm else IApp (tm1', tm2')
+        end
+      | filt ary (tm as IConst (name as (s, _), T, T_args)) =
+        let val T_args' = filter_type_args_in_const thy ctrss type_enc ary s T_args in
+          if pointer_eq (T_args, T_args') then tm else IConst (name, T, T_args')
+        end
+      | filt _ (tm as IAbs (bound, tm1)) =
+        let val tm1' = filt 0 tm1 in
+          if pointer_eq (tm1, tm1') then tm else IAbs (bound, tm1')
+        end
       | filt _ tm = tm
   in filt 0 end
 
@@ -1556,30 +1578,6 @@ fun is_maybe_universal_var (IConst ((s, _), _, _)) = is_maybe_universal_name s
   | is_maybe_universal_var (IVar _) = true
   | is_maybe_universal_var _ = false
 
-datatype site =
-  Top_Level of bool option |
-  Eq_Arg of bool option |
-  Arg of string * int * int |
-  Elsewhere
-
-fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
-  | should_tag_with_type ctxt mono (Tags (_, level)) site u T =
-    let val thy = Proof_Context.theory_of ctxt in
-      (case level of
-        Nonmono_Types (_, Non_Uniform) =>
-        (case (site, is_maybe_universal_var u) of
-          (Eq_Arg pos, true) =>
-          (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
-        | _ => false)
-      | Undercover_Types =>
-        (case (site, is_maybe_universal_var u) of
-          (Eq_Arg pos, true) => pos <> SOME false
-        | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
-        | _ => false)
-      | _ => should_encode_type ctxt mono level T)
-    end
-  | should_tag_with_type _ _ _ _ _ _ = false
-
 (** predicators and application operators **)
 
 type sym_info = {pred_sym : bool, min_ary : int, max_ary : int, types : typ list, in_conj : bool}
@@ -1645,10 +1643,10 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
             let val ary = length args in
               ((bool_vars, fun_var_Ts),
                (case Symtab.lookup sym_tab s of
-                 SOME {pred_sym, min_ary, max_ary, types, in_conj} =>
+                 SOME (info as {pred_sym, min_ary, max_ary, types, in_conj}) =>
                  let
                    val pred_sym = pred_sym andalso top_level andalso not bool_vars
-                   val types' = types |> insert_type thy I T
+                   val types' = insert_type thy I T types
                    val in_conj = in_conj orelse conj_fact
                    val min_ary =
                      if (app_op_level = Sufficient_App_Op orelse
@@ -1657,9 +1655,10 @@ fun add_iterm_syms_to_sym_table ctxt app_op_level conj_fact =
                        fold (consider_var_ary T) fun_var_Ts min_ary
                      else
                        min_ary
+                   val info' = {pred_sym = pred_sym, min_ary = Int.min (ary, min_ary),
+                     max_ary = Int.max (ary, max_ary), types = types', in_conj = in_conj}
                  in
-                   Symtab.update (s, {pred_sym = pred_sym, min_ary = Int.min (ary, min_ary),
-                     max_ary = Int.max (ary, max_ary), types = types', in_conj = in_conj}) sym_tab
+                   if info' = info then sym_tab else Symtab.update (s, info') sym_tab
                  end
                | NONE =>
                  let
@@ -1982,9 +1981,7 @@ fun helper_facts_of_sym_table ctxt format type_enc lam_trans completish sym_tab 
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
 
-fun set_insert (x, s) = Symtab.update (x, ()) s
-
-fun add_classes (cls, cset) = List.foldl set_insert cset (flat cls)
+fun add_classes (cls, cset) = fold (fold Symtab.insert_set) cls cset
 
 fun classes_of_terms get_Ts =
   map (map snd o get_Ts)
@@ -1994,7 +1991,7 @@ fun classes_of_terms get_Ts =
 val tfree_classes_of_terms = classes_of_terms Misc_Legacy.term_tfrees
 val tvar_classes_of_terms = classes_of_terms Misc_Legacy.term_tvars
 
-fun fold_type_ctrs f (Type (s, Ts)) x = fold (fold_type_ctrs f) Ts (f (s, x))
+fun fold_type_ctrs f (Type (s, Ts)) x = fold (fold_type_ctrs f) Ts (f s x)
   | fold_type_ctrs _ _ x = x
 
 (* Type constructors used to instantiate overloaded constants are the only ones
@@ -2004,7 +2001,7 @@ fun add_type_ctrs_in_term thy =
     fun add (Const (\<^const_name>\<open>Meson.skolem\<close>, _) $ _) = I
       | add (t $ u) = add t #> add u
       | add (Const x) =
-        x |> robust_const_type_args thy |> fold (fold_type_ctrs set_insert)
+        x |> robust_const_type_args thy |> fold (fold_type_ctrs Symtab.insert_set)
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
@@ -2162,6 +2159,37 @@ fun do_bound_type type_enc =
     Native _ => native_atp_type_of_typ type_enc false 0 #> SOME
   | _ => K NONE)
 
+local
+
+datatype site =
+  Top_Level of bool option |
+  Eq_Arg of bool option |
+  Arg of string * int * int |
+  Elsewhere
+
+fun should_tag_with_type _ _ _ (Top_Level _) _ = NONE
+  | should_tag_with_type ctxt mono (Tags (_, level)) site u =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      val T = ityp_of u
+      val tag =
+        (case level of
+          Nonmono_Types (_, Non_Uniform) =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) =>
+            (pos <> SOME false orelse tag_neg_vars) andalso should_encode_type ctxt mono level T
+          | _ => false)
+        | Undercover_Types =>
+          (case (site, is_maybe_universal_var u) of
+            (Eq_Arg pos, true) => pos <> SOME false
+          | (Arg (s, j, ary), true) => member (op =) (type_arg_cover thy NONE s ary) j
+          | _ => false)
+        | _ => should_encode_type ctxt mono level T)
+    in if tag then SOME T else NONE end
+  | should_tag_with_type _ _ _ _ _ = NONE
+
+in
+
 fun tag_with_type ctxt mono type_enc pos T tm =
   IConst (type_tag, T --> T, [T])
   |> mangle_type_args_in_iterm type_enc
@@ -2174,7 +2202,6 @@ and atp_term_of_iterm ctxt mono type_enc pos =
       let
         val (head, args) = strip_iterm_comb u
         val pos = (case site of Top_Level pos => pos | Eq_Arg pos => pos | _ => NONE)
-        val T = ityp_of u
         val t =
           (case head of
             IConst (name as (s, _), _, T_args) =>
@@ -2194,8 +2221,11 @@ and atp_term_of_iterm ctxt mono type_enc pos =
             else
               raise Fail "unexpected lambda-abstraction"
           | IApp _ => raise Fail "impossible \"IApp\"")
-        val tag = should_tag_with_type ctxt mono type_enc site u T
-      in t |> tag ? tag_with_type ctxt mono type_enc pos T end
+      in
+        (case should_tag_with_type ctxt mono type_enc site u of
+          SOME T => tag_with_type ctxt mono type_enc pos T t
+        | NONE => t)
+      end
   in term (Top_Level pos) end
 and formula_of_iformula ctxt mono type_enc should_guard_var =
   let
@@ -2222,8 +2252,7 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
           val phi = phi |> do_formula pos
           val universal = Option.map (q = AExists ? not) pos
         in
-          AQuant (q, xs |> map (apsnd (fn NONE => NONE
-                                        | SOME T => do_bound_type type_enc T)),
+          AQuant (q, xs |> map (apsnd (Option.mapPartial (do_bound_type type_enc))),
                   (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
                       (map_filter
                            (fn (_, NONE) => NONE
@@ -2235,6 +2264,8 @@ and formula_of_iformula ctxt mono type_enc should_guard_var =
       | do_formula pos (AConn conn) = aconn_map pos do_formula conn
       | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
   in do_formula end
+
+end
 
 fun string_of_status General = ""
   | string_of_status Induction = inductionN
@@ -2331,6 +2362,11 @@ fun decl_lines_of_classes type_enc =
 
 fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
   let
+    fun add_decl s decl =
+      Symtab.map_default (s, []) (fn decls =>
+        let val decls' = insert_type thy #3 decl decls in
+          if pointer_eq (decls, decls') then raise Symtab.SAME else decls'
+        end)
     fun add_iterm_syms tm =
       let val (head, args) = strip_iterm_comb tm in
         (case head of
@@ -2345,11 +2381,7 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
               not (String.isPrefix let_bound_var_prefix s) andalso
               is_tptp_user_symbol s
           in
-            if decl_sym then
-              Symtab.map_default (s, [])
-                (insert_type thy #3 (s', T_args, T, pred_sym, length args, in_conj))
-            else
-              I
+            if decl_sym then add_decl s (s', T_args, T, pred_sym, length args, in_conj) else I
           end
         | IAbs (_, tm) => add_iterm_syms tm
         | _ => I)
@@ -2379,13 +2411,11 @@ fun sym_decl_table_of_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
             else
               (name, [T])
         in
-          Symtab.map_default (s, []) (insert_type thy #3 (s', Ts, T, false, 0, false))
+          add_decl s (s', Ts, T, false, 0, false)
         end
     fun add_TYPE_const () =
       let val (s, s') = TYPE_name in
-        Symtab.map_default (s, [])
-            (insert_type thy #3
-                         (s', [tvar_a], \<^typ>\<open>'a itself\<close>, false, 0, false))
+        add_decl s (s', [tvar_a], \<^typ>\<open>'a itself\<close>, false, 0, false)
       end
   in
     Symtab.empty
@@ -2524,7 +2554,7 @@ fun decl_line_of_sym ctxt type_enc s (s', T_args, T, pred_sym, ary, _) =
         |> not (null T_args) ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
 
-fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
+fun role_of_conj_sym in_conj = if in_conj then Hypothesis else Axiom
 
 val mk_bound_names : int -> (string * string) list =
   map_range (`I o make_bound_var o string_of_int o curry (op +) 1)
@@ -2533,7 +2563,7 @@ fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
     (s', T_args, T, _, ary, in_conj) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (role, maybe_negate) = honor_conj_sym_role in_conj
+    val role = role_of_conj_sym in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = mk_bound_names ary
     val bounds = map2 (fn name => fn T => IConst (name, T, [])) bound_names arg_Ts
@@ -2556,8 +2586,7 @@ fun line_of_guards_sym_decl ctxt generate_isabelle_info mono type_enc n s j
              |> formula_of_iformula ctxt mono type_enc
                                     always_guard_var_in_formula (SOME true)
              |> close_formula_universally
-             |> bound_tvars type_enc (n > 1) (atomic_types_of T)
-             |> maybe_negate,
+             |> bound_tvars type_enc (n > 1) (atomic_types_of T),
              NONE, isabelle_info generate_isabelle_info inductiveN helper_rank)
   end
 
@@ -2569,12 +2598,12 @@ fun lines_of_tags_sym_decl ctxt generate_isabelle_info mono type_enc n s
     val ident =
       tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
-    val (role, maybe_negate) = honor_conj_sym_role in_conj
+    val role = role_of_conj_sym in_conj
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names = mk_bound_names ary
     val bounds = bound_names |> map (fn name => ATerm ((name, []), []))
     val cst = mk_aterm type_enc (s, s') T_args
-    val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) [] pred_sym
+    val eq = eq_formula type_enc (atomic_types_of T) [] pred_sym
     val tag_with = tag_with_type ctxt mono type_enc NONE
     fun formula c =
       [Formula ((ident, ""), role, eq (tag_with res_T c) c, NONE,
@@ -2681,7 +2710,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_
     fun do_alias ary =
       let
         val thy = Proof_Context.theory_of ctxt
-        val (role, maybe_negate) = honor_conj_sym_role in_conj
+        val role = role_of_conj_sym in_conj
         val base_name = base_s0 |> `make_fixed_const
         val T = (case types of [T] => T | _ => robust_const_type thy base_s0)
         val T_args = robust_const_type_args thy (base_s0, T)
@@ -2710,7 +2739,7 @@ fun do_uncurried_alias_lines_of_sym ctxt generate_isabelle_info ctrss mono type_
             (map (apsnd (do_bound_type type_enc)) bounds) false (atp_term_of tm1) (atp_term_of tm2)
       in
         ([tm1, tm2],
-         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq |> maybe_negate, NONE,
+         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role, eq, NONE,
             isabelle_info generate_isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))

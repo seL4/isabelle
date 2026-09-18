@@ -44,7 +44,7 @@ proof (rule inj_onI)
   have pgh: "pull n e (\<phi> g) = pull n e (\<phi> h)" using eq g h by simp
   have agree: "\<phi> g s = \<phi> h s" if s: "s \<in> S" for s
   proof -
-    define i where "i = inv_into {0..<n} e s"
+    define i where "i \<equiv> inv_into {0..<n} e s"
     have iln: "i < n" using ebij s unfolding i_def by (metis atLeastLessThan_iff bij_betw_def inv_into_into)
     have ei: "e i = s" using ebij s unfolding i_def by (simp add: bij_betw_inv_into_right)
     have "inv_into {0..<n} e (\<phi> g s) = inv_into {0..<n} e (\<phi> h s)"

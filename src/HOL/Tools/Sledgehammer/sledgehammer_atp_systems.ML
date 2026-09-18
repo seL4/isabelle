@@ -63,6 +63,7 @@ val TF1 = TFF (Polymorphic, Without_FOOL)
 val TX0 = TFF (Monomorphic, With_FOOL {with_ite = true, with_let = true})
 val TX0_MINUS = TFF (Monomorphic, With_FOOL {with_ite = false, with_let = false})
 val TX1 = TFF (Polymorphic, With_FOOL {with_ite = true, with_let = true})
+val TX1_MINUS = TFF (Polymorphic, With_FOOL {with_ite = false, with_let = false})
 val TH0 = THF (Monomorphic, {with_ite = true, with_let = true}, THF_With_Choice)
 val TH0_MINUS = THF (Monomorphic, {with_ite = false, with_let = false}, THF_Without_Choice)
 val TH1 = THF (Polymorphic, {with_ite = true, with_let = true}, THF_With_Choice)
@@ -384,13 +385,20 @@ val spass = (spassN, fn () => spass_config)
 
 local
 
-val new_vampire_basic_options =
+val vampire_4_8_basic_options =
   ["--input_syntax tptp",
    "--proof tptp",
    "--output_axiom_names on"] @
   (if ML_System.platform_is_windows
    then []  (*time slicing is not support in the Windows version of Vampire*)
    else ["--mode portfolio", "--schedule snake_slh"])
+
+val vampire_5_1_basic_options =
+  ["--input_syntax tptp",
+   "-p tptp"] @
+  (if ML_System.platform_is_windows
+   then []  (*time slicing is not support in the Windows version of Vampire*)
+   else ["--mode portfolio", "--schedule snake_tptp_uns"])
 
 val vampire_full_proof_options =
   ["--proof_extra free",
@@ -403,7 +411,7 @@ fun make_vampire_config vampire_basic_options good_max_new_mono_instances good_s
      (if full_proofs then vampire_full_proof_options else []) @
      (if extra_options <> "" then [extra_options] else []) @
      ["-t " ^ string_of_int (to_secs 1 timeout),
-      "--input_file " ^ File.bash_path problem],
+      File.bash_path problem],
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation =======")] @
@@ -421,9 +429,9 @@ fun make_vampire_config vampire_basic_options good_max_new_mono_instances good_s
    good_max_mono_iters = default_max_mono_iters,
    good_max_new_mono_instances = good_max_new_mono_instances}
 
-val vampire_config : atp_config =
-  (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing *)
-  make_vampire_config new_vampire_basic_options 256
+val vampire_4_8_config : atp_config =
+  (* FUDGE: this solved 998/1500 (66.53 %) using MePo when testing version 4.8 HO - Sledgehammer schedules (2023-10-19) *)
+  make_vampire_config vampire_4_8_basic_options 256
     [(((2, false, false,  512, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
      (((2, false, false, 2048, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false,  128, meshN), (TX0, "mono_native_fool", liftingN, false, ""))),
@@ -444,9 +452,36 @@ val vampire_config : atp_config =
      (((2, false, false,  512, meshN), (TX0, "mono_native_fool", combsN, false, ""))),
      (((2, false, false, 1024, meshN), (TX1, "poly_native_fool", combsN, false, "")))]
 
+(*Vampire 4.8's slices without $ite and $let, which Vampire 5.1 prints with an unbalanced
+  parenthesis*)
+val vampire_5_1_config : atp_config =
+  make_vampire_config vampire_5_1_basic_options 256
+    [(((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false,  128, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 1024, meshN), (TF1, "poly_native", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false,  256, meshN), (TX0_MINUS, "mono_native_fool", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TX1_MINUS, "poly_native_fool", liftingN, false, ""))),
+     (((2, false, false,  512, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false, 2048, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   64, meshN), (TF1, "poly_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TH1_MINUS, "poly_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", combsN, false, ""))),
+     (((2, false, false,  256, meshN), (TF0, "mono_native", liftingN, false, ""))),
+     (((2, false, false,   32, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TH0_MINUS, "mono_native_higher", keep_lamsN, false, ""))),
+     (((2, false, false,  512, meshN), (TX0_MINUS, "mono_native_fool", combsN, false, ""))),
+     (((2, false, false, 1024, meshN), (TX1_MINUS, "poly_native_fool", combsN, false, "")))]
+
 in
 
-val vampire = (vampireN, fn () => vampire_config)
+val vampire = (vampireN, fn () =>
+  (case getenv "VAMPIRE_VERSION" of
+    "4.8" => vampire_4_8_config
+  | _ => vampire_5_1_config))
 
 end
 

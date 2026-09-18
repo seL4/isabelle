@@ -16,13 +16,13 @@ text \<open>Surjectivity of restriction for a generated root field.  Let \<open>
   homomorphism-extension theorem supplies an extension of every @{term F}-automorphism of @{term E}.
 \<close>
 theorem galois_restriction_surjective:
-  fixes K E F :: "complex set" and Phi :: "complex poly"
+  fixes K E F :: "'a :: field set" and Phi :: "'a poly"
   assumes sfE: "Subfield E" and sfF: "Subfield F" and FE: "F \<subseteq> E"
     and Phi: "Phi \<in> poly_over F"
     and Kdef: "K = generate_field (E \<union> {r. poly Phi r = 0})"
     and finR: "finite {r. poly Phi r = 0}"
     and algR: "\<And>r. poly Phi r = 0 \<Longrightarrow> algebraic_over E r"
-    and closed: "\<And>q :: complex poly. 0 < degree q \<Longrightarrow> \<exists>b. poly q b = 0"
+    and closed: "\<And>q :: 'a poly. 0 < degree q \<Longrightarrow> \<exists>b. poly q b = 0"
     and t: "\<tau> \<in> field_auto E F"
   shows "\<exists>\<sigma> \<in> field_auto K F. \<forall>x \<in> E. \<sigma> x = \<tau> x"
 proof -

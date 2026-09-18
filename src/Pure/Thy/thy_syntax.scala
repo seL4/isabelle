@@ -97,9 +97,10 @@ object Thy_Syntax {
           val thy = node.thy
           val imports_syntax =
             if (thy.imports.nonEmpty) {
-              Outer_Syntax.merge(thy.imports_no_pos.map(resources.session_base.node_syntax(nodes, _)))
+              Outer_Syntax.merge(
+                thy.imports_no_pos.map(resources.current_background.base.node_syntax(nodes, _)))
             }
-            else resources.session_base.overall_syntax
+            else resources.current_background.base.overall_syntax
           Some(imports_syntax.add_keywords(thy.keywords).add_abbrevs(thy.abbrevs))
         }
       nodes += (name -> node.update_syntax(syntax))
@@ -389,7 +390,7 @@ object Thy_Syntax {
 
         for ((name, edits) <- node_edits) {
           val node = nodes(name)
-          val syntax = resources.session_base.node_syntax(nodes, name)
+          val syntax = resources.current_background.base.node_syntax(nodes, name)
           val commands = node.commands
 
           val node1 =

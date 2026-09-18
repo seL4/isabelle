@@ -1714,7 +1714,7 @@ fun gvvariant names =
  * partitioning up pattern rows by the leading constructor.
  *---------------------------------------------------------------------------*)
 fun ipartition gv (constructors,rows) =
-  let fun pfail s = raise TFL_ERR "partition.part" s
+  let fun pfail s = raise TFL_ERR \<^unchecked_name>\<open>partition.part\<close> s
       fun part {constrs = [],   rows = [],   A} = rev A
         | part {constrs = [],   rows = _::_, A} = pfail"extra cases in defn"
         | part {constrs = _::_, rows = [],   A} = pfail"cases missing in defn"
@@ -2034,7 +2034,7 @@ let fun insert (p,TCs) =
       let fun insrt ((x as (h,[]))::rst) =
                  if (p aconv h) then (p,TCs)::rst else x::insrt rst
             | insrt (x::rst) = x::insrt rst
-            | insrt[] = raise TFL_ERR "merge.insert" "pattern not found"
+            | insrt[] = raise TFL_ERR \<^unchecked_name>\<open>merge.insert\<close> "pattern not found"
       in insrt end
     fun pass ([],ptcl_final) = ptcl_final
       | pass (ptcs::tcl, ptcl) = pass(tcl, insert ptcs ptcl)

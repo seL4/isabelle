@@ -264,7 +264,8 @@ proof -
 qed
 
 text \<open>p 101, ll 23--24\<close>
-sublocale ring_congruence where E = Ring_Congruence by unfold_locales rule
+sublocale ring_congruence where E = Ring_Congruence
+  by unfold_locales (rule multiplicative_congruence)
 
 end (* ideal *)
 

@@ -93,13 +93,16 @@ fun get_decls fps T n Ts ctxt =
                 else not o BNF_FP_Rec_Sugar_Util.exists_subtype_in Xs) Ts
             | is_homogenously_nested_co_recursive _ = true
 
-          val Type (_, As) :: _ = fp_Ts
+          val As =
+            (case fp_Ts of
+              Type (_, As) :: _ => As
+            | _ => raise Fail "smt_datatypes: unexpected fp_res type")
           val substAs = Term.typ_subst_atomic (As ~~ Ts);
         in
           (* TODO/FIXME: The "bool" check is there to work around a CVC4 bug
              (http://church.cims.nyu.edu/bugzilla3/show_bug.cgi?id=597). It should be removed once
              the bug is fixed. *)
-          if forall (forall (forall (is_homogenously_nested_co_recursive))) ctrXs_Tsss andalso
+          if forall (forall (forall is_homogenously_nested_co_recursive)) ctrXs_Tsss andalso
              forall (forall (forall (curry (op <>) \<^typ>\<open>bool\<close>)))
                (map (map (map substAs)) ctrXs_Tsss) then
             get_ctr_sugar_decl ctr_sugar T Ts ctxt |>> map (pair fp)

@@ -286,8 +286,8 @@ val polymlN = "PolyML"
 
 fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
   let
-    val code_path = dir + Path.basic "generated.sml"
-    val driver_path = dir + Path.basic "driver.sml"
+    val code_path = dir + \<^path>\<open>generated.sml\<close>
+    val driver_path = dir + \<^path>\<open>driver.sml\<close>
     val out_path = dir + Path.basic "out"
 
     val code = #2 (the_single code_files)
@@ -329,8 +329,8 @@ val ISABELLE_MLTON = "ISABELLE_MLTON"
 fun evaluate_in_mlton (_: Proof.context) (code_files, value_name) dir =
   let
     val compiler = mltonN
-    val generatedN = "generated.sml"
-    val driverN = "driver.sml"
+    val generatedN = \<^unchecked_name>\<open>generated.sml\<close>
+    val driverN = \<^unchecked_name>\<open>driver.sml\<close>
     val projectN = "test"
 
     val code_path = dir + Path.basic generatedN
@@ -365,8 +365,8 @@ val ISABELLE_SMLNJ = "ISABELLE_SMLNJ"
 fun evaluate_in_smlnj (_: Proof.context) (code_files, value_name) dir =
   let
     val compiler = smlnjN
-    val generatedN = "generated.sml"
-    val driverN = "driver.sml"
+    val generatedN = \<^unchecked_name>\<open>generated.sml\<close>
+    val driverN = \<^unchecked_name>\<open>driver.sml\<close>
 
     val code_path = dir + Path.basic generatedN
     val driver_path = dir + Path.basic driverN
@@ -405,8 +405,8 @@ fun evaluate_in_ocaml (_: Proof.context) (code_files, value_name) dir =
   let
     val compiler = ocamlN
 
-    val code_path = dir + Path.basic "generated.ml"
-    val driver_path = dir + Path.basic "driver.ml"
+    val code_path = dir + \<^path>\<open>generated.ml\<close>
+    val driver_path = dir + \<^path>\<open>driver.ml\<close>
     val driver =
       "let format_term = function\n" ^
       "  | None -> \"\"\n" ^
@@ -444,7 +444,7 @@ fun evaluate_in_ghc ctxt (code_files, value_name) dir =
     val compiler = ghcN
     val modules = map fst code_files
 
-    val driver_path = dir + Path.basic "Main.hs"
+    val driver_path = dir + \<^path>\<open>Main.hs\<close>
     val driver =
       "module Main where {\n" ^
       implode (map (fn module => "import qualified " ^ unsuffix ".hs" module ^ ";\n") modules) ^
@@ -483,7 +483,7 @@ val scalaN = "Scala"
 fun evaluate_in_scala (_: Proof.context) (code_files, value_name) dir =
   let
     val generatedN = "Generated_Code"
-    val driverN = "Driver.scala"
+    val driverN = \<^unchecked_name>\<open>Driver.scala\<close>
 
     val code_path = dir + Path.basic (generatedN ^ ".scala")
     val driver_path = dir + Path.basic driverN

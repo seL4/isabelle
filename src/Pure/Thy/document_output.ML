@@ -372,12 +372,16 @@ end;
 (* present_thy *)
 
 type segment =
-  {span: Command_Span.span, command: Toplevel.transition,
-   prev_state: Toplevel.state, state: Toplevel.state};
+ {span: Command_Span.span,
+  command: Toplevel.transition,
+  prev_state: Toplevel.state,
+  state: Toplevel.state};
 
 val segment_eof: segment =
-  {span = Command_Span.eof, command = Toplevel.empty,
-   prev_state = Toplevel.make_state NONE, state = Toplevel.make_state NONE};
+ {span = Command_Span.eof,
+  command = Toplevel.empty,
+  prev_state = Toplevel.make_state NONE,
+  state = Toplevel.make_state NONE};
 
 val segment_stopper =
   Scan.stopper (K segment_eof) (Command_Span.is_eof o #span);
@@ -388,14 +392,20 @@ local
 val markup_true = "\\isamarkuptrue%\n";
 val markup_false = "\\isamarkupfalse%\n";
 
-fun command_output output tok =
-  if Token.is_command tok then SOME (Token.put_output output tok) else NONE;
-
-fun segment_content (segment: segment) =
-  let val toks = Command_Span.content (#span segment) in
-    (case Toplevel.output_of (#state segment) of
-      NONE => toks
-    | SOME output => map_filter (command_output output) toks)
+fun segment_content ({span, prev_state, state, ...}: segment) =
+  let
+    val toks = Command_Span.content span;
+    val skip = Toplevel.is_skipped prev_state andalso Toplevel.is_skipped state;
+    fun command_output output = toks |> map_filter (fn tok =>
+      if Token.is_command tok then
+        SOME (if skip then Token.no_output else Token.put_output output tok)
+      else NONE);
+  in
+    if skip then command_output []
+    else
+      (case Toplevel.output_of state of
+        NONE => toks
+      | SOME output => command_output output)
   end;
 
 fun output_command keywords = Scan.some (fn tok =>
@@ -415,12 +425,13 @@ fun output_command keywords = Scan.some (fn tok =>
 
 val opt_newline = Scan.option (Scan.one Token.is_newline);
 
+fun bad_nesting input =
+  Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) input;
+
 val ignore =
-  Scan.depend (fn d => opt_newline |-- Scan.one Token.is_begin_ignore
-    >> pair (d + 1)) ||
-  Scan.depend (fn d => Scan.one Token.is_end_ignore --|
-    (if d = 0 then Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) else opt_newline)
-    >> pair (d - 1));
+  Scan.depend (fn d =>
+    opt_newline |-- Scan.one Token.is_begin_ignore >> pair (d + 1) ||
+    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> pair (d - 1));
 
 in
 
@@ -496,11 +507,7 @@ fun present_thy options keywords thy_name (segments: segment list) =
       Toplevel.setmp_thread_position tr (present_span command_tag span st st');
 
     fun present _ [] = I
-      | present st ((span, (tr, st')) :: rest) =
-          let
-            val skipped = Toplevel.is_skipped st;
-            val skipped' = Toplevel.is_skipped st';
-          in not (skipped andalso skipped') ? present_command tr span st st' #> present st' rest end;
+      | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
     if length command_results = length spans then
       (([], []), NONE, true, [], (I, I))

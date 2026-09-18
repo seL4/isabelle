@@ -286,7 +286,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (get_dseq_result, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
+                (get_dseq_result, put_dseq_result, \<^unchecked_name>\<open>Predicate_Compile_Quickcheck.put_dseq_result\<close>)
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn n => fn size => fn s =>
                   g n size s |>> (Limited_Sequence.map o map) proc)
@@ -300,7 +300,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (get_lseq_result, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
+                (get_lseq_result, put_lseq_result, \<^unchecked_name>\<open>Predicate_Compile_Quickcheck.put_lseq_result\<close>)
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
                   g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
@@ -317,7 +317,7 @@ fun compile_term compilation options ctxt t =
             val compiled_term =
               Code_Runtime.dynamic_value_strict
                 (get_new_dseq_result, put_new_dseq_result,
-                  "Predicate_Compile_Quickcheck.put_new_dseq_result")
+                  \<^unchecked_name>\<open>Predicate_Compile_Quickcheck.put_new_dseq_result\<close>)
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.map o map) proc)
                 qc_term []
@@ -329,7 +329,7 @@ fun compile_term compilation options ctxt t =
           let
             val compiled_term =
               Code_Runtime.dynamic_value_strict
-                (get_cps_result, put_cps_result, "Predicate_Compile_Quickcheck.put_cps_result")
+                (get_cps_result, put_cps_result, \<^unchecked_name>\<open>Predicate_Compile_Quickcheck.put_cps_result\<close>)
                 (Proof_Context.init_global thy4) (SOME target)
                 (fn proc => fn g => fn depth => g depth |> Option.map (apsnd (map proc)))
                 qc_term []
@@ -339,7 +339,7 @@ fun compile_term compilation options ctxt t =
        | Depth_Limited_Random =>
           let
             val compiled_term = Code_Runtime.dynamic_value_strict
-              (get_pred_result, put_pred_result, "Predicate_Compile_Quickcheck.put_pred_result")
+              (get_pred_result, put_pred_result, \<^unchecked_name>\<open>Predicate_Compile_Quickcheck.put_pred_result\<close>)
                 (Proof_Context.init_global thy4) (SOME target)
                   (fn proc => fn g => fn depth => fn nrandom => fn size => fn seed =>
                   g depth nrandom size seed |> (Predicate.map o map) proc)

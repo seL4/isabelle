@@ -499,6 +499,26 @@ proof -
   qed
 qed
 
+corollary contour_integral_affine:
+  assumes "valid_path \<gamma>" "c \<noteq> 0"
+  shows "contour_integral ((\<lambda>x. c * x + b) \<circ> \<gamma>) f = contour_integral \<gamma> (\<lambda>w. c * f (c * w + b))"
+proof -
+  define ff where "ff \<equiv> \<lambda>x. c*x+b"
+  have "contour_integral (ff \<circ> \<gamma>) f = contour_integral \<gamma> (\<lambda>w. deriv ff w * f (ff w))"
+  proof (rule contour_integral_comp_analyticW)
+    show "ff analytic_on UNIV" "path_image \<gamma> \<subseteq> UNIV" "valid_path \<gamma>"
+    unfolding ff_def using \<open>valid_path \<gamma>\<close>
+    by (auto intro: analytic_intros)
+  qed
+  also have "\<dots> = contour_integral \<gamma> (\<lambda>w. c * f (c * w + b))"
+  proof -
+    have "deriv ff  x = c" "ff x = c*x+b" for x
+      unfolding ff_def by auto
+    then show ?thesis by auto
+  qed
+  finally show ?thesis unfolding ff_def .
+qed
+
 subsection\<open>Morera's theorem\<close>
 
 lemma Morera_local_triangle_ball:
@@ -1770,6 +1790,33 @@ lemma analytic_iff_power_series:
      "f analytic_on ball z r \<longleftrightarrow>
       (\<forall>w \<in> ball z r. (\<lambda>n. (deriv ^^ n) f z / (fact n) * (w-z)^n) sums f w)"
   by (simp add: analytic_on_open holomorphic_iff_power_series)
+
+lemma power_series_analytic':
+  assumes "conv_radius a \<ge> r"
+  shows   "(\<lambda>z. (\<Sum>n. a n * (z - w) ^ n)) analytic_on eball w r"
+proof (cases r)
+  case [simp]: (real r')
+  have "(\<lambda>z. \<Sum>n. a n * (z - w) ^ n) analytic_on ball w r'"
+    by (rule power_series_analytic[of w r' a] summable_sums summable_in_conv_radius)+
+       (use assms in \<open>auto simp: dist_norm norm_minus_commute intro: ereal_le_less\<close>)
+  thus ?thesis
+    by simp
+next
+  case [simp]: PInf
+  have "(\<lambda>z. \<Sum>n. a n * (z - w) ^ n) analytic_on ball w r'" for r'
+    by (rule power_series_analytic[of w r' a] summable_sums summable_in_conv_radius)+
+       (use assms in \<open>auto simp: dist_norm norm_minus_commute intro: ereal_le_less\<close>)
+  hence "(\<lambda>z. \<Sum>n. a n * (z - w) ^ n) analytic_on (\<Union>r'. ball w r')"
+    by (subst analytic_on_Union) auto
+  also have "(\<Union>r'. ball w r') = UNIV"
+  proof -
+    have "z \<in> ball w (dist w z + 1)" for z
+      by auto
+    thus ?thesis by blast
+  qed
+  finally show ?thesis
+    by simp
+qed (auto intro: analytic_on_empty)
 
 subsection\<^marker>\<open>tag unimportant\<close> \<open>Equality between holomorphic functions, on open ball then connected set\<close>
 

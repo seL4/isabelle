@@ -605,7 +605,7 @@ fun unified tye =
          (Type (s, Ts), Type (s', Ts')) => s = s' andalso unifs (Ts, Ts')
        | (U, U') => U = U')
     and unifs ([], []) = true
-      | unifs (T :: Ts, T' :: Ts') = unif (T', T') andalso unifs (Ts, Ts')
+      | unifs (T :: Ts, T' :: Ts') = unif (T, T') andalso unifs (Ts, Ts')
       | unifs _ = false;
   in if Vartab.is_empty tye then op = else unif end;
 

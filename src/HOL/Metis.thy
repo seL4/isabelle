@@ -10,7 +10,7 @@ theory Metis
 imports ATP
 begin
 
-context notes [[ML_check_strings, ML_catch_all]]
+context notes [[ML_check_strings = false, ML_catch_all]]
 begin
   ML_file \<open>~~/src/Tools/Metis/metis.ML\<close>
 end

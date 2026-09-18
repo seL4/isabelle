@@ -223,32 +223,13 @@ object Dump {
         session_dirs = context.session_dirs,
         include_sessions = deps.sessions_structure.imports_topological_order)
 
-    val used_theories: List[Resources.Thy] = {
+    val session_theories: List[String] =
       for {
         session_name <-
           deps.sessions_structure.build_graph.restrict(selected_sessions.toSet).topological_order
-        entry <- deps(session_name).used_theories
-        if !resources.loaded_theory(entry.name)
-        if {
-          def warn(msg: String): Unit =
-            progress.echo_warning("Skipping theory " + entry.name + " " + msg)
-
-          val theory_options = options ++ entry.options
-
-          val condition_bad =
-            Thy_Conditions.init(options).eval(theory_options).check_errors.bad_message
-          if (condition_bad.nonEmpty) {
-            warn(condition_bad)
-            false
-          }
-          else if (options.bool("skip_proofs") && !theory_options.bool("skip_proofs")) {
-            warn("(option skip_proofs)")
-            false
-          }
-          else true
-        }
-      } yield entry
-    }
+        thy <- deps(session_name).used_theories
+        if !resources.loaded_theory(thy.name)
+      } yield thy.name.theory
 
 
     /* process */
@@ -314,7 +295,7 @@ object Dump {
 
       try {
         val use_theories_result =
-          session.use_theories(used_theories.map(_.name.theory),
+          session.use_theories(session_theories,
             unicode_symbols = unicode_symbols,
             progress = progress,
             commit = Some(Consumer.apply))

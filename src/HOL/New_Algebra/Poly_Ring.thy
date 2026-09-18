@@ -7,8 +7,7 @@ begin
 text \<open>\<^bold>\<open>Note on notation.\<close> \<open>Ring_Theory\<close> frees \<open>+\<close>/\<open>-\<close> for the ring operations, while
   \<open>FiniteProduct\<close> (via \<open>Main\<close>) keeps HOL's arithmetic notation; the theory merge admits
   \<^emph>\<open>both\<close>.  This is exactly what the convolution needs --- ring operations on coefficients
-  (type \<open>'a\<close>) and ordinary arithmetic on the \<open>nat\<close> indices \<open>k - i\<close> --- and the parser
-  disambiguates by type.\<close>
+  (type \<open>'a\<close>) and ordinary arithmetic on the \<open>nat\<close> indices \<open>k - i\<close>.\<close>
 
 text \<open>
   We construct the polynomial ring over a carrier-set ring \<open>R\<close> using the
@@ -30,7 +29,7 @@ subsection \<open>Carrier, coefficients, and support\<close>
 
 text \<open>The set of polynomials over @{term R}: finite support, coefficients in @{term R}.\<close>
 definition poly_carrier :: "(nat \<Rightarrow> 'a) set"
-  where "poly_carrier = {p. finite {i. p i \<noteq> \<zero>} \<and> (\<forall>i. p i \<in> R)}"
+  where "poly_carrier \<equiv> {p. finite {i. p i \<noteq> \<zero>} \<and> (\<forall>i. p i \<in> R)}"
 
 lemma poly_carrierI:
   "\<lbrakk> finite {i. p i \<noteq> \<zero>}; \<And>i. p i \<in> R \<rbrakk> \<Longrightarrow> p \<in> poly_carrier"
@@ -46,31 +45,31 @@ lemma poly_carrier_coeff_closed: "p \<in> poly_carrier \<Longrightarrow> p i \<i
 subsection \<open>Zero and one\<close>
 
 definition poly_zero :: "nat \<Rightarrow> 'a"  (\<open>\<zero>\<^sub>P\<close>)
-  where "poly_zero = (\<lambda>i. \<zero>)"
+  where "poly_zero \<equiv> (\<lambda>i. \<zero>)"
 
 definition poly_one :: "nat \<Rightarrow> 'a"  (\<open>\<one>\<^sub>P\<close>)
-  where "poly_one = (\<lambda>i. if i = 0 then \<one> else \<zero>)"
+  where "poly_one \<equiv> (\<lambda>i. if i = 0 then \<one> else \<zero>)"
 
 
 subsection \<open>Addition\<close>
 
 definition poly_add :: "(nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)"  (infixl \<open>\<oplus>\<^sub>P\<close> 65)
-  where "poly_add p q = (\<lambda>i. p i + q i)"
+  where "poly_add p q \<equiv> (\<lambda>i. p i + q i)"
 
 definition poly_neg :: "(nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)"  (\<open>\<ominus>\<^sub>P _\<close> [66] 65)
-  where "poly_neg p = (\<lambda>i. - p i)"
+  where "poly_neg p \<equiv> (\<lambda>i. - p i)"
 
 
 subsection \<open>Multiplication (convolution)\<close>
 
 definition poly_mult :: "(nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)"  (infixl \<open>\<otimes>\<^sub>P\<close> 70)
-  where "poly_mult p q = (\<lambda>k. additive.fincomp (\<lambda>i. p i \<cdot> q (k - i)) {..k})"
+  where "poly_mult p q \<equiv> (\<lambda>k. additive.fincomp (\<lambda>i. p i \<cdot> q (k - i)) {..k})"
 
 text \<open>A polynomial is a \<^emph>\<open>unit\<close> when it has a two-sided multiplicative inverse in the
   polynomial ring.  (Stated directly on the carrier-set operations, since the ambient
   @{text multiplicative} monoid acts on the coefficient type, not on polynomials.)\<close>
 definition poly_unit :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "poly_unit p \<longleftrightarrow> p \<in> poly_carrier
+  where "poly_unit p \<equiv> p \<in> poly_carrier
             \<and> (\<exists>q. q \<in> poly_carrier \<and> p \<otimes>\<^sub>P q = \<one>\<^sub>P \<and> q \<otimes>\<^sub>P p = \<one>\<^sub>P)"
 
 lemma poly_unitI:
@@ -130,9 +129,9 @@ proof -
     case True then show ?thesis using p q by (simp add: poly_carrier_coeff_closed)
   next
     case False 
-    then have "q (k - i) = \<zero>" using qNq
-      using kgt pNp by fastforce
-    then show ?thesis using p q by (simp add: poly_carrier_coeff_closed)
+    then show ?thesis using p q kgt pNp qNq 
+      using poly_carrier_coeff_closed Ring.right_zero Ring_axioms order.strict_trans
+      by fastforce
   qed
   then show ?thesis
     unfolding poly_mult_def by (rule additive.fincomp_unit_eqI)
@@ -166,10 +165,7 @@ proof (cases "finite A")
     then have "a \<cdot> additive.fincomp g (insert x A) = a \<cdot> g x + additive.fincomp (\<lambda>i. a \<cdot> g i) A"
       by (simp add: distributive)
     also have "\<dots> = additive.fincomp (\<lambda>i. a \<cdot> g i) (insert x A)"
-    proof -
-      have "(\<lambda>i. a \<cdot> g i) \<in> A \<rightarrow> R" using insert assms by auto
-      then show ?thesis using insert assms by (simp add: additive.fincomp_insert)
-    qed
+      using insert assms by (simp add: additive.fincomp_insert Pi_iff)
     finally show ?case .
   qed
 next
@@ -190,10 +186,7 @@ proof (cases "finite A")
     then have "additive.fincomp g (insert x A) \<cdot> a = g x \<cdot> a + additive.fincomp (\<lambda>i. g i \<cdot> a) A"
       by (simp add: distributive)
     also have "\<dots> = additive.fincomp (\<lambda>i. g i \<cdot> a) (insert x A)"
-    proof -
-      have "(\<lambda>i. g i \<cdot> a) \<in> A \<rightarrow> R" using insert assms by auto
-      then show ?thesis using insert assms by (simp add: additive.fincomp_insert)
-    qed
+      using insert assms by (simp add: Pi_iff additive.fincomp_insert)
     finally show ?case .
   qed
 next
@@ -473,7 +466,7 @@ lemma coeff_eq [simp]: "coeff p i = p i"
 text \<open>The degree is the greatest index with a nonzero coefficient (and @{term 0} for the zero
   polynomial, as is conventional here).\<close>
 definition degree :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat"
-  where "degree p = (if {i. p i \<noteq> \<zero>} = {} then 0 else Max {i. p i \<noteq> \<zero>})"
+  where "degree p \<equiv> (if {i. p i \<noteq> \<zero>} = {} then 0 else Max {i. p i \<noteq> \<zero>})"
 
 lemma degree_zero [simp]: "degree \<zero>\<^sub>P = 0"
   by (simp add: degree_def poly_zero_def)
@@ -528,7 +521,7 @@ text \<open>The polynomials supported on @{text "{..<n}"} --- those of degree be
   they serve as the canonical representatives of @{text "F[X]/(b)"} for @{term b} of degree
   @{term n}.\<close>
 definition low_poly :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) set"
-  where "low_poly n = {p. p \<in> poly_carrier \<and> (\<forall>i\<ge>n. p i = \<zero>)}"
+  where "low_poly n \<equiv> {p. p \<in> poly_carrier \<and> (\<forall>i\<ge>n. p i = \<zero>)}"
 
 lemma low_polyI:
   "\<lbrakk> p \<in> poly_carrier; \<And>i. i \<ge> n \<Longrightarrow> p i = \<zero> \<rbrakk> \<Longrightarrow> p \<in> low_poly n"
@@ -539,19 +532,13 @@ lemma low_poly_closed: "p \<in> low_poly n \<Longrightarrow> p \<in> poly_carrie
 
 lemma low_poly_coeff: "\<lbrakk> p \<in> low_poly n; i \<ge> n \<rbrakk> \<Longrightarrow> p i = \<zero>"
   unfolding low_poly_def by blast
+\<comment> \<open>@{thm [source] low_poly_coeff} and @{thm [source] low_poly_closed} must \<^emph>\<open>not\<close> go into a simpset.\<close>
 
 text \<open>The low-degree polynomials form a subgroup of the additive group, and this is immediate
   \<^emph>\<open>coefficientwise\<close>: the operations are pointwise, so no reasoning about degrees is needed.\<close>
 
-\<comment> \<open>@{thm [source] low_poly_coeff} and @{thm [source] low_poly_closed} must \<^emph>\<open>not\<close> go into a simp
-    set: both leave @{term n} schematic, so simp searches for a bound rather than using one, and does
-    not terminate.  These proofs therefore name their instances.\<close>
-
 lemma low_poly_zero [simp]: "\<zero>\<^sub>P \<in> low_poly n"
-proof (rule low_polyI)
-  show "\<zero>\<^sub>P \<in> poly_carrier" by (rule poly_zero_closed)
-  show "\<And>i. n \<le> i \<Longrightarrow> \<zero>\<^sub>P i = \<zero>" by (simp add: poly_zero_def)
-qed
+  using low_polyI poly_zero_closed poly_zero_def by force
 
 lemma low_poly_add_closed:
   assumes p: "p \<in> low_poly n" and q: "q \<in> low_poly n" shows "p \<oplus>\<^sub>P q \<in> low_poly n"
@@ -569,22 +556,12 @@ qed
 
 lemma low_poly_neg_closed:
   assumes p: "p \<in> low_poly n" shows "\<ominus>\<^sub>P p \<in> low_poly n"
-proof (rule low_polyI)
-  show "\<ominus>\<^sub>P p \<in> poly_carrier" using low_poly_closed [OF p] by (rule poly_neg_closed)
-next
-  fix i assume i: "n \<le> i"
-  have "p i = \<zero>" using low_poly_coeff [OF p i] .
-  then show "(\<ominus>\<^sub>P p) i = \<zero>" by (simp add: poly_neg_def additive.inverse_unit)
-qed
+  using additive.inverse_unit low_polyI low_poly_closed low_poly_coeff p poly_neg_closed poly_neg_def
+  by metis
 
 lemma low_poly_one:
   assumes n: "0 < n" shows "\<one>\<^sub>P \<in> low_poly n"
-proof (rule low_polyI)
-  show "\<one>\<^sub>P \<in> poly_carrier" by (rule poly_one_closed)
-next
-  fix i assume "n \<le> i"
-  with n show "\<one>\<^sub>P i = \<zero>" by (simp add: poly_one_def)
-qed
+  using low_polyI n poly_one_closed poly_one_def by force
 
 text \<open>Membership of @{const low_poly} in terms of degree: a carrier polynomial lies in
   @{term "low_poly n"} iff it is zero or has degree below @{term n}.\<close>
@@ -698,60 +675,32 @@ proof -
   qed
 qed
 
-text \<open>Degrees of the basic polynomials (support-based, so no carrier hypothesis needed).\<close>
+text \<open>Degrees of the basic polynomials\<close>
+
 text \<open>Multiplying a monomial by the variable raises its exponent, and multiplying by a constant
-  scales its coefficient.  \<^emph>\<open>Stated with @{const Suc} and at exponent zero deliberately:\<close> the general
-  law @{text "monom a k \<otimes> monom b l = monom (a \<cdot> b) (k + l)"} cannot be written here, because \<open>+\<close> on
-  two free variables is ambiguous between @{const Groups.plus} and the ring's own addition and
-  Isabelle finds both readings type correct.  These two instances are all that is needed.\<close>
+  scales its coefficient.\<close>
 
 lemma var_mult_monom:
   assumes a: "a \<in> R" shows "X\<^sub>P \<otimes>\<^sub>P monom a k = monom a (Suc k)"
 proof
   fix j
-  have one: "\<one> \<in> R" by simp
-  have step: "(monom \<one> (Suc 0) \<otimes>\<^sub>P monom a k) j
-              = (if Suc 0 \<le> j then \<one> \<cdot> monom a k (j - Suc 0) else \<zero>)"
-    by (rule coeff_monom_mult [OF one monom_closed [OF a]])
-  have "(X\<^sub>P \<otimes>\<^sub>P monom a k) j
-        = (if Suc 0 \<le> j then \<one> \<cdot> monom a k (j - Suc 0) else \<zero>)"
-    using step by (simp add: var_def)
-  also have "\<dots> = monom a (Suc k) j" using a by (auto simp: monom_def)
-  finally show "(X\<^sub>P \<otimes>\<^sub>P monom a k) j = monom a (Suc k) j" .
+  have "(X\<^sub>P \<otimes>\<^sub>P monom a k) j = (if Suc 0 \<le> j then \<one> \<cdot> monom a k (j - Suc 0) else \<zero>)"
+    by (simp add: var_def coeff_monom_mult [OF _ monom_closed [OF a]])
+  then show "(X\<^sub>P \<otimes>\<^sub>P monom a k) j = monom a (Suc k) j" 
+    using a by (auto simp: monom_def)
 qed
 
-lemma degree_monom_le: "degree (monom a n) \<le> n"
-proof -
-  have sub: "{i. monom a n i \<noteq> \<zero>} \<subseteq> {n}" by (auto simp: monom_def)
-  show ?thesis
-    by (metis Max_singleton degree_def le0 order_refl sub subset_singleton_iff)
-qed
-
-text \<open>A monomial is zero exactly when its coefficient is zero.  In particular, a nonzero
-  monomial has the advertised degree, not merely the upper bound above.\<close>
-lemma monom_eq_zero_iff [simp]:
-  "monom a n = \<zero>\<^sub>P \<longleftrightarrow> a = \<zero>"
-proof
-  assume "monom a n = \<zero>\<^sub>P"
-  then have h: "\<forall>i. monom a n i = \<zero>\<^sub>P i"
-    by (simp add: fun_eq_iff)
-  have hn: "monom a n n = \<zero>\<^sub>P n" using h by blast
-  then show "a = \<zero>"
-    by (simp add: monom_def poly_zero_def)
-next
-  assume "a = \<zero>"
-  then show "monom a n = \<zero>\<^sub>P"
-    by (simp add: monom_def poly_zero_def)
-qed
+text \<open>A monomial is zero exactly when its coefficient is zero.\<close>
+lemma monom_eq_zero_iff [simp]: "monom a n = \<zero>\<^sub>P \<longleftrightarrow> a = \<zero>"
+  by (auto simp: monom_def poly_zero_def fun_eq_iff)
 
 lemma degree_monom:
   assumes "a \<noteq> \<zero>"
   shows "degree (monom a n) = n"
-proof -
-  have support: "{i. monom a n i \<noteq> \<zero>} = {n}"
-    using assms by (auto simp: monom_def)
-  then show ?thesis by (simp add: degree_def)
-qed
+  using assms by (auto simp: monom_def degree_def)
+
+lemma degree_monom_le: "degree (monom a n) \<le> n"
+  using degree_monom degree_zero monom_eq_zero_iff by (metis dual_order.refl le0)
 
 lemma degree_poly_const:
   assumes "a \<noteq> \<zero>"
@@ -769,34 +718,22 @@ text \<open>In a nontrivial coefficient ring, the variable has degree one.  The 
 lemma degree_var:
   assumes "\<one> \<noteq> \<zero>"
   shows "degree X\<^sub>P = 1"
-proof -
-  have h: "degree (monom \<one> 1) = 1"
-  proof (rule degree_monom)
-    show "\<one> \<noteq> \<zero>" using assms .
-  qed
-  then show ?thesis by (simp add: var_def)
-qed
+  by (simp add: assms degree_monom var_def)
 
 text \<open>The product of two constants is the constant of the product.\<close>
 lemma poly_const_add:
   assumes a: "a \<in> R" and b: "b \<in> R"
   shows "poly_const a \<oplus>\<^sub>P poly_const b = poly_const (a + b)"
-proof
-  fix j
-  show "(poly_const a \<oplus>\<^sub>P poly_const b) j = poly_const (a + b) j"
-    by (cases "j = 0") (simp_all add: poly_add_def poly_const_def additive.left_unit)
-qed
+  using poly_add_def poly_const_def by fastforce
 
 lemma poly_const_mult:
   assumes a: "a \<in> R" and b: "b \<in> R"
   shows "poly_const a \<otimes>\<^sub>P poly_const b = poly_const (a \<cdot> b)"
 proof
   fix j
-  have "(poly_const a \<otimes>\<^sub>P poly_const b) j = a \<cdot> poly_const b j"
-    using coeff_monom_mult[OF a poly_const_closed[OF b], of 0 j]
-    by (simp add: monom_0_eq_const)
-  also have "\<dots> = poly_const (a \<cdot> b) j" using a by (simp add: poly_const_def)
-  finally show "(poly_const a \<otimes>\<^sub>P poly_const b) j = poly_const (a \<cdot> b) j" .
+  show "(poly_const a \<otimes>\<^sub>P poly_const b) j = poly_const (a \<cdot> b) j" 
+    using coeff_monom_mult[OF a poly_const_closed[OF b], of 0] a
+    by (simp add: monom_0_eq_const poly_const_def)
 qed
 
 text \<open>A polynomial of degree @{text 0} is the constant given by its zeroth coefficient.\<close>
@@ -872,9 +809,8 @@ lemma degree_mult_le:
 proof (rule degree_leI)
   show "p \<otimes>\<^sub>P q \<in> poly_carrier" using assms by (rule poly_mult_closed)
   fix i assume i: "i > degree p + degree q"
-  \<comment> \<open>Each convolution term @{text "p j \<cdot> q (i - j)"} vanishes: either @{text "j > degree p"}
-      or @{text "i - j > degree q"}.\<close>
   have "p j \<cdot> q (i - j) = \<zero>" if "j \<in> {..i}" for j
+    using i p q coeff_gt_degree
   proof (cases "j > degree p")
     case True
     then show ?thesis using q coeff_gt_degree[OF p]
@@ -976,12 +912,12 @@ lemma eval_add:
   assumes p: "p \<in> poly_carrier" and q: "q \<in> poly_carrier" and a: "a \<in> R"
   shows "eval a (p \<oplus>\<^sub>P q) = eval a p + eval a q"
 proof -
-  define n where "n = max (degree p) (degree q)"
+  define n where "n \<equiv> max (degree p) (degree q)"
   have pq: "p \<oplus>\<^sub>P q \<in> poly_carrier" using p q by (rule poly_add_closed)
   have dpq: "degree (p \<oplus>\<^sub>P q) \<le> n" unfolding n_def using degree_add_le[OF p q] .
   have pi: "\<And>i. p i \<in> R" and qi: "\<And>i. q i \<in> R" using p q by (auto simp: poly_carrier_coeff_closed)
   have "eval a (p \<oplus>\<^sub>P q) = additive.fincomp (\<lambda>i. (p i + q i) \<cdot> rpow a i) {..n}"
-    using eval_fincomp_le[OF pq a dpq] by (simp add: poly_add_def)
+    using eval_fincomp_le[OF pq a dpq] by (simp add: poly_add_closed poly_add_def)
   also have "\<dots> = additive.fincomp (\<lambda>i. p i \<cdot> rpow a i) {..n}
                   + additive.fincomp (\<lambda>i. q i \<cdot> rpow a i) {..n}"
     by (simp add: a additive.fincomp_comp distributive(2) pi qi)
@@ -1005,37 +941,24 @@ proof -
 qed
 
 text \<open>Evaluation of the variable @{term "X\<^sub>P"} returns the point itself.\<close>
-text \<open>Powers of the variable are the monic monomials, and a constant times a monic monomial is the
-  monomial with that coefficient.  These are the two computations behind expanding a polynomial into
-  its monomials.\<close>
-
 lemma poly_rpow_var: "Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P k = monom \<one> k"
 proof (induct k)
   case 0
   show ?case
     using Ring.rpow_0 [OF poly_ring, of X\<^sub>P] monom_0_eq_const [of \<one>] by simp
 next
-  case (Suc k)
-  have "Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P (Suc k)
-        = X\<^sub>P \<otimes>\<^sub>P Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P k"
-    by (rule Ring.rpow_Suc [OF poly_ring])
-  also have "\<dots> = X\<^sub>P \<otimes>\<^sub>P monom \<one> k" using Suc by simp
-  also have "\<dots> = monom \<one> (Suc k)" by (rule var_mult_monom) simp
-  finally show ?case .
+  case (Suc k) then show ?case
+    using multiplicative.unit_closed poly_ring var_mult_monom by (metis Ring.rpow_Suc)
 qed
 
 lemma poly_const_mult_monom:
   assumes c: "c \<in> R" shows "poly_const c \<otimes>\<^sub>P monom \<one> k = monom c k"
 proof
   fix j
-  have one: "\<one> \<in> R" by simp
-  have step: "(monom c 0 \<otimes>\<^sub>P monom \<one> k) j
-              = (if 0 \<le> j then c \<cdot> monom \<one> k (j - 0) else \<zero>)"
-    by (rule coeff_monom_mult [OF c monom_closed [OF one]])
   have "(poly_const c \<otimes>\<^sub>P monom \<one> k) j = c \<cdot> monom \<one> k j"
-    using step by (simp add: monom_0_eq_const)
-  also have "\<dots> = monom c k j" using c by (simp add: monom_def)
-  finally show "(poly_const c \<otimes>\<^sub>P monom \<one> k) j = monom c k j" .
+    using coeff_monom_mult [OF c monom_closed] by (simp flip: monom_0_eq_const)
+  then show "(poly_const c \<otimes>\<^sub>P monom \<one> k) j = monom c k j" 
+    using c by (simp add: monom_def)
 qed
 
 text \<open>\<^emph>\<open>Expanding a polynomial into its monomials.\<close>  Sums in the polynomial ring are pointwise, so
@@ -1045,46 +968,32 @@ text \<open>\<^emph>\<open>Expanding a polynomial into its monomials.\<close>  S
   constant lift at the variable with the polynomial itself.\<close>
 
 lemma poly_add_cmonoid: "commutative_monoid poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P"
-proof -
-  have "Abelian_Group poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P"
-    using poly_ring unfolding Ring_def by blast
-  then show ?thesis unfolding Abelian_Group_def by blast
-qed
+  using poly_ring by (meson Abelian_Group_def Ring_def)
 
 lemma poly_fincomp_apply:
   assumes f: "\<And>k. f k \<in> poly_carrier"
   shows "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f A j
        = additive.fincomp (\<lambda>k. f k j) A"
 proof (cases "finite A")
-  case False
-  then have "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f A = \<zero>\<^sub>P"
-    by (rule commutative_monoid.fincomp_infinite [OF poly_add_cmonoid])
-  moreover from False have "additive.fincomp (\<lambda>k. f k j) A = \<zero>" by simp
-  ultimately show ?thesis by (simp add: poly_zero_def)
+  case False then show ?thesis
+    using commutative_monoid.fincomp_infinite poly_add_cmonoid poly_zero_def by fastforce
 next
   case True
   then show ?thesis
   proof (induction A rule: finite_induct)
     case empty
-    have "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f {} = \<zero>\<^sub>P"
-      by (rule commutative_monoid.fincomp_empty [OF poly_add_cmonoid])
-    then show ?case by (simp add: poly_zero_def)
+    then show ?case
+      using additive.fincomp_empty poly_add_cmonoid poly_zero_def
+      by (metis commutative_monoid.fincomp_empty)
   next
     case (insert a A)
     have fA: "f \<in> A \<rightarrow> poly_carrier" and fa: "f a \<in> poly_carrier" using f by auto
-    have "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f (insert a A)
-          = f a \<oplus>\<^sub>P commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f A"
-      by (rule commutative_monoid.fincomp_insert
-                 [OF poly_add_cmonoid insert.hyps(1) insert.hyps(2) fA fa])
-    then have "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f (insert a A) j
-               = f a j + commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f A j"
-      by (simp add: poly_add_def)
+    have "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f (insert a A) j
+        = f a j + commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P f A j"
+      by (simp add: commutative_monoid.fincomp_insert f insert.hyps poly_add_cmonoid poly_add_def)
     also have "\<dots> = f a j + additive.fincomp (\<lambda>k. f k j) A" using insert.IH by simp
     also have "\<dots> = additive.fincomp (\<lambda>k. f k j) (insert a A)"
-    proof (rule additive.fincomp_insert [OF insert.hyps(1) insert.hyps(2), symmetric])
-      show "(\<lambda>k. f k j) \<in> A \<rightarrow> R" using f by (simp add: poly_carrier_coeff_closed)
-      show "f a j \<in> R" using f by (simp add: poly_carrier_coeff_closed)
-    qed
+      by (simp add: f insert.hyps poly_carrier_coeff_closed)
     finally show ?case .
   qed
 qed
@@ -1092,7 +1001,7 @@ qed
 lemma poly_sum_monom:
   assumes q: "q \<in> poly_carrier" and n: "degree q \<le> n"
   shows "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P (\<lambda>k. monom (q k) k) {..n} = q"
-proof (rule ext)
+proof 
   fix j
   have cl: "monom (q k) k \<in> poly_carrier" for k
     using q by (simp add: monom_closed poly_carrier_coeff_closed)
@@ -1101,31 +1010,19 @@ proof (rule ext)
         = additive.fincomp (\<lambda>k. monom (q k) k j) {..n}"
     by (rule poly_fincomp_apply [OF cl])
   also have "\<dots> = additive.fincomp (\<lambda>k. if k = j then (\<lambda>_. q j) k else \<zero>) {..n}"
-  proof (rule additive.fincomp_cong')
-    show "{..n} = {..n}" by rule
-    show "(\<lambda>k. if k = j then (\<lambda>_. q j) k else \<zero>) \<in> {..n} \<rightarrow> R"
-      using qjR by auto
-    show "\<And>i. i \<in> {..n} \<Longrightarrow> monom (q i) i j
-                = (if i = j then (\<lambda>_. q j) i else \<zero>)"
-      by (auto simp: monom_def)
-  qed
+    using qjR monom_def by (intro additive.fincomp_cong') auto
   also have "\<dots> = q j"
   proof (cases "j \<le> n")
     case True
-    show ?thesis
-    proof (rule additive.fincomp_singleton_swap)
-      show "j \<in> {..n}" using True by simp
-      show "finite {..n}" by simp
-      show "(\<lambda>_. q j) \<in> {..n} \<rightarrow> R" using qjR by blast
-    qed
+    with qjR show ?thesis
+      by (intro additive.fincomp_singleton_swap) auto
   next
     case False
     have "(if k = j then (\<lambda>_. q j) k else \<zero>) = \<zero>" if "k \<in> {..n}" for k
       using False that by auto
-    then have "additive.fincomp (\<lambda>k. if k = j then (\<lambda>_. q j) k else \<zero>) {..n} = \<zero>"
-      by (rule additive.fincomp_unit_eqI)
     moreover have "q j = \<zero>" using False n by (intro coeff_gt_degree [OF q]) simp
-    ultimately show ?thesis by simp
+    ultimately show ?thesis
+      using additive.fincomp_unit_eqI by fastforce
   qed
   finally show "commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P (\<lambda>k. monom (q k) k) {..n} j
                 = q j" .
@@ -1143,26 +1040,16 @@ proof -
   have supp: "{k. poly_const (q k) \<noteq> \<zero>\<^sub>P} = {k. q k \<noteq> \<zero>}"
     by (auto simp: poly_const_def poly_zero_def fun_eq_iff)
   have lift: "(\<lambda>k. poly_const (q k)) \<in> Ring.poly_carrier poly_carrier \<zero>\<^sub>P"
-  proof (rule Ring.poly_carrierI [OF poly_ring])
-    show "finite {i. poly_const (q i) \<noteq> \<zero>\<^sub>P}"
-      using poly_carrier_finite [OF q] supp by simp
-    show "\<And>i. poly_const (q i) \<in> poly_carrier" using coeffR by (blast intro: poly_const_closed)
-  qed
+    using poly_carrier_finite [OF q] supp
+    using coeffR poly_const_closed poly_ring by (metis Ring.poly_carrierI) 
   have deg: "Ring.degree \<zero>\<^sub>P (\<lambda>k. poly_const (q k)) = degree q"
     using Ring.degree_def [OF poly_ring, of "\<lambda>k. poly_const (q k)"] supp
     by (simp add: degree_def)
-  have summand: "poly_const (q k) \<otimes>\<^sub>P Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P k = monom (q k) k" for k
+  have "poly_const (q k) \<otimes>\<^sub>P Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P k = monom (q k) k" for k
     using poly_rpow_var [of k] poly_const_mult_monom [OF coeffR, of k] by simp
-  have "Ring.eval poly_carrier (\<oplus>\<^sub>P) (\<otimes>\<^sub>P) \<zero>\<^sub>P \<one>\<^sub>P X\<^sub>P (\<lambda>k. poly_const (q k))
-        = commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P
-            (\<lambda>k. poly_const (q k) \<otimes>\<^sub>P Ring.rpow (\<otimes>\<^sub>P) \<one>\<^sub>P X\<^sub>P k)
-            {..Ring.degree \<zero>\<^sub>P (\<lambda>k. poly_const (q k))}"
-    by (rule Ring.eval_def [OF poly_ring])
-  also have "\<dots> = commutative_monoid.fincomp poly_carrier (\<oplus>\<^sub>P) \<zero>\<^sub>P
-                    (\<lambda>k. monom (q k) k) {..degree q}"
-    using summand deg by simp
-  also have "\<dots> = q" by (rule poly_sum_monom [OF q order_refl])
-  finally show ?thesis .
+  then show ?thesis 
+    using Ring.eval_def [OF poly_ring] poly_sum_monom [OF q order_refl]
+    by (simp add: deg)
 qed
 
 lemma eval_var [simp]: "a \<in> R \<Longrightarrow> eval a X\<^sub>P = a"
@@ -1179,8 +1066,7 @@ subsection \<open>Evaluation along a ring homomorphism\<close>
 text \<open>Evaluating in the target, at the image of the point and with the images of the coefficients,
   gives the image of the evaluation.  Powers transport by induction on the exponent and the sum by
   @{thm [source] fincomp_hom}; the summation range is the only thing that does not come for free, so
-  the equality of the two degrees is taken as a hypothesis.  This is the fact HOL-Algebra obtains from
-  \<open>ring_hom_ring.eval_hom'\<close>.\<close>
+  the equality of the two degrees is taken as a hypothesis..\<close>
 lemma eval_hom:
   fixes A :: "'b set" and add mult :: "'b \<Rightarrow> 'b \<Rightarrow> 'b" and z u :: 'b
     and B :: "'c set" and badd bmult :: "'c \<Rightarrow> 'c \<Rightarrow> 'c" and bz bu :: 'c
@@ -1204,26 +1090,18 @@ proof -
   next
     case (Suc n)
     have cl: "Ring.rpow mult u x n \<in> A" by (rule Ring.rpow_closed [OF RA x])
-    have "Ring.rpow bmult bu (h x) (Suc n) = bmult (h x) (Ring.rpow bmult bu (h x) n)"
-      by (rule Ring.rpow_Suc [OF RB])
-    also have "\<dots> = bmult (h x) (h (Ring.rpow mult u x n))" using Suc by simp
-    also have "\<dots> = h (mult x (Ring.rpow mult u x n))" by (rule hmult [OF x cl, symmetric])
-    also have "\<dots> = h (Ring.rpow mult u x (Suc n))"
-      using Ring.rpow_Suc [OF RA, of x n] by simp
-    finally show ?case .
+    then show ?case
+      using Ring.rpow_Suc [OF RB] RA Suc hmult x by (metis Ring.rpow_Suc)
   qed
-  define kf where "kf = (\<lambda>i. mult (p i) (Ring.rpow mult u x i))"
+  define kf where "kf \<equiv> (\<lambda>i. mult (p i) (Ring.rpow mult u x i))"
   have kA: "kf i \<in> A" for i
     unfolding kf_def
     using p Ring.rpow_closed [OF RA x] Monoid.composition_closed [OF MonM] by blast
   have summand: "bmult (h (p i)) (Ring.rpow bmult bu (h x) i) = h (kf i)" for i
     unfolding kf_def using rp hmult [OF p Ring.rpow_closed [OF RA x]] by simp
-  have "Ring.eval B badd bmult bz bu (h x) (\<lambda>k. h (p k))
-        = commutative_monoid.fincomp B badd bz
-            (\<lambda>i. bmult (h (p i)) (Ring.rpow bmult bu (h x) i))
-            {..Ring.degree bz (\<lambda>k. h (p k))}"
-    by (rule Ring.eval_def [OF RB])
-  also have "\<dots> = commutative_monoid.fincomp B badd bz (\<lambda>i. h (kf i)) {..Ring.degree z p}"
+  have "commutative_monoid.fincomp B badd bz (\<lambda>i. bmult (h (p i)) (Ring.rpow bmult bu (h x) i))
+            {..Ring.degree bz (\<lambda>k. h (p k))} 
+      = commutative_monoid.fincomp B badd bz (\<lambda>i. h (kf i)) {..Ring.degree z p}"
     using summand deg by simp
   also have "\<dots> = h (commutative_monoid.fincomp A add z kf {..Ring.degree z p})"
   proof (rule fincomp_hom [OF cmA cmB, symmetric])
@@ -1234,7 +1112,8 @@ proof -
   qed
   also have "\<dots> = h (Ring.eval A add mult z u x p)"
     unfolding kf_def by (simp add: Ring.eval_def [OF RA, symmetric])
-  finally show ?thesis .
+  finally show ?thesis 
+    using Ring.eval_def [OF RB] by simp
 qed
 
 text \<open>When the map is injective on the source and the target is exactly the image, the degree
@@ -1270,17 +1149,14 @@ proof (rule eval_hom [OF RA RK])
 qed
 
 
-
-
 section \<open>Polynomials over a Commutative Ring (continued): evaluation is multiplicative\<close>
 
 context commutative_ring
 begin
 
 text \<open>\<^emph>\<open>Evaluation is multiplicative.\<close>  This needs commutativity (the point and the coefficients
-  must commute), so it lives here rather than in the bare @{locale Ring}.  The proof mirrors
-  @{thm [source] poly_mult_assoc}: expand both sides to sums over a triangle of index pairs and
-  reindex by @{text "(k,i) \<mapsto> (i, k - i)"}.\<close>
+  must commute).  The proof mirrors @{thm [source] poly_mult_assoc}: expand both sides to sums 
+  over a triangle of index pairs and reindex by @{text "(k,i) \<mapsto> (i, k - i)"}.\<close>
 lemma eval_mult:
   assumes p: "p \<in> poly_carrier" and q: "q \<in> poly_carrier" and a: "a \<in> R"
   shows "eval a (p \<otimes>\<^sub>P q) = eval a p \<cdot> eval a q"
@@ -1294,14 +1170,8 @@ proof -
     using eval_fincomp_le[OF pq a dpq] .
   also have "\<dots> = additive.fincomp
                     (\<lambda>k. additive.fincomp (\<lambda>i. (p i \<cdot> q (k - i)) \<cdot> rpow a k) {..k}) {..N}"
-  proof (rule additive.fincomp_cong')
-    fix k assume "k \<in> {..N}"
-    have "(p \<otimes>\<^sub>P q) k \<cdot> rpow a k = additive.fincomp (\<lambda>i. p i \<cdot> q (k - i)) {..k} \<cdot> rpow a k"
-      by (simp add: poly_mult_def)
-    also have "\<dots> = additive.fincomp (\<lambda>i. (p i \<cdot> q (k - i)) \<cdot> rpow a k) {..k}"
-      by (rule fincomp_mult_distrib_right) (use pi qi a in auto)
-    finally show "(p \<otimes>\<^sub>P q) k \<cdot> rpow a k = additive.fincomp (\<lambda>i. (p i \<cdot> q (k - i)) \<cdot> rpow a k) {..k}" .
-  qed (use pi qi a additive.fincomp_closed in auto)
+    unfolding poly_mult_def
+    using pi qi a by (auto intro!: additive.fincomp_cong' fincomp_mult_distrib_right)
   also have "\<dots> = additive.fincomp (\<lambda>x. (p (snd x) \<cdot> q (fst x - snd x)) \<cdot> rpow a (fst x))
                     (Sigma {..N} (\<lambda>k. {..k}))"
     by (rule fincomp_Sigma) (use pi qi a in auto)
@@ -1315,16 +1185,12 @@ proof -
   also have "\<dots> = additive.fincomp
                     (\<lambda>i. additive.fincomp (\<lambda>j. (p i \<cdot> rpow a i) \<cdot> (q j \<cdot> rpow a j)) {..degree q})
                     {..degree p}"
-  proof (rule additive.fincomp_cong')
-    fix i assume "i \<in> {..degree p}"
-    show "(p i \<cdot> rpow a i) \<cdot> eval a q
-            = additive.fincomp (\<lambda>j. (p i \<cdot> rpow a i) \<cdot> (q j \<cdot> rpow a j)) {..degree q}"
-      unfolding eval_def by (rule fincomp_mult_distrib_left) (use pi qi a in auto)
-  qed (use pi qi a additive.fincomp_closed in auto)
+    unfolding eval_def using pi qi a additive.fincomp_closed
+    by (auto simp: intro!: additive.fincomp_cong' fincomp_mult_distrib_left)
   also have "\<dots> = additive.fincomp
                     (\<lambda>x. (p (fst x) \<cdot> rpow a (fst x)) \<cdot> (q (snd x) \<cdot> rpow a (snd x)))
                     (Sigma {..degree p} (\<lambda>i. {..degree q}))"
-    by (rule fincomp_Sigma) (use pi qi a in auto)
+    by (intro fincomp_Sigma) (use pi qi a in auto)
   finally have RHS: "eval a p \<cdot> eval a q
         = additive.fincomp (\<lambda>x. (p (fst x) \<cdot> rpow a (fst x)) \<cdot> (q (snd x) \<cdot> rpow a (snd x)))
             (Sigma {..degree p} (\<lambda>i. {..degree q}))" .
@@ -1339,45 +1205,23 @@ proof -
   \<comment> \<open>And the RHS summand likewise, with @{text "(i,j) = (fst x, snd x)"}.\<close>
   have RHS': "additive.fincomp (\<lambda>x. (p (fst x) \<cdot> rpow a (fst x)) \<cdot> (q (snd x) \<cdot> rpow a (snd x))) ?S
              = additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?S"
-  proof (rule additive.fincomp_cong')
-    fix x assume "x \<in> ?S"
-    define P A1 Q A2 where "P = p (fst x)" and "A1 = rpow a (fst x)"
-      and "Q = q (snd x)" and "A2 = rpow a (snd x)"
-    have PR: "P \<in> R" and A1R: "A1 \<in> R" and QR: "Q \<in> R" and A2R: "A2 \<in> R"
-      using pi qi a by (auto simp: P_def A1_def Q_def A2_def)
-    \<comment> \<open>@{text "(P\<cdot>A1)\<cdot>(Q\<cdot>A2) = (P\<cdot>Q)\<cdot>(A1\<cdot>A2)"} by associativity and commuting @{text "A1"} past @{text "Q"}.\<close>
-    have "(P \<cdot> A1) \<cdot> (Q \<cdot> A2) = (P \<cdot> Q) \<cdot> (A1 \<cdot> A2)"
-      by (simp add: A1R A2R PR QR multiplicative.associative multiplicative.left_commute)
-    then have "(p (fst x) \<cdot> rpow a (fst x)) \<cdot> (q (snd x) \<cdot> rpow a (snd x))
-                 = (p (fst x) \<cdot> q (snd x)) \<cdot> (rpow a (fst x) \<cdot> rpow a (snd x))"
-      by (simp add: P_def A1_def Q_def A2_def)
-    also have "\<dots> = ?G (fst x) (snd x)" using a by (simp add: rpow_add)
-    finally show "(p (fst x) \<cdot> rpow a (fst x)) \<cdot> (q (snd x) \<cdot> rpow a (snd x))
-                    = ?G (fst x) (snd x)" .
-  qed (use pi qi a in auto)
+    by (simp add: a multiplicative.associative multiplicative.left_commute pi qi rpow_add)
   \<comment> \<open>The rectangle \<open>?S\<close> sits inside the larger triangle \<open>?U\<close>; the extra summands of \<open>?U\<close>
       vanish, since \<open>p i = \<zero>\<close> for \<open>i > degree p\<close> and likewise \<open>q\<close>.  So the sum over \<open>?S\<close>
       equals the sum over \<open>?U\<close>.\<close>
   let ?U = "Sigma {..N} (\<lambda>i. {..N - i})"
   have GR: "\<And>i j. ?G i j \<in> R" using pi qi a by simp
-  have G_eq_S: "additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?S
-                = additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?U"
+  have G_eq_S: "additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?S = additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?U"
   proof -
-    have Ssub: "?S \<subseteq> ?U" unfolding N_def by (auto simp del: split_paired_All)
-    have finU: "finite ?U" by simp
-    have vanish: "?G (fst x) (snd x) = \<zero>" if "x \<in> ?U - ?S" for x
+    have "?G (fst x) (snd x) = \<zero>" if "x \<in> ?U - ?S" for x
     proof -
-      from that have "x \<notin> ?S" by simp
-      then have "p (fst x) = \<zero> \<or> q (snd x) = \<zero>"
-        using coeff_gt_degree[OF p] coeff_gt_degree[OF q] by (auto simp: mem_Times_iff)
+      have "p (fst x) = \<zero> \<or> q (snd x) = \<zero>"
+        using that coeff_gt_degree[OF p] coeff_gt_degree[OF q] by (auto simp: mem_Times_iff)
       then show ?thesis
         using a left_zero pi qi right_zero rpow_closed by presburger
     qed
-    have "additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?U
-          = additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?S"
-      by (rule additive.fincomp_mono_neutral_cong_right[OF finU Ssub])
-         (use vanish GR in auto)
-    then show ?thesis ..
+    with GR N_def show ?thesis      
+      by (intro additive.fincomp_mono_neutral_cong_left) auto
   qed
   \<comment> \<open>Reindex the LHS triangle @{term ?T} to @{term ?U} by @{text "(k,i) \<mapsto> (i, k - i)"} --- the
       same bijection used for associativity of convolution.\<close>
@@ -1390,7 +1234,6 @@ proof -
     using bij bij_betw_imp_surj_on by fastforce
   also have "\<dots> = additive.fincomp (\<lambda>x. ?G (fst (?h x)) (snd (?h x))) ?T"
     using bij bij_betw_def GR by (intro additive.fincomp_reindex) auto
-  also have "\<dots> = additive.fincomp (\<lambda>x. ?G (snd x) (fst x - snd x)) ?T" by simp
   finally have "additive.fincomp (\<lambda>x. ?G (fst x) (snd x)) ?S
                 = additive.fincomp (\<lambda>x. ?G (snd x) (fst x - snd x)) ?T"
     using G_eq_S by simp
@@ -1410,7 +1253,7 @@ qed
 
 text \<open>The linear polynomial @{text "X - a"} (a root factor).\<close>
 definition root_factor :: "'a \<Rightarrow> (nat \<Rightarrow> 'a)"
-  where "root_factor a = X\<^sub>P \<oplus>\<^sub>P (\<ominus>\<^sub>P poly_const a)"
+  where "root_factor a \<equiv> X\<^sub>P \<oplus>\<^sub>P (\<ominus>\<^sub>P poly_const a)"
 
 lemma root_factor_closed: "a \<in> R \<Longrightarrow> root_factor a \<in> poly_carrier"
   unfolding root_factor_def using var_closed poly_const_closed poly_neg_closed by (simp add: poly_add_closed)
@@ -1437,16 +1280,17 @@ lemma poly_mult_comm:
 proof
   fix k
   have inj: "inj_on (\<lambda>i. k - i) {..k::nat}"
-    by (metis atMost_iff diff_diff_cancel inj_on_inverseI)
-  have img: "(\<lambda>i. k - i) ` {..k} = {..k::nat}"
-    by (auto simp: image_def) (metis atMost_iff diff_diff_cancel diff_le_self)
+    unfolding atMost_iff image_def Ball_def set_eq_iff inj_on_def
+    by presburger
+  have  inj: "inj_on (\<lambda>i. k - i) {..k::nat}" and img: "(\<lambda>i. k - i) ` {..k} = {..k::nat}"
+    unfolding inj_on_def atMost_iff image_def Bex_def Ball_def set_eq_iff mem_Collect_eq
+    by presburger+
   have pi: "\<And>i. p i \<in> R" and qi: "\<And>i. q i \<in> R"
     using p q by (auto simp: poly_carrier_coeff_closed)
   have "(p \<otimes>\<^sub>P q) k = additive.fincomp (\<lambda>i. q (k - i) \<cdot> p i) ((\<lambda>i. k - i) ` {..k})"
     using img multiplicative.commutative pi poly_mult_def qi by presburger
   also have "\<dots> = additive.fincomp (\<lambda>i. q (k - (k - i)) \<cdot> p (k - i)) {..k}"
-    by (rule additive.fincomp_reindex[where h = "\<lambda>i. k - i" and A = "{..k}"])
-      (use pi qi inj in auto)
+    using additive.fincomp_reindex[where h = "\<lambda>i. k - i" and A = "{..k}"] pi qi inj by auto
   also have "\<dots> = additive.fincomp (\<lambda>i. q i \<cdot> p (k - i)) {..k}"
     by (rule additive.fincomp_cong') (use pi qi in auto)
   also have "\<dots> = (q \<otimes>\<^sub>P p) k" by (simp add: poly_mult_def)
@@ -1470,35 +1314,27 @@ section \<open>Polynomials over an Integral Domain\<close>
 context integral_domain
 begin
 
+text\<open>The leading coefficients are nonzero, and a domain has no zero divisors, so the
+      product's coefficient at @{text "degree p + degree q"} is nonzero.\<close>
 lemma degree_mult:
   assumes p: "p \<in> poly_carrier" and q: "q \<in> poly_carrier"
     and pnz: "p \<noteq> \<zero>\<^sub>P" and qnz: "q \<noteq> \<zero>\<^sub>P"
   shows "degree (p \<otimes>\<^sub>P q) = degree p + degree q"
 proof (rule antisym)
-  show "degree (p \<otimes>\<^sub>P q) \<le> degree p + degree q" using p q by (rule degree_mult_le)
-next
-  \<comment> \<open>The leading coefficients are nonzero, and a domain has no zero divisors, so the
-      product's coefficient at @{text "degree p + degree q"} is nonzero.\<close>
   have "p (degree p) \<cdot> q (degree q) \<noteq> \<zero>"
     by (metis coeff_degree_nonzero local.no_zero_divisors poly_carrier_coeff_closed assms)
   then have "(p \<otimes>\<^sub>P q) (degree p + degree q) \<noteq> \<zero>"
     using coeff_mult_degree_add[OF p q] by simp
   then show "degree p + degree q \<le> degree (p \<otimes>\<^sub>P q)"
     by (meson coeff_gt_degree linorder_not_le p poly_mult_closed q)
-qed
+qed (simp add: degree_mult_le p q)
 
 text \<open>Multiplication by a nonzero monomial shifts the degree by its exponent.\<close>
 lemma degree_monom_mult:
   assumes c: "c \<in> R" and b: "b \<in> poly_carrier"
     and cnz: "c \<noteq> \<zero>" and bnz: "b \<noteq> \<zero>\<^sub>P"
   shows "degree (monom c n \<otimes>\<^sub>P b) = n + degree b"
-proof -
-  have mc: "monom c n \<in> poly_carrier" using c by (rule monom_closed)
-  have mnz: "monom c n \<noteq> \<zero>\<^sub>P" using cnz by simp
-  have "degree (monom c n \<otimes>\<^sub>P b) = degree (monom c n) + degree b"
-    using degree_mult[OF mc b mnz bnz] .
-  then show ?thesis using degree_monom[OF cnz] by simp
-qed
+  by (simp add: b bnz c cnz degree_monom degree_mult monom_closed)
 
 text \<open>Hence the polynomial ring over an integral domain has no zero divisors.\<close>
 lemma poly_no_zero_divisors:
@@ -1514,21 +1350,17 @@ proof (rule ccontr)
 qed
 
 
-text \<open>Hence @{text "R[X]"} is itself an integral domain.  Stated here, in the
-  @{locale integral_domain} context, rather than for a field base: the proof needs only
-  @{thm [source] nontrivial} and @{thm [source] poly_no_zero_divisors}, both available already.
-  That matters for iterating the construction --- @{text "R[X][Y]"} is a domain whenever
-  @{term R} is --- which is what a multivariate polynomial ring over a domain amounts to on
-  this representation.\<close>
+text \<open>Hence @{text "R[X]"} is itself an integral domain. .\<close>
 theorem poly_integral_domain:
   "integral_domain poly_carrier (\<oplus>\<^sub>P) (\<otimes>\<^sub>P) \<zero>\<^sub>P \<one>\<^sub>P"
 proof -
   interpret comm: commutative_ring poly_carrier "(\<oplus>\<^sub>P)" "(\<otimes>\<^sub>P)" "\<zero>\<^sub>P" "\<one>\<^sub>P"
     by (rule poly_commutative_ring)
-  have nt: "\<one>\<^sub>P \<noteq> \<zero>\<^sub>P"
-    by (metis nontrivial poly_one_def poly_zero_def)
-  then show ?thesis
-    by unfold_locales (use nt poly_no_zero_divisors in blast)+
+  show ?thesis
+  proof
+    show nt: "\<one>\<^sub>P \<noteq> \<zero>\<^sub>P"
+      by (metis nontrivial poly_one_def poly_zero_def)
+  qed (simp add: poly_no_zero_divisors)
 qed
 
 end
@@ -1578,9 +1410,10 @@ text \<open>A polynomial is \<^emph>\<open>irreducible\<close> when it is a non-
   has a unit factor.  Over a field this excludes the units (the nonzero constants) and the
   zero polynomial, matching the usual notion for @{text "F[X]"}.\<close>
 definition poly_irreducible :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "poly_irreducible p \<longleftrightarrow> p \<in> poly_carrier \<and> p \<noteq> \<zero>\<^sub>P \<and> \<not> poly_unit p
-            \<and> (\<forall>a b. a \<in> poly_carrier \<longrightarrow> b \<in> poly_carrier \<longrightarrow> p = a \<otimes>\<^sub>P b
-                    \<longrightarrow> poly_unit a \<or> poly_unit b)"
+  where "poly_irreducible p \<equiv> 
+           p \<in> poly_carrier \<and> p \<noteq> \<zero>\<^sub>P \<and> \<not> poly_unit p
+              \<and> (\<forall>a b. a \<in> poly_carrier \<longrightarrow> b \<in> poly_carrier \<longrightarrow> p = a \<otimes>\<^sub>P b
+                       \<longrightarrow> poly_unit a \<or> poly_unit b)"
 
 lemma poly_irreducibleD_carrier: "poly_irreducible p \<Longrightarrow> p \<in> poly_carrier"
   unfolding poly_irreducible_def by blast
@@ -1602,26 +1435,18 @@ text \<open>An irreducible polynomial is nonconstant: a nonzero constant is a un
 lemma poly_irreducible_degree_pos:
   assumes irr: "poly_irreducible p" shows "0 < degree p"
 proof (rule ccontr)
-  assume "\<not> 0 < degree p"
-  then have d0: "degree p = 0" by simp
+  assume non: "\<not> 0 < degree p"
   have pc: "p \<in> poly_carrier" using irr by (rule poly_irreducibleD_carrier)
-  have pnz: "p \<noteq> \<zero>\<^sub>P" using irr by (rule poly_irreducibleD_nonzero)
-  have low: "p \<in> low_poly 1" using pc d0 by (simp add: low_poly_iff_degree)
   have const: "p = poly_const (p 0)"
-  proof (rule ext)
-    fix i show "p i = poly_const (p 0) i"
-      using low_poly_coeff [OF low] by (cases i) (simp_all add: poly_const_def)
-  qed
+    using non degree_zero_imp_const pc by blast
   have nz: "p 0 \<noteq> \<zero>"
-  proof
-    assume "p 0 = \<zero>"
-    with const have "p = \<zero>\<^sub>P" by (simp add: poly_const_def poly_zero_def)
-    with pnz show False ..
-  qed
+    using const irr poly_const_zero poly_irreducibleD_nonzero by force
   have "poly_unit p"
     using const poly_const_unit [OF poly_carrier_coeff_closed [OF pc] nz] by simp
   with poly_irreducibleD_nonunit [OF irr] show False ..
 qed
+
+interpretation Ring_R: Ring R "addition" "(\<cdot>)" \<zero> \<one> ..
 
 text \<open>The reduction step of the division algorithm: when @{term "degree b \<le> degree a"} and both
   are nonzero, subtracting the appropriate monomial multiple of @{term b} cancels the leading
@@ -1632,34 +1457,32 @@ lemma div_step:
   obtains m where "m \<in> poly_carrier" "degree m = degree a - degree b"
     and "a \<oplus>\<^sub>P (\<ominus>\<^sub>P (m \<otimes>\<^sub>P b)) = \<zero>\<^sub>P \<or> degree (a \<oplus>\<^sub>P (\<ominus>\<^sub>P (m \<otimes>\<^sub>P b))) < degree a"
 proof -
-  define c where "c = lead_coeff a \<cdot> multiplicative.inverse (lead_coeff b)"
-  define k where "k = degree a - degree b"
-  have la: "lead_coeff a \<noteq> \<zero>" using a anz by (rule lead_coeff_nonzero)
-  have lb: "lead_coeff b \<noteq> \<zero>" using b bnz by (rule lead_coeff_nonzero)
-  have laR: "lead_coeff a \<in> R" using a by (simp add: lead_coeff_def poly_carrier_coeff_closed)
-  have lbR: "lead_coeff b \<in> R" using b by (simp add: lead_coeff_def poly_carrier_coeff_closed)
-  have invb: "multiplicative.invertible (lead_coeff b)" using lbR lb by (rule field_inverse)
+  define c where "c \<equiv>  lead_coeff a \<cdot> multiplicative.inverse (lead_coeff b)"
+  define k where "k \<equiv> degree a - degree b"
+  have laR: "lead_coeff a \<in> R" and lbR: "lead_coeff b \<in> R"
+    using a b by (simp_all add: lead_coeff_def poly_carrier_coeff_closed)
+  have invb: "multiplicative.invertible (lead_coeff b)"
+    by (simp add: b bnz field_inverse lbR lead_coeff_nonzero)
   have ibR: "multiplicative.inverse (lead_coeff b) \<in> R" using lbR invb by simp
-  have cR: "c \<in> R" unfolding c_def using laR ibR by simp
   have ib_nz: "multiplicative.inverse (lead_coeff b) \<noteq> \<zero>"
     using invb lbR multiplicative.invertible_right_inverse nontrivial right_zero by moura
   have cnz: "c \<noteq> \<zero>"
-    using c_def ibR ib_nz la laR local.no_zero_divisors by auto
+    using a anz c_def ibR ib_nz laR lead_coeff_nonzero local.no_zero_divisors by auto
   define m where "m = monom c k"
-  have mc: "m \<in> poly_carrier" unfolding m_def using cR by (rule monom_closed)
+  have mc: "m \<in> poly_carrier"
+    by (simp add: c_def ibR laR m_def monom_closed)
   have mk: "m k \<noteq> \<zero>" unfolding m_def monom_def using cnz by simp
   \<comment> \<open>@{term m} has degree exactly @{term k}.\<close>
   have degm: "degree m = k"
     using coeff_gt_degree degree_monom_le le_neq_implies_less m_def mc mk by blast
-  have mnz: "m \<noteq> \<zero>\<^sub>P" using mk by (auto simp: poly_zero_def)
   have mbc: "m \<otimes>\<^sub>P b \<in> poly_carrier" using mc b by (rule poly_mult_closed)
   \<comment> \<open>The product @{term "m \<otimes>\<^sub>P b"} has degree @{term "degree a"} and matching leading term.\<close>
   have degmb: "degree (m \<otimes>\<^sub>P b) = degree a"
-    using degree_mult[OF mc b mnz bnz] degm ge by (simp add: k_def)
+    using b bnz cnz degm degree_mult ge k_def m_def mc by fastforce
   have lead_mb: "(m \<otimes>\<^sub>P b) (degree a) = lead_coeff a"
     using coeff_mult_degree_add[OF mc b] invb degm ge k_def laR lbR m_def 
     by (force simp: c_def multiplicative.associative lead_coeff_def monom_def)
-  define d where "d = a \<oplus>\<^sub>P (\<ominus>\<^sub>P (m \<otimes>\<^sub>P b))"
+  define d where "d \<equiv> a \<oplus>\<^sub>P (\<ominus>\<^sub>P (m \<otimes>\<^sub>P b))"
   have dc: "d \<in> poly_carrier" unfolding d_def using a mbc poly_neg_closed poly_add_closed by simp
   \<comment> \<open>The difference is zero or has strictly smaller degree, since its top coefficient cancels.\<close>
   have "d = \<zero>\<^sub>P \<or> degree d < degree a"
@@ -1794,7 +1617,7 @@ proof
       case False
       \<comment> \<open>@{term dr} is nonzero, so @{term "degree b > 0"} (else both remainders vanish).\<close>
       have bpos: "degree b > 0"
-        using False assms(10,8) dr_def poly_add_neg_right r2 by force
+        using False d1 d2 dr_def poly_add_neg_right r2 by force
       have r1b: "degree r1 < degree b" using d1 bpos by auto
       have r2b: "degree r2 < degree b" using d2 bpos by auto
       have "degree dr \<le> max (degree r2) (degree (\<ominus>\<^sub>P r1))"
@@ -1911,38 +1734,19 @@ proof -
     \<comment> \<open>Not both remainders vanish, so @{term b} has positive degree, and then a vanishing
         remainder has degree below it as well.\<close>
     have dpos: "0 < degree b"
-    proof (cases "pmod a b = \<zero>\<^sub>P")
-      case True
-      then have "pmod a' b \<noteq> \<zero>\<^sub>P" using False r' by (simp add: poly_add_zero)
-      then show ?thesis using pmod_degree [OF a' b bnz] by auto
-    next
-      case False
-      then show ?thesis using pmod_degree [OF a b bnz] by auto
-    qed
+      using pmod_degree [OF _ b bnz] False a a' poly_add_zero poly_zero_closed by fastforce 
     have dr: "degree (pmod a b) < degree b" and dr': "degree (pmod a' b) < degree b"
-      using pmod_degree [OF a b bnz] pmod_degree [OF a' b bnz] dpos by auto
-    have "degree (pmod a b \<oplus>\<^sub>P pmod a' b) \<le> max (degree (pmod a b)) (degree (pmod a' b))"
-      by (rule degree_add_le [OF r r'])
-    with dr dr' have "degree (pmod a b \<oplus>\<^sub>P pmod a' b) < degree b" by simp
-    then show ?thesis by blast
+      using a a' b dpos pmod_spec by fastforce+
+    then show ?thesis
+      using low_poly_add_closed low_poly_iff_degree r r' rr' by meson
   qed simp
   \<comment> \<open>Reduce the left summand, then the right, as \<open>pmod_mult\<close> below does for a product; each step
       only moves a multiple of @{term b}.  The sum of the remainders is then its own remainder.\<close>
   have step1: "a \<oplus>\<^sub>P a' = (b \<otimes>\<^sub>P q) \<oplus>\<^sub>P (pmod a b \<oplus>\<^sub>P a')"
-    using aeq poly_add_assoc [OF poly_mult_closed [OF b q] r a'] by simp
-  have step2: "pmod a b \<oplus>\<^sub>P a' = (b \<otimes>\<^sub>P q') \<oplus>\<^sub>P (pmod a b \<oplus>\<^sub>P pmod a' b)"
-  proof -
-    have bq': "b \<otimes>\<^sub>P q' \<in> poly_carrier" using b q' by (rule poly_mult_closed)
-    have "pmod a b \<oplus>\<^sub>P a' = pmod a b \<oplus>\<^sub>P ((b \<otimes>\<^sub>P q') \<oplus>\<^sub>P pmod a' b)"
-      using a'eq by simp
-    also have "\<dots> = (pmod a b \<oplus>\<^sub>P (b \<otimes>\<^sub>P q')) \<oplus>\<^sub>P pmod a' b"
-      by (rule poly_add_assoc [OF r bq' r', symmetric])
-    also have "\<dots> = ((b \<otimes>\<^sub>P q') \<oplus>\<^sub>P pmod a b) \<oplus>\<^sub>P pmod a' b"
-      using poly_add_comm [OF r bq'] by simp
-    also have "\<dots> = (b \<otimes>\<^sub>P q') \<oplus>\<^sub>P (pmod a b \<oplus>\<^sub>P pmod a' b)"
-      by (rule poly_add_assoc [OF bq' r r'])
-    finally show ?thesis .
-  qed
+    using a' aeq b poly_add_assoc poly_mult_closed q r by metis
+  have "b \<otimes>\<^sub>P q' \<in> poly_carrier" using b q' by (rule poly_mult_closed)
+  then have step2: "pmod a b \<oplus>\<^sub>P a' = (b \<otimes>\<^sub>P q') \<oplus>\<^sub>P (pmod a b \<oplus>\<^sub>P pmod a' b)"
+    using a'eq poly_add_assoc poly_add_comm r r' by metis
   have "pmod (a \<oplus>\<^sub>P a') b = pmod (pmod a b \<oplus>\<^sub>P a') b"
     using step1 pmod_shift [OF poly_add_closed [OF r a'] q b bnz] by simp
   also have "\<dots> = pmod (pmod a b \<oplus>\<^sub>P pmod a' b) b"
@@ -1964,29 +1768,18 @@ proof -
   obtain q' where q': "q' \<in> poly_carrier" and a'eq: "a' = (b \<otimes>\<^sub>P q') \<oplus>\<^sub>P pmod a' b"
     using pmod_spec [OF a' b bnz] by blast
   have r: "pmod a b \<in> poly_carrier" and r': "pmod a' b \<in> poly_carrier"
-    using pmod_closed [OF a b bnz] pmod_closed [OF a' b bnz] by blast+
-  \<comment> \<open>Reduce the left factor, then the right; each step only moves a multiple of @{term b}.\<close>
-  have step1: "a \<otimes>\<^sub>P a' = (b \<otimes>\<^sub>P (q \<otimes>\<^sub>P a')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P a')"
-  proof -
-    have "a \<otimes>\<^sub>P a' = ((b \<otimes>\<^sub>P q) \<otimes>\<^sub>P a') \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P a')"
-      using aeq poly_mult_add_distrib_right [OF a' poly_mult_closed [OF b q] r] by simp
-    also have "\<dots> = (b \<otimes>\<^sub>P (q \<otimes>\<^sub>P a')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P a')"
-      using poly_mult_assoc [OF b q a'] by simp
-    finally show ?thesis .
-  qed
-  have step2: "pmod a b \<otimes>\<^sub>P a' = (b \<otimes>\<^sub>P (pmod a b \<otimes>\<^sub>P q')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P pmod a' b)"
-  proof -
-    have "pmod a b \<otimes>\<^sub>P a' = (pmod a b \<otimes>\<^sub>P (b \<otimes>\<^sub>P q')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P pmod a' b)"
-      using a'eq poly_mult_add_distrib_left [OF r poly_mult_closed [OF b q'] r'] by simp
-    also have "pmod a b \<otimes>\<^sub>P (b \<otimes>\<^sub>P q') = b \<otimes>\<^sub>P (pmod a b \<otimes>\<^sub>P q')"
-      using b q' r by (metis poly_mult_assoc poly_mult_comm)
-    finally show ?thesis .
-  qed
-  have "pmod (a \<otimes>\<^sub>P a') b = pmod (pmod a b \<otimes>\<^sub>P a') b"
-    using step1 pmod_shift [OF poly_mult_closed [OF r a'] poly_mult_closed [OF q a'] b bnz] by simp
-  also have "\<dots> = pmod (pmod a b \<otimes>\<^sub>P pmod a' b) b"
-    using step2 pmod_shift [OF poly_mult_closed [OF r r'] poly_mult_closed [OF r q'] b bnz] by simp
-  finally show ?thesis .
+    using pmod_closed [OF _ b bnz] a a' by blast+
+      \<comment> \<open>Reduce the left factor, then the right; each step only moves a multiple of @{term b}.\<close>
+  have "a \<otimes>\<^sub>P a' = ((b \<otimes>\<^sub>P q) \<otimes>\<^sub>P a') \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P a')"
+    using aeq poly_mult_add_distrib_right [OF a' poly_mult_closed [OF b q] r] by simp
+  then have step1: "a \<otimes>\<^sub>P a' = (b \<otimes>\<^sub>P (q \<otimes>\<^sub>P a')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P a')"
+    by (simp add: a' b poly_mult_assoc q)
+  have "pmod a b \<otimes>\<^sub>P a' = (pmod a b \<otimes>\<^sub>P (b \<otimes>\<^sub>P q')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P pmod a' b)"
+    using a'eq poly_mult_add_distrib_left [OF r poly_mult_closed [OF b q'] r'] by simp
+  then have step2: "pmod a b \<otimes>\<^sub>P a' = (b \<otimes>\<^sub>P (pmod a b \<otimes>\<^sub>P q')) \<oplus>\<^sub>P (pmod a b \<otimes>\<^sub>P pmod a' b)"
+    using b poly_mult_assoc poly_mult_comm q' r by metis
+  show ?thesis
+    using step1 step2 a' b bnz pmod_shift poly_mult_closed q q' r r' by metis
 qed
 
 subsection \<open>The factor theorem\<close>
@@ -2001,7 +1794,6 @@ proof (rule antisym)
   show "degree (root_factor a) \<le> 1"
     using a rf unfolding root_factor_def poly_const_def
     by (intro degree_leI) (auto simp: poly_add_def poly_neg_def coeff_var poly_const_def)
-  \<comment> \<open>The degree-1 coefficient is @{term \<one>}, which is nonzero.\<close>
   have "root_factor a 1 = \<one>"
     using a poly_const_def coeff_var poly_add_def poly_neg_def root_factor_def by fastforce
   then show "1 \<le> degree (root_factor a)"
@@ -2022,8 +1814,8 @@ proof
     using a eval_mult root_factor_closed by force
 next
   assume root: "eval a p = \<zero>"
-  have rf: "root_factor a \<in> poly_carrier" using a by (rule root_factor_closed)
-  have rfnz: "root_factor a \<noteq> \<zero>\<^sub>P" using a by (rule root_factor_nonzero)
+  obtain rf: "root_factor a \<in> poly_carrier" and rfnz: "root_factor a \<noteq> \<zero>\<^sub>P" 
+    using a by (simp add: root_factor_closed root_factor_nonzero)
   \<comment> \<open>Divide by the degree-1 factor; the remainder has degree @{text "< 1"}, so is a constant.\<close>
   obtain q r where q: "q \<in> poly_carrier" and r: "r \<in> poly_carrier"
     and peq: "p = (root_factor a \<otimes>\<^sub>P q) \<oplus>\<^sub>P r"
@@ -2032,19 +1824,18 @@ next
   have rconst: "r = poly_const (r 0)"
     using a degree_root_factor degree_zero_imp_const r rdeg by fastforce
   \<comment> \<open>Evaluate at @{term a}: the @{term "root_factor a"} term vanishes, leaving the constant.\<close>
-  have rqc: "root_factor a \<otimes>\<^sub>P q \<in> poly_carrier" using rf q by (rule poly_mult_closed)
-  have r0: "r 0 \<in> R" using r by (simp add: poly_carrier_coeff_closed)
+  have rqc: "root_factor a \<otimes>\<^sub>P q \<in> poly_carrier" using rf q 
+    by (rule poly_mult_closed)
+  have r0: "r 0 \<in> R" 
+    using r by (simp add: poly_carrier_coeff_closed)
   have "\<zero> = \<zero> + r 0"
     using Ring.eval_const Ring_axioms a eval_add eval_mult peq q r r0 rconst rf root rqc
     by fastforce
   then have rz: "r = \<zero>\<^sub>P" using rconst
-    using poly_const_zero r0 by force
+    using poly_const_zero r by (simp add: poly_carrier_coeff_closed)
   \<comment> \<open>So @{term p} is exactly the multiple @{term "root_factor a \<otimes>\<^sub>P q"}.\<close>
-  have "p = (root_factor a \<otimes>\<^sub>P q) \<oplus>\<^sub>P \<zero>\<^sub>P" using peq rz by simp
-  also have "\<dots> = root_factor a \<otimes>\<^sub>P q" 
-    using rqc poly_add_comm[OF rqc poly_zero_closed] poly_add_zero by force
-  finally have "p = root_factor a \<otimes>\<^sub>P q" .
-  then show "\<exists>q. q \<in> poly_carrier \<and> p = root_factor a \<otimes>\<^sub>P q" using q by blast
+  then show "\<exists>q. q \<in> poly_carrier \<and> p = root_factor a \<otimes>\<^sub>P q"
+    using peq poly_add_comm poly_add_zero poly_zero_closed q rqc by auto 
 qed
 
 subsection \<open>A nonzero polynomial has at most \<open>degree\<close> roots\<close>
@@ -2084,8 +1875,7 @@ proof (induct "degree p" arbitrary: p rule: less_induct)
     case True
     then obtain a where aR: "a \<in> R" and aroot: "eval a p = \<zero>" by blast
     obtain q where q: "q \<in> poly_carrier" and peq: "p = root_factor a \<otimes>\<^sub>P q" and qnz: "q \<noteq> \<zero>\<^sub>P"
-      using factor_theorem[OF p] aroot
-      using aR pnz poly_mult_zero_right root_factor_closed by metis
+      using factor_theorem[OF p] aroot aR pnz poly_mult_zero_right root_factor_closed by metis
     have rf: "root_factor a \<in> poly_carrier" using aR by (rule root_factor_closed)
     have qnz: "q \<noteq> \<zero>\<^sub>P" using peq pnz by (metis poly_mult_zero_right rf)
     have degp: "degree p = 1 + degree q"
@@ -2093,7 +1883,6 @@ proof (induct "degree p" arbitrary: p rule: less_induct)
           root_factor_nonzero)
     have IH: "finite {b \<in> R. eval b q = \<zero>} \<and> card {b \<in> R. eval b q = \<zero>} \<le> degree q"
       using degp q qnz by (intro less) simp
-    \<comment> \<open>Every root of @{term p} is @{term a} or a root of @{term q}.\<close>
     have subset: "{b \<in> R. eval b p = \<zero>} \<subseteq> insert a {b \<in> R. eval b q = \<zero>}"
     proof
       fix b assume "b \<in> {b \<in> R. eval b p = \<zero>}"
@@ -2135,8 +1924,7 @@ proof -
     by (simp add: al atMost_Suc ci insert_commute)
 qed
 
-text \<open>Every polynomial of degree @{text 1} over a field has a root, namely
-  @{text "-(c 0) \<cdot> (c 1)\<inverse>"}.\<close>
+text \<open>Every polynomial of degree @{text 1} over a field has a root:  @{text "-(c 0) \<cdot> (c 1)\<inverse>"}.\<close>
 lemma degree1_has_root:
   assumes c: "c \<in> poly_carrier" and d: "degree c = 1"
   shows "\<exists>\<alpha>\<in>R. eval \<alpha> c = \<zero>"
@@ -2146,7 +1934,7 @@ proof -
     using c ci coeff_degree_nonzero d field_inverse by force
   then have i1: "multiplicative.inverse (c 1) \<in> R" using ci by simp
   have nc0: "- c 0 \<in> R" using ci by simp
-  define \<alpha> where "\<alpha> = (- c 0) \<cdot> multiplicative.inverse (c 1)"
+  define \<alpha> where "\<alpha> \<equiv> (- c 0) \<cdot> multiplicative.inverse (c 1)"
   have aR: "\<alpha> \<in> R" unfolding \<alpha>_def using nc0 i1 by simp
   have "c 1 \<cdot> \<alpha> = (c 1 \<cdot> multiplicative.inverse (c 1)) \<cdot> (- c 0)"
     using \<alpha>_def ci i1 multiplicative.associative multiplicative.commutative by auto
@@ -2161,88 +1949,45 @@ lemma degree_nz:
   using degree_zero_imp_const[OF a] coeff_degree_nonzero[OF a anz]
   by (metis a nua poly_carrier_coeff_closed poly_const_unit)
 
-
-text \<open>\<^emph>\<open>Degree-2 irreducibility criterion.\<close>  A degree-2 polynomial over a field is irreducible
-  iff it has no root.  Only the ``no root @{text "\<Rightarrow>"} irreducible'' direction is proved here,
-  which is what irreducibility witnesses need.\<close>
-theorem degree2_no_root_irreducible:
-  assumes p: "p \<in> poly_carrier" and d: "degree p = 2"
-    and noroot: "\<And>\<alpha>. \<alpha> \<in> R \<Longrightarrow> eval \<alpha> p \<noteq> \<zero>"
-  shows "poly_irreducible p"
-proof -
-  have pnz: "p \<noteq> \<zero>\<^sub>P" using d by auto
-  have pnu: "\<not> poly_unit p"
-    using d poly_unit_imp_const by force
-  have "poly_unit a \<or> poly_unit b"
-    if a: "a \<in> poly_carrier" and b: "b \<in> poly_carrier" and pab: "p = a \<otimes>\<^sub>P b" for a b
-  proof (rule ccontr)
-    assume non: "\<not> (poly_unit a \<or> poly_unit b)"
-    have anz: "a \<noteq> \<zero>\<^sub>P" and bnz: "b \<noteq> \<zero>\<^sub>P"
-      using pab pnz a b poly_mult_zero_left poly_mult_zero_right by auto
-    \<comment> \<open>Degrees add to @{text 2}; neither factor is a unit, so neither has degree @{text 0}.\<close>
-    have dsum: "degree a + degree b = 2" using degree_mult[OF a b anz bnz] pab d by simp
-    obtain "degree a \<noteq> 0" and "degree b \<noteq> 0"
-      using non a anz b bnz degree_nz by blast
-    then have da1: "degree a = 1" using dsum by auto
-    obtain \<alpha> where al: "\<alpha> \<in> R" and ra: "eval \<alpha> a = \<zero>" using degree1_has_root[OF a da1] by blast
-    have "eval \<alpha> p = eval \<alpha> a \<cdot> eval \<alpha> b" using pab eval_mult[OF a b al] by simp
-    also have "\<dots> = \<zero>" using ra eval_closed[OF b al] by (simp add: left_zero)
-    finally have "eval \<alpha> p = \<zero>" .
-    with noroot[OF al] show False ..
-  qed
-  then show ?thesis unfolding poly_irreducible_def using p pnz pnu by blast
-qed
-
 text \<open>A degree-1 factor of @{term p} supplies a root of @{term p}: if @{term "p = a \<otimes>\<^sub>P b"} with
   @{term a} (or @{term b}) of degree @{text 1}, evaluation at the factor's root kills @{term p}.\<close>
 lemma degree1_factor_root:
-  assumes a: "a \<in> poly_carrier" and b: "b \<in> poly_carrier" and pab: "p = a \<otimes>\<^sub>P b"
-    and da1: "degree a = 1"
+  assumes a: "a \<in> poly_carrier" and "b \<in> poly_carrier" "p = a \<otimes>\<^sub>P b" "degree a = 1"
   shows "\<exists>\<alpha>\<in>R. eval \<alpha> p = \<zero>"
-proof -
-  obtain \<alpha> where al: "\<alpha> \<in> R" and ra: "eval \<alpha> a = \<zero>" using degree1_has_root[OF a da1] by blast
-  then show ?thesis
-    using a b eval_mult pab by force
-qed
+  using degree1_has_root[OF a] eval_mult assms by force
 
-text \<open>\<^emph>\<open>Degree-3 irreducibility criterion.\<close>  A cubic with no root is irreducible: a nontrivial
-  factorisation @{term "p = a \<otimes>\<^sub>P b"} has @{term "degree a + degree b = 3"} with both factors of
-  degree @{text "\<ge> 1"}, so one of them has degree @{text 1} and hence furnishes a root of
-  @{term p}.\<close>
-theorem degree3_no_root_irreducible:
-  assumes p: "p \<in> poly_carrier" and d: "degree p = 3"
+text \<open>\<^emph>\<open>Degree-2, 3 irreducibility criterion.\<close>  A cubic with no root is irreducible: a nontrivial
+  factorisation @{term "p = a \<otimes>\<^sub>P b"} has @{term "degree a + degree b = 2"} or 3 with both factors of
+  degree @{text "\<ge> 1"}, so one of them has degree @{text 1} and hence a root of @{term p}.\<close>
+theorem degree23_no_root_irreducible:
+  assumes p: "p \<in> poly_carrier" and d: "degree p \<in> {2,3}"
     and noroot: "\<And>\<alpha>. \<alpha> \<in> R \<Longrightarrow> eval \<alpha> p \<noteq> \<zero>"
   shows "poly_irreducible p"
 proof -
-  have pnz: "p \<noteq> \<zero>\<^sub>P" using d by auto
   have pnu: "\<not> poly_unit p"
     using assms(2) poly_unit_imp_const by fastforce
-  have "poly_unit a \<or> poly_unit b"
-    if a: "a \<in> poly_carrier" and b: "b \<in> poly_carrier" and pab: "p = a \<otimes>\<^sub>P b" for a b
-  proof (rule ccontr)
-    assume non: "\<not> (poly_unit a \<or> poly_unit b)"
+  have False
+    if a: "a \<in> poly_carrier" "\<not> poly_unit a" and b: "b \<in> poly_carrier" "\<not> poly_unit b" 
+      and pab: "p = a \<otimes>\<^sub>P b" for a b
+  proof -
     have anz: "a \<noteq> \<zero>\<^sub>P" and bnz: "b \<noteq> \<zero>\<^sub>P"
-      using pab pnz a b poly_mult_zero_left poly_mult_zero_right by auto
+      using pab d a b poly_mult_zero_left poly_mult_zero_right by auto
     \<comment> \<open>Degrees add to @{text 3}; neither factor is a unit, so neither has degree @{text 0}.\<close>
-    have dsum: "degree a + degree b = 3" using degree_mult[OF a b anz bnz] pab d by simp
-    \<comment> \<open>So one factor has degree @{text 1} (the splits of @{text 3} are @{text "1+2"} and
-        @{text "2+1"}), giving a root of @{term p}.\<close>
+    then have dsum: "degree a + degree b \<in> {2,3}"
+      using d degree_mult pab that by force
     obtain "degree a \<noteq> 0" and "degree b \<noteq> 0"
-      using non a anz b bnz degree_nz by blast
+      using a anz b bnz degree_nz by presburger
     then have "degree a = 1 \<or> degree b = 1" using dsum by auto
-    then have "\<exists>\<alpha>\<in>R. eval \<alpha> p = \<zero>"
-      by (metis a b degree1_factor_root pab poly_mult_comm)
-    with noroot show False by blast
+    with noroot a b degree1_factor_root pab poly_mult_comm show False by metis
   qed
-  then show ?thesis unfolding poly_irreducible_def using p pnz pnu by blast
+  then show ?thesis unfolding poly_irreducible_def using p d pnu by auto
 qed
-
 
 subsection \<open>Factorisation into irreducibles\<close>
 
 text \<open>The product of a list of polynomials (right fold, empty list giving @{term "\<one>\<^sub>P"}).\<close>
 definition poly_prod :: "(nat \<Rightarrow> 'a) list \<Rightarrow> (nat \<Rightarrow> 'a)"
-  where "poly_prod fs = foldr (\<otimes>\<^sub>P) fs \<one>\<^sub>P"
+  where "poly_prod fs \<equiv> foldr (\<otimes>\<^sub>P) fs \<one>\<^sub>P"
 
 lemma poly_prod_Nil [simp]: "poly_prod [] = \<one>\<^sub>P"
   by (simp add: poly_prod_def)
@@ -2258,39 +2003,16 @@ lemma poly_prod_append:
   assumes fs: "\<And>f. f \<in> set fs \<Longrightarrow> f \<in> poly_carrier"
     and gs: "\<And>g. g \<in> set gs \<Longrightarrow> g \<in> poly_carrier"
   shows "poly_prod (fs @ gs) = poly_prod fs \<otimes>\<^sub>P poly_prod gs"
-  using fs
-proof (induct fs)
-  case Nil
-  show ?case using poly_mult_one_left [OF poly_prod_closed [OF gs]] by simp
-next
-  case (Cons f fs)
-  have f: "f \<in> poly_carrier" and rest: "\<And>h. h \<in> set fs \<Longrightarrow> h \<in> poly_carrier"
-    using Cons.prems by auto
-  have Pf: "poly_prod fs \<in> poly_carrier" by (rule poly_prod_closed [OF rest])
-  have Pg: "poly_prod gs \<in> poly_carrier" by (rule poly_prod_closed [OF gs])
-  have "poly_prod ((f # fs) @ gs) = f \<otimes>\<^sub>P poly_prod (fs @ gs)" by simp
-  also have "\<dots> = f \<otimes>\<^sub>P (poly_prod fs \<otimes>\<^sub>P poly_prod gs)"
-    using Cons.hyps [OF rest] by simp
-  also have "\<dots> = (f \<otimes>\<^sub>P poly_prod fs) \<otimes>\<^sub>P poly_prod gs"
-    by (rule poly_mult_assoc [OF f Pf Pg, symmetric])
-  finally show ?case by simp
-qed
+  using fs by (induct fs) (simp_all add: gs poly_mult_one_left poly_mult_assoc poly_prod_closed)
 
 subsection \<open>Splitting into linear factors\<close>
 
 text \<open>A polynomial \<^emph>\<open>splits\<close> when it is a constant times a product of root factors, all of whose roots
   lie in the field.  Equivalently it is a product of linear factors: the constant carries the leading
   coefficient.  Taking that constant to range over the whole field, rather than the nonzero elements,
-  lets @{term "\<zero>\<^sub>P"} split as well (empty list, zero constant), so no polynomial is excluded.
-
-  This is the carrier-set counterpart of HOL-Algebra's \<open>splitted\<close>, which counts a root multiset
-  instead.  A list of roots is the lighter encoding here, since @{const poly_prod} already exists and
-  no multiset machinery is needed.  It is what the algebraic-closure development consumes: the
-  property of an extension that every polynomial over the base field splits in it, which is strictly
-  stronger than every such polynomial having a \<^emph>\<open>root\<close> --- a root of a polynomial over a subfield
-  leaves a cofactor over the larger field, so root existence does not induct.\<close>
+  lets @{term "\<zero>\<^sub>P"} split as well (empty list, zero constant), so no polynomial is excluded.\<close>
 definition splits :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "splits p \<longleftrightarrow> (\<exists>c as. c \<in> R \<and> set as \<subseteq> R
+  where "splits p \<equiv> (\<exists>c as. c \<in> R \<and> set as \<subseteq> R
                             \<and> p = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor as))"
 
 lemma splitsI:
@@ -2315,25 +2037,20 @@ qed
 
 lemma splits_const:
   assumes c: "c \<in> R" shows "splits (poly_const c)"
-proof (rule splitsI [where c = c and as = "[]"])
-  show "c \<in> R" by (rule c)
-  show "set [] \<subseteq> R" by simp
+proof (rule splitsI)
   show "poly_const c = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor [])"
     using poly_mult_one_right [OF poly_const_closed [OF c]] by simp
-qed
+qed (use c in auto)
 
 lemma splits_zero [simp]: "splits \<zero>\<^sub>P"
   using splits_const [of \<zero>] by simp
 
 lemma splits_root_factor:
   assumes a: "a \<in> R" shows "splits (root_factor a)"
-proof (rule splitsI [where c = \<one> and as = "[a]"])
-  show "\<one> \<in> R" by simp
-  show "set [a] \<subseteq> R" using a by simp
-  have rf: "root_factor a \<in> poly_carrier" using a by (rule root_factor_closed)
+proof (rule splitsI)
   show "root_factor a = poly_const \<one> \<otimes>\<^sub>P poly_prod (List.map root_factor [a])"
-    using poly_mult_one_right [OF rf] poly_mult_one_left [OF rf] by simp
-qed
+    by (simp add: assms poly_mult_one_left poly_mult_one_right root_factor_closed)
+qed (use a in auto)
 
 text \<open>Splitting is multiplicative: concatenate the root lists and multiply the constants.\<close>
 lemma splits_mult:
@@ -2345,21 +2062,15 @@ proof -
   obtain d bs where d: "d \<in> R" and bs: "set bs \<subseteq> R"
     and qeq: "q = poly_const d \<otimes>\<^sub>P poly_prod (List.map root_factor bs)"
     using q by (rule splitsE)
-  have pa: "poly_prod (List.map root_factor as) \<in> poly_carrier"
-    using as by (intro poly_prod_closed) (auto intro: root_factor_closed)
-  have pb: "poly_prod (List.map root_factor bs) \<in> poly_carrier"
-    using bs by (intro poly_prod_closed) (auto intro: root_factor_closed)
+  have pab: "poly_prod (List.map root_factor as) \<in> poly_carrier"
+            "poly_prod (List.map root_factor bs) \<in> poly_carrier"
+    using as bs by (auto intro!: poly_prod_closed root_factor_closed)
   have prod_app: "poly_prod (List.map root_factor (as @ bs))
                   = poly_prod (List.map root_factor as) \<otimes>\<^sub>P poly_prod (List.map root_factor bs)"
     unfolding List.map_append
-  proof (rule poly_prod_append)
-    show "\<And>f. f \<in> set (List.map root_factor as) \<Longrightarrow> f \<in> poly_carrier"
-      using as by (auto intro: root_factor_closed)
-    show "\<And>g. g \<in> set (List.map root_factor bs) \<Longrightarrow> g \<in> poly_carrier"
-      using bs by (auto intro: root_factor_closed)
-  qed
+    using as bs by (force intro: intro: poly_prod_append root_factor_closed)
   show ?thesis
-  proof (rule splitsI [where c = "c \<cdot> d" and as = "as @ bs"])
+  proof (rule splitsI)
     show "c \<cdot> d \<in> R" using c d by simp
     show "set (as @ bs) \<subseteq> R" using as bs by simp
     show "p \<otimes>\<^sub>P q = poly_const (c \<cdot> d) \<otimes>\<^sub>P poly_prod (List.map root_factor (as @ bs))"
@@ -2371,32 +2082,10 @@ proof -
               \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P poly_prod (List.map root_factor bs))"
         using peq qeq by simp
       also have "\<dots> = (poly_const c \<otimes>\<^sub>P poly_const d)
-                       \<otimes>\<^sub>P (poly_prod (List.map root_factor as)
-                            \<otimes>\<^sub>P poly_prod (List.map root_factor bs))"
-      proof -
-        \<comment> \<open>Pure rearrangement: swap the middle two factors.\<close>
-        have "(poly_const c \<otimes>\<^sub>P pa') \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P pb')
-              = (poly_const c \<otimes>\<^sub>P poly_const d) \<otimes>\<^sub>P (pa' \<otimes>\<^sub>P pb')"
-          if A: "pa' \<in> poly_carrier" and B: "pb' \<in> poly_carrier" for pa' pb'
-        proof -
-          have "(poly_const c \<otimes>\<^sub>P pa') \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P pb')
-                = poly_const c \<otimes>\<^sub>P (pa' \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P pb'))"
-            by (rule poly_mult_assoc [OF cc A poly_mult_closed [OF dc B]])
-          also have "pa' \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P pb') = (pa' \<otimes>\<^sub>P poly_const d) \<otimes>\<^sub>P pb'"
-            by (rule poly_mult_assoc [OF A dc B, symmetric])
-          also have "pa' \<otimes>\<^sub>P poly_const d = poly_const d \<otimes>\<^sub>P pa'"
-            by (rule poly_mult_comm [OF A dc])
-          also have "(poly_const d \<otimes>\<^sub>P pa') \<otimes>\<^sub>P pb' = poly_const d \<otimes>\<^sub>P (pa' \<otimes>\<^sub>P pb')"
-            by (rule poly_mult_assoc [OF dc A B])
-          also have "poly_const c \<otimes>\<^sub>P (poly_const d \<otimes>\<^sub>P (pa' \<otimes>\<^sub>P pb'))
-                     = (poly_const c \<otimes>\<^sub>P poly_const d) \<otimes>\<^sub>P (pa' \<otimes>\<^sub>P pb')"
-            by (rule poly_mult_assoc [OF cc dc poly_mult_closed [OF A B], symmetric])
-          finally show ?thesis .
-        qed
-        from this [OF pa pb] show ?thesis .
-      qed
-      also have "\<dots> = poly_const (c \<cdot> d)
-                       \<otimes>\<^sub>P poly_prod (List.map root_factor (as @ bs))"
+                       \<otimes>\<^sub>P (poly_prod (List.map root_factor as) \<otimes>\<^sub>P poly_prod (List.map root_factor bs))"
+        using cc commutative_ring.mult_ac(3) dc pab poly_commutative_ring poly_mult_assoc
+          poly_mult_closed by fastforce
+      also have "\<dots> = poly_const (c \<cdot> d) \<otimes>\<^sub>P poly_prod (List.map root_factor (as @ bs))"
         using poly_const_mult [OF c d] prod_app by simp
       finally show ?thesis .
     qed
@@ -2416,74 +2105,51 @@ proof -
   have cnz: "q 1 \<noteq> \<zero>"
     using lead_coeff_nonzero [OF q qnz] d by (simp add: lead_coeff_def)
   have inv: "multiplicative.invertible (q 1)" by (rule field_inverse [OF c cnz])
-  define e where "e = multiplicative.inverse (q 1)"
-  have eR: "e \<in> R"
-    unfolding e_def by (rule multiplicative.invertible_inverse_closed [OF inv c])
-  have ce: "q 1 \<cdot> e = \<one>"
-    unfolding e_def by (rule multiplicative.invertible_right_inverse [OF inv c])
-  define a where "a = - (e \<cdot> q 0)"
-  have eq0: "e \<cdot> q 0 \<in> R" using eR q0 by simp
-  have aR: "a \<in> R" unfolding a_def using eq0 by (simp add: additive.invertible_inverse_closed)
-  have nega: "- a = e \<cdot> q 0" unfolding a_def using eq0 by simp
+  define e where "e \<equiv> multiplicative.inverse (q 1)"
+  define a where "a \<equiv> - (e \<cdot> q 0)"
+  obtain eR: "e \<in> R" and ce: "q 1 \<cdot> e = \<one>" using c e_def inv by force
+  obtain eq0: "e \<cdot> q 0 \<in> R" and aR: "a \<in> R" and nega: "- a = e \<cdot> q 0" 
+    using eR q0 a_def by simp
   have rf: "root_factor a \<in> poly_carrier" using aR by (rule root_factor_closed)
   \<comment> \<open>Multiplying by a constant scales each coefficient.\<close>
   have scale: "(poly_const (q 1) \<otimes>\<^sub>P root_factor a) j = q 1 \<cdot> root_factor a j" for j
     using coeff_monom_mult [OF c rf, of 0 j] by (simp add: monom_0_eq_const)
   \<comment> \<open>The three coefficients of @{term "root_factor a"}.\<close>
   have rf0: "root_factor a 0 = - a"
-    using aR by (simp add: root_factor_def var_def monom_def poly_const_def poly_add_def
-                           poly_neg_def additive.invertible_inverse_closed)
+    by (simp add: eq0 monom_def nega poly_add_def poly_const_def poly_neg_def root_factor_def var_def)
   have rf1: "root_factor a 1 = \<one>"
     by (simp add: root_factor_def var_def monom_def poly_const_def poly_add_def poly_neg_def)
   have rfj: "root_factor a j = \<zero>" if "j \<noteq> 0" "j \<noteq> 1" for j
-    using that by (simp add: root_factor_def var_def monom_def poly_const_def poly_add_def
-                             poly_neg_def)
+    using aR coeff_gt_degree degree_root_factor rf that by auto
   have qeq: "q = poly_const (q 1) \<otimes>\<^sub>P root_factor a"
   proof (rule ext)
     fix j
     show "q j = (poly_const (q 1) \<otimes>\<^sub>P root_factor a) j"
     proof (cases "j = 0")
       case True
-      have "q 1 \<cdot> (- a) = (q 1 \<cdot> e) \<cdot> q 0"
-        using nega c eR q0 by (simp add: multiplicative.associative)
-      also have "\<dots> = q 0" using ce q0 by simp
-      finally show ?thesis using True scale rf0 by simp
+      then show ?thesis using True scale rf0
+        using c ce eR multiplicative.associative multiplicative.left_unit nega q0 by force
     next
       case False
-      show ?thesis
+      then show ?thesis
       proof (cases "j = 1")
         case True
         then show ?thesis using scale rf1 c by simp
       next
         case False
-        with \<open>j \<noteq> 0\<close> have "degree q < j" using d by simp
         then show ?thesis
-          using scale rfj [OF \<open>j \<noteq> 0\<close> False] coeff_gt_degree [OF q] c by simp
+          using \<open>j \<noteq> 0\<close> d scale rfj coeff_gt_degree [OF q] c by simp
       qed
     qed
   qed
   show ?thesis
-  proof (rule splitsI [where c = "q 1" and as = "[a]"])
-    show "q 1 \<in> R" by (rule c)
-    show "set [a] \<subseteq> R" using aR by simp
-    show "q = poly_const (q 1) \<otimes>\<^sub>P poly_prod (List.map root_factor [a])"
-      using qeq poly_mult_one_right [OF rf] by simp
-  qed
+    using aR c qeq splits_const splits_mult splits_root_factor by metis
 qed
 
 lemma splits_poly_prod:
   assumes "\<And>f. f \<in> set fs \<Longrightarrow> splits f" shows "splits (poly_prod fs)"
   using assms
-proof (induct fs)
-  case Nil
-  have "splits (poly_const \<one>)" by (rule splits_const) simp
-  then show ?case by simp
-next
-  case (Cons f fs)
-  have "splits f" using Cons.prems by simp
-  moreover have "splits (poly_prod fs)" using Cons.prems by (intro Cons.hyps) simp
-  ultimately show ?case by (simp add: splits_mult)
-qed
+  by (induct fs; use splits_const splits_mult in force)
 
 
 text \<open>\<^emph>\<open>Existence of an irreducible factorisation.\<close>  Every nonzero non-unit polynomial over a field
@@ -2506,7 +2172,7 @@ proof (induct "degree p" arbitrary: p rule: less_induct)
     ultimately show ?thesis by blast
   next
     case False
-    \<comment> \<open>A nontrivial factorisation into non-units @{term a}, @{term b}.\<close>
+    \<comment> \<open>A nontrivial factorisation.\<close>
     from less.prems False obtain a b where a: "a \<in> poly_carrier" and b: "b \<in> poly_carrier"
       and pab: "p = a \<otimes>\<^sub>P b" and nua: "\<not> poly_unit a" and nub: "\<not> poly_unit b"
       unfolding poly_irreducible_def by blast
@@ -2514,10 +2180,9 @@ proof (induct "degree p" arbitrary: p rule: less_induct)
       using pab less.prems(2) a b poly_mult_zero_left poly_mult_zero_right by auto
     have dsum: "degree a + degree b = degree p"
       using degree_mult[OF a b anz bnz] pab by simp
-    \<comment> \<open>Neither factor has degree @{text 0} (that would make it a unit), so each has degree
-        strictly below @{term "degree p"}.\<close>
-    obtain "degree a \<noteq> 0" and "degree b \<noteq> 0"
-      using a anz b bnz degree_nz nua nub by blast
+    \<comment> \<open>Neither factor has degree @{text 0}, so each has degree strictly below @{term "degree p"}.\<close>
+    obtain "degree a \<noteq> 0" and "degree b \<noteq> 0" and da: "degree a < degree p" and db: "degree b < degree p"
+      using a anz b bnz degree_nz nua nub dsum by fastforce
     then have da: "degree a < degree p" and db: "degree b < degree p" using dsum by auto
     \<comment> \<open>Factor each smaller factor by the induction hypothesis, then concatenate.\<close>
     obtain fa where fa: "fa \<noteq> []" "\<forall>f\<in>set fa. poly_irreducible f" "a = poly_prod fa"
@@ -2534,13 +2199,10 @@ proof (induct "degree p" arbitrary: p rule: less_induct)
           using b fb(3) poly_mult_one_left by auto
       next
         case (Cons g gs)
-        have gc: "g \<in> poly_carrier" using Cons.prems by (simp add: poly_irreducibleD_carrier)
-        have gsc: "poly_prod gs \<in> poly_carrier"
+        then obtain gc: "g \<in> poly_carrier" and gsc: "poly_prod gs \<in> poly_carrier"
           by (simp add: Cons.prems(1) poly_irreducibleD_carrier poly_prod_closed)
-        have "poly_prod fb \<in> poly_carrier"
-          using b fb(3) by auto
         then show ?case
-          by (simp add: Cons.hyps Cons.prems gc gsc poly_mult_assoc)
+          using b fb(3) by (simp add: Cons.hyps Cons.prems gc gsc poly_mult_assoc)
       qed
       then show ?thesis using pab fa(3) fb(3) by simp
     qed
@@ -2555,7 +2217,7 @@ subsection \<open>Monic polynomials and normalisation\<close>
 
 text \<open>A polynomial is \<^emph>\<open>monic\<close> when it is nonzero with leading coefficient @{term \<one>}.\<close>
 definition poly_monic :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool"
-  where "poly_monic p \<longleftrightarrow> p \<noteq> \<zero>\<^sub>P \<and> lead_coeff p = \<one>"
+  where "poly_monic p \<equiv> p \<noteq> \<zero>\<^sub>P \<and> lead_coeff p = \<one>"
 
 text \<open>Scaling a nonzero polynomial by a nonzero constant preserves its degree and scales its
   leading coefficient.\<close>
@@ -2569,13 +2231,11 @@ lemma lead_coeff_poly_const_mult:
   shows "lead_coeff (poly_const c \<otimes>\<^sub>P p) = c \<cdot> lead_coeff p"
 proof -
   have cc: "poly_const c \<in> poly_carrier" using c by (rule poly_const_closed)
-  have dc0: "degree (poly_const c) = 0" using degree_const_le by (simp add: le_zero_eq)
-  have deg: "degree (poly_const c \<otimes>\<^sub>P p) = degree p" using degree_poly_const_mult[OF c cnz p pnz] .
-  have "lead_coeff (poly_const c \<otimes>\<^sub>P p) = poly_const c (degree (poly_const c)) \<cdot> p (degree p)"
-    using coeff_mult_degree_add[OF cc p] by (simp add: dc0 deg lead_coeff_def)
-  also have "\<dots> = c \<cdot> p (degree p)"
-    using dc0 poly_const_def by auto
-  finally show ?thesis by (simp add: lead_coeff_def)
+  have dc0: "degree (poly_const c) = 0" using degree_const_le by simp
+  then have "lead_coeff (poly_const c \<otimes>\<^sub>P p) = poly_const c (degree (poly_const c)) \<cdot> p (degree p)"
+    using coeff_mult_degree_add c cc cnz degree_poly_const_mult lead_coeff_def p pnz by fastforce
+  then show ?thesis
+    using dc0 lead_coeff_def poly_const_def by force
 qed
 
 text \<open>Every nonzero polynomial has a monic associate, obtained by scaling by the inverse of its
@@ -2584,39 +2244,34 @@ theorem monic_associate_exists:
   assumes p: "p \<in> poly_carrier" and pnz: "p \<noteq> \<zero>\<^sub>P"
   shows "\<exists>u m. u \<in> R \<and> u \<noteq> \<zero> \<and> m \<in> poly_carrier \<and> poly_monic m \<and> p = poly_const u \<otimes>\<^sub>P m"
 proof -
+  define c where "c \<equiv> multiplicative.inverse (lead_coeff p)"
   have lc: "lead_coeff p \<in> R" 
     using p by (simp add: lead_coeff_def poly_carrier_coeff_closed)
-  have lcnz: "lead_coeff p \<noteq> \<zero>" 
-    using p pnz by (rule lead_coeff_nonzero)
-  define c where "c = multiplicative.inverse (lead_coeff p)"
-  have inv: "multiplicative.invertible (lead_coeff p)" using lc lcnz by (rule field_inverse)
+  have inv: "multiplicative.invertible (lead_coeff p)"
+    by (simp add: field_inverse lc lead_coeff_nonzero p pnz)
   have cR: "c \<in> R" unfolding c_def using lc inv by simp
   have cnz: "c \<noteq> \<zero>"
     using c_def inv lc multiplicative.invertible_inverse_invertible nontrivial
     by fastforce
-  define m where "m = poly_const c \<otimes>\<^sub>P p"
-  have cc: "poly_const c \<in> poly_carrier" using cR by (rule poly_const_closed)
-  have mc: "m \<in> poly_carrier" unfolding m_def using cc p by (rule poly_mult_closed)
+  define m where "m \<equiv> poly_const c \<otimes>\<^sub>P p"
+  have mc: "m \<in> poly_carrier" unfolding m_def
+    by (simp add: cR p poly_const_closed poly_mult_closed)
   \<comment> \<open>@{term m} is monic: its leading coefficient is @{text "c \<cdot> lead_coeff p = \<one>"}.\<close>
   have cnzp: "poly_const c \<noteq> \<zero>\<^sub>P" using cnz by (auto simp: poly_const_def poly_zero_def fun_eq_iff)
   have mnz: "m \<noteq> \<zero>\<^sub>P" unfolding m_def
-    using poly_no_zero_divisors[OF cc p] cnzp pnz by auto
+    using poly_no_zero_divisors[OF _ p] cnzp pnz cR poly_const_closed by force
   have eq1: "multiplicative.inverse (lead_coeff p) \<cdot> lead_coeff p = \<one>"
     using inv lc by simp
-  have "lead_coeff m = \<one>"
-    by (metis cR c_def cnz eq1 lead_coeff_poly_const_mult m_def p pnz)
-  then have monic_m: "poly_monic m" 
-    using mnz by (simp add: poly_monic_def)
+  have monic_m: "poly_monic m"
+    using cR c_def cnz eq1 lead_coeff_poly_const_mult m_def mnz p pnz poly_monic_def by metis 
   \<comment> \<open>Recover @{term p} by scaling @{term m} by @{term "lead_coeff p"}.\<close>
-  have "poly_const (lead_coeff p) \<otimes>\<^sub>P m = poly_const (lead_coeff p) \<otimes>\<^sub>P (poly_const c \<otimes>\<^sub>P p)"
-    unfolding m_def ..
-  also have "\<dots> = poly_const \<one> \<otimes>\<^sub>P p"
-    using cR unfolding c_def
-    by (metis eq1 lc multiplicative.commutative p poly_const_closed poly_const_mult poly_mult_assoc)
+  have "poly_const (lead_coeff p) \<otimes>\<^sub>P m = poly_const \<one> \<otimes>\<^sub>P p"
+    using cR c_def eq1 lc m_def p poly_const_closed poly_const_mult poly_mult_assoc poly_mult_comm
+    by metis
    also have "\<dots> = p" 
     using p by (simp add: poly_mult_one_left)
   finally have "p = poly_const (lead_coeff p) \<otimes>\<^sub>P m" ..
-  then show ?thesis using lc lcnz mc monic_m by blast
+  then show ?thesis using lc lead_coeff_nonzero mc monic_m p pnz by blast
 qed
 
 
@@ -2641,55 +2296,41 @@ proof -
   next
     case False
     \<comment> \<open>Otherwise @{term J} contains a nonzero element, hence one of least degree.\<close>
-    have ex: "\<exists>a. a \<in> J \<and> a \<noteq> \<zero>\<^sub>P"
-      using False by blast
     define hasdeg where "hasdeg n \<longleftrightarrow> (\<exists>a. a \<in> J \<and> a \<noteq> \<zero>\<^sub>P \<and> degree a = n)" for n
-    have "\<exists>n. hasdeg n" using ex unfolding hasdeg_def by blast
-    then have "hasdeg (LEAST n. hasdeg n)" by (rule LeastI_ex)
+    have "\<exists>n. hasdeg n"
+      using False unfolding hasdeg_def by blast
     then obtain b where bJ: "b \<in> J" and bnz: "b \<noteq> \<zero>\<^sub>P"
       and bLeast: "degree b = (LEAST n. hasdeg n)"
-      unfolding hasdeg_def by blast
+      using hasdeg_def by (metis LeastI_ex)
     have bP: "b \<in> poly_carrier" using bJ J.additive.subset by blast
     \<comment> \<open>@{term b} has least degree among the nonzero elements of @{term J}.\<close>
     have minimal: "degree b \<le> degree c" if "c \<in> J" "c \<noteq> \<zero>\<^sub>P" for c
       by (metis Least_le bLeast hasdeg_def that)
     \<comment> \<open>@{term J} is exactly the principal ideal generated by @{term b}.\<close>
     have "J = {r \<otimes>\<^sub>P b | r. r \<in> poly_carrier}"
-    proof
-      show "J \<subseteq> {r \<otimes>\<^sub>P b | r. r \<in> poly_carrier}"
-      proof
-        fix a assume aJ: "a \<in> J"
-        have aP: "a \<in> poly_carrier" using aJ J.additive.subset by blast
-        obtain q rem where q: "q \<in> poly_carrier" and rem: "rem \<in> poly_carrier"
-          and aeq: "a = (b \<otimes>\<^sub>P q) \<oplus>\<^sub>P rem"
-          and remd: "rem = \<zero>\<^sub>P \<or> degree rem < degree b"
-          using poly_divide[OF aP bP bnz] by blast
-        have bqc: "b \<otimes>\<^sub>P q \<in> poly_carrier" using bP q by (rule poly_mult_closed)
-        \<comment> \<open>The multiple @{term "b \<otimes>\<^sub>P q"} and its negative both lie in @{term J}.\<close>
-        have bqJ: "b \<otimes>\<^sub>P q \<in> J" using q bJ by (rule J.Ideal(2))
-        have "J.additive.inverse (b \<otimes>\<^sub>P q) \<in> J" using bqJ by simp
-        have negbqJ: "\<ominus>\<^sub>P (b \<otimes>\<^sub>P q) \<in> J"
-        proof -
-          have "J.additive.inverse (b \<otimes>\<^sub>P q) \<in> J" using bqJ by simp
-          moreover have "J.additive.inverse (b \<otimes>\<^sub>P q) = \<ominus>\<^sub>P (b \<otimes>\<^sub>P q)"
-            by (simp add: bqc poly_minus_unique)
-          ultimately show ?thesis by simp
-        qed
-        \<comment> \<open>So the remainder @{text "rem = \<ominus>(b \<otimes> q) \<oplus> a"} lies in @{term J} too.\<close>
-        have rem_eq: "rem = (\<ominus>\<^sub>P (b \<otimes>\<^sub>P q)) \<oplus>\<^sub>P a"
-          by (metis aeq bqc poly_add_comm poly_add_minus_cancel poly_neg_closed poly_neg_neg rem)
-        have remJ: "rem \<in> J"
-          unfolding rem_eq using negbqJ aJ by (rule J.additive.sub_composition_closed)
-        have "rem = \<zero>\<^sub>P"
-          using leD minimal remJ remd by auto
-        then have "a = q \<otimes>\<^sub>P b"
-          by (simp add: aeq bP poly_mult_comm q)
-        then show "a \<in> {r \<otimes>\<^sub>P b | r. r \<in> poly_carrier}" using q by blast
-      qed
-    next
-      show "{r \<otimes>\<^sub>P b | r. r \<in> poly_carrier} \<subseteq> J"
-        by (auto simp: J.Ideal(1) bJ)
-    qed
+    proof (intro antisym subsetI)
+      fix a assume aJ: "a \<in> J"
+      have aP: "a \<in> poly_carrier" using aJ J.additive.subset by blast
+      obtain q rem where q: "q \<in> poly_carrier" and rem: "rem \<in> poly_carrier"
+        and aeq: "a = (b \<otimes>\<^sub>P q) \<oplus>\<^sub>P rem"
+        and remd: "rem = \<zero>\<^sub>P \<or> degree rem < degree b"
+        using poly_divide[OF aP bP bnz] by blast
+      have bqc: "b \<otimes>\<^sub>P q \<in> poly_carrier" using bP q by (rule poly_mult_closed)
+          \<comment> \<open>The multiple @{term "b \<otimes>\<^sub>P q"} and its negative both lie in @{term J}.\<close>
+      have "J.additive.inverse (b \<otimes>\<^sub>P q) \<in> J"
+        by (simp add: J.Ideal(2) bJ q)
+      then have negbqJ: "\<ominus>\<^sub>P (b \<otimes>\<^sub>P q) \<in> J"
+        using J.additive.inverse_equality bqc poly_add_neg poly_add_neg_right poly_neg_closed 
+        by metis
+      have rem_eq: "rem = (\<ominus>\<^sub>P (b \<otimes>\<^sub>P q)) \<oplus>\<^sub>P a"
+        by (metis aeq bqc poly_add_comm poly_add_minus_cancel poly_neg_closed poly_neg_neg rem)
+      then have remJ: "rem \<in> J"
+        using negbqJ aJ by blast
+      have "rem = \<zero>\<^sub>P"
+        using leD minimal remJ remd by auto
+      then show "a \<in> {r \<otimes>\<^sub>P b | r. r \<in> poly_carrier}" 
+        using q aeq bP poly_mult_comm by auto
+    qed (auto simp: J.Ideal bJ)
     then show ?thesis using bP by blast
   qed
 qed
@@ -2700,9 +2341,7 @@ end
 section \<open>Pushing a Polynomial along a Ring Homomorphism\<close>
 
 text \<open>Coefficientwise application of a ring homomorphism commutes with every operation of the
-  polynomial ring.  HOL-Algebra obtains the corresponding facts from \<open>map_poly\<close> and
-  \<open>ring_hom_ring.subfield_polynomial_hom\<close>; the carrier-set layer has no homomorphism apparatus at
-  this level, so they are proved here directly, in the style of \<open>eval_hom\<close>.\<close>
+  polynomial ring..\<close>
 
 context
   fixes A :: "'b set" and add mult :: "'b \<Rightarrow> 'b \<Rightarrow> 'b" and z u :: 'b
@@ -2734,28 +2373,22 @@ lemma poly_zero_hom: "(\<lambda>k. h (Ring.poly_zero z k)) = Ring.poly_zero bz"
   by (simp add: Ring.poly_zero_def [OF RA] Ring.poly_zero_def [OF RB] hz)
 
 lemma poly_one_hom: "(\<lambda>k. h (Ring.poly_one z u k)) = Ring.poly_one bz bu"
-  by (rule ext) (simp add: Ring.poly_one_def [OF RA] Ring.poly_one_def [OF RB] hz hu)
+  by (auto simp add: Ring.poly_one_def [OF RA] Ring.poly_one_def [OF RB] hz hu)
 
 lemma poly_const_hom: "(\<lambda>k. h (Ring.poly_const z c k)) = Ring.poly_const bz (h c)"
-  by (rule ext) (simp add: Ring.poly_const_def [OF RA] Ring.poly_const_def [OF RB] hz)
+  by (auto simp: Ring.poly_const_def [OF RA] Ring.poly_const_def [OF RB] hz)
 
 lemma var_hom: "(\<lambda>k. h (Ring.var z u k)) = Ring.var bz bu"
-  by (rule ext) (simp add: Ring.var_def [OF RA] Ring.var_def [OF RB]
-                           Ring.monom_def [OF RA] Ring.monom_def [OF RB] hz hu)
+  using RA RB Ring.coeff_var[of A add mult z u] Ring.coeff_var[of B badd bmult bz bu] hu hz
+  by auto
 
 text \<open>Coefficients of the polynomials named above, needed as closure side conditions below.\<close>
 
 lemma zA: "z \<in> A"
-proof -
-  interpret GA: Abelian_Group A add z by (rule gpA)
-  show ?thesis by simp
-qed
+  using cmA by (metis Monoid_def commutative_monoid_def)
 
 lemma uA: "u \<in> A"
-proof -
-  interpret MA: Monoid A mult u by (rule monA)
-  show ?thesis by simp
-qed
+  using monA by (metis Monoid_def)
 
 lemma poly_const_coeff_closed: "c \<in> A \<Longrightarrow> Ring.poly_const z c k \<in> A"
   using zA by (simp add: Ring.poly_const_def [OF RA])
@@ -2765,35 +2398,30 @@ lemma var_coeff_closed: "Ring.var z u k \<in> A"
 
 lemma poly_add_hom:
   assumes p: "\<And>k. p k \<in> A" and q: "\<And>k. q k \<in> A"
-  shows "(\<lambda>k. h (Ring.poly_add add p q k))
-       = Ring.poly_add badd (\<lambda>k. h (p k)) (\<lambda>k. h (q k))"
-  by (rule ext) (simp add: Ring.poly_add_def [OF RA] Ring.poly_add_def [OF RB] hadd p q)
+  shows "(\<lambda>k. h (Ring.poly_add add p q k)) = Ring.poly_add badd (\<lambda>k. h (p k)) (\<lambda>k. h (q k))"
+  by (simp add: Ring.poly_add_def [OF RA] Ring.poly_add_def [OF RB] hadd p q)
 
 text \<open>The additive inverse is pinned by the equation it solves, so a homomorphism of the additive
   groups carries it along.\<close>
 lemma inverse_hom:
-  assumes y: "y \<in> A"
+  assumes "y \<in> A"
   shows "h (Monoid.inverse A add z y) = Monoid.inverse B badd bz (h y)"
 proof -
   interpret GA: Abelian_Group A add z by (rule gpA)
   interpret GB: Abelian_Group B badd bz by (rule gpB)
-  have inv: "Monoid.inverse A add z y \<in> A" using y by simp
-  have "badd (h y) (h (Monoid.inverse A add z y)) = h (add y (Monoid.inverse A add z y))"
-    by (rule hadd [OF y inv, symmetric])
-  also have "\<dots> = h z" using y by simp
-  finally have 1: "badd (h y) (h (Monoid.inverse A add z y)) = bz" by (simp add: hz)
-  have "badd (h (Monoid.inverse A add z y)) (h y) = h (add (Monoid.inverse A add z y) y)"
-    by (rule hadd [OF inv y, symmetric])
-  also have "\<dots> = h z" using y by simp
-  finally have 2: "badd (h (Monoid.inverse A add z y)) (h y) = bz" by (simp add: hz)
+  have inv: "Monoid.inverse A add z y \<in> A" using assms by simp
+  have 1: "badd (h y) (h (Monoid.inverse A add z y)) = bz"
+    using GA.invertible GA.invertible_right_inverse hadd hz inv assms by metis
+  then have 2: "badd (h (Monoid.inverse A add z y)) (h y) = bz"
+    by (simp add: GB.commutative hB assms)
   show ?thesis
-    using 1 2 hB [OF y] hB [OF inv] by (intro GB.inverse_equality [symmetric]) auto
+    using "1" "2" GB.inverse_equality hB inv assms by presburger
 qed
 
 lemma poly_neg_hom:
   assumes p: "\<And>k. p k \<in> A"
   shows "(\<lambda>k. h (Ring.poly_neg A add z p k)) = Ring.poly_neg B badd bz (\<lambda>k. h (p k))"
-  by (rule ext) (simp add: Ring.poly_neg_def [OF RA] Ring.poly_neg_def [OF RB] inverse_hom p)
+  by (simp add: Ring.poly_neg_def [OF RA] Ring.poly_neg_def [OF RB] inverse_hom p)
 
 lemma poly_neg_coeff_closed:
   assumes p: "\<And>k. p k \<in> A"
@@ -2810,25 +2438,15 @@ lemma poly_mult_hom:
   assumes p: "\<And>k. p k \<in> A" and q: "\<And>k. q k \<in> A"
   shows "(\<lambda>k. h (Ring.poly_mult A add mult z p q k))
        = Ring.poly_mult B badd bmult bz (\<lambda>k. h (p k)) (\<lambda>k. h (q k))"
-proof (rule ext)
+proof 
   fix k
   have cl: "(\<lambda>i. mult (p i) (q (k - i))) \<in> {..k} \<rightarrow> A"
-  proof (rule Pi_I)
-    fix i
-    show "mult (p i) (q (k - i)) \<in> A"
-      by (rule Monoid.composition_closed [OF monA p q])
-  qed
-  have fe: "(\<lambda>i. h (mult (p i) (q (k - i)))) = (\<lambda>i. bmult (h (p i)) (h (q (k - i))))"
-    by (rule ext) (simp add: hmult p q)
+    using Monoid.composition_closed monA p q by fastforce
   have "h (Ring.poly_mult A add mult z p q k)
-        = h (commutative_monoid.fincomp A add z (\<lambda>i. mult (p i) (q (k - i))) {..k})"
-    by (simp add: Ring.poly_mult_def [OF RA])
-  also have "\<dots> = commutative_monoid.fincomp B badd bz (\<lambda>i. h (mult (p i) (q (k - i)))) {..k}"
-    by (rule fincomp_hom [OF cmA cmB]) (auto simp: hB hz hadd cl)
-  also have "\<dots> = commutative_monoid.fincomp B badd bz (\<lambda>i. bmult (h (p i)) (h (q (k - i)))) {..k}"
-    by (simp add: fe)
+        = commutative_monoid.fincomp B badd bz (\<lambda>i. h (mult (p i) (q (k - i)))) {..k}"
+    by (simp add: Ring.poly_mult_def [OF RA] fincomp_hom [OF cmA cmB] hB hz hadd cl)
   also have "\<dots> = Ring.poly_mult B badd bmult bz (\<lambda>k. h (p k)) (\<lambda>k. h (q k)) k"
-    by (simp add: Ring.poly_mult_def [OF RB])
+    by (simp add: hmult p q Ring.poly_mult_def [OF RB])
   finally show "h (Ring.poly_mult A add mult z p q k)
               = Ring.poly_mult B badd bmult bz (\<lambda>k. h (p k)) (\<lambda>k. h (q k)) k" .
 qed
@@ -2838,7 +2456,7 @@ lemma poly_mult_coeff_closed:
   shows "Ring.poly_mult A add mult z p q k \<in> A"
 proof -
   have "(\<lambda>i. mult (p i) (q (k - i))) \<in> {..k} \<rightarrow> A"
-    by (rule Pi_I) (rule Monoid.composition_closed [OF monA p q])
+    using Monoid.composition_closed monA p q by fastforce
   then show ?thesis
     by (simp add: Ring.poly_mult_def [OF RA] commutative_monoid.fincomp_closed [OF cmA])
 qed
@@ -2851,39 +2469,24 @@ text \<open>The linear factor \<open>X - a\<close>, the list product, and hence 
   above keep their generality.\<close>
 
 lemma root_factor_coeff_closed:
-  assumes CA: "commutative_ring A add mult z u" and a: "a \<in> A"
+  assumes "commutative_ring A add mult z u" "a \<in> A"
   shows "commutative_ring.root_factor A add z u a k \<in> A"
-proof -
-  interpret GA: Abelian_Group A add z by (rule gpA)
-  have cn: "\<And>k. Ring.poly_const z a k \<in> A"
-    using a by (rule poly_const_coeff_closed)
-  have "Ring.poly_neg A add z (Ring.poly_const z a) k \<in> A"
-    by (rule poly_neg_coeff_closed [OF cn])
-  then show ?thesis
-    unfolding commutative_ring.root_factor_def [OF CA] Ring.poly_add_def [OF RA]
-    using var_coeff_closed by simp
-qed
+  by (meson assms RA Ring.poly_carrier_coeff_closed commutative_ring.root_factor_closed)
 
 lemma root_factor_hom:
   assumes CA: "commutative_ring A add mult z u" and CB: "commutative_ring B badd bmult bz bu"
     and a: "a \<in> A"
-  shows "(\<lambda>k. h (commutative_ring.root_factor A add z u a k))
-       = commutative_ring.root_factor B badd bz bu (h a)"
+  shows "(\<lambda>k. h (commutative_ring.root_factor A add z u a k)) = commutative_ring.root_factor B badd bz bu (h a)"
 proof -
   have cn: "\<And>k. Ring.poly_const z a k \<in> A"
     using a by (rule poly_const_coeff_closed)
   have "(\<lambda>k. h (commutative_ring.root_factor A add z u a k))
-        = (\<lambda>k. h (Ring.poly_add add (Ring.var z u)
-                     (Ring.poly_neg A add z (Ring.poly_const z a)) k))"
-    by (simp add: commutative_ring.root_factor_def [OF CA])
-  also have "\<dots> = Ring.poly_add badd (\<lambda>k. h (Ring.var z u k))
+        = Ring.poly_add badd (\<lambda>k. h (Ring.var z u k))
                     (\<lambda>k. h (Ring.poly_neg A add z (Ring.poly_const z a) k))"
-    by (rule poly_add_hom) (auto simp: var_coeff_closed poly_neg_coeff_closed cn)
-  also have "\<dots> = Ring.poly_add badd (Ring.var bz bu)
-                    (Ring.poly_neg B badd bz (Ring.poly_const bz (h a)))"
-    by (simp add: var_hom poly_neg_hom [OF cn] poly_const_hom)
+    using CA cn poly_add_hom poly_neg_coeff_closed var_coeff_closed
+    by (metis commutative_ring.root_factor_def)
   also have "\<dots> = commutative_ring.root_factor B badd bz bu (h a)"
-    by (simp add: commutative_ring.root_factor_def [OF CB])
+    by (simp add: var_hom poly_neg_hom [OF cn] poly_const_hom commutative_ring.root_factor_def [OF CB])
   finally show ?thesis .
 qed
 
@@ -2898,12 +2501,8 @@ proof (induct fs arbitrary: k)
     using poly_one_coeff_closed by (simp add: Field.poly_prod_Nil [OF FA])
 next
   case (Cons g gs)
-  have g: "\<And>k. g k \<in> A" and gs: "\<And>f. f \<in> set gs \<Longrightarrow> (\<forall>k. f k \<in> A)"
-    using Cons.prems by auto
-  have pp: "\<And>k. Field.poly_prod A add mult z u gs k \<in> A"
-    using Cons.hyps [OF gs] by blast
-  show ?case
-    by (simp add: Field.poly_prod_Cons [OF FA] poly_mult_coeff_closed [OF g pp])
+  then show ?case
+    by (simp add: FA Field.poly_prod_Cons poly_mult_coeff_closed)
 qed
 
 lemma poly_prod_hom:
@@ -2918,21 +2517,15 @@ proof (induct fs)
     by (simp add: Field.poly_prod_Nil [OF FA] Field.poly_prod_Nil [OF FB] poly_one_hom)
 next
   case (Cons g gs)
-  have g: "\<And>k. g k \<in> A" and gs: "\<And>f. f \<in> set gs \<Longrightarrow> (\<forall>k. f k \<in> A)"
-    using Cons.prems by auto
+  then have g: "\<And>k. g k \<in> A" and gs: "\<And>f. f \<in> set gs \<Longrightarrow> (\<forall>k. f k \<in> A)"
+    by auto
   have pp: "\<And>k. Field.poly_prod A add mult z u gs k \<in> A"
-    by (rule poly_prod_coeff_closed [OF FA]) (rule gs)
+    using FA gs poly_prod_coeff_closed by blast
   have "(\<lambda>k. h (Field.poly_prod A add mult z u (g # gs) k))
-        = (\<lambda>k. h (Ring.poly_mult A add mult z g (Field.poly_prod A add mult z u gs) k))"
-    by (simp add: Field.poly_prod_Cons [OF FA])
-  also have "\<dots> = Ring.poly_mult B badd bmult bz (\<lambda>k. h (g k))
-                    (\<lambda>k. h (Field.poly_prod A add mult z u gs k))"
-    by (rule poly_mult_hom [OF g pp])
-  also have "\<dots> = Ring.poly_mult B badd bmult bz (\<lambda>k. h (g k))
-                    (Field.poly_prod B badd bmult bz bu (List.map (\<lambda>f k. h (f k)) gs))"
-    by (simp add: Cons.hyps [OF gs])
+         = Ring.poly_mult B badd bmult bz (\<lambda>k. h (g k)) (\<lambda>k. h (Field.poly_prod A add mult z u gs k))"
+    by (simp add: Field.poly_prod_Cons [OF FA] poly_mult_hom [OF g pp])
   also have "\<dots> = Field.poly_prod B badd bmult bz bu (List.map (\<lambda>f k. h (f k)) (g # gs))"
-    by (simp add: Field.poly_prod_Cons [OF FB])
+    by (simp add: Field.poly_prod_Cons [OF FB] Cons.hyps [OF gs])
   finally show ?case .
 qed
 
@@ -2946,47 +2539,31 @@ theorem splits_hom:
 proof -
   have CA: "commutative_ring A add mult z u" using FA by (simp add: Field_def)
   have CB: "commutative_ring B badd bmult bz bu" using FB by (simp add: Field_def)
+  interpret B: commutative_ring B badd bmult bz bu
+    using CB by auto
   from sp obtain c as where c: "c \<in> A" and as: "set as \<subseteq> A"
     and peq: "p = Ring.poly_mult A add mult z
                    (Ring.poly_const z c)
                    (Field.poly_prod A add mult z u
                       (List.map (commutative_ring.root_factor A add z u) as))"
     using Field.splits_def [OF FA] by blast
-  define bs where "bs = List.map h as"
-  have cn: "\<And>k. Ring.poly_const z c k \<in> A"
-    using c by (rule poly_const_coeff_closed)
-  have rf: "\<And>f. f \<in> set (List.map (commutative_ring.root_factor A add z u) as)
-                 \<Longrightarrow> (\<forall>k. f k \<in> A)"
+  have rf: "\<And>f. f \<in> set (List.map (commutative_ring.root_factor A add z u) as) \<Longrightarrow> (\<forall>k. f k \<in> A)"
     using as by (auto simp: root_factor_coeff_closed [OF CA])
-  have pp: "\<And>k. Field.poly_prod A add mult z u
-                  (List.map (commutative_ring.root_factor A add z u) as) k \<in> A"
-    by (rule poly_prod_coeff_closed [OF FA]) (rule rf)
+  then have pp: "\<And>k. Field.poly_prod A add mult z u (List.map (commutative_ring.root_factor A add z u) as) k \<in> A"
+    using FA poly_prod_coeff_closed by blast
   have mm: "List.map (\<lambda>f k. h (f k)) (List.map (commutative_ring.root_factor A add z u) as)
-            = List.map (commutative_ring.root_factor B badd bz bu) bs"
-    unfolding bs_def using as by (induct as) (simp_all add: root_factor_hom [OF CA CB])
-  have step1: "(\<lambda>k. h (p k))
+            = List.map (commutative_ring.root_factor B badd bz bu) (List.map h as)"
+    using as by (induct as) (simp_all add: root_factor_hom [OF CA CB])
+  have "(\<lambda>k. h (p k))
         = Ring.poly_mult B badd bmult bz (Ring.poly_const bz (h c))
             (Field.poly_prod B badd bmult bz bu
                (List.map (\<lambda>f k. h (f k))
                   (List.map (commutative_ring.root_factor A add z u) as)))"
-  proof -
-    have "(\<lambda>k. h (p k))
-          = Ring.poly_mult B badd bmult bz (\<lambda>k. h (Ring.poly_const z c k))
-              (\<lambda>k. h (Field.poly_prod A add mult z u
-                        (List.map (commutative_ring.root_factor A add z u) as) k))"
-      unfolding peq by (rule poly_mult_hom [OF cn pp])
-    then show ?thesis
-      by (simp only: poly_const_hom poly_prod_hom [OF FA FB rf])
-  qed
-  have "(\<lambda>k. h (p k))
-        = Ring.poly_mult B badd bmult bz (Ring.poly_const bz (h c))
-            (Field.poly_prod B badd bmult bz bu
-               (List.map (commutative_ring.root_factor B badd bz bu) bs))"
-    using step1 by (simp only: mm)
-  moreover have "h c \<in> B" using c by (rule hB)
-  moreover have "set bs \<subseteq> B" unfolding bs_def using as hB by auto
+    using FA FB c poly_const_coeff_closed peq poly_const_hom poly_mult_hom poly_prod_hom pp rf 
+    by presburger
+  moreover have "set (List.map h as) \<subseteq> B" using as hB by auto
   ultimately show ?thesis
-    using Field.splits_def [OF FB] by blast
+    using Field.splits_def [OF FB] mm c hB by metis
 qed
 
 end

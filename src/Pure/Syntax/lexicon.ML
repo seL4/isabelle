@@ -518,7 +518,7 @@ val dummy_type = Syntax.const (mark_type "dummy");
 val fun_type = Syntax.const (mark_type "fun");
 
 
-(* toplevel pretty printing *)
+(* ML toplevel pretty-printing *)
 
 val _ =
   ML_system_pp (fn _ => fn _ =>

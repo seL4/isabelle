@@ -130,7 +130,7 @@ fun print_term (Const arg) = "Term.Const " ^ print_pair print_string print_typ a
   | print_term (t1 $ t2) = "Term.$ " ^ print_pair print_term print_term (t1, t2);
 
 
-(* toplevel pretty printing *)
+(* ML toplevel pretty-printing *)
 
 fun pretty_string max_len str =
   let

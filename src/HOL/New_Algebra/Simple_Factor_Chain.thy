@@ -137,7 +137,7 @@ qed
 definition normal_chain_factor_classes ::
     "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow>
       ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow>
-      'a set group_iso_class list"
+      'a set monoid_iso_class list"
   where
     "normal_chain_factor_classes C n composition unit =
       List.map
@@ -147,7 +147,7 @@ definition normal_chain_factor_classes ::
 definition reduced_normal_chain_factor_multiset ::
     "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow>
       ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow>
-      'a set group_iso_class multiset"
+      'a set monoid_iso_class multiset"
   where
     "reduced_normal_chain_factor_multiset C n composition unit =
       nontrivial_factor_multiset
@@ -205,7 +205,7 @@ next
     qed
     have earlier_trivial:
         "normal_factor_class (C i) (C (Suc i)) composition unit =
-          trivial_group_iso_class" if "i < n" for i
+          trivial_monoid_iso_class" if "i < n" for i
     proof -
       have step: "normal_subgroup (C i) (C (Suc i)) composition unit"
         by (rule C.normal_step) (use that in simp)
@@ -216,7 +216,7 @@ next
     qed
     have prefix_classes:
         "normal_chain_factor_classes C n composition unit =
-          List.map (\<lambda>_. trivial_group_iso_class) [0..<n]"
+          List.map (\<lambda>_. trivial_monoid_iso_class) [0..<n]"
       unfolding normal_chain_factor_classes_def
       by (rule map_cong) (auto intro: earlier_trivial)
     have reduced_prefix:
@@ -243,7 +243,7 @@ next
       by (rule Suc.IH[OF prefix Suc.prems(2) Suc.prems(3) 2])
     have last_trivial:
         "normal_factor_class (C n) (C (Suc n)) composition unit =
-          trivial_group_iso_class"
+          trivial_monoid_iso_class"
       using 2 Suc.prems(4)
         normal_factor_class_eq_trivial_iff[OF C.normal_step[of n]] by simp
     show ?thesis

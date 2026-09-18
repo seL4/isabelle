@@ -32,6 +32,7 @@ end;
 signature XML =
 sig
   include XML
+  val elem: body -> tree
   val blob: string list -> body
   val is_empty: tree -> bool
   val is_empty_body: body -> bool
@@ -41,8 +42,6 @@ sig
   val filter_elements: {remove: string -> bool, expose: string -> bool} -> body -> body
   val header: string
   val text: string -> string
-  val element: string -> attributes -> string list -> string
-  val output_markup: Markup.T -> Markup.output
   val string_of: tree -> string
   val pretty: int -> tree -> Pretty.T
   val parse_comments: string list -> unit * string list
@@ -62,6 +61,8 @@ struct
 (** XML trees **)
 
 open XML;
+
+fun elem body = XML.Elem (Markup.empty, body);
 
 val blob = map Text;
 
@@ -129,30 +130,20 @@ fun encode "<" = "&lt;"
 val text = translate_string encode;
 
 
-(* elements *)
-
-fun elem name atts =
-  implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
-
-fun element name atts body =
-  let val b = implode body in
-    if b = "" then Library.enclose "<" "/>" (elem name atts)
-    else Library.enclose "<" ">" (elem name atts) ^ b ^ Library.enclose "</" ">" name
-  end;
-
-fun output_markup (markup as (name, atts)) =
-  if Markup.is_empty markup then Markup.no_output
-  else (Library.enclose "<" ">" (elem name atts), Library.enclose "</" ">" name);
-
-
 (* output content *)
+
+local
+
+fun make_elem name atts =
+  implode_space (name :: map (fn (a, x) => a ^ "=\"" ^ text x ^ "\"") atts);
 
 fun content_depth depth =
   let
-    fun traverse _ (Elem ((name, atts), [])) =
-          Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
+    fun traverse d (Elem (("", _), ts)) = traverse_body d ts
+      | traverse _ (Elem ((name, atts), [])) =
+          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add "/>"
       | traverse d (Elem ((name, atts), ts)) =
-          Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
+          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add ">" #>
           traverse_body d ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
       | traverse _ (Text s) = Buffer.add (text s)
@@ -160,12 +151,15 @@ fun content_depth depth =
       | traverse_body d ts = fold (traverse (d - 1)) ts;
   in Buffer.build_content o traverse depth end;
 
+in
+
 val string_of = content_depth ~1;
 
 fun pretty depth tree = Pretty.str (content_depth (Int.max (0, depth)) tree);
 
 val _ = ML_system_pp (fn depth => fn _ => Pretty.to_ML o pretty (FixedInt.toInt depth));
 
+end;
 
 
 (** XML parsing **)

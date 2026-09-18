@@ -6,7 +6,7 @@ Primitive definition forms.
 
 signature PRIMITIVE_DEFS =
 sig
-  val dest_def: Proof.context ->
+  val dest_def: Proof.context -> Name.context ->
     {check_head: term -> bool,
      check_free_lhs: string -> bool,
      check_free_rhs: string -> bool,
@@ -24,11 +24,16 @@ fun term_kind (Const _) = "existing constant "
   | term_kind _ = "";
 
 (*c x \<equiv> t[x] to \<And>x. c x \<equiv> t[x]*)
-fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
+fun dest_def ctxt names {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
   let
     fun err msg = raise TERM (msg, [eq]);
-    val eq_vars = Term.strip_all_vars eq;
-    val eq_body = Term.strip_all_body eq;
+
+    val eq_vars0 = Term.strip_all_vars eq;
+    val eq_body0 = Term.strip_all_body eq;
+
+    val eq_vars = Name.variant_names (Term.declare_free_names eq names) eq_vars0;
+    val eq_body = Term.subst_bounds (map Free (rev eq_vars), eq_body0);
+    val eq_bounds = ListPair.map (fn ((x, _), v) => (x, Free v)) (eq_vars0, eq_vars);
 
     val display_terms =
       commas_quote o map (Syntax.string_of_term ctxt o Syntax_Trans.bound_vars ctxt eq_vars);
@@ -39,12 +44,13 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     val (head, args) = Term.strip_comb lhs;
     val head_tfrees = TFrees.build (TFrees.add_tfrees head);
 
-    fun check_arg (Bound _) = true
-      | check_arg (Free (x, _)) = check_free_lhs x
+    fun check_arg (Free (x, _)) = check_free_lhs x
       | check_arg (Const ("Pure.type", Type ("itself", [TFree _]))) = true
       | check_arg _ = false;
-    fun close_arg (Bound _) t = t
-      | close_arg x t = Logic.all x t;
+
+    fun close_arg x t =
+      if is_Free x andalso member (op =) eq_vars (dest_Free x) then t
+      else Logic.all x t;
 
     val lhs_bads = filter_out check_arg args;
     val lhs_dups = duplicates (op aconv) args;
@@ -69,8 +75,11 @@ fun dest_def ctxt {check_head, check_free_lhs, check_free_rhs, check_tfree} eq =
     else if exists_subterm (fn t => t aconv head) rhs then
       err "Entity to be defined occurs on rhs"
     else
-      ((lhs, rhs), args,
-        fold_rev close_arg args (Logic.list_all (eq_vars, (Logic.mk_equals (lhs, rhs)))))
+      let
+        val ax =
+          fold_rev close_arg args
+            (fold_rev Logic.all_name eq_bounds (Logic.mk_equals (lhs, rhs)));
+      in ((lhs, rhs), args, ax) end
   end;
 
 (*\<And>x. c x \<equiv> t[x] to c \<equiv> \<lambda>x. t[x]*)

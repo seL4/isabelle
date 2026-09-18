@@ -50,7 +50,7 @@ fun cert_def ctxt get_pos eq =
         quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), args, eq') = eq
       |> Sign.no_vars ctxt
-      |> Primitive_Defs.dest_def ctxt
+      |> Primitive_Defs.dest_def ctxt (Variable.names_of ctxt)
         {check_head = Term.is_Free,
          check_free_lhs = not o Variable.is_fixed ctxt,
          check_free_rhs = if Variable.is_body ctxt then K true else Variable.is_fixed ctxt,

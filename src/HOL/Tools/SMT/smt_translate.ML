@@ -15,6 +15,15 @@ sig
     SQua of squant * string list * sterm spattern list * sterm
 
   (*translation configuration*)
+  type smtlib_theories = {
+    fixedSizeBitVectors : bool,
+    real : bool,
+    set : bool,
+    datatypes : bool
+  }
+  datatype smtlib_logic = SL of smtlib_theories | NO_LOGIC | ALL | ALL_SUPPORTED
+  val merge_smtlib_logic: smtlib_logic -> smtlib_logic -> smtlib_logic
+
   type sign = {
     logic: string,
     sorts: string list,
@@ -22,12 +31,12 @@ sig
     funcs: (string * (string list * string)) list }
   type config = {
     order: SMT_Util.order,
-    logic: string -> term list -> string,
+    logic: string -> term list -> smtlib_logic,
     fp_kinds: BNF_Util.fp_kind list,
     serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
       string }
   type replay_data = {
-    context: Proof.context,
+    ctxt: Proof.context,
     typs: typ Symtab.table,
     terms: term Symtab.table,
     ll_defs: term list,
@@ -39,11 +48,15 @@ sig
   val translate: Proof.context -> string -> (string * string) list -> string list ->
     ((int * SMT_Util.role) * thm) list ->
     string * replay_data
+
+  val eta_expand: Proof.context -> int Termtab.table -> ('a * term) list -> ('a * term) list
 end;
 
 structure SMT_Translate: SMT_TRANSLATE =
 struct
 
+open SMT_Config
+fun debug_msg ctxt = alethe_debug_msg ctxt "smt_translate"
 
 (* intermediate term structure *)
 
@@ -60,6 +73,79 @@ datatype sterm =
 
 (* translation configuration *)
 
+type smtlib_theories = {
+  fixedSizeBitVectors : bool,
+  real : bool,
+  (*int : bool, *)
+  set : bool,
+  datatypes : bool
+}
+
+val solver_supports = [
+  ("cvc5", ({fixedSizeBitVectors=true, real=true, set=true, datatypes=true}:smtlib_theories)),
+  ("cvc5_proof", ({fixedSizeBitVectors=true, real=true, set=true, datatypes=true}:smtlib_theories)),
+  ("verit", ({fixedSizeBitVectors=false, real=true, set=false, datatypes=false}:smtlib_theories)),
+  ("z3", ({fixedSizeBitVectors=true, real=true, set=false, datatypes=false}:smtlib_theories))
+]
+
+fun get_supported_theories solver =
+ (case List.find (fn x => fst x = solver) solver_supports of
+      SOME (_, supported) => supported |
+      NONE => raise (Fail ("Could not find which logics are supported for solver " ^ solver
+        ^ " in " ^ @{make_string} solver_supports ^ ". Please add that information or set specific SMTLIB-theories instead of using "
+        ^ "ALL_SUPPORTED as smt-lib logic")))
+
+fun solver_support_theories solver
+  ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set, datatypes=l1_dt}:smtlib_theories) =
+let
+  val {fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set, datatypes=l2_dt} =
+    get_supported_theories solver
+in
+  (not l1_bv orelse l2_bv) andalso (not l1_real orelse l2_real) andalso (not l1_set orelse l2_set)
+  andalso (not l1_dt orelse l2_dt)
+end
+
+
+fun print_smtlib_theories solver (l as {fixedSizeBitVectors, real, set, datatypes}) =
+  if solver_support_theories solver l then
+    "AUF" ^ (if fixedSizeBitVectors then "BV" else "") ^ (if datatypes then "DT" else "") ^ "LI"
+    ^ (if real then "R" else "") ^ "A" ^ (if set then "FS" else "")
+  else raise (Fail ("Solver " ^ solver ^ " does not support a theory that has been set:\n"
+    ^ (if fixedSizeBitVectors then "fixedSizeBitVectors\n" else "")
+    ^ (if real then "real\n" else "")
+    ^ (if set then "set\n" else "")
+    ^ (if datatypes then "datatypes\n" else "")
+    ^ "\n"))
+
+fun merge_smtlib_theory
+      ({fixedSizeBitVectors=l1_bv, real=l1_real, set=l1_set, datatypes=l1_dt}:smtlib_theories)
+      ({fixedSizeBitVectors=l2_bv, real=l2_real, set=l2_set, datatypes=l2_dt}:smtlib_theories)
+  =
+  ({fixedSizeBitVectors = l1_bv orelse l2_bv,
+    real = l1_real orelse l2_real,
+    set = l1_set orelse l2_set,
+    datatypes = l1_dt orelse l2_dt
+   })
+
+
+datatype smtlib_logic = SL of smtlib_theories | NO_LOGIC | ALL | ALL_SUPPORTED
+
+fun print_set_logic x = "(set-logic " ^ x ^ ")\n"
+
+fun print_smtlib_logic ALL _ = print_set_logic "ALL"
+  | print_smtlib_logic ALL_SUPPORTED solver =
+      get_supported_theories solver |> print_smtlib_theories solver
+ | print_smtlib_logic NO_LOGIC _ = ""
+ | print_smtlib_logic (SL l) solver = print_smtlib_theories solver l |> print_set_logic
+
+fun merge_smtlib_logic NO_LOGIC _ = NO_LOGIC
+  | merge_smtlib_logic _ NO_LOGIC = NO_LOGIC
+  | merge_smtlib_logic ALL _ = ALL
+  | merge_smtlib_logic _ ALL = ALL
+  | merge_smtlib_logic _ ALL_SUPPORTED = ALL_SUPPORTED
+  | merge_smtlib_logic ALL_SUPPORTED _ = ALL_SUPPORTED
+  | merge_smtlib_logic (SL l1) (SL l2)  = SL (merge_smtlib_theory l1 l2 )
+
 type sign = {
   logic: string,
   sorts: string list,
@@ -68,13 +154,13 @@ type sign = {
 
 type config = {
   order: SMT_Util.order,
-  logic: string -> term list -> string,
+  logic: string -> term list -> smtlib_logic,
   fp_kinds: BNF_Util.fp_kind list,
   serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
     string }
 
 type replay_data = {
-  context: Proof.context,
+  ctxt: Proof.context,
   typs: typ Symtab.table,
   terms: term Symtab.table,
   ll_defs: term list,
@@ -122,7 +208,7 @@ fun sign_of logic dtyps (_, typs, terms) = {
   logic = logic,
   sorts = Typtab.fold (fn (_, (n, true)) => cons n | _ => I) typs [],
   dtyps = dtyps,
-  funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n,ss) | _ => I) terms []}
+  funcs = Termtab.fold (fn (_, (n, SOME ss)) => cons (n, ss) | _ => I) terms []}
 
 fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
   let
@@ -132,7 +218,7 @@ fun replay_data_of ctxt ll_defs rules assms (_, typs, terms) =
     fun add_fun (t, (n, _)) = Symtab.update (n, t)
     val terms' = Termtab.fold add_fun terms Symtab.empty
   in
-    {context = ctxt, typs = typs', terms = terms', ll_defs = ll_defs, rewrite_rules = rules,
+    {ctxt = ctxt, typs = typs', terms = terms', ll_defs = ll_defs, rewrite_rules = rules,
      assms = assms}
   end
 
@@ -152,7 +238,7 @@ fun collect_co_datatypes fp_kinds (tr_context, ctxt) ts =
 
     fun add_typ' T proper =
       (case SMT_Builtin.dest_builtin_typ ctxt' T of
-        SOME (n, Ts) => pair n (* FIXME HO: Consider Ts *)
+        SOME (n, _) => pair n (* FIXME HO: Consider type list *)
       | NONE => add_typ T proper)
 
     fun tr_select sel =
@@ -467,6 +553,7 @@ fun intermediate logic dtyps builtin ctxt ts trx =
       end
 
     val (us, trx') = fold_map (fn (role, t) => apfst (pair role) o trans t) ts trx
+
   in ((sign_of (logic ts) dtyps trx', us), trx') end
 
 
@@ -481,27 +568,42 @@ structure Configs = Generic_Data
 
 fun add_config (cs, cfg) = Configs.map (SMT_Util.dict_update (cs, cfg))
 
-fun get_config ctxt =
-  let val cs = SMT_Config.solver_class_of ctxt
+fun get_config ctxt : config list =
+  let
+    val cs = SMT_Config.solver_class_of ctxt
+    val cfgs =
+      map_filter (SMT_Util.dict_get (Configs.get (Context.Proof ctxt))) cs
+      |> map ((fn f => f ctxt))
   in
-    (case SMT_Util.dict_get (Configs.get (Context.Proof ctxt)) cs of
-      SOME cfg => cfg ctxt
-    | NONE => error ("SMT: no translation configuration found " ^
-        "for solver class " ^ quote (SMT_Util.string_of_class cs)))
+    (case cfgs of
+      (_ :: _) => cfgs
+    | _ => error ("SMT: no translation configuration found " ^
+        "for solver class " ^ commas_quote (map SMT_Util.string_of_class cs)))
   end
 
 fun translate ctxt prover smt_options comments (ithms : ((int * SMT_Util.role) * thm) list) =
   let
-    val {order, logic, fp_kinds, serialize} = get_config ctxt
+    val _ = debug_msg ctxt low (fn () => \<^print> ("start translating problem ", ithms))
+    val configs = get_config ctxt
+    val orders = map #order configs
+    val logics = map #logic configs
+    fun logic prover ts = print_smtlib_logic
+      (Library.foldr1 (uncurry merge_smtlib_logic) (map (fn f => f prover ts) logics)) prover
+    val fp_kinds = map #fp_kinds configs |> foldr1 (op @)
+    (*There is a single serialize function anyway*)
+    val serialize = map #serialize configs |> hd
+    val first_order = is_some (List.find (curry (op =) SMT_Util.First_Order) orders)
 
     fun no_dtyps (tr_context, ctxt) ts =
       ((Termtab.empty, [], tr_context, ctxt), ts)
 
     val ts1 = map (SMT_Util.map_prod snd (Envir.beta_eta_contract o SMT_Util.prop_of)) ithms
+    val _ = debug_msg ctxt high (fn () => \<^print> ("ts1 ", ts1))
 
     val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((empty_tr_context, ctxt), ts1)
       |-> (if null fp_kinds then no_dtyps else collect_co_datatypes fp_kinds)
+    val _ = debug_msg ctxt high (fn () => \<^print> ("ts2 ", ts2))
 
     fun is_binder (Const (\<^const_name>\<open>Let\<close>, _) $ _) = true
       | is_binder t = Lambda_Lifting.is_quantifier t
@@ -524,16 +626,24 @@ fun translate ctxt prover smt_options comments (ithms : ((int * SMT_Util.role) *
       |-> (fn (ts', ll_defs) => fn ctxt' =>
         let
           val ts'' = map (pair SMT_Util.Axiom o mk_trigger) ll_defs @ ts'
-            |> order = SMT_Util.First_Order ? intro_explicit_application ctxt' funcs
+            |> first_order ? intro_explicit_application ctxt' funcs
         in
           (ctxt', (ts'', ll_defs))
         end)
+    val _ = debug_msg ctxt high (fn () => \<^print> ("ts3 ", ts3))
+    val _ = debug_msg ctxt high (fn () => \<^print> ("lambda lifting defs (ll_defs) ", ll_defs))
+
     val ((rewrite_rules, builtin), ts4) = folify ctxt2 ts3
-      |>> order = SMT_Util.First_Order ? apfst (cons fun_app_eq)
+      |>> first_order ? apfst (cons fun_app_eq)
+    val _ = debug_msg ctxt high (fn () => \<^print> ("ts4 ", ts4))
+    val _ = debug_msg ctxt high (fn () => \<^print> ("rewrite_rules ", rewrite_rules))
+
   in
     (ts4, tr_context)
     |-> intermediate (logic prover o map snd) dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
+
+    |> (fn x => let val _ = debug_msg ctxt high (fn () => \<^print> ("problem string is:", (fst x))) in x end)
     ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end
 

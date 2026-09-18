@@ -23,21 +23,14 @@ unbundle uminus_syntax
 
 subsection \<open>The fixed field sits below \<open>K\<close> as a tower\<close>
 
-text \<open>Both fields are subfields of \<^typ>\<open>complex\<close> and one contains the other, so they form a
-  @{locale subfield_tower} --- the scalars being the fixed field and the vectors @{term K}.  Note the
-  translation between the two subfield notions: @{const complex_subfield} is what the Galois
-  development uses, the type class @{locale Subfield} is what the vector-space layer needs.\<close>
+text \<open>Both fields are native set-based subfields and one contains the other, so they form a
+  @{locale subfield_tower} --- the scalars being the fixed field and the vectors @{term K}.\<close>
 lemma fixed_field_tower:
-  assumes K: "complex_subfield K" and HG: "H \<subseteq> field_auto K F"
+  assumes K: "Subfield K" and HG: "H \<subseteq> field_auto K F"
   shows "subfield_tower (fixed_field K H) K"
-proof (rule subfield_tower.intro)
-  have K': "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
-  show "Subfield (fixed_field K H)"
-    by (rule fixed_field_subfield[OF K' HG])
-  show "Subfield K" by (rule K')
-  show "subfield_tower_axioms (fixed_field K H) K"
-    by unfold_locales (rule fixed_field_subset)
-qed
+  using HG K
+  by (meson field_auto_fixed_field_subfield fixed_field_subset subfield_tower_axioms.intro
+      subfield_tower_def)
 
 
 subsection \<open>Artin's bound\<close>
@@ -59,8 +52,8 @@ text \<open>No set of more than @{term "card H"} elements of @{term K} is linear
   qualified \<open>T.vs.\<close> prefix works.\<close>
 
 context
-  fixes K F :: "complex set" and H :: "(complex \<Rightarrow> complex) set"
-  assumes K: "complex_subfield K" and Hsub: "H \<in> galois_subgroups K F"
+  fixes K F :: "'a :: field set" and H :: "('a \<Rightarrow> 'a) set"
+  assumes K: "Subfield K" and Hsub: "H \<in> galois_subgroups K F"
 begin
 
 lemma H_auto: "H \<subseteq> field_auto K F" using Hsub by (rule galois_subgroups_subset)
@@ -74,33 +67,16 @@ theorem artin_bound:
 proof
   assume indep: "T.vs.lin_indep B"
   have idH: "identity K \<in> H"
-  proof -
-    interpret S: Subgroup H "field_auto K F" "compose K" "identity K"
-      using Hsub by (simp add: galois_subgroups_iff)
-    show ?thesis by (rule S.sub_unit_closed)
-  qed
+    using Hsub by (metis Subgroup_def Submonoid.sub_unit_closed galois_subgroups_iff)
   \<comment> \<open>A simultaneous nontrivial dependence with coefficients in @{term K}, indexed by the vectors themselves.\<close>
   have xK: "\<And>j. j \<in> B \<Longrightarrow> id j \<in> K"
-  proof -
-    fix j assume jB: "j \<in> B"
-    have "j \<in> K" using BK jB by blast
-    then show "id j \<in> K" by simp
-  qed
+    using BK by force
   have dep: "\<exists>c. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> B. c j \<noteq> 0) \<and>
       (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)"
     using artin_lemma[where x = id and J = B, OF K finH H_auto finB lt xK] .
   have descended:
-      "\<exists>c. (\<forall>j \<in> B. c j \<in> fixed_field K H) \<and>
-        (\<exists>j \<in> B. c j \<noteq> 0) \<and>
-        (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)"
-  proof (rule artin_solution_over_fixed_field[where x = id and J = B and F = F])
-    show "complex_subfield K" by (rule K)
-    show "H \<in> galois_subgroups K F" by (rule Hsub)
-    show "finite B" by (rule finB)
-    show "\<And>j. j \<in> B \<Longrightarrow> id j \<in> K" by (rule xK)
-    show "\<exists>c. (\<forall>j. c j \<in> K) \<and> (\<exists>j \<in> B. c j \<noteq> 0) \<and>
-        (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)" by (rule dep)
-  qed
+      "\<exists>c. (\<forall>j \<in> B. c j \<in> fixed_field K H) \<and> (\<exists>j \<in> B. c j \<noteq> 0) \<and> (\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0)"
+    by (intro xK K dep finB Hsub artin_solution_over_fixed_field[where F = F])
   then obtain c where cfix: "\<And>j. j \<in> B \<Longrightarrow> c j \<in> fixed_field K H"
     and cnz: "\<exists>j \<in> B. c j \<noteq> 0"
     and ceq_all: "\<forall>\<sigma> \<in> H. (\<Sum>j \<in> B. \<sigma> (id j) * c j) = 0" by blast
@@ -108,25 +84,18 @@ proof
   proof -
     have row: "(\<Sum>j \<in> B. identity K (id j) * c j) = 0"
       using ceq_all idH by blast
-    moreover have "(\<Sum>j \<in> B. identity K (id j) * c j) =
-        (\<Sum>j \<in> B. j * c j)"
-    proof (intro sum.cong refl)
-      fix j assume jB: "j \<in> B"
-      have jK: "j \<in> K" using BK jB by blast
-      have "identity K (id j) = j" by (simp add: identity_apply jK)
-      then show "identity K (id j) * c j = j * c j" by simp
-    qed
+    moreover have "(\<Sum>j \<in> B. identity K (id j) * c j) = (\<Sum>j \<in> B. j * c j)"
+      using xK by force
     ultimately show ?thesis by simp
   qed
   \<comment> \<open>Re-read the sum as an abstract linear combination.  @{const Vector_Space.lin_indep} demands a
     coefficient function that is \<^emph>\<open>extensional\<close> on @{term B}, so restrict @{term c}.\<close>
-  define e where "e = restrict c B"
+  define e where "e \<equiv> restrict c B"
   have eF: "e \<in> B \<rightarrow>\<^sub>E fixed_field K H" using cfix by (simp add: e_def)
   have "T.vs.lincomb e B = (\<Sum>j \<in> B. e j * j)"
     using finB BK eF by (intro T.vs_lincomb_eq_sum) auto
-  also have "\<dots> = (\<Sum>j \<in> B. j * c j)"
-    by (intro sum.cong refl) (simp add: e_def mult.commute)
-  also have "\<dots> = 0" by (rule ceq)
+  also have "\<dots> = 0"
+    by (simp add: ceq e_def mult.commute)
   finally have lc0: "T.vs.lincomb e B = 0" .
   \<comment> \<open>Independence would force every coefficient to vanish, contradicting nontriviality.\<close>
   have "\<forall>v \<in> B. e v = 0" using indep eF lc0 by (simp add: T.vs.lin_indep_def)
@@ -138,15 +107,8 @@ text \<open>Consequently a basis of @{term K} over the fixed field --- if there 
 corollary artin_dimension_le:
   assumes finH: "finite H" and basis: "T.vs.basis B"
   shows "card B \<le> card H"
-proof (rule ccontr)
-  assume "\<not> card B \<le> card H"
-  then have lt: "card H < card B" by simp
-  have finB: "finite B" and BK: "B \<subseteq> K" using basis by (auto simp: T.vs.basis_def)
-  have "T.vs.lin_indep B" using basis by (rule T.vs.basis_lin_indep)
-  moreover have "\<not> T.vs.lin_indep B"
-    by (rule artin_bound[where B = B, OF finH BK finB lt])
-  ultimately show False by simp
-qed
+  using T.vs.basis_def T.vs.basis_lin_indep artin_bound assms
+  by (meson linorder_le_less_linear)
 
 text \<open>And the same bound on the degree itself, since the dimension is the size of any basis
   (@{thm [source] Vector_Space.dimension_eq_any_field} --- no finiteness of the base field needed).\<close>
@@ -186,20 +148,11 @@ text \<open>As before the statements sit inside a context, so that the tower's i
   would not bring \<open>T.vs.basis\<close> into scope for the statement itself.\<close>
 
 context
-  fixes K E :: "complex set"
-  assumes K: "complex_subfield K" and Ebase: "subfield_tower E K"
+  fixes K E :: "'a :: field set"
+  assumes K: "Subfield K" and Ebase: "subfield_tower E K"
 begin
 
 interpretation T: subfield_tower E K by (rule Ebase)
-
-text \<open>@{term K} as a type-class @{locale Subfield}, which is where
-  @{thm [source] Subfield.underdetermined_solution} lives.
-
-  A plain fact, cited as @{text "subfield.underdetermined_solution[OF Ksf]"}.  Replacing it by
-  @{command interpretation} --- the obvious move, to get the theorem unqualified --- does not work
-  inside a @{command context} carrying assumptions: the interpretation is accepted but its theorems
-  are not available under the prefix, giving \<open>Undefined fact: KS.underdetermined_solution\<close>.\<close>
-lemma Ksf: "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
 
 text \<open>The base field lies inside the extension --- the tower's own axiom.\<close>
 lemma EK: "E \<subseteq> K" by (rule T.base_subset)
@@ -211,18 +164,11 @@ lemma field_auto_lincomb:
     and c: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> E"
   shows "\<sigma> (\<Sum>v \<in> B. c v * v) = (\<Sum>v \<in> B. c v * \<sigma> v)"
 proof -
-  interpret K: complex_subfield K by (rule K)
   have cK: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> K" using c EK by blast
   have "\<sigma> (\<Sum>v \<in> B. c v * v) = (\<Sum>v \<in> B. \<sigma> (c v * v))"
-    using cK BK by (intro field_auto_sum[OF K s]) (blast intro: K.mult_closed)
+    using cK BK by (intro field_auto_sum[OF K s]) (blast intro: Subfield.mult_closed[OF K])
   also have "\<dots> = (\<Sum>v \<in> B. c v * \<sigma> v)"
-  proof (intro sum.cong refl)
-    fix v assume v: "v \<in> B"
-    have "\<sigma> (c v * v) = \<sigma> (c v) * \<sigma> v"
-      using s cK[OF v] BK v by (blast intro: field_auto_mult)
-    also have "\<sigma> (c v) = c v" using s c[OF v] by (simp add: field_auto_mem_iff)
-    finally show "\<sigma> (c v * v) = c v * \<sigma> v" by simp
-  qed
+    using BK c cK s by (smt (cvc5, interleave) field_auto_mem_iff subset_iff sum.cong)
   finally show ?thesis .
 qed
 
@@ -241,17 +187,14 @@ proof -
     using z by (auto simp: T.vs.spanning_def)
   have cEv: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> E" using cE by auto
   have zsum: "z = (\<Sum>v \<in> B. c v * v)"
-    using zeq T.vs_lincomb_eq_sum[OF finB BK cEv] by simp
+    using zeq cE T.vs_lincomb_eq_sum[OF finB BK] by auto
   \<comment> \<open>Expand each @{term "\<sigma> z"} by linearity and exchange the two sums.\<close>
   have "(\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = (\<Sum>\<sigma> \<in> S. a \<sigma> * (\<Sum>v \<in> B. c v * \<sigma> v))"
-    using SG finB BK cEv by (intro sum.cong refl) (simp add: zsum field_auto_lincomb subset_iff)
-  \<comment> \<open>Exchanging the two sums, done in two explicit steps: distribute each product over the inner
-    sum, then @{thm [source] sum.swap}.  One @{method simp} with both facts does not close it.\<close>
+    using SG finB BK cEv by (simp add: zsum field_auto_lincomb subset_iff)
   also have "\<dots> = (\<Sum>\<sigma> \<in> S. \<Sum>v \<in> B. c v * (a \<sigma> * \<sigma> v))"
-    by (intro sum.cong refl) (simp add: sum_distrib_left mult.commute mult.left_commute)
-  also have "\<dots> = (\<Sum>v \<in> B. \<Sum>\<sigma> \<in> S. c v * (a \<sigma> * \<sigma> v))" by (rule sum.swap)
+    by (simp add: sum_distrib_left mult.commute mult.left_commute)
   also have "\<dots> = (\<Sum>v \<in> B. c v * (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> v))"
-    by (intro sum.cong refl) (simp add: sum_distrib_left)
+    using sum.swap by (simp add: sum_distrib_left)
   also have "\<dots> = 0" using rel by simp
   finally show ?thesis .
 qed
@@ -263,16 +206,15 @@ theorem galois_group_card_le:
     and finS: "finite S" and SG: "S \<subseteq> field_auto K E"
   shows "card S \<le> card B"
 proof (rule ccontr)
-  assume "\<not> card S \<le> card B"
-  then have lt: "card B < card S" by simp
+  assume non: "\<not> card S \<le> card B"
   have finB: "finite B" and BK: "B \<subseteq> K" using basis by (auto simp: T.vs.basis_def)
   \<comment> \<open>One equation per basis vector, one unknown per automorphism: more unknowns than equations.
     The coefficient matrix @{term "\<lambda>v \<sigma>. \<sigma> v"} is indexed by vectors then automorphisms.\<close>
   have entries: "\<forall>v \<in> B. \<forall>\<sigma> \<in> S. \<sigma> v \<in> K"
     using SG BK by (blast intro: field_auto_closed)
   have "\<exists>a. (\<forall>\<sigma>. a \<sigma> \<in> K) \<and> (\<exists>\<sigma> \<in> S. a \<sigma> \<noteq> 0) \<and> (\<forall>v \<in> B. (\<Sum>\<sigma> \<in> S. \<sigma> v * a \<sigma>) = 0)"
-    using Subfield.underdetermined_solution[OF Ksf, where A = "\<lambda>v \<sigma>. \<sigma> v" and I = B and J = S]
-    using entries finB finS lt by blast
+    using Subfield.underdetermined_solution[OF K, where A = "\<lambda>v \<sigma>. \<sigma> v" and I = B and J = S]
+    using entries finB finS non by force
   then obtain a where anz: "\<exists>\<sigma> \<in> S. a \<sigma> \<noteq> 0" and arel: "\<forall>v \<in> B. (\<Sum>\<sigma> \<in> S. \<sigma> v * a \<sigma>) = 0"
     by fastforce
   \<comment> \<open>Rewrite into the orientation Dedekind's lemma expects.\<close>
@@ -281,9 +223,8 @@ proof (rule ccontr)
   \<comment> \<open>The relation extends from the basis to all of @{term K}, so Dedekind applies.\<close>
   have "\<And>z. z \<in> K \<Longrightarrow> (\<Sum>\<sigma> \<in> S. a \<sigma> * \<sigma> z) = 0"
     by (rule character_relation_from_basis[OF finS SG basis arel'])
-  then have "\<forall>\<sigma> \<in> S. a \<sigma> = 0"
-    using dedekind_independence[OF K, where S = S and a = a and F = E] finS SG by blast
-  then show False using anz by blast
+  then show False using anz
+    using dedekind_independence[OF K, of S] finS SG by blast
 qed
 
 end
@@ -315,8 +256,8 @@ text \<open>Again a context, for the same reason as before: the locally extracte
   is in scope.  Here the tower is the one built from @{term H} itself.\<close>
 
 context
-  fixes K F :: "complex set" and H :: "(complex \<Rightarrow> complex) set"
-  assumes K: "complex_subfield K" and Fsub: "complex_subfield F" and FK: "F \<subseteq> K"
+  fixes K F :: "'a :: field set" and H :: "('a \<Rightarrow> 'a) set"
+  assumes K: "Subfield K" and Fsub: "Subfield F" and FK: "F \<subseteq> K"
     and Hsub: "H \<in> galois_subgroups K F"
 begin
 
@@ -325,34 +266,20 @@ lemma HG: "H \<subseteq> field_auto K F" using Hsub by (rule galois_subgroups_su
 interpretation T: subfield_tower "fixed_field K H" K
   by (rule fixed_field_tower[OF K HG])
 
-theorem artin_theorem:
+theorem artin_fixed_field_degree_data:
   assumes finH: "finite H"
-  shows "field_auto K (fixed_field K H) = H"
+  shows "\<exists>B. T.vs.basis B \<and> card B = card H \<and>
+    finite (field_auto K (fixed_field K H)) \<and>
+    card (field_auto K (fixed_field K H)) = card H"
 proof -
-  \<comment> \<open>Via the locale's own intro rule: @{method unfold_locales} would descend through
-    @{locale complex_subfield} to its six closure axioms for each of @{term K} and @{term F}.\<close>
-  have K': "Subfield K" using K by (simp add: complex_subfield_iff_subfield)
-  have F': "Subfield F" using Fsub by (simp add: complex_subfield_iff_subfield)
   interpret GE: galois_extension K F
-    by (rule galois_extension.intro[OF K' F' FK])
+    by (rule galois_extension.intro[OF K Fsub FK])
   have tower: "subfield_tower (fixed_field K H) K" by (rule fixed_field_tower[OF K HG])
   \<comment> \<open>First obtain a basis from the uniform Artin bound.  The bound applies to every independent
     set, so the maximum-cardinality extraction in @{thm [source] Vector_Space.basis_exists_of_independent_card_bound}
     supplies a basis without assuming one in the theorem statement.\<close>
   have indep_bound: "\<And>A. T.vs.lin_indep A \<Longrightarrow> card A \<le> card H"
-  proof -
-    fix A assume indA: "T.vs.lin_indep A"
-    have finA: "finite A" and AK: "A \<subseteq> K"
-      using indA by (auto simp: T.vs.lin_indep_def)
-    show "card A \<le> card H"
-    proof (rule ccontr)
-      assume "\<not> card A \<le> card H"
-      then have lt: "card H < card A" by simp
-      have "\<not> T.vs.lin_indep A"
-        by (rule artin_bound[where B = A, OF K Hsub finH AK finA lt])
-      then show False using indA by blast
-    qed
-  qed
+    using Hsub K T.vs.lin_indep_def finH by (metis artin_bound linorder_not_less)
   obtain B where basis: "T.vs.basis B"
     using T.vs.basis_exists_of_independent_card_bound[where n = "card H"] indep_bound by blast
   \<comment> \<open>Upper bound: the extracted basis is no larger than the group.\<close>
@@ -361,40 +288,43 @@ proof -
   \<comment> \<open>Lower bound: the Galois group of the fixed field is no larger than the basis.  Its finiteness
     comes from the same bound, since a set exceeding @{term "card B"} could not inject.\<close>
   have finG: "finite (field_auto K (fixed_field K H))"
-  proof (rule ccontr)
-    assume inf: "infinite (field_auto K (fixed_field K H))"
-    \<comment> \<open>An infinite set has a finite subset larger than @{term "card B"}, which the bound forbids.\<close>
-    then obtain S where S: "S \<subseteq> field_auto K (fixed_field K H)"
-      and finS: "finite S" and cardS: "card S = card B + 1"
-      by (meson infinite_arbitrarily_large)
-    have "card S \<le> card B" by (rule galois_group_card_le[OF K tower basis finS S])
-    then show False using cardS by simp
-  qed
+    using galois_group_card_le[OF K tower basis] infinite_arbitrarily_large
+    by (meson finite_if_finite_subsets_card_bdd)
   have le2: "card (field_auto K (fixed_field K H)) \<le> card B"
     by (rule galois_group_card_le[OF K tower basis finG subset_refl])
-  \<comment> \<open>So the group of the fixed field is no bigger than @{term H}, which it contains.\<close>
-  have HsubG: "H \<subseteq> field_auto K (fixed_field K H)"
-    using Hsub by (rule GE.le_galois_group_fixed_field)
   have card_le: "card (field_auto K (fixed_field K H)) \<le> card H" using le1 le2 by simp
-  \<comment> \<open>@{thm [source] card_seteq} concludes @{text "A = B"} from @{text "finite A"},
-    @{text "B \<subseteq> A"} and @{text "card A \<le> card B"} --- so here @{term H} plays the \<^emph>\<open>subset\<close> and the
-    Galois group the finite superset.\<close>
-  show ?thesis by (rule card_seteq[OF finG HsubG card_le, symmetric])
+  have card_ge: "card H \<le> card (field_auto K (fixed_field K H))"
+    by (simp add: GE.le_galois_group_fixed_field Hsub card_mono finG)
+  have cardG: "card (field_auto K (fixed_field K H)) = card H"
+    using card_le card_ge by simp
+  have cardB: "card B = card H" using le1 le2 card_ge by simp
+  show ?thesis using basis cardB finG cardG by blast
+qed
+
+theorem artin_theorem:
+  assumes finH: "finite H"
+  shows "field_auto K (fixed_field K H) = H"
+proof -
+  obtain B where basis: "T.vs.basis B" and cardB: "card B = card H"
+    and finG: "finite (field_auto K (fixed_field K H))"
+    and cardG: "card (field_auto K (fixed_field K H)) = card H"
+    using artin_fixed_field_degree_data[OF finH] by blast
+  interpret GE: galois_extension K F
+    by (rule galois_extension.intro[OF K Fsub FK])
+  show ?thesis
+    using GE.le_galois_group_fixed_field Hsub cardG finG by (metis card_subset_eq)
 qed
 
 end
 
-text \<open>\<^bold>\<open>What this completes.\<close>  With @{thm [source] artin_theorem} the kernel operator of the Galois
+text \<open>With @{thm [source] artin_theorem} the kernel operator of the Galois
   correspondence is the identity on finite subgroups.  Together with the semi-inverse laws already in
   \<open>Galois_Correspondence\<close>, the correspondence restricts to a \<^emph>\<open>bijection\<close> between the finite subgroups
   of the Galois group and those intermediate fields that arise as fixed fields.
 
-  The remaining step for the classical statement --- that \<^emph>\<open>every\<close> intermediate field of a finite
-  Galois extension is such a fixed field, so that the closure operator is the identity too --- is
-  where separability and normality enter, and it is not attempted here.  For the simple normal case
-  \<open>galois_simple_normal_degree\<close> of \<open>Galois_Degree\<close> supplies the matching degree count.
-
-  The theorem now obtains the needed basis internally from the uniform Artin bound, so no basis or
-  vector-fixing hypothesis is exposed at the public interface.\<close>
+  The classical finite correspondence is assembled downstream in
+  \<open>Galois_Finite_Correspondence\<close>.  There separability and normality show that
+  every intermediate field is recovered from its relative automorphism group, while this theorem
+  supplies the inverse law for every subgroup.\<close>
 
 end

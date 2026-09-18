@@ -91,7 +91,8 @@ List.app PolyML.Compiler.forgetStructure ["CInterface", "Signal"];
     val init_session = Isabelle_System.tmp_file("init_session")
     File.restrict(File.path(init_session))
     File.write(init_session,
-      YXML.string_of_body(new Resources(session_background, Logger.none).init_session_xml))
+      YXML.string_of_body(
+        new Resources(session_background, session_background, Logger.none).init_session_xml))
 
     // process
     val eval_process =

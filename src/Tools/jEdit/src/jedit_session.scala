@@ -152,7 +152,7 @@ object JEdit_Session {
   def session_start(): Unit = {
     val session = PIDE.session
     val store = session.store
-    val session_background = session.resources.session_background
+    val session_background = session.resources.current_background
 
     session.phase_changed += PIDE.plugin.session_phase_changed
 

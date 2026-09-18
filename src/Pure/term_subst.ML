@@ -9,6 +9,7 @@ sig
   val generalizeT_same: Names.set -> int -> typ Same.operation
   val generalize_same: Names.set * Names.set -> int -> term Same.operation
   val generalizeT: Names.set -> int -> typ -> typ
+  val generalize_index: string * int -> string * int
   val generalize: Names.set * Names.set -> int -> term -> term
   val instantiateT_frees_same: typ TFrees.table -> typ Same.operation
   val instantiate_frees_same: typ TFrees.table * term Frees.table -> term Same.operation
@@ -46,6 +47,8 @@ fun generalizeT_same tfrees idx ty =
         | gen _ = raise Same.SAME;
     in gen ty end;
 
+val generalize_index = Name.clean_index;
+
 fun generalize_same (tfrees, frees) idx tm =
   if Names.is_empty tfrees andalso Names.is_empty frees then raise Same.SAME
   else
@@ -53,7 +56,7 @@ fun generalize_same (tfrees, frees) idx tm =
       val genT = generalizeT_same tfrees idx;
       fun gen (Free (x, T)) =
             if Names.defined frees x then
-              Var (Name.clean_index (x, idx), Same.commit genT T)
+              Var (generalize_index (x, idx), Same.commit genT T)
             else Free (x, genT T)
         | gen (Var (xi, T)) = Var (xi, genT T)
         | gen (Const (c, T)) = Const (c, genT T)

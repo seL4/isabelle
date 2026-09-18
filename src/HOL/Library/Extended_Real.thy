@@ -1554,6 +1554,12 @@ lemma ereal_power_divide:
   by (cases rule: ereal2_cases [of x y])
      (auto simp: one_ereal_def zero_ereal_def power_divide zero_le_power_eq)
 
+lemma divide_pos_0_ereal [simp]: "x > 0 \<Longrightarrow> x / (0 :: ereal) = \<infinity>"
+  by (simp add: divide_ereal_def)
+
+lemma divide_pos_0_ereal' [simp]: "x > 0 \<Longrightarrow> x / (ereal 0) = \<infinity>"
+  by (simp add: divide_ereal_def)
+
 lemma ereal_le_mult_one_interval:
   fixes x y :: ereal
   assumes y: "y \<noteq> -\<infinity>"

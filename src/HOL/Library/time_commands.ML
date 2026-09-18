@@ -217,7 +217,7 @@ fun get_r (_ $ (_ $ _ $ r)) = r
 (* Return name of Const *)
 fun Const_name (Const (nm,_)) = SOME nm
   | Const_name _ = NONE
-fun is_Used (Type ("Product_Type.prod", _)) = true
+fun is_Used (Type (\<^type_name>\<open>prod\<close>, _)) = true
   | is_Used _ = false
 (* Custom compare function for types ignoring variable names *)
 fun typ_comp (Type (A,a)) (Type (B,b)) = (A = B) andalso List.foldl (fn ((c,i),s) => typ_comp c i andalso s) true (ListPair.zip (a, b))
@@ -281,7 +281,7 @@ fun freeTerms (Var(ixn,T)) = Free (fst ixn, T)
   | freeTerms t = t
 fun freeTypes (TVar ((t, _), T)) = TFree (t, T)
   | freeTypes t = t
-fun fix_definition (Const ("Pure.eq", _) $ l $ r) = HOLogic.mk_Trueprop (HOLogic.mk_eq (l,r))
+fun fix_definition (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ l $ r) = HOLogic.mk_Trueprop (HOLogic.mk_eq (l,r))
   | fix_definition t = t
 fun check_definition [t] = [t]
   | check_definition _ = error "Only a single definition is allowed"
@@ -563,7 +563,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       val (func, args) = simpLocFunc func args
       fun get_T (Free (_,T)) = T
         | get_T (Const (_,T)) = T
-        | get_T (Const ("Product_Type.prod.snd",_) $ (Free (_,Type (_, [_, T])))) = T (* Case of snd was constructed *)
+        | get_T (Const (\<^const_name>\<open>snd\<close>,_) $ (Free (_,Type (_, [_, T])))) = T (* Case of snd was constructed *)
         | get_T (h $ _) = (case get_T h of Type ("fun", [_,T]) => T | _ => error "Internal error: Not a locale func")
         | get_T _ = error "Internal error: Forgotten type"
       val func = (case fun_to_time (#ctxt wctxt) (#origins wctxt) func
@@ -636,7 +636,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
           | NONE => NONE)
       | letc _ _ _ _ _ = error "Unknown let state"
     
-    fun constc _ (Const ("HOL.undefined", _)) = SOME (Const ("HOL.undefined", finT))
+    fun constc _ (Const (\<^const_name>\<open>HOL.undefined\<close>, _)) = SOME (Const (\<^const_name>\<open>HOL.undefined\<close>, finT))
       | constc _ _ = NONE
     
     (* The converter for timing functions given to the walker *)
@@ -675,9 +675,9 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
                 case args of
                      (f as Free _)::args =>
                        (case t of
-                           Const ("Product_Type.prod.fst", _) =>
+                           Const (\<^const_name>\<open>fst\<close>, _) =>
                             list_comb (rfst (t $ f), map (#f wctxt) args)
-                         | Const ("Product_Type.prod.snd", _) =>
+                         | Const (\<^const_name>\<open>snd\<close>, _) =>
                             list_comb (rsnd (t $ f), map (#f wctxt) args)
                          | t => list_comb (t, map (#f wctxt) (f :: args)))
                    | args => list_comb (t, map (#f wctxt) args),
@@ -693,12 +693,12 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       val (T_ident, T_args) = strip_comb (get_l T_t)
     
       fun filter_passed [] = []
-        | filter_passed ((f as Free (_, Type ("Product_Type.prod",[Type ("fun",_), Type ("fun", _)])))::args) = 
+        | filter_passed ((f as Free (_, Type (\<^type_name>\<open>prod\<close>,[Type ("fun",_), Type ("fun", _)])))::args) = 
             f :: filter_passed args
         | filter_passed (_::args) = filter_passed args
       val frees = (walk lthy [] {
               funcc = (fn wctxt => fn t => fn args =>
-                  (case t of (Const ("Product_Type.prod.snd", _)) => []
+                  (case t of (Const (\<^const_name>\<open>snd\<close>, _)) => []
                       | _ => (if t = T_ident then [] else filter_passed args)
                         @ List.foldr (fn (l,r) => (#f wctxt) l @ r) [] args)),
               constc = (K o K) [],
@@ -763,7 +763,7 @@ fun reg_time_func (lthy: local_theory) (term: term list) (terms: term list) (con
       fun fixUnspecified T = T |> strip_type ||> fixType |> (op --->)
       fun r_terms' i (v::vars) ((T as (Type ("fun",_)))::types) =
         (if contains simplifyable i
-        then HOLogic.mk_prod (Const ("HOL.undefined", fixUnspecified T), Free (v,change_typ T))
+        then HOLogic.mk_prod (Const (\<^const_name>\<open>HOL.undefined\<close>, fixUnspecified T), Free (v,change_typ T))
         else Free (v,HOLogic.mk_prodT (T,change_typ T)))
         :: r_terms' (i+1) vars types
         | r_terms' i (v::vars) (T::types) = Free (v,T) :: r_terms' (i+1) vars types

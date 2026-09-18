@@ -1,8 +1,9 @@
+section \<open>Composition series\<close>
+
 theory Composition_Series
   imports Normal_Series Simple_Group
 begin
 
-section \<open>Composition series\<close>
 
 text \<open>
   A simple factor group is the quotient associated with a normal subgroup whose
@@ -36,9 +37,8 @@ text \<open>
 \<close>
 
 locale composition_series = normal_series +
-  assumes factor_simple:
-    "\<And>i. i < n \<Longrightarrow>
-      simple_factor_group (H i) (H (Suc i)) (\<cdot>) \<one>"
+  assumes factor_simple: "\<And>i. i < n \<Longrightarrow> simple_factor_group (H i) (H (Suc i)) (\<cdot>) \<one>"
+
 begin
 
 lemma factor_simple_step:
@@ -49,14 +49,8 @@ lemma factor_simple_step:
 lemma series_factor_simple:
   assumes i: "i < n"
   shows "Simple_Group (fst (series_factor i))
-      (fst (snd (series_factor i))) (snd (snd (series_factor i)))"
-proof -
-  interpret step: simple_factor_group "H i" "H (Suc i)" "(\<cdot>)" \<one>
-    by (rule factor_simple[OF i])
-  show ?thesis
-    unfolding series_factor_def
-    using step.factor_group_is_simple by simp
-qed
+          (fst (snd (series_factor i))) (snd (snd (series_factor i)))"
+  using factor_simple_step i series_factor_def simple_factor_group_def by fastforce
 
 lemma series_factors_nth_simple:
   assumes i: "i < n"
@@ -67,42 +61,19 @@ lemma series_factors_nth_simple:
 lemma composition_step_strict:
   assumes i: "i < n"
   shows "H i \<noteq> H (Suc i)"
-proof -
-  interpret step: simple_factor_group "H i" "H (Suc i)" "(\<cdot>)" \<one>
-    by (rule factor_simple[OF i])
-  show ?thesis by (rule step.proper)
-qed
+  using factor_simple_step i by (metis simple_factor_group.proper)
 
 text \<open>Every prefix of a composition series is again a composition series.\<close>
 
 lemma prefix_composition_series:
   assumes k: "k \<le> n"
   shows "composition_series (H k) (\<cdot>) \<one> H k"
-proof -
-  show ?thesis
-  proof (intro composition_series.intro)
-    show "normal_series (H k) (\<cdot>) \<one> H k"
-      by (rule prefix_normal_series[OF k])
-  next
-    show "composition_series_axioms (\<cdot>) \<one> H k"
-    proof (intro composition_series_axioms.intro)
-      show "\<And>i. i < k \<Longrightarrow>
-          simple_factor_group (H i) (H (Suc i)) (\<cdot>) \<one>"
-      proof -
-        fix i
-        assume i: "i < k"
-        have i_n: "i < n" by (rule less_le_trans[OF i k])
-        show "simple_factor_group (H i) (H (Suc i)) (\<cdot>) \<one>"
-          by (rule factor_simple[OF i_n])
-      qed
-    qed
-  qed
-qed
+proof (intro composition_series.intro composition_series_axioms.intro prefix_normal_series[OF k])
+qed (use factor_simple_step k in auto)
 
 text \<open>A composition series has positive length exactly when its group is nontrivial.\<close>
 
-lemma zero_length_iff_trivial:
-  "n = 0 \<longleftrightarrow> G = {\<one>}"
+lemma zero_length_iff_trivial: "n = 0 \<longleftrightarrow> G = {\<one>}"
 proof
   show "n = 0 \<Longrightarrow> G = {\<one>}"
     by (rule zero_length_implies_trivial)
@@ -111,22 +82,12 @@ next
   show "n = 0"
   proof (rule ccontr)
     assume n_nonzero: "n \<noteq> 0"
-    have zero_lt_n: "0 < n" by (cases n) (simp_all add: n_nonzero)
-    have one_le_n: "Suc 0 \<le> n" by (rule Suc_leI[OF zero_lt_n])
-    have H1_subgroup: "Subgroup (H (Suc 0)) G (\<cdot>) \<one>"
-      by (rule term_subgroup[OF one_le_n])
-    interpret H1: Subgroup "H (Suc 0)" G "(\<cdot>)" \<one> by fact
-    have H1_subset_singleton: "H (Suc 0) \<subseteq> {\<one>}"
+    interpret H1: Subgroup "H (Suc 0)" G "(\<cdot>)" \<one>
+      using term_subgroup n_nonzero by auto
+    have "H (Suc 0) \<subseteq> {\<one>}"
       using H1.subset G_trivial by simp
-    have singleton_subset_H1: "{\<one>} \<subseteq> H (Suc 0)"
-      using H1.sub_unit_closed by simp
-    have H1_trivial: "H (Suc 0) = {\<one>}"
-      by (rule subset_antisym[OF H1_subset_singleton singleton_subset_H1])
-    have H0_H1: "H 0 = H (Suc 0)"
-      using bottom H1_trivial by simp
-    have H0_H1_neq: "H 0 \<noteq> H (Suc 0)"
-      by (rule composition_step_strict[OF zero_lt_n])
-    show False using H0_H1 H0_H1_neq by blast
+    then show False
+      using bottom composition_step_strict n_nonzero by fastforce
   qed
 qed
 

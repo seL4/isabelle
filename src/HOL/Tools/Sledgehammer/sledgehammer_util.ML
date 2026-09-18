@@ -55,7 +55,7 @@ fun parse_bool_option option name s =
     end
 
 val has_junk =
-  exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o raw_explode (* FIXME Symbol.explode (?) *)
+  exists (fn s => not (Symbol.is_digit s) andalso s <> ".") o explode_string (* FIXME Symbol.explode (?) *)
 
 fun parse_time name s =
   let val secs = if has_junk s then NONE else Real.fromString s in

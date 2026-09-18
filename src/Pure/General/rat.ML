@@ -91,6 +91,11 @@ fun ceil (Rat (p, q)) =
     (m, 0) => m
   | (m, _) => m + 1);
 
+
+(* ML toplevel pretty-printing *)
+
+val _ = ML_system_pp (fn _ => fn _ => fn x => ML_Pretty.str ("@" ^ string_of_rat x));
+
 end;
 
 ML_system_overload (uncurry Rat.add) "+";
@@ -103,5 +108,3 @@ ML_system_overload (fn (a, b) => Rat.lt b a) ">";
 ML_system_overload (fn (a, b) => Rat.le b a) ">=";
 ML_system_overload Rat.neg "~";
 ML_system_overload Rat.abs "abs";
-
-ML_system_pp (fn _ => fn _ => fn x => ML_Pretty.str ("@" ^ Rat.string_of_rat x));

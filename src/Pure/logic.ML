@@ -8,6 +8,7 @@ Abstract syntax operations of the Pure meta-logic.
 signature LOGIC =
 sig
   val all_const: typ -> term
+  val all_name: string * term -> term -> term
   val all: term -> term -> term
   val dependent_all_name: string * term -> term -> term
   val is_all: term -> bool
@@ -118,7 +119,8 @@ struct
 
 fun all_const T = Const ("Pure.all", (T --> propT) --> propT);
 
-fun all v t = all_const (Term.fastype_of v) $ lambda v t;
+fun all_name (x, v) t = all_const (Term.fastype_of v) $ Term.lambda_name (x, v) t;
+fun all v t = all_name ("", v) t;
 
 fun dependent_all_name (x, v) t =
   let

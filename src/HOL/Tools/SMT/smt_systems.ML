@@ -6,10 +6,9 @@ Setup SMT solvers.
 
 signature SMT_SYSTEMS =
 sig
-  val cvc_extensions: bool Config.T
-  val cvc5_integer_induction: bool Config.T
-  val cvc5_structural_induction: bool Config.T
   val z3_extensions: bool Config.T
+  val smt_method: (string option * string option) * thm list ->
+      Proof.context -> thm list -> tactic
 end;
 
 structure SMT_Systems: SMT_SYSTEMS =
@@ -28,9 +27,19 @@ fun check_tool var () =
       if File.is_file (Path.variable var |> Path.expand |> Path.platform_exe)
       then SOME [s] else NONE);
 
-fun make_avail name () = getenv (name ^ "_SOLVER") <> ""
+(*_PROOF_SOLVER is a temporary addition for external testers to avoid them having to overwrite their path*)
+fun make_avail name () =
+   getenv (name ^ "_PROOF_SOLVER") <> "" orelse getenv (name ^ "_SOLVER") <> ""
 
-fun make_command name () = [getenv (name ^ "_SOLVER")]
+fun make_command name () =
+let
+  val alternative_path = getenv (name ^ "_PROOF_SOLVER")
+in
+  if alternative_path <> ""
+  then
+    [alternative_path]
+  else [getenv (name ^ "_SOLVER")]
+end
 
 fun outcome_of unsat sat unknown timeout solver_name line =
   if String.isPrefix unsat line then SMT_Solver.Unsat
@@ -38,7 +47,9 @@ fun outcome_of unsat sat unknown timeout solver_name line =
   else if String.isPrefix unknown line then SMT_Solver.Unknown
   else if String.isPrefix timeout line then SMT_Solver.Time_Out
   else raise SMT_Failure.SMT (SMT_Failure.Other_Failure ("Solver " ^ quote solver_name ^
-    " failed -- enable tracing using the " ^ quote (Config.name_of SMT_Config.trace) ^
+    " failed could not find unsat/sat/unknown in the first line as expected." ^
+    " Enable tracing using the "
+    ^ quote (Config.name_of SMT_Config.trace) ^
     " option for details"))
 
 (* When used with bitvectors, CVC4 can produce error messages like:
@@ -63,10 +74,6 @@ fun on_first_non_unsupported_line test_outcome solver_name lines =
 
 (* CVC4 and cvc5 *)
 
-val cvc_extensions = Attrib.setup_config_bool \<^binding>\<open>cvc_extensions\<close> (K false)
-val cvc5_integer_induction = Attrib.setup_config_bool \<^binding>\<open>cvc5_integer_induction\<close> (K false)
-val cvc5_structural_induction = Attrib.setup_config_bool \<^binding>\<open>cvc5_structural_induction\<close> (K false)
-
 local
   fun cvc4_options ctxt =
     ["--no-stats",
@@ -82,24 +89,28 @@ local
      "--lang=smt2"] @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
-    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)]) @
-    (if Config.get ctxt cvc5_integer_induction then ["--int-wf-ind"] else []) @
-    (if Config.get ctxt cvc5_structural_induction then ["--dt-stc-ind"] else []) @
-    (if Config.get ctxt cvc_extensions then ["--force-logic=ALL"] else [])
+    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)] @
+      (if Config.get ctxt SMT_Config.integer_induction then ["--int-wf-ind"] else []) @
+      (if Config.get ctxt SMT_Config.structural_induction then ["--dt-stc-ind"] else []))
+
+  fun cvc5_proof_options ctxt =
+    ["--no-stats",
+     "--sat-random-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+     "--lang=smt2", "--proof-prune", "--proof-prune-input","--proof-elim-subtypes",
+     "--proof-alethe-define-skolems","--proof-format-mode=alethe"] @
+    Alethe_Strategies.cvc5_current_strategy (Context.Proof ctxt) @
+    (case SMT_Config.get_timeout ctxt of
+      NONE => []
+    | SOME t => ["--tlimit", string_of_int (Time.toMilliseconds t)])
 
   fun select_class ctxt =
-    if Config.get ctxt cvc_extensions then
-      if Config.get ctxt SMT_Config.higher_order then
-        CVC_Interface.hosmtlib_cvcC
-      else
-        CVC_Interface.smtlib_cvcC
-    else
-      if Config.get ctxt SMT_Config.higher_order then
-        SMTLIB_Interface.hosmtlibC
-      else if Config.get ctxt SMT_Config.native_bv then
-        SMTLIB_Interface.bvsmlibC
-      else
-        SMTLIB_Interface.smtlibC
+   [SMTLIB_Interface.smtlibC] @
+   (if Config.get ctxt SMT_Config.higher_order then [CVC_Interface.hosmtlib_cvcC] else []) @
+   (if Config.get ctxt SMT_Config.native_bv then [SMTLIB_Interface.bvsmtlibC] else []) @
+   (if Config.get ctxt SMT_Config.native_datatypes then [SMTLIB_Interface.dtsmtlibC] else []) @
+   (if Config.get ctxt SMT_Config.native_codatatypes then [SMTLIB_Interface.codtsmtlibC] else []) @
+   (if Config.get ctxt SMT_Config.native_set andalso SMT_Config.use_alethe_proof_from_cvc ctxt
+    then [SMTLIB_Interface.setsmtlibC] else [])
 in
 
 val cvc4: SMT_Solver.solver_config = {
@@ -117,9 +128,9 @@ val cvc4: SMT_Solver.solver_config = {
      ((4, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
      ((4, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
      ((4, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((4, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+     ((4, false, false, 256, meshN), ["--finite-model-find", "--e-matching"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
-  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof_unsatcore),
   replay = NONE }
 
 val cvc5: SMT_Solver.solver_config = {
@@ -137,33 +148,26 @@ val cvc5: SMT_Solver.solver_config = {
      ((4, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
      ((4, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
      ((4, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((4, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+     ((4, false, false, 256, meshN), ["--finite-model-find", "--e-matching"])],
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
-  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof_unsatcore),
   replay = NONE }
 
 (*
 We need different options for alethe proof production by cvc5 and the smt_options
 cannot be changed, so different configuration.
 *)
+
 val cvc5_proof: SMT_Solver.solver_config = {
   name = "cvc5_proof",
   class = select_class,
   avail = make_avail "CVC5",
   command = make_command "CVC5",
-  options = cvc5_options,
+  options = cvc5_proof_options,
   smt_options = [(":produce-proofs", "true")],
-  good_slices =
-    (* FUDGE *)
-    [((4, false, false, 512, meshN), ["--full-saturate-quant", "--inst-when=full-last-call", "--inst-no-entail", "--term-db-mode=relevant", "--multi-trigger-linear"]),
-     ((4, false, false, 64, meshN), ["--decision=internal", "--simplification=none", "--full-saturate-quant"]),
-     ((4, false, true, 256, mepoN), ["--trigger-sel=max", "--full-saturate-quant"]),
-     ((4, false, false, 1024, meshN), ["--relevant-triggers", "--full-saturate-quant"]),
-     ((4, false, false, 32, meshN), ["--term-db-mode=relevant", "--full-saturate-quant"]),
-     ((4, false, false, 128, meshN), ["--no-e-matching", "--full-saturate-quant"]),
-     ((4, false, false, 256, meshN), ["--finite-model-find", "--fmf-inst-engine"])],
+  good_slices = #good_slices cvc5,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown" "timeout"),
-  parse_proof = SOME (K CVC_Proof_Parse.parse_proof),
+  parse_proof = SOME (K CVC_Proof_Parse.parse_proof_alethe),
   replay = SOME CVC5_Replay.replay }
 
 end
@@ -181,32 +185,35 @@ local
   fun on_vampire_relevant_line test_outcome solver_name lines =
     on_first_line test_outcome solver_name (filter (String.isPrefix "% SZS status") lines)
 
-  fun make_vampire_solver_config name class : SMT_Solver.solver_config = {
-    name = name,
-    class = class,
-    avail = is_some o check_tool "ISABELLE_VAMPIRE",
-    command = the o check_tool "ISABELLE_VAMPIRE",
-    options = vampire_smt_options,
-    smt_options = [],
-    good_slices =
-      (* FUDGE *)
-      [((2, false, false, 1024, meshN), []),
-       ((2, false, false, 512, mashN), []),
-       ((2, false, true, 128, meshN), []),
-       ((2, false, false, 64, meshN), []),
-       ((2, false, false, 256, mepoN), []),
-       ((2, false, false, 32, meshN), [])],
-    outcome = on_vampire_relevant_line (outcome_of "% SZS status Unsatisfiable" "% SZS status Satisfiable" "TODO: unknown" "TODO: Time limit exceeded"),
-    parse_proof = NONE,
-    replay = NONE }
+  (*Vampire is happier without a "set-logic" line*)
+  fun vampire_logic "vampire_smt" _ _ = SOME SMT_Translate.NO_LOGIC
+    | vampire_logic _ _ _ = NONE
 
+  fun select_class ctxt =
+   [SMTLIB_Interface.smtlibC] @
+   (if Config.get ctxt SMT_Config.native_datatypes then [SMTLIB_Interface.dtsmtlibC] else [])
 in
 
-val vampire_smt_dt: SMT_Solver.solver_config =
-  make_vampire_solver_config "vampire_smt_dt" (K Vampire_Interface.smtlib_vampire_dtC)
+val vampire_smt: SMT_Solver.solver_config = {
+  name = "vampire_smt",
+  class = select_class,
+  avail = is_some o check_tool "ISABELLE_VAMPIRE",
+  command = the o check_tool "ISABELLE_VAMPIRE",
+  options = vampire_smt_options,
+  smt_options = [],
+  good_slices =
+    (* FUDGE *)
+    [((2, false, false, 1024, meshN), []),
+     ((2, false, false, 512, mashN), []),
+     ((2, false, true, 128, meshN), []),
+     ((2, false, false, 64, meshN), []),
+     ((2, false, false, 256, mepoN), []),
+     ((2, false, false, 32, meshN), [])],
+  outcome = on_vampire_relevant_line (outcome_of "% SZS status Unsatisfiable" "% SZS status Satisfiable" "TODO: unknown" "TODO: Time limit exceeded"),
+  parse_proof = NONE,
+  replay = NONE }
 
-val vampire_smt_nodt: SMT_Solver.solver_config =
-  make_vampire_solver_config "vampire_smt_nodt" (K Vampire_Interface.smtlib_vampire_nodtC)
+val _ = Theory.setup (Context.theory_map (SMTLIB_Interface.add_logic ((* FUDGE *) 5, vampire_logic)))
 
 end
 
@@ -214,19 +221,21 @@ end
 
 local
   fun select_class ctxt =
-    if Config.get ctxt SMT_Config.higher_order then
+    (if Config.get ctxt SMT_Config.higher_order then
       SMTLIB_Interface.hosmtlibC
     else
-      SMTLIB_Interface.smtlibC
+      SMTLIB_Interface.smtlibC)
+   |> single
 
   fun veriT_options ctxt =
-   ["--proof-with-sharing",
+   [(*"--proof-with-sharing",*)
     "--proof-define-skolems",
     "--proof-prune",
     "--proof-merge",
+    "--print-cvc5-numbers",
     "--disable-print-success",
     "--disable-banner"] @
-    Verit_Strategies.veriT_current_strategy (Context.Proof ctxt) @
+    Alethe_Strategies.veriT_current_strategy (Context.Proof ctxt) @
     (case SMT_Config.get_timeout ctxt of
       NONE => []
     | SOME t => ["--max-time=" ^ string_of_int (Time.toMilliseconds t)])
@@ -248,7 +257,7 @@ val veriT: SMT_Solver.solver_config = {
      ((4, false, false, 256, mepoN), []),
      ((4, false, false, 32, meshN), [])],
   outcome = on_first_non_unsupported_line (outcome_of "unsat" "sat" "unknown" "Time limit exceeded"),
-  parse_proof = SOME (K Lethe_Proof_Parse.parse_proof),
+  parse_proof = SOME (K Alethe_Proof_Parse.parse_proof),
   replay = SOME Verit_Replay.replay }
 
 end
@@ -267,10 +276,11 @@ local
     | SOME t => ["-T:" ^ string_of_int (Real.ceil (Time.toReal t))]) @
     ["-smt2"]
 
+  (*proof reconstruction does not work for BV, so only if extensions are on*)
   fun select_class ctxt =
-    if Config.get ctxt z3_extensions then Z3_Interface.smtlib_z3C
-    else if Config.get ctxt SMT_Config.native_bv then SMTLIB_Interface.bvsmlibC
-    else SMTLIB_Interface.smtlibC
+    (if Config.get ctxt z3_extensions then single Z3_Interface.smtlib_z3C else []) @
+    single SMTLIB_Interface.smtlibC @
+    (if Config.get ctxt SMT_Config.native_bv andalso Config.get ctxt z3_extensions then single SMTLIB_Interface.bvsmtlibC else [])
 in
 
 val z3: SMT_Solver.solver_config = {
@@ -300,7 +310,7 @@ end
 val dummy_smtlib: SMT_Solver.solver_config =
   {
     name = "dummy_smtlib",
-    class = K SMTLIB_Interface.smtlibC,
+    class = K [SMTLIB_Interface.smtlibC],
     avail = make_avail "DUMMY_SMTLIB",
     command = make_command "DUMMY_SMTLIB",
     options = K [],
@@ -330,7 +340,7 @@ fun smt_method ((solver, stgy), thms) ctxt facts =
       else ()
     val ctxt =
       ctxt
-      |> (if stgy <> NONE then Context.proof_map (Verit_Strategies.select_veriT_stgy (the stgy)) else I)
+      |> (if stgy <> NONE then Context.proof_map (Alethe_Strategies.select_smt_solver_stgy solver (the stgy)) else I)
       |> Context.Proof
       |> SMT_Config.select_solver solver
       |> Context.proof_of
@@ -342,7 +352,7 @@ val _ =
   Theory.setup
     (Method.setup \<^binding>\<open>smt\<close>
       (Scan.lift parse_smt_options -- Attrib.thms >> (METHOD oo smt_method))
-      "Call to the SMT solver veriT or z3")
+      "Call to the SMT solvers cvc5, veriT or z3")
 
 (* overall setup *)
 
@@ -350,8 +360,7 @@ val _ = Theory.setup (
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc4 #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} cvc5 #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} cvc5_proof #>
-  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_dt #>
-  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt_nodt #>
+  SMT_Solver.add_solver {dummy = false, sledgehammer_default = false} vampire_smt #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} veriT #>
   SMT_Solver.add_solver {dummy = false, sledgehammer_default = true} z3 #>
   SMT_Solver.add_solver {dummy = true, sledgehammer_default = false} dummy_smtlib)

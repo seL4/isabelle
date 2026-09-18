@@ -12,6 +12,8 @@ text \<open>
   complex-field extension theory.
 \<close>
 
+subsection \<open>Automorphisms are additive, multiplicative and fix the fixed field\<close>
+
 definition field_auto ::
     "'a :: field set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) set" where
   "field_auto K F =
@@ -51,6 +53,11 @@ lemma field_auto_one:
   "\<sigma> \<in> field_auto K F \<Longrightarrow> \<sigma> 1 = 1"
   by (simp add: field_auto_mem_iff)
 
+lemma field_auto_closed:
+  assumes "\<sigma> \<in> field_auto K F" and "x \<in> K"
+  shows "\<sigma> x \<in> K"
+  using assms bij_betwE by (fastforce simp: field_auto_mem_iff)
+
 lemma field_auto_add:
   assumes s: "\<sigma> \<in> field_auto K F" and x: "x \<in> K" and y: "y \<in> K"
   shows "\<sigma> (x + y) = \<sigma> x + \<sigma> y"
@@ -72,6 +79,26 @@ proof -
   have zero: "\<sigma> 0 = 0" by (rule field_auto_zero[OF Ksub s])
   have "\<sigma> (-x) + \<sigma> x = 0" using add zero by simp
   then show ?thesis by (simp add: add_eq_0_iff)
+qed
+
+text \<open>Additivity extends to finite sums, by induction on the index set.\<close>
+lemma field_auto_sum:
+  assumes K: "Subfield K" and s: "\<sigma> \<in> field_auto K F"
+    and x: "\<And>j. j \<in> J \<Longrightarrow> x j \<in> K"
+  shows "\<sigma> (\<Sum>j \<in> J. x j) = (\<Sum>j \<in> J. \<sigma> (x j))"
+  using x
+proof (induction J rule: infinite_finite_induct)
+  case (infinite J) then show ?case using field_auto_zero[OF K s] by simp
+next
+  case empty then show ?case using field_auto_zero[OF K s] by simp
+next
+  case (insert j J)
+  interpret K: Subfield K by (rule K)
+  have "(\<Sum>i \<in> insert j J. x i) = x j + (\<Sum>i \<in> J. x i)" using insert.hyps by simp
+  also have "\<sigma> \<dots> = \<sigma> (x j) + \<sigma> (\<Sum>i \<in> J. x i)"
+    using insert.prems by (intro field_auto_add[OF s]) (auto intro: K.sum_closed)
+  also have "\<dots> = \<sigma> (x j) + (\<Sum>i \<in> J. \<sigma> (x i))" using insert.prems by (simp add: insert.IH)
+  finally show ?case using insert.hyps by simp
 qed
 
 lemma field_auto_as_hom:
