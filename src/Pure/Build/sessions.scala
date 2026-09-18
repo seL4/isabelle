@@ -512,7 +512,7 @@ object Sessions {
         Shasum.make_sorted(session_info.options.changed(filter = _.session_content)
           .map(ch => SHA1.digest(ch.print_prefs) -> Build_Prefs.make(ch.name)))
 
-      val conditions = eval_conditions(name).shasum
+      val conditions = eval_conditions(name).value.shasum
 
       val sources =
         Shasum.make_sorted(

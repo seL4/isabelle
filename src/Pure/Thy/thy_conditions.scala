@@ -34,10 +34,8 @@ object Thy_Conditions {
     private var conditions: Thy_Conditions =
       Thy_Conditions.init(Sessions.background0(""), Options.defaults)
 
-    override def toString: String = synchronized { conditions.toString }
-
-    def background: Sessions.Background = synchronized { conditions.background }
-    def options: Options = synchronized { conditions.options }
+    def value: Thy_Conditions = synchronized { conditions }
+    override def toString: String = value.toString
 
     def init(init_background: Sessions.Background, init_options: Options): Unit =
       synchronized { conditions = Thy_Conditions.init(init_background, init_options) }
@@ -48,8 +46,6 @@ object Thy_Conditions {
       conditions = conditions.evaluate(conds)
       conditions.restrict(conds.toSet)
     }
-
-    def shasum: Shasum = synchronized { conditions.shasum }
   }
 
 
