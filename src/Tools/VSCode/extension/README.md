@@ -29,9 +29,6 @@ LaTeX/BibTeX.
   * Lack of formal editor perspective in VSCode: only the cursor position is
   used (with some surrounding lines of text).
 
-  * Lack of pretty-printing (logical line breaks) according to window and font
-  dimensions.
-
   * Big theory files may cause problems to the VSCode rendering engine, since
   messages and text decorations are applied to the text as a whole (cf. the
   minimap view).
