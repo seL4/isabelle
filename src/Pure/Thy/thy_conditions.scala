@@ -31,20 +31,31 @@ object Thy_Conditions {
   }
 
   final class Context private {
+    private var immutable: Boolean = false
     private var conditions: Thy_Conditions =
       Thy_Conditions.init(Sessions.background0(""), Options.defaults)
+
+    def make_immutable(): Unit = synchronized { immutable = true }
 
     def value: Thy_Conditions = synchronized { conditions }
     override def toString: String = value.toString
 
     def init(init_background: Sessions.Background, init_options: Options): Unit =
-      synchronized { conditions = Thy_Conditions.init(init_background, init_options) }
+      synchronized {
+        if (!immutable) {
+          conditions = Thy_Conditions.init(init_background, init_options)
+        }
+      }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
       val eval_options = conditions.update_options(specs)
       val conds = Thy_Conditions.explode(eval_options)
-      conditions = conditions.evaluate(conds)
-      conditions.restrict(conds.toSet)
+      val conditions1 = conditions.evaluate(conds)
+      if (immutable && conditions.changed(conditions1)) {
+        error("Cannot change immutable conditions context")
+      }
+      if (!immutable) { conditions = conditions1 }
+      conditions1.restrict(conds.toSet)
     }
   }
 
@@ -76,8 +87,10 @@ object Thy_Conditions {
 final class Thy_Conditions private(
   val background: Sessions.Background,
   val options: Options,
-  rep: SortedMap[String, Exn.Result[String]]
+  protected val rep: SortedMap[String, Exn.Result[String]]
 ) {
+  def changed(other: Thy_Conditions): Boolean = rep != other.rep
+
   def restrict(domain: Set[String]): Thy_Conditions =
     new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
 

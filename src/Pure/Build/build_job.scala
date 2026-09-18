@@ -256,13 +256,10 @@ object Build_Job {
                   }
             }
 
-          val conditions_shasum = session_conditions.value.shasum
+          session_conditions.make_immutable()
 
           val session_theories =
             current_background.base.used_theories.map(_.eval_conditions(session_conditions))
-
-          require(conditions_shasum == session_conditions.value.shasum,
-            "late update of session conditions")
 
 
           /* session */
@@ -608,7 +605,7 @@ object Build_Job {
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
               build =
                 Store.Build_Info(
-                  sources_conditions = sources_shasum ::: conditions_shasum,
+                  sources_conditions = sources_shasum ::: session.conditions.value.shasum,
                   input_heaps = input_shasum,
                   output_heap = output_shasum,
                   process_result.rc,
