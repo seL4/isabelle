@@ -67,6 +67,7 @@ function isabelle_options(args: Args): string[] {
   add_values("-d", "session_dirs")
   add_values("-i", "include_sessions")
   add_values("-m", "modes")
+  add_values("-n", "no_build")
   add_value("-L", "log_file")
   if (args.verbose) { add("-v") }
 
