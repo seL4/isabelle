@@ -533,7 +533,7 @@ class Language_Server(
       id <- Position.Id.unapply(props)
       command <- snapshot.get_command(id)
       start <- snapshot.command_start(command)
-      range = command.core_range + start
+      range = snapshot.convert(command.core_range + start)
       current_text <- model.get_text(range)
     } yield {
       val line_range = doc.range(range)
