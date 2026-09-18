@@ -6,6 +6,7 @@ PIDE markup for session ROOT.
 
 theory Sessions
   imports Pure
+  options [condition = true]
   keywords "chapter_definition" "session" :: thy_decl
     and "description" "directories" "options" "sessions" "theories"
       "document_theories" "document_files" "export_files" :: quasi_command
