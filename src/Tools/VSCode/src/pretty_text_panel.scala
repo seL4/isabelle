@@ -42,7 +42,6 @@ class Pretty_Text_Panel private(
     if (resources.html_output) {
       if (output != current_output) {
         channel.write(output_json(YXML.string_of_body(output), None))
-        current_output = output
       }
     }
     else {
@@ -72,5 +71,6 @@ class Pretty_Text_Panel private(
         current_formatted = formatted
       }
     }
+    current_output = output
   }
 }
