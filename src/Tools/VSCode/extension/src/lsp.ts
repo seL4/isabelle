@@ -15,7 +15,7 @@ import { NotificationType, RequestType0, TextEdit } from "vscode-languageclient"
 /* decorations */
 
 export interface Decoration_Options {
-  range: number[],
+  range: number[]
   hover_message?: MarkdownString | MarkdownString[]
 }
 
@@ -160,13 +160,13 @@ export const documentation_request_type =
   new NotificationType<void>("PIDE/documentation_request")
 
 export interface Doc_Entry {
-  print_html: string,
+  print_html: string
   platform_path: string
 }
 
 export interface Doc_Section {
-  title: string,
-  important: boolean,
+  title: string
+  important: boolean
   entries: Doc_Entry[]
 }
 
@@ -181,8 +181,8 @@ export const documentation_response_type =
 /* Sledgehammer */
 
 export interface Sledgehammer_Request {
-  provers: string,
-  isar: boolean,
+  provers: string
+  isar: boolean
   try0: boolean
 }
 
