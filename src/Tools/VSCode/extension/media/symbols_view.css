@@ -64,24 +64,6 @@ body > * {
   color: var(--vscode-button-foreground);
 }
 
-.tooltip {
-  position: absolute;
-  z-index: 9999;
-  background-color: var(--vscode-editorHoverWidget-background);
-  color: var(--vscode-editorHoverWidget-foreground);
-  padding: 4px 6px;
-  border-radius: 4px;
-  font-size: var(--font-size-small);
-  font-family: var(--font-family-base);
-  white-space: pre-line;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.1s ease;
-  max-width: 250px;
-  box-shadow: 0 2px 4px var(--vscode-widget-shadow);
-}
-.tooltip.visible { opacity: 1; }
-
 .tabs {
   display: flex;
   flex-wrap: wrap;
