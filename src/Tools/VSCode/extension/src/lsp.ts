@@ -167,11 +167,11 @@ export interface Doc_Entry {
 export interface Doc_Section {
   title: string,
   important: boolean,
-  entries: Array<Doc_Entry>
+  entries: Doc_Entry[]
 }
 
 export interface Documentation_Response {
-  sections: Array<Doc_Section>
+  sections: Doc_Section[]
 }
 
 export const documentation_response_type =
