@@ -512,14 +512,12 @@ object Sessions {
         Shasum.make_sorted(session_info.options.changed(filter = _.session_content)
           .map(ch => SHA1.digest(ch.print_prefs) -> Build_Prefs.make(ch.name)))
 
-      val conditions = eval_conditions(name).value.shasum
-
       val sources =
         Shasum.make_sorted(
           for ((path, digest) <- session_base.all_sources)
             yield digest -> File.symbolic_path(path))
 
-      meta_info ::: build_prefs ::: conditions ::: sources
+      meta_info ::: build_prefs ::: sources
     }
 
     def errors: List[String] =

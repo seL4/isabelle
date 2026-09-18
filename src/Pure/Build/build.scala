@@ -228,6 +228,7 @@ object Build {
                     try {
                       val current =
                         store.check_output(name,
+                          conditions = deps0.eval_conditions(name).value,
                           opened_db = Some(db),
                           sources_shasum = deps0.sources_shasum(name)
                         ).current(build_thorough = deps0.sessions_structure(name).build_thorough)

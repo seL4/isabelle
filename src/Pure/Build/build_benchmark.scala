@@ -75,6 +75,7 @@ object Build_Benchmark {
 
         def get_shasum(name: String): Shasum =
           store.check_output(name,
+            session_conditions.value,
             opened_db = database_server,
             sources_shasum = sessions(name).sources_shasum,
             input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum))

@@ -1168,6 +1168,7 @@ extends AutoCloseable {
 
     val build_output =
       store.check_output(session_name,
+        session_conditions.value,
         opened_db = _database_server,
         sources_shasum = sources_shasum,
         input_shasum = input_shasum)
