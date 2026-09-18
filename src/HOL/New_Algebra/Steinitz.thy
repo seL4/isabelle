@@ -35,13 +35,9 @@ lemma span_mono:
 
 text \<open>Every vector of @{term S} lies in its span.\<close>
 lemma span_incl:
-  assumes S: "S \<subseteq> V" and v: "v \<in> S"
+  assumes "S \<subseteq> V" "v \<in> S"
   shows "v \<in> span S"
-proof -
-  have "v \<in> V" using S v by blast
-  then have "v = lincomb (\<lambda>_. \<one>) {v}" by (simp add: scale_one lincomb_def)
-  then show ?thesis unfolding span_def using v by blast
-qed
+  using assms mod.span_incl by (meson in_mono)
 
 lemma span_subset_V:
   assumes "S \<subseteq> V" shows "span S \<subseteq> V"
@@ -51,15 +47,7 @@ subsection \<open>Extension of a linear combination by zero coefficients\<close>
 
 text \<open>Scaling by the field zero gives the zero vector: from @{term "(\<zero> + \<zero>) \<odot> v = \<zero> \<odot> v \<oplus> \<zero> \<odot> v"}
   and cancellation.\<close>
-lemma scale_zero_scalar:
-  assumes v: "v \<in> V" shows "\<zero> \<odot> v = \<zero>\<^sub>V"
-proof -
-  have w: "\<zero> \<odot> v \<in> V" using v by (simp add: scale_closed)
-  have eq: "\<zero> \<odot> v = (\<zero> \<odot> v) \<oplus> (\<zero> \<odot> v)"
-    using v scale_distrib_add by force
-  then show ?thesis
-    using vadd.commute_iff_inverse w by fastforce 
-qed
+lemmas scale_zero_scalar = mod.scale_zero_scalar
 
 text \<open>Extending a linear combination's support by vectors with zero coefficient leaves it unchanged:
   the extra terms @{term "\<zero> \<odot> v = \<zero>\<^sub>V"} vanish in the vector sum.\<close>
@@ -154,7 +142,7 @@ lemma lincomb_zero_extend_eq:
     and c: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> R" and czero: "\<And>v. \<lbrakk> v \<in> D; v \<notin> B \<rbrakk> \<Longrightarrow> c v = \<zero>"
   shows "lincomb c D = lincomb c B"
 proof -
-  define E where "E = {v \<in> D. v \<notin> B}"
+  define E where "E \<equiv> {v \<in> D. v \<notin> B}"
   obtain finB: "finite B" and finE: "finite E" and "E \<subseteq> V" 
     using finite_subset D BD unfolding E_def by auto
   have disj: "B \<inter> E = {}" unfolding E_def by blast
@@ -167,60 +155,13 @@ qed
 
 text \<open>The zero vector is the empty linear combination, hence lies in every span.\<close>
 lemma span_zero: "\<zero>\<^sub>V \<in> span S"
-  using lincomb_def span_def by fastforce
+  by simp
 
-text \<open>A span is closed under scalar multiplication (via @{thm [source] lincomb_scale}).\<close>
-lemma span_scale:
-  assumes S: "S \<subseteq> V" and a: "a \<in> R" and x: "x \<in> span S"
-  shows "a \<odot> x \<in> span S"
-proof -
-  from x obtain c B where x_eq: "x = lincomb c B" and finB: "finite B"
-    and BS: "B \<subseteq> S" and cR: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> R" unfolding span_def by blast
-  have BV: "B \<subseteq> V" using BS S by blast
-  have "a \<odot> x = lincomb (\<lambda>v. a \<cdot> c v) B"
-    using x_eq lincomb_scale[OF BV finB a cR] by simp
-  then show ?thesis using a cR finB BS unfolding span_def by blast
-qed
+text \<open>A span is closed under scalar multiplication.\<close>
+lemmas span_scale = mod.span_scale_closed
 
-text \<open>A span is closed under vector addition.  The two combinations are re-expressed over the common
-  support @{term "B \<union> C"} (extending each by zero coefficients), then added coefficientwise.\<close>
-lemma span_vadd:
-  assumes S: "S \<subseteq> V" and x: "x \<in> span S" and y: "y \<in> span S"
-  shows "x \<oplus> y \<in> span S"
-proof -
-  from x obtain c B where x_eq: "x = lincomb c B" and finB: "finite B"
-    and BS: "B \<subseteq> S" and cR: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> R" unfolding span_def by blast
-  from y obtain d C where y_eq: "y = lincomb d C" and finC: "finite C"
-    and CS: "C \<subseteq> S" and dR: "\<And>v. v \<in> C \<Longrightarrow> d v \<in> R" unfolding span_def by blast
-  define D where "D = B \<union> C"
-  define c' where "c' = (\<lambda>v. if v \<in> B then c v else \<zero>)"
-  define d' where "d' = (\<lambda>v. if v \<in> C then d v else \<zero>)"
-  have finD: "finite D" and DS: "D \<subseteq> S" and DV: "D \<subseteq> V"
-    using finB finC BS CS S unfolding D_def by auto
-  have BV: "B \<subseteq> V" and CV: "C \<subseteq> V" using BS CS S by auto
-  have BD: "B \<subseteq> D" and CD: "C \<subseteq> D" unfolding D_def by auto
-  \<comment> \<open>Re-express @{term x} over the common support @{term D}.\<close>
-  have x_D: "x = lincomb c' D"
-  proof -
-    have "lincomb c' D = lincomb c' B"
-      by (intro lincomb_zero_extend_eq BV BD DV finD) (use cR c'_def in auto)
-    also have "\<dots> = lincomb c B"
-      by (simp add: BV c'_def cR lincomb_cong)
-    finally show ?thesis using x_eq by simp
-  qed
-  have y_D: "y = lincomb d' D"
-  proof -
-    have "lincomb d' D = lincomb d' C"
-      by (intro lincomb_zero_extend_eq CV DV CD finD) (use dR d'_def in auto)
-    also have "\<dots> = lincomb d C"
-      by (simp add: CV d'_def dR lincomb_cong)
-    finally show ?thesis using y_eq by simp
-  qed
-  have c'R: "\<And>v. v \<in> D \<Longrightarrow> c' v \<in> R" using cR additive.unit_closed unfolding c'_def by auto
-  have d'R: "\<And>v. v \<in> D \<Longrightarrow> d' v \<in> R" using dR additive.unit_closed unfolding d'_def by auto
-  show ?thesis using finD DS unfolding span_def
-    using DV c'R d'R finD lincomb_add x_D y_D by blast 
-qed
+text \<open>A span is closed under vector addition.\<close>
+lemmas span_vadd = mod.span_madd_closed
 
 text \<open>Consequently a linear combination of vectors \<^emph>\<open>drawn from a span\<close> stays in the span: induction
   on the support, using @{thm [source] span_zero}, @{thm [source] span_scale}, @{thm [source] span_vadd}.\<close>
@@ -247,13 +188,7 @@ qed
 text \<open>Span is idempotent, so it is a genuine closure operator.\<close>
 lemma span_span:
   assumes S: "S \<subseteq> V" shows "span (span S) = span S"
-proof
-  show "span (span S) \<subseteq> span S"
-    using assms span_def span_lincomb_closed by auto
-next
-  show "span S \<subseteq> span (span S)"
-    using assms span_incl span_subset_V by force
-qed
+  by (simp add: assms mod.span_incl mod.span_minimal mod.span_submodule span_subset_V subset_antisym)
 
 text \<open>Transitivity: if @{term S} lies inside the span of @{term T}, its span does too.\<close>
 lemma span_trans:
@@ -272,35 +207,19 @@ subsection \<open>Vector subtraction inside a span\<close>
 
 text \<open>Negating a scalar coefficient negates the scaled vector: \<open>(- a) \<odot> v\<close> is the vector-group inverse
   of \<open>a \<odot> v\<close>.  From @{term "(a + (- a)) \<odot> v = \<zero>\<^sub>V"}.\<close>
-lemma scale_neg_scalar:
-  assumes a: "a \<in> R" and v: "v \<in> V"
-  shows "(- a) \<odot> v = vadd.inverse (a \<odot> v)"
-proof -
-  have "(a \<odot> v) \<oplus> ((- a) \<odot> v) = (a + (- a)) \<odot> v"
-    using a v by (simp add: scale_distrib_add[symmetric])
-  also have "\<dots> = \<zero>\<^sub>V" using a v scale_zero_scalar by simp
-  finally have "(a \<odot> v) \<oplus> ((- a) \<odot> v) = \<zero>\<^sub>V" .
-  then show ?thesis
-    using a v by (simp add: scale_closed scale_closed vadd.inverse_equality vadd.commutative)
-qed
+lemmas scale_neg_scalar = mod.scale_neg_scalar
 
 text \<open>A span is closed under vector negation.\<close>
 lemma span_neg:
-  assumes S: "S \<subseteq> V" and x: "x \<in> span S"
+  assumes "S \<subseteq> V" and "x \<in> span S"
   shows "vadd.inverse x \<in> span S"
-proof -
-  have xV: "x \<in> V" using x S span_closed by blast
-  have "vadd.inverse x = (- \<one>) \<odot> x"
-    using xV by (simp add: scale_neg_scalar scale_one)
-  moreover have "(- \<one>) \<odot> x \<in> span S" using S x by (auto intro: span_scale)
-  ultimately show ?thesis by simp
-qed
+  using mod.span_submodule mod.submodule_neg assms by presburger
 
 text \<open>A span is closed under vector subtraction.\<close>
 lemma span_diff:
   assumes S: "S \<subseteq> V" and x: "x \<in> span S" and y: "y \<in> span S"
   shows "x \<oplus> vadd.inverse y \<in> span S"
-  using S x span_neg[OF S y] by (auto intro: span_vadd)
+  by (simp add: S span_neg span_vadd x y)
 
 subsection \<open>The exchange step\<close>
 
@@ -323,8 +242,7 @@ proof -
   have "B0 \<subseteq> S" "B0 \<subseteq> V" using BbS S by (auto simp: B0_def)
   have bnB0: "b \<notin> B0" by (simp add: B0_def)
   have cR0: "\<And>v. v \<in> B0 \<Longrightarrow> c v \<in> R" using cR by (auto simp: B0_def)
-  \<comment> \<open>@{term "r = lincomb c B0"} is the part of @{term a} inside @{term "span S"}.\<close>
-  define r where "r = lincomb c B0"
+  define r where "r \<equiv> lincomb c B0"  \<comment> \<open>@the part of @{term a} inside @{term "span S"}\<close>
   have rspan: "r \<in> span S" using finB0 \<open>B0 \<subseteq> S\<close> cR0 unfolding r_def span_def by blast
   have rV: "r \<in> V" using rspan S span_closed by blast
   have a_split: "a = (k \<odot> b) \<oplus> r"
@@ -338,9 +256,7 @@ proof -
     finally show ?thesis using True by (simp add: a_eq k_def r_def)
   next
     case False
-    then have "r = a" by (simp add: B0_def r_def a_eq)
-    moreover have "k \<odot> b = \<zero>\<^sub>V" using False b by (simp add: k_def scale_zero_scalar)
-    ultimately show ?thesis using rV by (simp add: vadd.left_unit)
+    then show ?thesis using rV na rspan by (force simp: B0_def r_def a_eq)
   qed
   \<comment> \<open>@{term k} is nonzero, otherwise \<open>a = r\<close> would lie in \<open>span S\<close>.\<close>
   have kb: "k \<odot> b \<in> V" using kR b by (rule scale_closed)
@@ -391,7 +307,7 @@ proof
   have finB: "finite B" and "B \<subseteq> V" using ind by (auto simp: lin_indep_def)
   have wV: "w \<in> V" using w \<open>B \<subseteq> V\<close> by blast
   have wnC: "w \<notin> C" using CB by blast
-  define c where "c = (\<lambda>v. if v = w then - \<one> else if v \<in> C then d v else \<zero>)"
+  define c where "c \<equiv> (\<lambda>v. if v = w then - \<one> else if v \<in> C then d v else \<zero>)"
   have cR: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> R" using dR by (auto simp: c_def additive.unit_closed)
   have cPiE: "restrict c B \<in> B \<rightarrow>\<^sub>E R" using cR by (auto simp: c_def)
   \<comment> \<open>The combination over @{term B} splits into the @{term w}-term and the @{term C}-term (all other
@@ -434,26 +350,20 @@ proof (intro strip conjI assms)
   show "c v = \<zero>" if cPiE: "c \<in> B \<rightarrow>\<^sub>E R" and zero: "lincomb c B = \<zero>\<^sub>V" and v: "v \<in> B" for c v
   proof (rule ccontr)
     assume cwnz: "c v \<noteq> \<zero>" 
+    define r where "r \<equiv> lincomb c (B \<setminus> {v})"
+    have rspan: "r \<in> span (B \<setminus> {v})" using finB cPiE unfolding r_def span_def by blast
+    have rV: "r \<in> V" using rspan \<open>B \<subseteq> V\<close> span_closed by blast
     have wV: "v \<in> V" using v \<open>B \<subseteq> V\<close> by blast
     have cwR: "c v \<in> R" using cPiE v by blast
         \<comment> \<open>Split off the @{term v}-term: @{term "\<zero>\<^sub>V = (c v \<odot> v) \<oplus> lincomb c (B \<setminus> {v})"}.\<close>
+    have cww: "c v \<odot> v \<in> V" using cwR wV by (rule scale_closed)
     have "B = insert v (B \<setminus> {v})" using v by blast
     then have "lincomb c B = lincomb c (insert v (B \<setminus> {v}))" by simp
     also have "\<dots> = (c v \<odot> v) \<oplus> lincomb c (B \<setminus> {v})"
       unfolding lincomb_def using finB wV cwR cPiE \<open>B \<subseteq> V\<close>
       by (subst vadd.fincomp_insert) (auto intro!: scale_closed)
-    finally have split: "\<zero>\<^sub>V = (c v \<odot> v) \<oplus> lincomb c (B \<setminus> {v})" using zero by simp
-        \<comment> \<open>Solve for @{term "c v \<odot> v"}, then scale by the inverse of @{term "c v"} to isolate @{term v}.\<close>
-    define r where "r = lincomb c (B \<setminus> {v})"
-    have rspan: "r \<in> span (B \<setminus> {v})" using finB cPiE unfolding r_def span_def by blast
-    have rV: "r \<in> V" using rspan \<open>B \<subseteq> V\<close> span_closed by blast
-    have cww: "c v \<odot> v \<in> V" using cwR wV by (rule scale_closed)
-    have "c v \<odot> v = vadd.inverse r"
-    proof -
-      have e1: "(c v \<odot> v) \<oplus> r = \<zero>\<^sub>V" using split by (simp add: r_def)
-      have e2: "r \<oplus> (c v \<odot> v) = \<zero>\<^sub>V" using e1 cww rV by (simp add: vadd.commutative)
-      from vadd.inverse_equality[OF e2 e1 rV cww] show ?thesis by simp
-    qed
+    finally have "c v \<odot> v = vadd.inverse r"
+      using cww rV r_def vadd.commutative vadd.inverse_equality zero by metis
     have cwinv: "multiplicative.inverse (c v) \<in> R" using cwR cwnz field_inverse by simp
     have cwcw: "multiplicative.inverse (c v) \<cdot> c v = \<one>"
       using cwR cwnz field_inverse by (simp add: multiplicative.invertible_left_inverse)
@@ -480,33 +390,19 @@ proof (rule not_in_span_lin_indep)
   fix w assume w: "w \<in> insert x A"
   have AV: "A \<subseteq> V" using ind by (simp add: lin_indep_def)
   have xA: "x \<notin> A"
-  proof
-    assume "x \<in> A"
-    then have "x \<in> span A" by (rule span_incl[OF AV])
-    then show False using outside by contradiction
-  qed
+    using AV outside span_incl by blast
   show "w \<notin> span (insert x A \<setminus> {w})"
-  proof (cases "w = x")
-    case True
-    then show ?thesis using outside xA by simp
-  next
-    case False
-    then have wA: "w \<in> A" using w by simp
+  proof
+    assume wsp: "w \<in> span (insert x A \<setminus> {w})"
+    have wA: "w \<in> A" using w
+      using insert_iff outside wsp by fastforce
     have w_outside: "w \<notin> span (A \<setminus> {w})"
       using ind wA by (rule lin_indep_not_in_span)
-    show ?thesis
-    proof
-      assume "w \<in> span (insert x A \<setminus> {w})"
-      moreover have "insert x A \<setminus> {w} = insert x (A \<setminus> {w})"
-        using False by auto
-      ultimately have w_span: "w \<in> span (insert x (A \<setminus> {w}))" by simp
-      have diffV: "A \<setminus> {w} \<subseteq> V" using AV by auto
-      have "x \<in> span (insert w (A \<setminus> {w}))"
-        by (rule in_span_insert[OF diffV x w_span w_outside])
-      also have "insert w (A \<setminus> {w}) = A" using wA by auto
-      finally have "x \<in> span A" .
-      then show False using outside by contradiction
-    qed
+    have w_span: "w \<in> span (insert x (A \<setminus> {w}))"
+      using wsp w_outside by (metis insert_Diff_if)
+    have diffV: "A \<setminus> {w} \<subseteq> V" using AV by auto
+    then show False
+      using outside in_span_insert wA w_outside w_span x by (metis insert_Diff) 
   qed
 qed
 
@@ -514,13 +410,9 @@ subsection \<open>Bases span and are independent\<close>
 
 text \<open>A spanning set spans the whole space: every vector of @{term V} lies in its span.\<close>
 lemma spanning_span_all:
-  assumes sp: "spanning B" and v: "v \<in> V"
+  assumes "spanning B" "v \<in> V"
   shows "v \<in> span B"
-proof -
-  from sp v obtain c where "c \<in> B \<rightarrow>\<^sub>E R" "v = lincomb c B" unfolding spanning_def by blast
-  moreover have "finite B" "B \<subseteq> B" using sp by (auto simp: spanning_def)
-  ultimately show ?thesis unfolding span_def by blast
-qed
+  using assms mod.spanningD spanning_def spanning_iff_mod_spanning by meson
 
 text \<open>A basis is linearly independent: the coordinate map is injective, and the zero vector is
   @{term "lincomb (\<lambda>_. \<zero>) B"}, so any coordinate vector mapping to @{term "\<zero>\<^sub>V"} must be the zero one.\<close>
@@ -530,20 +422,15 @@ lemma basis_lin_indep:
 proof -
   have finB: "finite B" and "B \<subseteq> V" using B by (auto simp: basis_def)
   have inj: "inj_on (\<lambda>c. lincomb c B) (B \<rightarrow>\<^sub>E R)" using B by (simp add: basis_def bij_betw_def)
-  have "\<forall>c\<in>B \<rightarrow>\<^sub>E R. lincomb c B = \<zero>\<^sub>V \<longrightarrow> (\<forall>v\<in>B. c v = \<zero>)"
-  proof (intro strip)
-    fix c v
-    assume cPiE: "c \<in> B \<rightarrow>\<^sub>E R" and zero: "lincomb c B = \<zero>\<^sub>V" and "v\<in>B"
-      \<comment> \<open>The zero coordinate vector, restricted to be extensional on @{term B}.\<close>
-    define z where "z = restrict (\<lambda>_. \<zero>) B"
+  have "c v = \<zero>" if  cPiE: "c \<in> B \<rightarrow>\<^sub>E R" and zero: "lincomb c B = \<zero>\<^sub>V" and "v\<in>B" for c v
+  proof -
+    define z where "z \<equiv> restrict (\<lambda>_. \<zero>) B"
     have zPiE: "z \<in> B \<rightarrow>\<^sub>E R" using additive.unit_closed by (auto simp: z_def)
     have "lincomb z B = lincomb (\<lambda>_. \<zero>) B" by (rule lincomb_cong) (use \<open>B \<subseteq> V\<close> in \<open>auto simp: z_def\<close>)
-    also have "\<dots> = \<zero>\<^sub>V"
-      unfolding lincomb_def using \<open>B \<subseteq> V\<close>
-      by (intro vadd.fincomp_unit_eqI) (auto simp: scale_zero_scalar)
+    also have "\<dots> = \<zero>\<^sub>V" by (simp add: \<open>B \<subseteq> V\<close>)
     finally have "lincomb z B = \<zero>\<^sub>V" .
-    with zero have "lincomb c B = lincomb z B" by simp
-    with inj cPiE zPiE have "c = z" by (auto dest: inj_onD)
+    with zero inj cPiE zPiE have "c = z"
+      by (metis inj_on_eq_iff)
     then show "c v = \<zero>"
       using \<open>v \<in> B\<close> z_def by force
   qed
@@ -601,14 +488,7 @@ proof (induct "card (T \<setminus> S)" arbitrary: S T rule: less_induct)
   proof (cases "S \<subseteq> T \<or> T \<subseteq> S")
     case True
     then show ?thesis
-    proof
-      assume "S \<subseteq> T" then show ?thesis using ft spST by (metis Un_commute sup_ge1)
-    next
-      assume TS: "T \<subseteq> S"
-      \<comment> \<open>Then @{term T} already spans the independent @{term S}, forcing @{term "S = T"}.\<close>
-      have "S = T" by (rule spanning_subset_independent[OF TS iS spST])
-      then show ?thesis using ft spST by auto
-    qed
+      using ft iS spST spanning_subset_independent by auto
   next
     case False
     then obtain b where  "\<not> S \<subseteq> T" and b: "b \<in> T" "b \<notin> S" "T \<setminus> {b} \<setminus> S \<subset> T \<setminus> S" by blast
@@ -624,9 +504,9 @@ proof (induct "card (T \<setminus> S)" arbitrary: S T rule: less_induct)
       obtain U where U: "card U = card (T \<setminus> {b})" "S \<subseteq> U" "U \<subseteq> S \<union> (T \<setminus> {b})" "S \<subseteq> span U"
         and fu: "finite U" by blast
       have bu: "b \<notin> U" using b U by blast
-      from U(1) ft b have "card U = card T - 1" by auto
-      then have th2: "card (insert b U) = card T" using card_insert_disjoint[OF fu bu] ct0 by auto
-        have "S \<subseteq> span (insert b U)"
+      then have th2: "card (insert b U) = card T" using card_insert_disjoint[OF fu bu] ct0
+        using U(1) b(1) ft by (metis card.remove)
+      have "S \<subseteq> span (insert b U)"
         using U(4) span_mono by blast
       then show ?thesis using U b th2 fu by blast
     next
@@ -713,14 +593,14 @@ proof (intro conjI)
     unfolding bij_betw_def
   proof
     \<comment> \<open>Injectivity.  If two coordinate vectors give the same vector, their difference is a dependence,
-      so independence makes it zero coefficientwise; extensionality then makes them equal.\<close>
+      so independence makes it zero coefficientwise.\<close>
     show "inj_on (\<lambda>c. lincomb c B) (B \<rightarrow>\<^sub>E R)"
     proof (rule inj_onI)
       fix c d assume c: "c \<in> B \<rightarrow>\<^sub>E R" and d: "d \<in> B \<rightarrow>\<^sub>E R" and eq: "lincomb c B = lincomb d B"
       have cR: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> R" and dR: "\<And>v. v \<in> B \<Longrightarrow> d v \<in> R" using c d by auto
       \<comment> \<open>The coefficientwise difference.  Adding it to @{term d} recovers @{term c}, so by
         @{thm [source] lincomb_add} its combination is @{term "\<zero>\<^sub>V"}.\<close>
-      define e where "e = restrict (\<lambda>v. c v + additive.inverse (d v)) B"
+      define e where "e \<equiv> restrict (\<lambda>v. c v + additive.inverse (d v)) B"
       have eR: "\<And>v. v \<in> B \<Longrightarrow> e v \<in> R" using cR dR by (auto simp: e_def)
       have ePiE: "e \<in> B \<rightarrow>\<^sub>E R" using eR by (simp add: e_def)
       have sum_back: "\<And>v. v \<in> B \<Longrightarrow> e v + d v = c v"
@@ -758,17 +638,7 @@ lemma basis_empty_trivial:
 proof (rule basisI)
   show "spanning {}"
     unfolding spanning_def
-  proof (intro conjI ballI)
-    show "finite ({} :: 'b set)" by simp
-    show "{} \<subseteq> V" by simp
-    fix v assume v: "v \<in> V"
-    define c :: "'b \<Rightarrow> 'a" where "c = restrict (\<lambda>_. \<zero>) {}"
-    have c: "c \<in> {} \<rightarrow>\<^sub>E R"
-      by (auto simp: c_def PiE_iff extensional_def fun_eq_iff)
-    have "v = \<zero>\<^sub>V" using v triv by simp
-    also have "\<zero>\<^sub>V = lincomb c {}" by simp
-    finally show "\<exists>c \<in> {} \<rightarrow>\<^sub>E R. v = lincomb c {}" using c by blast
-  qed
+    using mod.lincomb_empty triv by auto
   show "lin_indep {}" by (simp add: lin_indep_def)
 qed
 
@@ -787,43 +657,30 @@ proof (induction "card (B \<setminus> A)" arbitrary: A rule: less_induct)
   show ?case
   proof (cases "spanning A")
     case True
-    then have "basis A" using ind by (rule basisI)
-    then show ?thesis by blast
+    then show ?thesis
+      using basisI ind by blast
   next
     case False
     have "\<not> B \<subseteq> span A"
     proof
       assume Bspan: "B \<subseteq> span A"
-      have "spanning A"
-        unfolding spanning_iff_mod_spanning[OF finA AV]
-      proof (rule mod.spanningI[OF AV])
-        fix v assume v: "v \<in> V"
-        have "v \<in> span B" using basis_spanning[OF B] v by (rule spanning_span_all)
-        then show "v \<in> span A" using span_trans[OF Bspan AV] by blast
-      qed
+      have "\<And>v. v \<in> V \<Longrightarrow> v \<in> span A"
+        using AV B Bspan basis_spanning span_trans spanning_span_all by blast
+      with mod.spanningI[OF AV] have "spanning A"
+        unfolding spanning_iff_mod_spanning[OF finA AV] .
       then show False using False by contradiction
     qed
     then obtain b where b: "b \<in> B" "b \<notin> span A" by blast
     have BV: "B \<subseteq> V" and finB: "finite B" using B by (auto simp: basis_def)
     have bV: "b \<in> V" using b BV by blast
     have bA: "b \<notin> A"
-    proof
-      assume "b \<in> A"
-      then have "b \<in> span A" by (rule span_incl[OF AV])
-      then show False using b(2) by simp
-    qed
-    have ind': "lin_indep (insert b A)" by (rule lin_indep_insert[OF ind bV b(2)])
-    have measure: "card (B \<setminus> insert b A) < card (B \<setminus> A)"
-    proof -
-      have "B \<setminus> insert b A = (B \<setminus> A) \<setminus> {b}" by auto
-      moreover have "b \<in> B \<setminus> A" using b bA by simp
-      moreover have "finite (B \<setminus> A)" using finB by simp
-      moreover have "0 < card (B \<setminus> A)"
-        using finB b bA by (simp add: card_gt_0_iff) blast
-      ultimately show ?thesis by (simp add: card_Diff_singleton)
-    qed
+      using AV b(2) span_incl by blast
+    have "0 < card (B \<setminus> A)"
+      using finB b bA by (simp add: card_gt_0_iff) blast
+    then have measure: "card (B \<setminus> insert b A) < card (B \<setminus> A)"
+      by (simp add: b(1) bA)
     obtain C where C: "insert b A \<subseteq> C" "C \<subseteq> insert b A \<union> B" "basis C"
-      using less.hyps[OF measure ind' B] by blast
+      using B b(2) bV ind less.hyps lin_indep_insert measure by meson
     have "A \<subseteq> C" using C(1) by blast
     moreover have "C \<subseteq> A \<union> B" using C b(1) by blast
     ultimately show ?thesis using C(3) by blast
@@ -857,119 +714,83 @@ proof (induction "card B" arbitrary: B rule: less_induct)
     proof (intro conjI ballI finB sub)
       show "finite (B \<setminus> {w})" using finB by blast
       fix v assume v: "v \<in> V"
-      have "v \<in> span B" using less.prems v by (rule spanning_span_all)
-      also have "B = insert w (B \<setminus> {w})" using w by blast
-      finally have "v \<in> span (B \<setminus> {w})" using sub wsp by (blast intro: span_trans_mem)
-      \<comment> \<open>@{thm [source] spanning_iff_mod_spanning} is not available here, so pad by hand: extend the
-        witnessing coefficients from @{term C} to all of @{term "B \<setminus> {w}"} by @{term \<zero>}, which by
-        @{thm [source] lincomb_zero_extend_eq} does not change the combination.\<close>
+      have "v \<in> span (B \<setminus> {w})" using sub wsp
+        using less.prems span_trans_mem spanning_span_all v w by (metis insert_Diff)
       then show "\<exists>c \<in> (B \<setminus> {w}) \<rightarrow>\<^sub>E R. v = lincomb c (B \<setminus> {w})"
       proof -
         obtain c C where veq: "v = lincomb c C" and finC: "finite C" and CB: "C \<subseteq> B \<setminus> {w}"
           and cR: "\<And>u. u \<in> C \<Longrightarrow> c u \<in> R" using \<open>v \<in> span (B \<setminus> {w})\<close> unfolding span_def by blast
-        define d where "d = restrict (\<lambda>u. if u \<in> C then c u else \<zero>) (B \<setminus> {w})"
+        define d where "d \<equiv> restrict (\<lambda>u. if u \<in> C then c u else \<zero>) (B \<setminus> {w})"
         have dR: "\<And>u. u \<in> B \<setminus> {w} \<Longrightarrow> d u \<in> R" using cR by (auto simp: d_def)
         have dPiE: "d \<in> (B \<setminus> {w}) \<rightarrow>\<^sub>E R" using dR by (simp add: d_def)
         \<comment> \<open>Note the orientation: the lemma reads @{text "lincomb c D = lincomb c B"} with
           @{text "B \<subseteq> D"}, so the \<^emph>\<open>small\<close> set @{term C} is its @{text B} and the big one its @{text D}.\<close>
         have "lincomb d (B \<setminus> {w}) = lincomb d C"
-        proof (rule lincomb_zero_extend_eq)
-          show "C \<subseteq> V" using CB sub by blast
-          show "finite (B \<setminus> {w})" using finB by blast
-          show "B \<setminus> {w} \<subseteq> V" by (rule sub)
-          show "C \<subseteq> B \<setminus> {w}" by (rule CB)
-          show "\<And>u. u \<in> C \<Longrightarrow> d u \<in> R" using CB dR by blast
+        proof (intro CB sub lincomb_zero_extend_eq)
           show "\<And>u. \<lbrakk> u \<in> B \<setminus> {w}; u \<notin> C \<rbrakk> \<Longrightarrow> d u = \<zero>" by (simp add: d_def)
-        qed
+        qed (use finB CB sub dR in auto)
         also have "\<dots> = lincomb c C" by (rule lincomb_cong) (use CB sub cR in \<open>auto simp: d_def\<close>)
         finally have "lincomb d (B \<setminus> {w}) = v" using veq by simp
         then show ?thesis using dPiE by blast
       qed
     qed
     moreover have "card (B \<setminus> {w}) < card B"
-    proof -
-      have "0 < card B" using finB w by (simp add: card_gt_0_iff) blast
-      then show ?thesis using finB w by (simp add: card_Diff_singleton)
-    qed
-    ultimately obtain B' where "B' \<subseteq> B \<setminus> {w}" and "basis B'" using less.hyps by blast
-    then show ?thesis by blast
+      by (meson finB w card_Diff1_less_iff)
+    ultimately show ?thesis using less.hyps by blast
   next
     case False
-    \<comment> \<open>Nothing is redundant, so @{term B} is already independent and hence a basis.\<close>
-    then have "lin_indep B" using finB BV by (blast intro: not_in_span_lin_indep)
-    then have "basis B" using less.prems by (rule basisI[rotated])
-    then show ?thesis by blast
+    then show ?thesis
+      using BV basisI finB less.prems not_in_span_lin_indep by auto
   qed
 qed
 
-text \<open>A finite vector space has cardinality @{term "card R ^ dimension"}.  The whole carrier is a
-  finite spanning set, so @{thm [source] basis_exists_from_spanning} supplies a basis and the
-  coordinate-counting theorem can be combined with @{thm [source] dimension_eq_any_field}.  This is
-  the reusable cardinality bridge for finite field extensions; clients should not repeat the basis
-  extraction merely to count their carrier.\<close>
+text \<open>A finite vector space has cardinality @{term "card R ^ dimension"}.\<close>
 theorem card_eq_card_base_pow_dimension:
   assumes finV: "finite V"
   shows "card V = card R ^ dimension"
 proof -
   have spanV: "spanning V"
-    by (rule iffD2[OF spanning_iff_mod_spanning[OF finV subset_refl]])
-      (rule mod.spanning_whole)
+    using finV mod.spanning_whole spanning_iff_mod_spanning by blast
   obtain B where basis: "basis B"
     using basis_exists_from_spanning[OF spanV] by blast
-  have count: "card V = card R ^ card B"
-    by (rule card_eq_card_base_pow_dim[OF basis])
-  have dim: "dimension = card B"
-    by (rule dimension_eq_any_field[OF basis])
-  show ?thesis using count dim by simp
+  then show ?thesis
+    using card_eq_card_base_pow_dim dimension_eq_any_field by presburger
 qed
 
 text \<open>A uniform finite bound on the cardinalities of independent sets already gives a basis.  Choose
   an independent set of maximum cardinality; if a vector lay outside its span, adjoining that vector
-  would produce a strictly larger independent set.  This is the form needed when a dimension bound is
-  proved before a basis has been chosen.\<close>
+  would produce a strictly larger independent set.\<close>
 theorem basis_exists_of_independent_card_bound:
   assumes bound: "\<And>A. lin_indep A \<Longrightarrow> card A \<le> n"
   shows "\<exists>A. basis A"
 proof -
-  define sizes where "sizes = {card A | A. lin_indep A}"
-  have sizes_nonempty: "sizes \<noteq> {}"
-    unfolding sizes_def using lin_indep_def by force
-  have sizes_bounded: "sizes \<subseteq> {..n}"
-  proof
-    fix m assume "m \<in> sizes"
-    then obtain A where A: "lin_indep A" "m = card A" unfolding sizes_def by blast
-    then show "m \<in> {..n}" using bound by simp
-  qed
+  define sizes where "sizes \<equiv> {card A | A. lin_indep A}"
+  obtain sizes_nonempty: "sizes \<noteq> {}" and sizes_bounded: "sizes \<subseteq> {..n}"
+    using assms unfolding sizes_def lin_indep_def by auto
   have finite_sizes: "finite sizes"
     using sizes_bounded by (rule finite_subset) simp
   have "Max sizes \<in> sizes" by (rule Max_in[OF finite_sizes sizes_nonempty])
   then obtain A where indA: "lin_indep A" and maxA: "Max sizes = card A"
     unfolding sizes_def by blast
-  note A = indA maxA[symmetric]
-  have finA: "finite A" and AV: "A \<subseteq> V" using A by (auto simp: lin_indep_def)
-  have "spanning A"
-    unfolding spanning_iff_mod_spanning[OF finA AV]
+  have finA: "finite A" and AV: "A \<subseteq> V" using indA by (auto simp: lin_indep_def)
+  have "mod.spanning A"
   proof (rule mod.spanningI[OF AV])
     fix x assume xV: "x \<in> V"
     show "x \<in> span A"
     proof (rule ccontr)
       assume outside: "x \<notin> span A"
       have ind_insert: "lin_indep (insert x A)"
-        by (rule lin_indep_insert[OF A(1) xV outside])
+        by (rule lin_indep_insert[OF indA xV outside])
       have xA: "x \<notin> A"
-      proof
-        assume "x \<in> A"
-        then have "x \<in> span A" by (rule span_incl[OF AV])
-        then show False using outside by contradiction
-      qed
-      have insert_size: "card (insert x A) = Suc (card A)" using finA xA by simp
-      have "card (insert x A) \<in> sizes" using ind_insert unfolding sizes_def by blast
-      then have "card (insert x A) \<le> Max sizes" by (rule Max_ge[OF finite_sizes])
-      then show False using A(2) insert_size by simp
+        using AV outside span_incl by force
+      have "card (insert x A) \<le> Max sizes"
+        using Max_ge finite_sizes ind_insert sizes_def by blast 
+      then show False
+        using finA maxA xA by force
     qed
   qed
-  then have "basis A" using A(1) by (rule basisI)
-  then show ?thesis by blast
+  then show ?thesis
+    using basisI finA indA mod.spanning_def spanning_iff_mod_spanning by meson
 qed
 
 text \<open>Hence the dimension of a finitely spanned space is bounded by any spanning set.\<close>
@@ -978,9 +799,8 @@ corollary dimension_le_spanning:
 proof -
   obtain B' where B'B: "B' \<subseteq> B" and B': "basis B'"
     using assms by (blast dest: basis_exists_from_spanning)
-  have "finite B" using assms by (simp add: spanning_def)
-  then have "card B' \<le> card B" using B'B by (rule card_mono)
-  then show ?thesis using dimension_eq_any_field[OF B'] by simp
+  then show ?thesis using dimension_eq_any_field
+    using assms card_mono spanning_def by auto
 qed
 
 end
@@ -1000,15 +820,10 @@ proof (induction A rule: finite_induct)
   then show ?case by simp
 next
   case (insert x A)
-  have fxW: "f x \<in> W" and fAW: "f \<in> A \<rightarrow> W" using insert.prems by auto
-  have fxV: "f x \<in> V" and fAV: "f \<in> A \<rightarrow> V"
-    using fxW fAW W_submodule mod.submodule_subset by auto
-  have "sub.vadd.fincomp f (insert x A) = f x \<oplus> sub.vadd.fincomp f A"
-    using insert.hyps(1,2) fxW fAW by simp
-  also have "\<dots> = f x \<oplus> vadd.fincomp f A" using insert.IH[OF fAW] by simp
-  also have "\<dots> = vadd.fincomp f (insert x A)"
-    using insert.hyps(1,2) fxV fAV by simp
-  finally show ?case .
+  obtain fxV: "f x \<in> V" and fAV: "f \<in> A \<rightarrow> V"
+    using Module.submodule_subset W_submodule insert.prems mod.Module_axioms by fastforce
+  with insert show ?case
+    by auto
 qed
 
 lemma sub_lincomb_eq:
@@ -1016,10 +831,7 @@ lemma sub_lincomb_eq:
     and c: "\<And>v. v \<in> A \<Longrightarrow> c v \<in> R"
   shows "sub.lincomb c A = lincomb c A"
   unfolding sub.lincomb_def lincomb_def
-proof (rule sub_fincomp_eq[OF finA])
-  show "(\<lambda>v. c v \<odot> v) \<in> A \<rightarrow> W"
-    using AW c by (auto intro!: sub.scale_closed)
-qed
+  using AW c by (auto intro!: sub_fincomp_eq[OF finA] sub.scale_closed)
 
 lemma sub_span_eq:
   assumes AW: "A \<subseteq> W"
@@ -1029,35 +841,19 @@ proof
   proof
     fix x assume "x \<in> sub.span A"
     then obtain c C where C: "finite C" "C \<subseteq> A" "sub.mod.coeffs_on c C"
-      "x = sub.lincomb c C" by (rule sub.mod.spanE)
-    have CW: "C \<subseteq> W" using C(2) AW by blast
-    have coeff: "\<And>v. v \<in> C \<Longrightarrow> c v \<in> R"
-      using C(3) by (rule sub.mod.coeffs_onD)
-    have x_eq: "x = lincomb c C" using C(4) sub_lincomb_eq[OF C(1) CW coeff] by simp
+      "x = sub.lincomb c C" and CW: "C \<subseteq> W" using assms sub.mod.spanE by (metis subset_trans)
+    have x_eq: "x = lincomb c C" using C sub_lincomb_eq[OF C(1) CW] sub.mod.coeffs_onD by simp
     show "x \<in> span A"
-    proof (rule mod.spanI[where c=c and A=C])
-      show "finite C" by (rule C(1))
-      show "C \<subseteq> A" by (rule C(2))
-      show "mod.coeffs_on c C" using coeff by (rule mod.coeffs_onI)
-      show "x = lincomb c C" by (rule x_eq)
-    qed
+      using C mod.spanI x_eq by force
   qed
   show "span A \<subseteq> sub.span A"
   proof
     fix x assume "x \<in> span A"
-    then obtain c C where C: "finite C" "C \<subseteq> A" "mod.coeffs_on c C"
-      "x = lincomb c C" by (rule mod.spanE)
-    have CW: "C \<subseteq> W" using C(2) AW by blast
-    have coeff: "\<And>v. v \<in> C \<Longrightarrow> c v \<in> R"
-      using C(3) by (rule mod.coeffs_onD)
-    have x_eq: "x = sub.lincomb c C" using C(4) sub_lincomb_eq[OF C(1) CW coeff] by simp
+    then obtain c C where C: "finite C" "C \<subseteq> A" "mod.coeffs_on c C" "x = lincomb c C" 
+      and CW: "C \<subseteq> W" using assms mod.spanE by (metis subset_trans)
+    have x_eq: "x = sub.lincomb c C" using C sub_lincomb_eq[OF C(1) CW] mod.coeffs_onD by simp
     show "x \<in> sub.span A"
-    proof (rule sub.mod.spanI[where c=c and A=C])
-      show "finite C" by (rule C(1))
-      show "C \<subseteq> A" by (rule C(2))
-      show "sub.mod.coeffs_on c C" using coeff by (rule sub.mod.coeffs_onI)
-      show "x = sub.lincomb c C" by (rule x_eq)
-    qed
+      using C sub.mod.spanI x_eq by force
   qed
 qed
 
@@ -1066,11 +862,12 @@ lemma sub_lin_indep_iff:
   shows "sub.lin_indep A \<longleftrightarrow> lin_indep A"
 proof
   assume ind: "sub.lin_indep A"
-  have finA: "finite A" using ind by (simp add: sub.lin_indep_def)
-  have AV: "A \<subseteq> V" using AW W_submodule mod.submodule_subset by blast
   show "lin_indep A"
     unfolding lin_indep_def
-  proof (intro conjI ballI impI finA AV)
+  proof (intro conjI ballI impI)
+    show finA: "finite A" 
+      using ind by (simp add: sub.lin_indep_def)
+    show "A \<subseteq> V" using AW W_submodule mod.submodule_subset by blast
     fix c v
     assume c: "c \<in> A \<rightarrow>\<^sub>E R" and zero: "lincomb c A = \<zero>\<^sub>V" and v: "v \<in> A"
     have coeff: "\<And>u. u \<in> A \<Longrightarrow> c u \<in> R" using c by auto
@@ -1079,10 +876,11 @@ proof
   qed
 next
   assume ind: "lin_indep A"
-  have finA: "finite A" using ind by (simp add: lin_indep_def)
   show "sub.lin_indep A"
     unfolding sub.lin_indep_def
-  proof (intro conjI ballI impI finA AW)
+  proof (intro conjI ballI impI AW)
+    show finA: "finite A" 
+      using ind by (simp add: lin_indep_def)
     fix c v
     assume c: "c \<in> A \<rightarrow>\<^sub>E R" and zero: "sub.lincomb c A = \<zero>\<^sub>V" and v: "v \<in> A"
     have coeff: "\<And>u. u \<in> A \<Longrightarrow> c u \<in> R" using c by auto
@@ -1100,50 +898,43 @@ theorem subspace_basis_exists:
   assumes B: "basis B"
   shows "\<exists>A. sub.basis A"
 proof -
-  define sizes where "sizes = {card A | A. sub.lin_indep A}"
+  define sizes where "sizes \<equiv> {card A | A. sub.lin_indep A}"
   have finB: "finite B" and BV: "B \<subseteq> V" using B by (auto simp: basis_def)
   have sizes_nonempty: "sizes \<noteq> {}"
     unfolding sizes_def using sub.lin_indep_def by force
   have sizes_bounded: "sizes \<subseteq> {..card B}"
   proof
     fix n assume "n \<in> sizes"
-    then obtain A where A: "sub.lin_indep A" "n = card A" unfolding sizes_def by blast
-    have AW: "A \<subseteq> W" using A by (simp add: sub.lin_indep_def)
-    have indA: "lin_indep A" using sub_lin_indep_iff[OF AW] A by simp
-    have AV: "A \<subseteq> V" using AW W_submodule mod.submodule_subset by blast
-    have "A \<subseteq> span B" using basis_spanning[OF B] AV by (auto intro: spanning_span_all)
-    then have "card A \<le> card B" by (rule independent_le_span[OF indA finB BV])
-    then show "n \<in> {..card B}" using A by simp
+    then obtain A where A: "sub.lin_indep A" "n = card A" and AW: "A \<subseteq> W"
+      using sizes_def sub.lin_indep_def by auto
+    then have indA: "lin_indep A" using sub_lin_indep_iff[OF AW] A by simp
+    have "A \<subseteq> span B" using basis_spanning[OF B]
+      using indA lin_indep_def spanning_span_all by blast
+    then show "n \<in> {..card B}" using A
+      by (simp add: BV finB indA independent_le_span)
   qed
   have finite_sizes: "finite sizes"
     using sizes_bounded by (rule finite_subset) simp
   have "Max sizes \<in> sizes" by (rule Max_in[OF finite_sizes sizes_nonempty])
-  then obtain A where indA: "sub.lin_indep A" and maxA: "Max sizes = card A"
-    unfolding sizes_def by blast
-  note A = indA maxA[symmetric]
-  have finA: "finite A" and AW: "A \<subseteq> W" using A by (auto simp: sub.lin_indep_def)
-  have "sub.spanning A"
-    unfolding sub.spanning_iff_mod_spanning[OF finA AW]
+  then obtain A where indA: "sub.lin_indep A" and maxA: "Max sizes = card A" 
+       and finA: "finite A" and AW: "A \<subseteq> W"
+    unfolding sizes_def using sub.lin_indep_def by auto
+  have "sub.mod.spanning A"
   proof (rule sub.mod.spanningI[OF AW])
     fix x assume xW: "x \<in> W"
     show "x \<in> sub.span A"
     proof (rule ccontr)
       assume outside: "x \<notin> sub.span A"
       have ind_insert: "sub.lin_indep (insert x A)"
-        by (rule sub.lin_indep_insert[OF A(1) xW outside])
-      have xA: "x \<notin> A"
-      proof
-        assume "x \<in> A"
-        then have "x \<in> sub.span A" by (rule sub.span_incl[OF AW])
-        then show False using outside by contradiction
-      qed
-      have insert_size: "card (insert x A) = Suc (card A)" using finA xA by simp
-      have "card (insert x A) \<in> sizes" using ind_insert unfolding sizes_def by blast
-      then have "card (insert x A) \<le> Max sizes" by (rule Max_ge[OF finite_sizes])
-      then show False using A(2) insert_size by simp
+        by (rule sub.lin_indep_insert[OF indA xW outside])
+      have insert_size: "card (insert x A) = Suc (card A)"
+        by (meson AW finA outside sub.span_incl card_insert_disjoint)
+      then show False 
+        using insert_size maxA Max_ge finite_sizes ind_insert sizes_def by fastforce
     qed
   qed
-  then have "sub.basis A" using A(1) by (rule sub.basisI)
+  then have "sub.basis A" using indA
+    by (simp add: AW finA sub.basisI sub.spanning_iff_mod_spanning)
   then show ?thesis by blast
 qed
 
@@ -1156,19 +947,15 @@ theorem subspace_dimension_le:
   assumes B: "basis B"
   shows "sub.dimension \<le> dimension"
 proof -
-  obtain A where A: "sub.basis A"
-    using subspace_basis_exists[OF B] by blast
-  have AW: "A \<subseteq> W" using A by (simp add: sub.basis_def)
-  have indA: "lin_indep A"
-    using sub.basis_lin_indep[OF A] sub_lin_indep_iff[OF AW] by simp
+  obtain A where A: "sub.basis A" and AW: "A \<subseteq> W" and indA: "lin_indep A"
+    using subspace_basis_exists[OF B] sub.basis_def sub.basis_lin_indep sub_lin_indep_iff by metis
   have finB: "finite B" and BV: "B \<subseteq> V" using B by (auto simp: basis_def)
   have AV: "A \<subseteq> V" using AW W_submodule mod.submodule_subset by blast
   have "A \<subseteq> span B"
     using basis_spanning[OF B] AV by (auto intro: spanning_span_all)
-  then have "card A \<le> card B"
-    by (rule independent_le_span[OF indA finB BV])
   then show ?thesis
-    using sub.dimension_eq_any_field[OF A] dimension_eq_any_field[OF B] by simp
+    using sub.dimension_eq_any_field[OF A] dimension_eq_any_field[OF B]
+    by (simp add: BV finB indA independent_le_span)
 qed
 
 text \<open>In finite dimension, a subspace has full dimension exactly when it is the whole
@@ -1190,25 +977,14 @@ next
   have AW: "A \<subseteq> W" using A by (simp add: sub.basis_def)
   have indA: "lin_indep A"
     using sub.basis_lin_indep[OF A] sub_lin_indep_iff[OF AW] by simp
-  obtain C where AC: "A \<subseteq> C" and C: "basis C"
-    using basis_extension[OF indA B] by blast
-  have finC: "finite C" using C by (simp add: basis_def)
-  have card_eq: "card A = card C"
-    using sub.dimension_eq_any_field[OF A] dimension_eq_any_field[OF C] dim by simp
-  have "A = C" by (rule card_subset_eq[OF finC AC card_eq])
-  then have ambient_basis: "basis A" using C by simp
-  show "W = V"
-  proof
-    show "W \<subseteq> V" using W_submodule mod.submodule_subset by blast
-    show "V \<subseteq> W"
-    proof
-      fix v assume vV: "v \<in> V"
-      have "v \<in> span A"
-        using basis_spanning[OF ambient_basis] vV by (rule spanning_span_all)
-      then have "v \<in> sub.span A" using sub_span_eq[OF AW] by simp
-      then show "v \<in> W" by (rule sub.span_closed[OF AW])
-    qed
-  qed
+  obtain C where AC: "A \<subseteq> C" and C: "basis C" and finC: "finite C"
+    using basis_extension[OF indA B] basis_def by blast
+  then have "A=C"
+    using A card_subset_eq dim dimension_eq_any_field sub.dimension_eq_any_field by auto
+  then have "V \<subseteq> W"
+    using C basis_spanning spanning_span_all AW W_submodule mod.span_minimal by blast
+  then show "W = V"
+    using W_submodule mod.submodule_subset by blast
 qed
 
 text \<open>The only zero-dimensional subspace is the trivial one.  The ambient basis assumption
@@ -1219,24 +995,17 @@ theorem subspace_dimension_eq_zero_iff:
   shows "sub.dimension = 0 \<longleftrightarrow> W = {\<zero>\<^sub>V}"
 proof
   assume dim: "sub.dimension = 0"
-  obtain A where A: "sub.basis A"
-    using subspace_basis_exists[OF B] by blast
-  have finA: "finite A" using A by (simp add: sub.basis_def)
-  have "card A = 0" using sub.dimension_eq_any_field[OF A] dim by simp
-  then have "A = {}" using finA by simp
-  then have empty_basis: "sub.basis {}" using A by simp
-  have empty_spanning: "sub.spanning {}" by (rule sub.basis_spanning[OF empty_basis])
-  show "W = {\<zero>\<^sub>V}"
-  proof
-    show "W \<subseteq> {\<zero>\<^sub>V}"
-      using empty_spanning unfolding sub.spanning_def by auto
-    show "{\<zero>\<^sub>V} \<subseteq> W" using sub.vzero_closed by simp
-  qed
+  obtain A where A: "sub.basis A" "finite A"
+    using subspace_basis_exists[OF B] sub.basis_def by blast
+  then have "A = {}" using sub.dimension_eq_any_field dim by fastforce
+  then have empty_spanning: "sub.spanning {}"
+    using A sub.basis_spanning by blast
+  then show "W = {\<zero>\<^sub>V}"
+    unfolding sub.spanning_def by auto
 next
   assume W: "W = {\<zero>\<^sub>V}"
-  have "sub.basis {}" by (rule sub.basis_empty_trivial[OF W])
   then show "sub.dimension = 0"
-    using sub.dimension_eq_any_field by force
+    using sub.dimension_eq_any_field sub.basis_empty_trivial by force
 qed
 
 end
