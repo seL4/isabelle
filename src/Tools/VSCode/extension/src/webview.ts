@@ -18,8 +18,7 @@ export function get_html(
   extension_path: string,
   title: string,
   script_name: string,
-  css_name: string,
-  content: string = ""
+  css_name: string
 ): string {
   const script_uri = webview.asWebviewUri(Uri.file(Path.join(extension_path, "media", script_name)))
   const css_uri = webview.asWebviewUri(Uri.file(Path.join(extension_path, "media", css_name)))
@@ -43,7 +42,6 @@ export function get_html(
       </head>
       <body>
         <script type="module" src="${script_uri}"></script>
-        ${content}
       </body>
     </html>`
 }
