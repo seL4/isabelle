@@ -65,9 +65,6 @@ qed
 text \<open>Monomial arithmetic for the convolution, all at the level of coefficient counts.  The last
   two are the identities that make the associativity reindexing below a bijection.\<close>
 
-lemma msub_add_diff: "a \<subseteq># b \<Longrightarrow> a + (b - a) = b"
-  by (simp add: subseteq_mset_def multiset_eq_iff)
-
 lemma msub_diff_mono: "\<lbrakk> a \<subseteq># b; b \<subseteq># m \<rbrakk> \<Longrightarrow> b - a \<subseteq># m - a"
   using subset_eq_diff_conv by fastforce
 
@@ -91,7 +88,7 @@ subsection \<open>Carrier and coefficients\<close>
 text \<open>The polynomials over @{term R} in the indeterminates indexed by @{typ 'i}: finite support on
   monomials, coefficients in the carrier.\<close>
 definition ipoly_carrier :: "('i multiset \<Rightarrow> 'a) set"
-  where "ipoly_carrier = {p. finite {m. p m \<noteq> \<zero>} \<and> (\<forall>m. p m \<in> R)}"
+  where "ipoly_carrier \<equiv> {p. finite {m. p m \<noteq> \<zero>} \<and> (\<forall>m. p m \<in> R)}"
 
 lemma ipoly_carrierI:
   "\<lbrakk> finite {m. p m \<noteq> \<zero>}; \<And>m. p m \<in> R \<rbrakk> \<Longrightarrow> p \<in> ipoly_carrier"
@@ -107,24 +104,24 @@ lemma ipoly_carrier_coeff_closed: "p \<in> ipoly_carrier \<Longrightarrow> p m \
 subsection \<open>Operations\<close>
 
 definition ipoly_zero :: "'i multiset \<Rightarrow> 'a"  (\<open>\<zero>\<^sub>I\<close>)
-  where "ipoly_zero = (\<lambda>m. \<zero>)"
+  where "ipoly_zero \<equiv> (\<lambda>m. \<zero>)"
 
 text \<open>The unit is the constant @{term \<one>}, carried by the empty monomial.\<close>
 definition ipoly_one :: "'i multiset \<Rightarrow> 'a"  (\<open>\<one>\<^sub>I\<close>)
-  where "ipoly_one = (\<lambda>m. if m = {#} then \<one> else \<zero>)"
+  where "ipoly_one \<equiv> (\<lambda>m. if m = {#} then \<one> else \<zero>)"
 
 definition ipoly_add :: "('i multiset \<Rightarrow> 'a) \<Rightarrow> ('i multiset \<Rightarrow> 'a) \<Rightarrow> ('i multiset \<Rightarrow> 'a)"
     (infixl \<open>\<oplus>\<^sub>I\<close> 65)
-  where "ipoly_add p q = (\<lambda>m. p m + q m)"
+  where "ipoly_add p q \<equiv> (\<lambda>m. p m + q m)"
 
 definition ipoly_neg :: "('i multiset \<Rightarrow> 'a) \<Rightarrow> ('i multiset \<Rightarrow> 'a)"  (\<open>\<ominus>\<^sub>I _\<close> [66] 65)
-  where "ipoly_neg p = (\<lambda>m. - p m)"
+  where "ipoly_neg p \<equiv> (\<lambda>m. - p m)"
 
 text \<open>The convolution: a coefficient of the product sums over the factorisations
   \<open>m = n + (m - n)\<close> of the monomial.\<close>
 definition ipoly_mult :: "('i multiset \<Rightarrow> 'a) \<Rightarrow> ('i multiset \<Rightarrow> 'a) \<Rightarrow> ('i multiset \<Rightarrow> 'a)"
     (infixl \<open>\<otimes>\<^sub>I\<close> 70)
-  where "ipoly_mult p q = (\<lambda>m. additive.fincomp (\<lambda>n. p n \<cdot> q (m - n)) {n. n \<subseteq># m})"
+  where "ipoly_mult p q \<equiv> (\<lambda>m. additive.fincomp (\<lambda>n. p n \<cdot> q (m - n)) {n. n \<subseteq># m})"
 
 
 subsection \<open>Closure under the operations\<close>
@@ -133,22 +130,14 @@ lemma ipoly_zero_closed: "\<zero>\<^sub>I \<in> ipoly_carrier"
   by (rule ipoly_carrierI) (auto simp: ipoly_zero_def)
 
 lemma ipoly_one_closed: "\<one>\<^sub>I \<in> ipoly_carrier"
-proof (rule ipoly_carrierI)
-  have "{m. \<one>\<^sub>I m \<noteq> \<zero>} \<subseteq> {{#}}" by (auto simp: ipoly_one_def)
-  then show "finite {m. \<one>\<^sub>I m \<noteq> \<zero>}" by (rule finite_subset) simp
-qed (simp add: ipoly_one_def)
+  by (intro ipoly_carrierI) (auto simp: ipoly_one_def)
 
 lemma ipoly_add_closed:
   assumes "p \<in> ipoly_carrier" "q \<in> ipoly_carrier"
   shows "p \<oplus>\<^sub>I q \<in> ipoly_carrier"
 proof (rule ipoly_carrierI)
   have "{m. (p \<oplus>\<^sub>I q) m \<noteq> \<zero>} \<subseteq> {m. p m \<noteq> \<zero>} \<union> {m. q m \<noteq> \<zero>}"
-  proof
-    fix m assume "m \<in> {m. (p \<oplus>\<^sub>I q) m \<noteq> \<zero>}"
-    then have "p m + q m \<noteq> \<zero>" by (simp add: ipoly_add_def)
-    then show "m \<in> {m. p m \<noteq> \<zero>} \<union> {m. q m \<noteq> \<zero>}"
-      by (metis Un_iff additive.right_unit additive.unit_closed mem_Collect_eq)
-  qed
+    using additive.left_unit by (fastforce simp: additive.right_unit additive.unit_closed ipoly_add_def)
   moreover have "finite ({m. p m \<noteq> \<zero>} \<union> {m. q m \<noteq> \<zero>})"
     using assms by (simp add: ipoly_carrier_finite)
   ultimately show "finite {m. (p \<oplus>\<^sub>I q) m \<noteq> \<zero>}" by (rule finite_subset)
@@ -160,11 +149,7 @@ lemma ipoly_neg_closed:
   assumes p: "p \<in> ipoly_carrier" shows "\<ominus>\<^sub>I p \<in> ipoly_carrier"
 proof (rule ipoly_carrierI)
   have "{m. (\<ominus>\<^sub>I p) m \<noteq> \<zero>} \<subseteq> {m. p m \<noteq> \<zero>}"
-  proof
-    fix m assume "m \<in> {m. (\<ominus>\<^sub>I p) m \<noteq> \<zero>}"
-    then have "- p m \<noteq> \<zero>" by (simp add: ipoly_neg_def)
-    then show "m \<in> {m. p m \<noteq> \<zero>}" by (metis additive.inverse_unit mem_Collect_eq)
-  qed
+    unfolding ipoly_neg_def using additive.inverse_unit by force
   then show "finite {m. (\<ominus>\<^sub>I p) m \<noteq> \<zero>}"
     using p ipoly_carrier_finite finite_subset by blast
   show "\<And>m. (\<ominus>\<^sub>I p) m \<in> R"
@@ -187,21 +172,11 @@ proof
   then have nz: "(p \<otimes>\<^sub>I q) m \<noteq> \<zero>" by simp
   show "m \<in> (\<lambda>(a, b). a + b) ` ({m. p m \<noteq> \<zero>} \<times> {m. q m \<noteq> \<zero>})"
   proof (rule ccontr)
-    assume out: "m \<notin> (\<lambda>(a, b). a + b) ` ({m. p m \<noteq> \<zero>} \<times> {m. q m \<noteq> \<zero>})"
-    have "p n \<cdot> q (m - n) = \<zero>" if "n \<in> {n. n \<subseteq># m}" for n
-    proof (cases "p n = \<zero>")
-      case True then show ?thesis using p q by (simp add: ipoly_carrier_coeff_closed)
-    next
-      case False
-      have "q (m - n) = \<zero>"
-      proof (rule ccontr)
-        assume "q (m - n) \<noteq> \<zero>"
-        with False have "m = n + (m - n)" and "n \<in> {m. p m \<noteq> \<zero>}" "m - n \<in> {m. q m \<noteq> \<zero>}"
-          using that by (auto simp: msub_add_diff)
-        then show False using out by force
-      qed
-      then show ?thesis using p q by (simp add: ipoly_carrier_coeff_closed)
-    qed
+    assume "m \<notin> (\<lambda>(a, b). a + b) ` ({m. p m \<noteq> \<zero>} \<times> {m. q m \<noteq> \<zero>})"
+    then have "p n \<cdot> q (m - n) = \<zero>" if "n \<in> {n. n \<subseteq># m}" for n
+      using that assms
+      apply (simp add: image_iff ipoly_carrier_coeff_closed)
+      by (metis ipoly_carrier_coeff_closed left_zero right_zero subset_mset.add_diff_inverse)
     then have "(p \<otimes>\<^sub>I q) m = \<zero>"
       unfolding ipoly_mult_def by (rule additive.fincomp_unit_eqI)
     with nz show False by simp
@@ -209,15 +184,14 @@ proof
 qed
 
 lemma ipoly_mult_closed:
-  assumes p: "p \<in> ipoly_carrier" and q: "q \<in> ipoly_carrier"
+  assumes "p \<in> ipoly_carrier" and "q \<in> ipoly_carrier"
   shows "p \<otimes>\<^sub>I q \<in> ipoly_carrier"
 proof (rule ipoly_carrierI)
   have "finite ({m. p m \<noteq> \<zero>} \<times> {m. q m \<noteq> \<zero>})"
-    using p q by (simp add: ipoly_carrier_finite)
+    using assms by (simp add: ipoly_carrier_finite)
   then show "finite {m. (p \<otimes>\<^sub>I q) m \<noteq> \<zero>}"
-    using ipoly_mult_support_bound [OF p q] by (blast intro: finite_subset)
-  show "\<And>m. (p \<otimes>\<^sub>I q) m \<in> R" using p q by (rule ipoly_mult_coeff_closed)
-qed
+    using ipoly_mult_support_bound [OF assms] by (blast intro: finite_subset)
+qed (simp add: ipoly_mult_coeff_closed assms)
 
 
 subsection \<open>Additive structure\<close>
@@ -258,11 +232,7 @@ proof
     using p by (intro additive.fincomp_cong')
                (auto simp: ipoly_one_def ipoly_carrier_coeff_closed)
   also have "\<dots> = p m"
-  proof (rule additive.fincomp_singleton_swap)
-    show "{#} \<in> {n. n \<subseteq># m}" by simp
-    show "finite {n. n \<subseteq># m}" by (rule finite_submultisets)
-    show "(\<lambda>_. p m) \<in> {n. n \<subseteq># m} \<rightarrow> R" using p by (simp add: ipoly_carrier_coeff_closed)
-  qed
+    by (intro additive.fincomp_singleton_swap) (auto simp: finite_submultisets ipoly_carrier_coeff_closed p)
   finally show "(\<one>\<^sub>I \<otimes>\<^sub>I p) m = p m" .
 qed
 
@@ -276,14 +246,9 @@ proof
   also have "\<dots> = additive.fincomp (\<lambda>n. if n = m then (\<lambda>_. p m) n else \<zero>) {n. n \<subseteq># m}"
     using p
     by (intro additive.fincomp_cong')
-       (auto simp: ipoly_one_def ipoly_carrier_coeff_closed Diff_eq_empty_iff_mset
-             dest: subset_mset.antisym)
+       (auto simp: ipoly_one_def ipoly_carrier_coeff_closed Diff_eq_empty_iff_mset)
   also have "\<dots> = p m"
-  proof (rule additive.fincomp_singleton_swap)
-    show "m \<in> {n. n \<subseteq># m}" by simp
-    show "finite {n. n \<subseteq># m}" by (rule finite_submultisets)
-    show "(\<lambda>_. p m) \<in> {n. n \<subseteq># m} \<rightarrow> R" using p by (simp add: ipoly_carrier_coeff_closed)
-  qed
+    by (intro additive.fincomp_singleton_swap) (auto simp: finite_submultisets ipoly_carrier_coeff_closed p)
   finally show "(p \<otimes>\<^sub>I \<one>\<^sub>I) m = p m" .
 qed
 
@@ -383,13 +348,9 @@ proof (rule ext)
   let ?h' = "\<lambda>x :: 'i multiset \<times> 'i multiset. (fst x + snd x, fst x)"
   have bij: "bij_betw ?h ?S1 ?S2"
   proof (rule bij_betw_byWitness [where f' = ?h'])
-    show "\<forall>x \<in> ?S1. ?h' (?h x) = x" by (auto simp: msub_add_diff)
-    show "\<forall>x \<in> ?S2. ?h (?h' x) = x" by auto
     show "?h ` ?S1 \<subseteq> ?S2"
       by (auto simp: msub_diff_mono intro: subset_mset.order_trans)
-    show "?h' ` ?S2 \<subseteq> ?S1"
-      by (auto simp: msub_add_closed)
-  qed
+  qed (auto simp: subset_mset.add_diff_inverse msub_add_closed)
   let ?F = "\<lambda>x. p (fst x) \<cdot> (q (snd x) \<cdot> r (m - fst x - snd x))"
   have "additive.fincomp ?F ?S2 = additive.fincomp ?F (?h ` ?S1)"
     using bij bij_betw_imp_surj_on by fastforce
@@ -421,9 +382,8 @@ proof -
   interpret add: Abelian_Group ipoly_carrier "(\<oplus>\<^sub>I)" "\<zero>\<^sub>I"
     by unfold_locales (rule ipoly_add_comm)
   interpret mult: Monoid ipoly_carrier "(\<otimes>\<^sub>I)" "\<one>\<^sub>I"
-  proof
-  qed (auto simp: ipoly_mult_one_left ipoly_mult_one_right ipoly_mult_assoc ipoly_one_closed
-                  ipoly_mult_closed)
+    by (simp add: Monoid.intro ipoly_mult_assoc ipoly_mult_closed ipoly_mult_one_left
+        ipoly_mult_one_right ipoly_one_closed)
   show ?thesis
   proof qed (use ipoly_mult_add_distrib_left ipoly_mult_add_distrib_right in auto)
 qed
@@ -431,20 +391,15 @@ qed
 subsection \<open>Constants and indeterminates\<close>
 
 text \<open>A constant carries its value on the empty monomial.  This is the embedding of the coefficient
-  ring, and it is what lets an extension of @{term R} be built inside this ring: the closure
-  construction works with the image of @{term R} under @{text ipoly_const} rather than with
-  @{term R} itself.\<close>
+  ring, and it is what lets an extension of @{term R} be built inside this ring.\<close>
 definition ipoly_const :: "'a \<Rightarrow> ('i multiset \<Rightarrow> 'a)"
-  where "ipoly_const a = (\<lambda>m. if m = {#} then a else \<zero>)"
+  where "ipoly_const a \<equiv> (\<lambda>m. if m = {#} then a else \<zero>)"
 
 lemma ipoly_const_coeff [simp]: "ipoly_const a {#} = a"
   by (simp add: ipoly_const_def)
 
 lemma ipoly_const_closed: "a \<in> R \<Longrightarrow> ipoly_const a \<in> ipoly_carrier"
-proof (rule ipoly_carrierI)
-  show "finite {m :: 'i multiset. ipoly_const a m \<noteq> \<zero>}"
-    by (rule finite_subset [where B = "{{#}}"]) (auto simp: ipoly_const_def)
-qed (simp add: ipoly_const_def)
+    by (auto simp: ipoly_mult_def ipoly_const_def ipoly_carrierI)
 
 lemma ipoly_const_zero [simp]: "ipoly_const \<zero> = \<zero>\<^sub>I"
   by (simp add: ipoly_const_def ipoly_zero_def fun_eq_iff)
@@ -455,54 +410,29 @@ lemma ipoly_const_one [simp]: "ipoly_const \<one> = \<one>\<^sub>I"
 lemma ipoly_const_add:
   assumes "a \<in> R" and "b \<in> R"
   shows "ipoly_const (a + b) = (ipoly_const a :: 'i multiset \<Rightarrow> 'a) \<oplus>\<^sub>I ipoly_const b"
-  using assms
-  by (auto simp: ipoly_const_def ipoly_add_def fun_eq_iff additive.right_unit)
+  using assms by (auto simp: ipoly_const_def ipoly_add_def fun_eq_iff additive.right_unit)
 
 lemma ipoly_const_mult:
-  assumes a: "a \<in> R" and b: "b \<in> R"
+  assumes "a \<in> R" "b \<in> R"
   shows "ipoly_const (a \<cdot> b) = (ipoly_const a :: 'i multiset \<Rightarrow> 'a) \<otimes>\<^sub>I ipoly_const b"
-proof (rule ext)
-  fix m :: "'i multiset"
-  show "ipoly_const (a \<cdot> b) m = (ipoly_const a \<otimes>\<^sub>I ipoly_const b) m"
-  proof (cases "m = {#}")
-    case True
-    have "{n :: 'i multiset. n \<subseteq># {#}} = {{#}}" by auto
-    with True a b show ?thesis by (simp add: ipoly_mult_def ipoly_const_def)
-  next
-    case False
-    have "ipoly_const a n \<cdot> ipoly_const b (m - n) = \<zero>" if "n \<in> {n :: 'i multiset. n \<subseteq># m}" for n
-      using False a b by (auto simp: ipoly_const_def)
-    then have "(ipoly_const a \<otimes>\<^sub>I ipoly_const b) m = \<zero>"
-      unfolding ipoly_mult_def by (rule additive.fincomp_unit_eqI)
-    with False show ?thesis by (simp add: ipoly_const_def)
-  qed
-qed
+    using assms by (auto simp: ipoly_mult_def ipoly_const_def additive.fincomp_unit_eqI)
 
 lemma ipoly_const_inj_on: "inj_on (ipoly_const :: 'a \<Rightarrow> 'i multiset \<Rightarrow> 'a) R"
-  by (rule inj_onI) (metis ipoly_const_coeff)
+  using ipoly_const_coeff by (metis inj_on_def)
 
 text \<open>The indeterminate @{text "X\<^sub>i"} is the monomial @{term "{#i#}"} with coefficient @{term \<one>}.
-  Distinct indices give distinct indeterminates whenever the ring is nontrivial --- note that
-  @{locale Ring} does not itself assume @{term "\<one> \<noteq> \<zero>"}.  That is the freeness the closure
-  construction relies on: a fresh index supplies a fresh root.\<close>
+  Distinct indices give distinct indeterminates whenever the ring is nontrivial: note that
+  @{locale Ring} does not itself assume @{term "\<one> \<noteq> \<zero>"}.\<close>
 definition ivar :: "'i \<Rightarrow> ('i multiset \<Rightarrow> 'a)"
-  where "ivar i = (\<lambda>m. if m = {#i#} then \<one> else \<zero>)"
+  where "ivar i \<equiv> (\<lambda>m. if m = {#i#} then \<one> else \<zero>)"
 
 lemma ivar_closed: "ivar i \<in> ipoly_carrier"
-proof (rule ipoly_carrierI)
-  show "finite {m. ivar i m \<noteq> \<zero>}"
-    by (rule finite_subset [where B = "{{#i#}}"]) (auto simp: ivar_def)
-qed (simp add: ivar_def)
+  by (rule ipoly_carrierI) (auto simp: ivar_def)
 
 lemma ivar_inj:
   assumes "\<one> \<noteq> \<zero>"
   shows "inj (ivar :: 'i \<Rightarrow> 'i multiset \<Rightarrow> 'a)"
-proof (rule injI)
-  fix i j :: 'i
-  assume "ivar i = (ivar j :: 'i multiset \<Rightarrow> 'a)"
-  then have "(ivar i :: 'i multiset \<Rightarrow> 'a) {#i#} = ivar j {#i#}" by simp
-  with assms show "i = j" by (simp add: ivar_def split: if_split_asm)
-qed
+  using assms by (auto simp: ivar_def inj_on_def fun_eq_iff)
 
 
 subsection \<open>Indeterminates a polynomial does not involve\<close>
@@ -513,7 +443,7 @@ text \<open>@{term \<P>} does not involve the indeterminate @{term j} when no mo
   already.  This replaces the cardinality argument that a construction over an abstract type of
   labels would need, and is the reason for choosing indexed polynomials as the ambient type.\<close>
 definition index_free :: "('i multiset \<Rightarrow> 'a) \<Rightarrow> 'i \<Rightarrow> bool"
-  where "index_free \<P> j \<longleftrightarrow> (\<forall>m. j \<in># m \<longrightarrow> \<P> m = \<zero>)"
+  where "index_free \<P> j \<equiv> (\<forall>m. j \<in># m \<longrightarrow> \<P> m = \<zero>)"
 
 lemma index_freeI: "(\<And>m. j \<in># m \<Longrightarrow> \<P> m = \<zero>) \<Longrightarrow> index_free \<P> j"
   by (simp add: index_free_def)
@@ -532,22 +462,16 @@ text \<open>The indeterminate @{term "ivar j"} does involve @{term j}, provided 
   nontrivial --- @{locale Ring} does not itself assume @{term "\<one> \<noteq> \<zero>"}.\<close>
 lemma not_index_free_ivar:
   assumes "\<one> \<noteq> \<zero>" shows "\<not> index_free (ivar j) j"
-proof -
-  have "j \<in># {#j#}" and "ivar j {#j#} \<noteq> \<zero>"
-    using assms by (simp_all add: ivar_def)
-  then show ?thesis unfolding index_free_def by blast
-qed
+  using assms index_freeD ivar_def by (metis multi_member_last)
 
 
 subsection \<open>Monomials\<close>
 
 text \<open>The monomial @{term "imonom a n"} carries the coefficient @{term a} on the monomial @{term n}.
   Constants and indeterminates are the special cases @{term "n = {#}"} and @{term "a = \<one>"} with
-  @{term n} a singleton.  The general form is what powers of an indeterminate need, and the two
-  lemmas after it --- monomials multiply by adding exponents, and multiplying by a monic monomial
-  shifts coefficients --- are what let a polynomial in one indeterminate be read off its value.\<close>
+  @{term n} a singleton.\<close>
 definition imonom :: "'a \<Rightarrow> 'i multiset \<Rightarrow> ('i multiset \<Rightarrow> 'a)"
-  where "imonom a n = (\<lambda>m. if m = n then a else \<zero>)"
+  where "imonom a n \<equiv> (\<lambda>m. if m = n then a else \<zero>)"
 
 lemma imonom_apply [simp]: "imonom a n n = a"
   by (simp add: imonom_def)
@@ -568,8 +492,8 @@ lemma imonom_mult:
   fixes n n' :: "'i multiset"
   assumes a: "a \<in> R" and b: "b \<in> R"
   shows "imonom a n \<otimes>\<^sub>I imonom b n' = imonom (a \<cdot> b) (n + n')"
-proof (rule ext)
-  fix m :: "'i multiset"
+proof 
+  fix m
   show "(imonom a n \<otimes>\<^sub>I imonom b n') m = imonom (a \<cdot> b) (n + n') m"
   proof (cases "m = n + n'")
     case True
@@ -579,23 +503,13 @@ proof (rule ext)
       unfolding ipoly_mult_def
       using a b True by (intro additive.fincomp_cong') (auto simp: imonom_def)
     also have "\<dots> = a \<cdot> b"
-    proof (rule additive.fincomp_singleton_swap)
-      show "n \<in> {p. p \<subseteq># m}" using nsub by simp
-      show "finite {p. p \<subseteq># m}" by (rule finite_submultisets)
-      show "(\<lambda>_. a \<cdot> b) \<in> {p. p \<subseteq># m} \<rightarrow> R" using a b by simp
-    qed
+      using nsub a b
+      by (intro finite_submultisets additive.fincomp_singleton_swap) auto
     finally show ?thesis using True by simp
   next
     case False
-    have "imonom a n p \<cdot> imonom b n' (m - p) = \<zero>" if "p \<in> {p. p \<subseteq># m}" for p
-    proof (cases "p = n")
-      case True
-      then have "m - p \<noteq> n'" using False that by (auto simp: msub_add_diff)
-      then show ?thesis using a by (simp add: imonom_def)
-    next
-      case False
-      then show ?thesis using b by (simp add: imonom_def)
-    qed
+    with a b have "imonom a n p \<cdot> imonom b n' (m - p) = \<zero>" if "p \<in> {p. p \<subseteq># m}" for p
+      using that a b by (auto simp: imonom_def subset_mset.add_diff_inverse)
     then have "(imonom a n \<otimes>\<^sub>I imonom b n') m = \<zero>"
       unfolding ipoly_mult_def by (rule additive.fincomp_unit_eqI)
     then show ?thesis using False by (simp add: imonom_def)
@@ -609,33 +523,21 @@ lemma imonom_shift:
 proof (cases "n \<subseteq># m")
   case True
   \<comment> \<open>For @{term "p \<subseteq># m"} the second factor is @{term \<one>} exactly at @{term "p = m - n"}.\<close>
-  have unique: "(m - p = n) = (p = m - n)" if p: "p \<subseteq># m" for p
-  proof
-    assume "m - p = n"
-    then show "p = m - n" by (metis msub_double_diff p)
-  next
-    assume "p = m - n"
-    then show "m - p = n" using True by (simp add: msub_double_diff)
-  qed
-  have "(c \<otimes>\<^sub>I imonom \<one> n) m
-        = additive.fincomp (\<lambda>p. if p = m - n then (\<lambda>p. c p) p else \<zero>) {p. p \<subseteq># m}"
+  then have unique: "(m - p = n) = (p = m - n)" if "p \<subseteq># m" for p
+    using that by (auto simp: msub_double_diff)
+  have \<section>: "\<forall>m. c m \<in> R"
+    by (meson Ring.ipoly_carrier_coeff_closed Ring_axioms c)
+  have "(c \<otimes>\<^sub>I imonom \<one> n) m = additive.fincomp (\<lambda>p. if p = m - n then (\<lambda>p. c p) p else \<zero>) {p. p \<subseteq># m}"
     unfolding ipoly_mult_def
     using c by (intro additive.fincomp_cong')
                (auto simp: imonom_def unique ipoly_carrier_coeff_closed)
   also have "\<dots> = c (m - n)"
-  proof (rule additive.fincomp_singleton_swap)
-    show "m - n \<in> {p. p \<subseteq># m}" by simp
-    show "finite {p. p \<subseteq># m}" by (rule finite_submultisets)
-    show "c \<in> {p. p \<subseteq># m} \<rightarrow> R" using c by (simp add: ipoly_carrier_coeff_closed)
-  qed
+    using \<section> by (simp add: additive.fincomp_singleton_swap finite_submultisets)
   finally show ?thesis using True by simp
 next
   case False
-  have "c p \<cdot> imonom \<one> n (m - p) = \<zero>" if "p \<in> {p. p \<subseteq># m}" for p
-  proof -
-    have "m - p \<noteq> n" using False that by (metis diff_subset_eq_self)
-    then show ?thesis using c by (simp add: imonom_def ipoly_carrier_coeff_closed)
-  qed
+  then have "c p \<cdot> imonom \<one> n (m - p) = \<zero>" if "p \<in> {p. p \<subseteq># m}" for p
+    by (metis c imonom_def ipoly_carrier_coeff_closed right_zero diff_subset_eq_self)
   then have "(c \<otimes>\<^sub>I imonom \<one> n) m = \<zero>"
     unfolding ipoly_mult_def by (rule additive.fincomp_unit_eqI)
   then show ?thesis using False by simp
@@ -649,19 +551,14 @@ proof (induct k)
   case 0
   have "Ring.rpow (\<otimes>\<^sub>I) \<one>\<^sub>I (ivar j) 0 = \<one>\<^sub>I"
     by (rule Ring.rpow_0 [OF ipoly_ring])
-  also have "\<dots> = imonom \<one> (replicate_mset 0 j)"
+  then show ?case
     by (simp add: ipoly_one_def imonom_def)
-  finally show ?case .
 next
-  case (Suc k)
+  case (Suc k) 
   have "Ring.rpow (\<otimes>\<^sub>I) \<one>\<^sub>I (ivar j) (Suc k) = ivar j \<otimes>\<^sub>I Ring.rpow (\<otimes>\<^sub>I) \<one>\<^sub>I (ivar j) k"
     by (rule Ring.rpow_Suc [OF ipoly_ring])
-  also have "\<dots> = imonom \<one> {#j#} \<otimes>\<^sub>I imonom \<one> (replicate_mset k j)"
-    using Suc by (simp add: ivar_eq_imonom)
-  also have "\<dots> = imonom (\<one> \<cdot> \<one>) ({#j#} + replicate_mset k j)"
-    by (rule imonom_mult) simp_all
-  also have "\<dots> = imonom \<one> (replicate_mset (Suc k) j)" by simp
-  finally show ?case .
+  then show ?case
+    using Suc by (simp add: ivar_eq_imonom imonom_mult)
 qed
 
 
@@ -671,56 +568,36 @@ text \<open>The point of the monomial lemmas above.  A sum \<open>\<Sum>\<^sub>k
   \<open>X\<^sub>j\<close> determines those coefficients: its value on a monomial \<open>m\<close> is the coefficient indexed by the
   multiplicity of \<open>j\<close> in \<open>m\<close>, evaluated at what remains of \<open>m\<close>.  So such a sum is injective in the
   coefficients, which is what makes the realisation of a quotient \<open>M[X]/(Q)\<close> inside this ring
-  faithful.
-
-  HOL-Algebra needs a family of inductive helper lemmas about its \<open>indexed_eval\<close> for the same purpose.
-  Here the multiset representation gives a closed form: multiplying by \<open>X\<^sub>j\<close> simply adds one copy of
-  \<open>j\<close> to every monomial, so the coefficients can be read straight back off.\<close>
+  faithful.\<close>
 
 lemma ipoly_add_cmonoid: "commutative_monoid ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I"
-proof -
-  have "Ring ipoly_carrier (\<oplus>\<^sub>I) (\<otimes>\<^sub>I) \<zero>\<^sub>I \<one>\<^sub>I" by (rule ipoly_ring)
-  then have "Abelian_Group ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I" unfolding Ring_def by blast
-  then show ?thesis unfolding Abelian_Group_def by blast
-qed
+  using ipoly_ring by (meson Abelian_Group_def Ring_def)
 
 text \<open>Addition is pointwise, so a finite sum may be evaluated coefficientwise.\<close>
 lemma ipoly_fincomp_apply:
   fixes m :: "'i multiset"
   assumes f: "\<And>k. f k \<in> ipoly_carrier"
   shows "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f A m = additive.fincomp (\<lambda>k. f k m) A"
-proof (cases "finite A")
-  case False
-  then have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f A = \<zero>\<^sub>I"
-    by (rule commutative_monoid.fincomp_infinite [OF ipoly_add_cmonoid])
-  moreover from False have "additive.fincomp (\<lambda>k. f k m) A = \<zero>" by simp
-  ultimately show ?thesis by (simp add: ipoly_zero_def)
+proof (induction A rule: infinite_finite_induct)
+  case empty
+  have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f {} = \<zero>\<^sub>I"
+    by (rule commutative_monoid.fincomp_empty [OF ipoly_add_cmonoid])
+  then show ?case by (simp add: ipoly_zero_def)
 next
-  case True
-  then show ?thesis
-  proof (induction A rule: finite_induct)
-    case empty
-    have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f {} = \<zero>\<^sub>I"
-      by (rule commutative_monoid.fincomp_empty [OF ipoly_add_cmonoid])
-    then show ?case by (simp add: ipoly_zero_def)
-  next
-    case (insert a A)
-    have fA: "f \<in> A \<rightarrow> ipoly_carrier" and fa: "f a \<in> ipoly_carrier" using f by auto
-    have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f (insert a A)
-          = f a \<oplus>\<^sub>I commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f A"
-      by (rule commutative_monoid.fincomp_insert
-                 [OF ipoly_add_cmonoid insert.hyps(1) insert.hyps(2) fA fa])
-    then have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f (insert a A) m
+  case (insert a A)
+  have "f \<in> A \<rightarrow> ipoly_carrier" "f a \<in> ipoly_carrier" using f by auto
+  then have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f (insert a A) m
                = f a m + commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I f A m"
-      by (simp add: ipoly_add_def)
-    also have "\<dots> = f a m + additive.fincomp (\<lambda>k. f k m) A" using insert.IH by simp
-    also have "\<dots> = additive.fincomp (\<lambda>k. f k m) (insert a A)"
-    proof (rule additive.fincomp_insert [OF insert.hyps(1) insert.hyps(2), symmetric])
-      show "(\<lambda>k. f k m) \<in> A \<rightarrow> R" using f by (simp add: ipoly_carrier_coeff_closed)
-      show "f a m \<in> R" using f by (simp add: ipoly_carrier_coeff_closed)
-    qed
-    finally show ?case .
-  qed
+    using commutative_monoid.fincomp_insert [OF ipoly_add_cmonoid] insert.hyps 
+    by (smt (verit) ipoly_add_def)
+  also have "\<dots> = additive.fincomp (\<lambda>k. f k m) (insert a A)"
+    using insert.IH by (simp add: f insert.hyps ipoly_carrier_coeff_closed)
+  finally show ?case .
+next
+  case infinite
+  then show ?case
+    using additive.commutative_monoid_axioms ipoly_add_cmonoid ipoly_zero_def
+    by (metis commutative_monoid.fincomp_def)
 qed
 
 lemma replicate_mset_subseteq_count: "replicate_mset k j \<subseteq># m \<longleftrightarrow> k \<le> count m j"
@@ -745,26 +622,9 @@ proof -
     have "(c k \<otimes>\<^sub>I Ring.rpow (\<otimes>\<^sub>I) \<one>\<^sub>I (ivar j) k) m
           = (if replicate_mset k j \<subseteq># m then c k (m - replicate_mset k j) else \<zero>)"
       by (simp add: ivar_pow imonom_shift [OF c])
-    also have "\<dots> = (if k = count m j
-                     then c (count m j) (m - replicate_mset (count m j) j) else \<zero>)"
-    proof (cases "k = count m j")
-      case True
-      then show ?thesis by (simp add: replicate_mset_subseteq_count)
-    next
-      case False
-      show ?thesis
-      proof (cases "k \<le> count m j")
-        case False
-        then show ?thesis
-          using \<open>k \<noteq> count m j\<close> by (simp add: replicate_mset_subseteq_count)
-      next
-        case True
-        with False have "count (replicate_mset k j) j < count m j" by simp
-        then have "j \<in># m - replicate_mset k j" by (simp add: in_diff_count)
-        then have "c k (m - replicate_mset k j) = \<zero>" by (rule index_freeD [OF free])
-        with False show ?thesis by simp
-      qed
-    qed
+    also have "\<dots> = (if k = count m j then c (count m j) (m - replicate_mset (count m j) j) else \<zero>)"
+      using index_freeD [OF free] 
+      by (cases "k < count m j") (auto simp: in_diff_count replicate_mset_subseteq_count)
     finally show ?thesis .
   qed
   have "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I
@@ -780,29 +640,12 @@ proof -
                    then c (count m j) (m - replicate_mset (count m j) j) else \<zero>)"
   proof (cases "count m j \<le> d")
     case True
-    have "additive.fincomp
-            (\<lambda>k. if k = count m j
-                 then (\<lambda>_. c (count m j) (m - replicate_mset (count m j) j)) k else \<zero>) {..d}
-          = c (count m j) (m - replicate_mset (count m j) j)"
-    proof (rule additive.fincomp_singleton_swap)
-      show "count m j \<in> {..d}" using True by simp
-      show "finite {..d}" by simp
-      show "(\<lambda>_. c (count m j) (m - replicate_mset (count m j) j)) \<in> {..d} \<rightarrow> R"
-        using c by (simp add: ipoly_carrier_coeff_closed)
-    qed
-    with True show ?thesis by simp
+    then show ?thesis
+      using assms(1) 
+      by (auto intro!: ipoly_carrier_coeff_closed additive.fincomp_singleton_swap)
   next
-    case False
-    have "(if k = count m j
-           then (\<lambda>_. c (count m j) (m - replicate_mset (count m j) j)) k else \<zero>) = \<zero>"
-      if "k \<in> {..d}" for k
-      using False that by auto
-    then have "additive.fincomp
-                 (\<lambda>k. if k = count m j
-                      then (\<lambda>_. c (count m j) (m - replicate_mset (count m j) j)) k
-                      else \<zero>) {..d} = \<zero>"
-      by (rule additive.fincomp_unit_eqI)
-    with False show ?thesis by simp
+    case False then show ?thesis
+      by (force intro!: additive.fincomp_unit_eqI)
   qed
   finally show ?thesis .
 qed
@@ -833,7 +676,7 @@ proof (rule ext)
       using index_freeD [OF cfree True] index_freeD [OF dfree True] by simp
   next
     case False
-    define m where "m = n + replicate_mset k j"
+    define m where "m \<equiv> n + replicate_mset k j"
     have cm: "count m j = k" using False by (simp add: m_def not_in_iff)
     have mn: "m - replicate_mset k j = n" by (simp add: m_def)
     have ceq: "commutative_monoid.fincomp ipoly_carrier (\<oplus>\<^sub>I) \<zero>\<^sub>I
@@ -864,17 +707,15 @@ lemma ipoly_mult_comm:
   fixes p q :: "'i multiset \<Rightarrow> 'a"
   assumes p: "p \<in> ipoly_carrier" and q: "q \<in> ipoly_carrier"
   shows "p \<otimes>\<^sub>I q = q \<otimes>\<^sub>I p"
-proof (rule ext)
+proof 
   fix m :: "'i multiset"
   have pi: "\<And>n. p n \<in> R" and qi: "\<And>n. q n \<in> R"
     using p q by (auto simp: ipoly_carrier_coeff_closed)
   have bij: "bij_betw (\<lambda>n :: 'i multiset. m - n) {n. n \<subseteq># m} {n. n \<subseteq># m}"
     by (rule bij_betw_byWitness [where f' = "\<lambda>n :: 'i multiset. m - n"])
        (auto simp: msub_double_diff diff_subset_eq_self)
-  have "(p \<otimes>\<^sub>I q) m = additive.fincomp (\<lambda>n. p n \<cdot> q (m - n)) {n. n \<subseteq># m}"
-    by (simp add: ipoly_mult_def)
-  also have "\<dots> = additive.fincomp (\<lambda>n. q (m - n) \<cdot> p n) {n. n \<subseteq># m}"
-    using pi qi multiplicative.commutative by (intro additive.fincomp_cong') auto
+  have "(p \<otimes>\<^sub>I q) m = additive.fincomp (\<lambda>n. q (m - n) \<cdot> p n) {n. n \<subseteq># m}"
+    by (simp add: ipoly_mult_def multiplicative.commutative pi qi)
   also have "\<dots> = additive.fincomp (\<lambda>n. q (m - n) \<cdot> p n)
                     ((\<lambda>n :: 'i multiset. m - n) ` {n. n \<subseteq># m})"
     using bij bij_betw_imp_surj_on by fastforce
@@ -913,17 +754,8 @@ lemma unit_mset_eq_replicate: "(n :: unit multiset) = replicate_mset (count n ()
 
 lemma submultisets_replicate_unit:
   "{n :: unit multiset. n \<subseteq># replicate_mset k ()} = (\<lambda>i. replicate_mset i ()) ` {..k}"
-proof (intro set_eqI iffI)
-  fix n :: "unit multiset"
-  assume "n \<in> {n. n \<subseteq># replicate_mset k ()}"
-  then have "count n () \<le> k" by (simp add: subseteq_mset_def)
-  moreover have "n = replicate_mset (count n ()) ()" by (rule unit_mset_eq_replicate)
-  ultimately show "n \<in> (\<lambda>i. replicate_mset i ()) ` {..k}" by force
-next
-  fix n :: "unit multiset"
-  assume "n \<in> (\<lambda>i. replicate_mset i ()) ` {..k}"
-  then show "n \<in> {n. n \<subseteq># replicate_mset k ()}" by (auto simp: subseteq_mset_def)
-qed
+  using unit_mset_eq_replicate
+  by (auto simp: subseteq_mset_def image_iff)
 
 lemma replicate_unit_diff:
   "replicate_mset k () - replicate_mset i () = replicate_mset (k - i) ()"
@@ -951,11 +783,8 @@ proof -
                     (\<lambda>i. p (replicate_mset i ())
                            \<cdot> q (replicate_mset k () - replicate_mset i ())) {..k}"
     by (rule additive.fincomp_reindex) (use pi qi inj_on_replicate_unit in auto)
-  also have "\<dots> = additive.fincomp
-                    (\<lambda>i. p (replicate_mset i ()) \<cdot> q (replicate_mset (k - i) ())) {..k}"
-    by (simp add: replicate_unit_diff)
   also have "\<dots> = ((\<lambda>i. p (replicate_mset i ())) \<otimes>\<^sub>P (\<lambda>i. q (replicate_mset i ()))) k"
-    by (simp add: poly_mult_def)
+    by (simp add: replicate_unit_diff poly_mult_def)
   finally show ?thesis .
 qed
 
