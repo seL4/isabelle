@@ -272,9 +272,12 @@ lemma union_mset_add_mset_right [simp]:
   "A + add_mset a B = add_mset a (A + B)"
   by (auto simp: multiset_eq_iff)
 
-(* TODO: reverse arguments to prevent unfolding loop *)
-lemma add_mset_add_single: \<open>add_mset a A = A + {#a#}\<close>
-  by (subst union_mset_add_mset_right, subst add.comm_neutral) standard
+
+lemma add_single_right_eq_add_mset: \<open>A + {#a#} = add_mset a A\<close>
+  by simp
+
+lemma add_single_left_eq_add_mset: \<open>{#a#} + A = add_mset a A\<close>
+  by simp
 
 
 subsubsection \<open>Difference\<close>
@@ -434,7 +437,7 @@ lemma diff_single_eq_union: "x \<in># M \<Longrightarrow> M - {#x#} = N \<longle
   by auto
 
 lemma union_single_eq_diff: "add_mset x M = N \<Longrightarrow> M = N - {#x#}"
-  unfolding add_mset_add_single[of _ M] by (fact add_implies_diff)
+  unfolding add_single_right_eq_add_mset[symmetric, of _ M] by (fact add_implies_diff)
 
 lemma union_single_eq_member: "add_mset x M = N \<Longrightarrow> x \<in># N"
   by auto
@@ -599,7 +602,7 @@ lemma mset_subset_eq_single: "a \<in># B \<Longrightarrow> {#a#} \<subseteq># B"
   by simp
 
 lemma mset_subset_eq_add_mset_cancel: \<open>add_mset a A \<subseteq># add_mset a B \<longleftrightarrow> A \<subseteq># B\<close>
-  unfolding add_mset_add_single[of _ A] add_mset_add_single[of _ B]
+  unfolding add_single_right_eq_add_mset[symmetric, of _ A] add_single_right_eq_add_mset[symmetric, of _ B]
   by (rule mset_subset_eq_mono_add_right_cancel)
 
 lemma multiset_diff_union_assoc:
@@ -641,7 +644,7 @@ proof
   show "x \<in># B"
     using assms by (simp add: mset_subset_eqD)
   have "A \<subseteq># add_mset x A"
-    by (metis (no_types) add_mset_add_single mset_subset_eq_add_left)
+    by (metis (no_types) add_single_right_eq_add_mset[symmetric] mset_subset_eq_add_left)
   then have "A \<subset># add_mset x A"
     by (meson multi_self_add_other_not_self subset_mset.le_imp_less_or_eq)
   then show "A \<subset># B"
@@ -680,7 +683,7 @@ lemma multi_psub_self: "A \<subset># A = False"
   by simp
 
 lemma mset_subset_add_mset [simp]: "add_mset x N \<subset># add_mset x M \<longleftrightarrow> N \<subset># M"
-  unfolding add_mset_add_single[of _ N] add_mset_add_single[of _ M]
+  unfolding add_single_right_eq_add_mset[symmetric, of _ N] add_single_right_eq_add_mset[symmetric, of _ M]
   by (fact subset_mset.add_less_cancel_right)
 
 lemma mset_subset_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} \<subset># B"
@@ -1381,7 +1384,7 @@ lemma wcount_union: "wcount f (M + N) a = wcount f M a + wcount f N a"
 
 lemma wcount_add_mset:
   "wcount f (add_mset x M) a = (if x = a then Suc (f a) else 0) + wcount f M a"
-  unfolding add_mset_add_single[of _ M] wcount_union by (auto simp: wcount_def)
+  unfolding add_single_right_eq_add_mset[symmetric, of _ M] wcount_union by (auto simp: wcount_def)
 
 definition size_multiset :: "('a \<Rightarrow> nat) \<Rightarrow> 'a multiset \<Rightarrow> nat" where
   "size_multiset f M = sum (wcount f M) (set_mset M)"
@@ -1424,7 +1427,7 @@ lemma size_multiset_union [simp]:
 
 lemma size_multiset_add_mset [simp]:
   "size_multiset f (add_mset a M) = Suc (f a) + size_multiset f M"
-  by (metis add.commute add_mset_add_single size_multiset_single size_multiset_union)
+  by (metis add.commute add_single_right_eq_add_mset[symmetric] size_multiset_single size_multiset_union)
 
 lemma size_add_mset [simp]: "size (add_mset a A) = Suc (size A)"
   by (simp add: size_multiset_overloaded_def wcount_add_mset)
@@ -1733,7 +1736,7 @@ qed
 
 corollary image_mset_add_mset [simp]:
   "image_mset f (add_mset a M) = add_mset (f a) (image_mset f M)"
-  unfolding image_mset_union add_mset_add_single[of a M] by (simp add: image_mset_single)
+  unfolding image_mset_union add_single_right_eq_add_mset[symmetric, of a M] by (simp add: image_mset_single)
 
 lemma image_mset_sum: "image_mset f (\<Sum>x\<in>A. g x) = (\<Sum>x\<in>A. image_mset f (g x))"
   by (induction A rule: infinite_finite_induct) auto
@@ -1792,7 +1795,7 @@ next
       unfolding image_mset_add_mset ..
 
     also have "\<dots> = image_mset f (add_mset x (A - B - {#x#})) - {#f x#}"
-      unfolding add_mset_add_single[symmetric] diff_diff_add_mset ..
+      unfolding add_single_right_eq_add_mset diff_diff_add_mset ..
 
     also have "\<dots> = image_mset f (A - B) - {#f x#}"
       unfolding insert_DiffM[OF \<open>x \<in># A - B\<close>] ..
@@ -1801,7 +1804,7 @@ next
       unfolding add.IH ..
 
     also have "\<dots> = image_mset f A - image_mset f (add_mset x B)"
-      unfolding diff_diff_add_mset add_mset_add_single[symmetric] image_mset_add_mset ..
+      unfolding diff_diff_add_mset add_single_right_eq_add_mset image_mset_add_mset ..
 
     finally show ?thesis .
   next
@@ -2686,7 +2689,7 @@ proof -
 qed
 
 lemma add_mset [simp]: "F (add_mset x N) = x \<^bold>* F N"
-  unfolding add_mset_add_single[of x N] union by (simp add: ac_simps)
+  unfolding add_single_right_eq_add_mset[symmetric, of x N] union by (simp add: ac_simps)
 
 lemma insert [simp]:
   shows "F (image_mset g (add_mset x A)) = g x \<^bold>* F (image_mset g A)"

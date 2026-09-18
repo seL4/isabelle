@@ -940,9 +940,12 @@ INCOMPATIBILITY.
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
-  - Removed lemmas.
+  - Removed lemmas. Minor INCOMPATIBILITY.
       size_multiset_sum_mset[simp]
+      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
   - Added lemmas.
+      add_single_left_eq_add_mset
+      add_single_right_eq_add_mset
       filter_mset_eq_mempty_iff[simp]
       filter_mset_mono_strong
       filter_mset_sum_list
