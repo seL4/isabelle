@@ -15,13 +15,11 @@ media/Preview.svg
 media/ViewSource_inverse.svg
 media/ViewSource.svg
 media/symbols_view.css
-media/documentation.css
-media/documentation.js
 media/sledgehammer_view.css
 package.json
 README.md
 src/decorations.ts
-src/documentation_panel.ts
+src/documentation_treeview.ts
 src/extension.ts
 src/file.ts
 src/library.ts

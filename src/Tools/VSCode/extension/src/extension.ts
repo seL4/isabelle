@@ -23,7 +23,7 @@ import * as LSP from "./lsp"
 import * as State_Panel from "./state_panel"
 import * as Output_View from "./output_view"
 import * as Symbols_View from "./symbols_view"
-import * as Documentation_Panel from "./documentation_panel"
+import * as Documentation_Treeview from "./documentation_treeview"
 import * as Sledgehammer_View from "./sledgehammer_view"
 import * as Script_Decorations from "./script_decorations"
 
@@ -229,17 +229,15 @@ export async function activate(context: ExtensionContext) {
 
     /* documentation panel */
 
-    const documentation_provider =
-      new Documentation_Panel.Provider(context.extensionUri, language_client)
+    const documentation_provider = new Documentation_Treeview.Provider()
     context.subscriptions.push(
-      window.registerWebviewViewProvider(
-        Documentation_Panel.view_type, documentation_provider))
+      window.createTreeView(Documentation_Treeview.view_type,
+        { treeDataProvider: documentation_provider}),
+      commands.registerCommand(Documentation_Treeview.open_document_command,
+        documentation_provider.open_document)
+    )
 
-    language_client.onReady().then(() =>
-      {
-        documentation_provider.request(language_client)
-        documentation_provider.setupDocumentation(language_client)
-      })
+    language_client.onReady().then(() => documentation_provider.setup(language_client))
 
 
     /* symbols panel */

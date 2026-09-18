@@ -160,8 +160,9 @@ export const documentation_request_type =
   new NotificationType<void>("PIDE/documentation_request")
 
 export interface Doc_Entry {
-  print_html: string
-  platform_path: string
+  name: string
+  path: string
+  title: string
 }
 
 export interface Doc_Section {
