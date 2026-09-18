@@ -68,6 +68,10 @@ object Build_Benchmark {
           ML_Heap.restore(heap_db, hierarchy, cache = store.cache.compress)
         }
 
+        val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
+        val parent_background = deps.parent_background(benchmark_session_name)
+        val current_background = deps.background(benchmark_session_name)
+
         def get_shasum(name: String): Shasum =
           store.check_output(name,
             opened_db = database_server,
@@ -75,9 +79,6 @@ object Build_Benchmark {
             input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum))
           ).output_shasum
 
-        val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
-        val parent_background = deps.parent_background(benchmark_session_name)
-        val current_background = deps.background(benchmark_session_name)
         val input_shasum = get_shasum(benchmark_session_name)
         val node_info = Host.Node_Info(hostname, None, Nil)
 
