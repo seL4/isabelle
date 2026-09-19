@@ -13,7 +13,7 @@ object Component_XZ {
   val main_url = "https://tukaani.org/xz/java.html"
   val default_source_url = "https://github.com/tukaani-project/xz-java/releases/download"
   val default_download_url = "https://repo1.maven.org/maven2/org/tukaani/xz"
-  val default_version = "1.10"
+  val default_version = "1.12"
 
   def build_xz(
     target_dir: Path = Path.current,

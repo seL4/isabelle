@@ -284,9 +284,28 @@ text \<open>
     settings or preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
 
     \<^item> @{system_option_def "condition"} specifies a comma-separated list of
-    process environment variables (or Isabelle settings) that are required for
-    the subsequent theories to be processed. Conditions are considered
-    ``true'' if the corresponding environment value is defined and non-empty.
+    pre-conditions (conjunction) that guard the processing a theory body. A
+    false condition means that the theory body remains empty: its commands are
+    ignored (except for document commands of the header). Theory imports are
+    always processed, and the resulting theory may be always imported
+    elsewhere. This allows to construct variants of specifications, depending
+    on parameters that are changed by external means (e.g. Isabelle system
+    options): with suitable naming conventions and proof tool setup, later
+    theories may work uniformly on either variant.
+
+    The syntax and semantics of individual conditions is as follows:
+
+      \<^item> \<^verbatim>\<open>true\<close> and \<^verbatim>\<open>false\<close> refer to literal Boolean values.
+
+      \<^item> \<^verbatim>\<open>$NAME\<close> refers to a process environment variable: to be enabled, the
+      value needs to be set and non-empty.
+
+      \<^item> \<^verbatim>\<open>name\<close> refers to a system option; to be enabled, the value needs to
+      be true (bool), non-empty (string), or > 0 (int, real).
+
+      \<^item> \<^verbatim>\<open>name()\<close> refers to a predicate defined in Isabelle/Scala (via
+      \<^verbatim>\<open>services\<close> in \<^verbatim>\<open>etc/build.props\<close> and suitable instances of the service
+      class @{scala_type isabelle.Thy_Conditions.Predicates}).
 
     \<^item> @{system_option_def "timeout"} and @{system_option_def "timeout_scale"}
     specify a real wall-clock timeout for the session as a whole: the two
