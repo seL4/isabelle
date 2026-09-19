@@ -736,7 +736,7 @@ lemma insert_def: "insert a B = {x. x = a} \<union> B"
 
 subsubsection \<open>Set difference\<close>
 
-text \<open>The minius-sign syntax continues to be the default\<close>
+text \<open>The minus-sign syntax continues to be the default\<close>
 abbreviation (input) set_difference :: "['a set, 'a set] \<Rightarrow> 'a set" 
   (infixl "\<setminus>" 65) where "A \<setminus> B \<equiv> A-B"
 
