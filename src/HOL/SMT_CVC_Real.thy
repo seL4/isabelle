@@ -35,7 +35,7 @@ lemmas [alethe_poly_norm] =
   division_ring_class.times_divide_eq_right divide_cancel_left
 
 
-section\<open>Lemmas to reconstruct alethe_poly_simp_rel\<close>
+section\<open>Lemmas to reconstruct \<^verbatim>\<open>alethe_poly_simp_rel\<close>\<close>
 
 (*equality case*)
 
