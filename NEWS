@@ -24,13 +24,13 @@ and ignores everything until the final 'end'. Thus theory imports work
 uniformly, but the respective contents may be empty depending on
 conditions. This allows to construct variants of specifications,
 depending on parameters that are changed by external means (e.g.
-environment variables): with suitable naming conventions and proof tool
-setup, later theories may work again uniformly on either variant.
+Isabelle system options): with suitable naming conventions and proof
+tool setup, later theories may work uniformly on either variant.
 
 * The syntax of system option "condition" has been extended as follows:
+  - "true" and "false" refer to literal Boolean values.
   - "$NAME" refers to a process environment variable. INCOMPATIBILITY,
     was plain NAME before.
-  - "true" and "false" refer to literal Boolean values.
   - "name" refers to a system option; to be enabled, the value needs to
     be true (bool), non-empty (string), or > 0 (int, real).
   - "name()" refers to a predicate defined in Isabelle/Scala (via
