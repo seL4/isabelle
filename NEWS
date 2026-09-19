@@ -238,6 +238,23 @@ checked in the past. INCOMPATIBILITY.
   - Removed option "cvc_extensions"; use "smt_native_datatypes" and
     "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
+* Constants "open" and "uniformity" are not handled as class parameters
+any longer in generated code: there are hardly any instances with a
+reasonable implementation, but a lot of implementations would require
+these as (effectively unused) dictionary parameters. Minor
+INCOMPATIBILITY.
+
+* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class
+parameters any longer in generated code but implemented using their
+counterparts on finite sets. Minor INCOMPATIBILITY.
+
+* Set difference may now be written using the symbol "\<setminus>" (which is not a
+backlash), although the former symbol "-" still works. Minor
+INCOMPATIBILITY.
+
+* New relation "has_log_derivative", which simplifies talking about
+logarithmic derivatives.
+
 * Theory "HOL.Finite_Set"
   - Added lemmas.
       card_Domain_le
@@ -267,13 +284,9 @@ specific "indexed_from". Corresponding theorems renamed:
   sorted_enumerate ~> sorted_indexed_from
   in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
 
-* Session "HOL-New_Algebra": a new library for abstract algebra, based
-on Clemens Ballarin's locale approach and intended to replace
-HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer
-relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra.
-Proofs that had referenced the internals of HOL-Number_Theory.Residues
-should now import the new theory "HOL-Algebra.Residues_Algebra".
-INCOMPATIBILITY.
+* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv
+from type "real" to any archimedian fields, renaming them arch_pow_inv
+and arch_pow. Minor INCOMPATIBILITY.
 
 * Theory "HOL-Library.Multiset":
   - Removed lemmas. Minor INCOMPATIBILITY.
@@ -298,23 +311,13 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Constants "open" and "uniformity" are not handled as class parameters
-any longer in generated code: there are hardly any instances with a
-reasonable implementation, but a lot of implementations would require
-these as (effectively unused) dictionary parameters. Minor
+* Session "HOL-New_Algebra": a new library for abstract algebra, based
+on Clemens Ballarin's locale approach and intended to replace
+HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer
+relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra.
+Proofs that had referenced the internals of HOL-Number_Theory.Residues
+should now import the new theory "HOL-Algebra.Residues_Algebra".
 INCOMPATIBILITY.
-
-* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class
-parameters any longer in generated code but implemented using their
-counterparts on finite sets. Minor INCOMPATIBILITY.
-
-* Set difference may now be written using the symbol "\<setminus>" (which is not a
-backlash), although the former symbol "-" still works. Minor
-INCOMPATIBILITY.
-
-* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv
-from type "real" to any archimedian fields, renaming them arch_pow_inv
-and arch_pow. Minor INCOMPATIBILITY.
 
 * Session "HOL-Analysis": much new material including Bounded_Variation,
 Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
@@ -334,9 +337,6 @@ the abbreviation "matrix_det". INCOMPATIBILITY
 * Session "HOL-Analysis": Theory "Infinite_Product" treats products
 indexed by arbitrary sets, generalising the existing treatment of
 the product of a sequence.
-
-* Session "HOL": New relation "has_log_derivative", which
-simplifies talking about logarithmic derivatives.
 
 
 *** ML ***
