@@ -228,14 +228,14 @@ fun normalize_external ctxt raw_name =
   then
     if raw_name = "?"
     then raise SMTLIB_PARSE ("Benchmark uses unsupported variable name", SMTLIB.Sym raw_name)
-    else if Char.isUpper (hd (String.explode raw_name))
+    else if Char.isUpper (String.sub (raw_name, 0))
     then ("isabelle_internal_" ^ raw_name)
     else raw_name
   else raw_name
 
 fun normalize_external2 ctxt (raw_name, (a, b)) =
  if Config.get ctxt SMT_Config.check_external then
-   if (Char.isUpper (hd (String.explode raw_name)))
+   if (Char.isUpper (String.sub (raw_name, 0)))
      then ("isabelle_internal_" ^ raw_name, ("isabelle_internal_" ^ raw_name, b))
    else if (raw_name = "?")
      then raise SMTLIB_PARSE ("Benchmark uses unsupported variable name", SMTLIB.Sym raw_name)

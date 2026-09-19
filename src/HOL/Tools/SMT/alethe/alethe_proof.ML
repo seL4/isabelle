@@ -544,11 +544,11 @@ fun postprocess_proof compress ctxt step cx =
         (*TODO Hanna: Maybe it would be okay to only change the name of the term and not of the key, I have not tried yet*)
         (*TODO Hanna: Make more elegant*)
         fun normalize_external (raw_name, Free(a,b)) =
-          if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (hd (String.explode raw_name))
+          if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (String.sub (raw_name, 0))
           then (raw_name,Free("isabelle_internal_" ^ a,b)) else (raw_name,Free(a,b)) |
             normalize_external (_, _) = raise throw_alethe_ex "todo"
         fun normalize_external2 (raw_name,b) =
-          if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (hd (String.explode raw_name))
+          if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (String.sub (raw_name, 0))
           then (raw_name, "isabelle_internal_" ^ b) else (raw_name, b)
         val ((shadowing_vars, rebound_lhs_vars, substitute_terms),new_variable_names) =
           process_context_assignments context_assignments cx
@@ -658,7 +658,7 @@ fun postprocess_proof compress ctxt step cx =
 
               (*TODO Hanna: clean-up*)
               fun normalize_external2 (raw_name,b) =
-                if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (hd (String.explode raw_name))
+                if Config.get ctxt SMT_Config.check_external andalso Char.isUpper (String.sub (raw_name, 0))
                 then (("isabelle_internal_" ^ raw_name),b) else ( raw_name,b)
 
               fun insts_of_forall_inst (SMTLIB.S [_, SMTLIB.Sym x, a]) = (x, a) |
