@@ -518,7 +518,7 @@ local
 
 fun memoize verbose cache_dir f arg =
   let
-    val hash = Message_Digest.rep (SHA1.digest (cat_lines arg))
+    val hash = Message_Digest.rep (SHA1.digest_bytes (Bytes.cat_lines arg))
     val file = cache_dir + Path.explode hash
   in
     (case try File.read file of
