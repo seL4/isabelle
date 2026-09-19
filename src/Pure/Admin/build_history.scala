@@ -292,9 +292,9 @@ object Build_History {
                 catch { case ERROR(_) => Nil }
 
               val session_sources =
-                store.read_build(db, session_name).map(_.sources) match {
-                  case Some(sources) if !sources.is_empty =>
-                    List("Sources " + session_name + " " + SHA1.digest(sources).rep)
+                store.read_build(db, session_name).map(_.sources_conditions) match {
+                  case Some(sources_conditions) if !sources_conditions.is_empty =>
+                    List("Sources " + session_name + " " + SHA1.digest(sources_conditions).rep)
                   case _ => Nil
                 }
 

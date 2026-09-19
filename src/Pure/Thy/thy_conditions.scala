@@ -31,25 +31,32 @@ object Thy_Conditions {
   }
 
   final class Context private {
+    private var immutable: Boolean = false
     private var conditions: Thy_Conditions =
       Thy_Conditions.init(Sessions.background0(""), Options.defaults)
 
-    override def toString: String = synchronized { conditions.toString }
+    def make_immutable(): Unit = synchronized { immutable = true }
 
-    def background: Sessions.Background = synchronized { conditions.background }
-    def options: Options = synchronized { conditions.options }
+    def value: Thy_Conditions = synchronized { conditions }
+    override def toString: String = value.toString
 
     def init(init_background: Sessions.Background, init_options: Options): Unit =
-      synchronized { conditions = Thy_Conditions.init(init_background, init_options) }
+      synchronized {
+        if (!immutable) {
+          conditions = Thy_Conditions.init(init_background, init_options)
+        }
+      }
 
     def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
       val eval_options = conditions.update_options(specs)
       val conds = Thy_Conditions.explode(eval_options)
-      conditions = conditions.evaluate(conds)
-      conditions.restrict(conds.toSet)
+      val conditions1 = conditions.evaluate(conds)
+      if (immutable && conditions.changed(conditions1)) {
+        error("Cannot change immutable conditions context")
+      }
+      if (!immutable) { conditions = conditions1 }
+      conditions1.restrict(conds.toSet)
     }
-
-    def shasum: Shasum = synchronized { conditions.shasum }
   }
 
 
@@ -80,8 +87,10 @@ object Thy_Conditions {
 final class Thy_Conditions private(
   val background: Sessions.Background,
   val options: Options,
-  rep: SortedMap[String, Exn.Result[Boolean]]
+  protected val rep: SortedMap[String, Exn.Result[String]]
 ) {
+  def changed(other: Thy_Conditions): Boolean = rep != other.rep
+
   def restrict(domain: Set[String]): Thy_Conditions =
     new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
 
@@ -98,18 +107,19 @@ final class Thy_Conditions private(
     check_errors
     Shasum.flat(List.from(
       for (case (a, Exn.Res(b)) <- rep.iterator)
-        yield Shasum.make(SHA1.digest(b), Thy_Conditions.Condition.make(a))))
+        yield Shasum.make(SHA1.digest(b.isEmpty), Thy_Conditions.Condition.make(a))))
   }
 
-  def good: List[String] = List.from(for (case (a, Exn.Res(true)) <- rep.iterator) yield a)
-  def bad: List[String] = List.from(for (case (a, Exn.Res(false)) <- rep.iterator) yield a)
-  def bad_message: String =
-    bad match {
-      case Nil => ""
-      case xs =>
-        xs.map(x => "condition " + quote(x) + " is undefined/false")
-          .mkString("(", ", ", ")")
-    }
+  def failed: List[String] = List.from(for (case (a, Exn.Exn(_)) <- rep.iterator) yield a)
+  def good: List[String] = List.from(for (case (a, Exn.Res("")) <- rep.iterator) yield a)
+  def bad: List[String] = List.from(for (case (a, Exn.Res(b)) <- rep.iterator if b.nonEmpty) yield a)
+  def bad_message: String = {
+    val bads =
+      List.from(
+        for (case (a, Exn.Res(b)) <- rep.iterator if b.nonEmpty)
+          yield "condition " + quote(a) + " is " + b)
+    if (bads.isEmpty) "" else bads.mkString("(", ", ", ")")
+  }
 
   def update_options(specs: Options.Update): Options =
     options ++ specs.filter(p => p._1 == Thy_Conditions.Condition.name)
@@ -117,25 +127,40 @@ final class Thy_Conditions private(
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
     else {
-      val result =
-        Exn.result(
-          Library.try_unprefix("$", cond) match {
-            case Some(a) => Isabelle_System.getenv(a).nonEmpty
-            case None =>
-              Library.try_unsuffix("()", cond) match {
-                case Some(a) => Thy_Conditions.the_predicate(a)(this)
-                case None =>
-                  cond match {
-                    case Value.Boolean(b) => b
-                    case _ =>
-                      try { options.proper_value(cond) }
-                      catch {
-                        case ERROR(msg) => error(msg + " (use \"$NAME\" for environment variables)")
-                      }
-                  }
-              }
-          }
-        )
+      def eval_env: Option[String] =
+        Library.try_unprefix("$", cond).map(a =>
+          if (Isabelle_System.getenv(a).nonEmpty) "" else "empty/unset")
+
+      def eval_pred: Option[String] =
+        Library.try_unsuffix("()", cond).map(a =>
+          if (Thy_Conditions.the_predicate(a)(this)) "" else "false")
+
+      def eval_bool: Option[String] =
+        Value.Boolean.unapply(cond).map(b => if (b) "" else "false")
+
+      def eval_option: String =
+        options.get(cond).map(_.typ) match {
+          case Some(Options.Bool) => if (options.bool(cond)) "" else "false"
+          case Some(Options.Int) =>
+            options.int(cond) match {
+              case x if x > 0 => ""
+              case x if x < 0 => "< 0"
+              case 0 => "0"
+            }
+          case Some(Options.Real) =>
+            options.real(cond) compare 0.0 match {
+              case x if x > 0.0 && java.lang.Double.isFinite(x) => ""
+              case x if x < 0.0 && java.lang.Double.isFinite(x) => "< 0"
+              case 0.0 => "0"
+              case x => "ill-defined"
+            }
+          case Some(Options.String) => if (options.string(cond).nonEmpty) "" else "empty"
+          case _ =>
+            error("Condition " + quote(cond) + " cannot be evaluated as system option" +
+              "\n(environment variables need to be given as \"$NAME\")")
+        }
+
+      val result = Exn.result(eval_env orElse eval_pred orElse eval_bool getOrElse eval_option)
       new Thy_Conditions(background, options, rep + (cond -> result))
     }
 
@@ -145,8 +170,9 @@ final class Thy_Conditions private(
   def eval(specs: Options.Update): Thy_Conditions = eval(update_options(specs))
 
   override def toString: String = {
-    val a = if_proper(good, "good = " + quote(good.mkString(",")))
-    val b = if_proper(bad, "bad = " + quote(bad.mkString(",")))
-    "Thy_Conditions(" + a + if_proper(a.nonEmpty && b.nonEmpty, ", ") + b + ")"
+    val a = if_proper(failed, "failed = " + quote(failed.mkString(",")))
+    val b = if_proper(good, "good = " + quote(good.mkString(",")))
+    val c = if_proper(bad, "bad = " + quote(bad.mkString(",")))
+    List(a, b, c).filterNot(_.isEmpty).mkString("Thy_Conditions(", ", ", ")")
   }
 }

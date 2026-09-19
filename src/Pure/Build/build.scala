@@ -228,6 +228,7 @@ object Build {
                     try {
                       val current =
                         store.check_output(name,
+                          conditions = deps0.eval_conditions(name).value,
                           opened_db = Some(db),
                           sources_shasum = deps0.sources_shasum(name)
                         ).current(build_thorough = deps0.sessions_structure(name).build_thorough)
@@ -270,7 +271,7 @@ object Build {
 
         val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
         val build_context =
-          Context(store, build_deps, engine = engine, afp_root = afp_root,
+          Build.Context(store, build_deps, engine = engine, afp_root = afp_root,
             build_hosts = build_hosts, hostname = hostname(build_options),
             clean_sessions = clean_sessions, store_heap = build_heap,
             numa_shuffling = numa_shuffling, numa_nodes = numa_nodes,
@@ -678,7 +679,7 @@ Usage: isabelle build_process [OPTIONS]
             Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
           val build_context =
-            Context(store, build_deps, engine = engine, hostname = hostname(build_options),
+            Build.Context(store, build_deps, engine = engine, hostname = hostname(build_options),
               numa_shuffling = numa_shuffling, build_uuid = build_master.build_uuid,
               build_start = Some(build_master.start), jobs = max_jobs.getOrElse(1))
 

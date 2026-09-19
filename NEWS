@@ -192,6 +192,12 @@ some active markup (sendback and dialog).
 state now persists between context switches, where appropriate.
 
 
+*** Document preparation ***
+
+* Meta-comments (*<*)...(*>*) need to be properly nested: this was never
+checked in the past. INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Sledgehammer:

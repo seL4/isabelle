@@ -61,7 +61,7 @@ object Store {
   /* session build info (database) vs. build output (file-system) */
 
   sealed case class Build_Info(
-    sources: Shasum,
+    sources_conditions: Shasum,
     input_heaps: Shasum,
     output_heap: Shasum,
     return_code: Int,
@@ -76,25 +76,25 @@ object Store {
 
     def make(
       build: Build_Info,
-      sources_shasum: Shasum,
+      sources_conditions_shasum: Shasum,
       input_shasum: Shasum,
       output_shasum: Shasum): Build_Output =
-        new Build_Output(Some(build), sources_shasum, input_shasum, output_shasum)
+        new Build_Output(Some(build), sources_conditions_shasum, input_shasum, output_shasum)
   }
 
   class Build_Output private [Store](
     val stored: Option[Build_Info],
-    val sources_shasum: Shasum,
+    val sources_conditions_shasum: Shasum,
     val input_shasum: Shasum,
     val output_shasum: Shasum
   ) {
     def stored_shasum: Shasum =
       stored match {
         case None => Shasum.none
-        case Some(build) => build.sources ::: build.input_heaps ::: build.output_heap
+        case Some(build) => build.sources_conditions ::: build.input_heaps ::: build.output_heap
       }
 
-    def shasum: Shasum = sources_shasum ::: input_shasum ::: output_shasum
+    def shasum: Shasum = sources_conditions_shasum ::: input_shasum ::: output_shasum
     override def toString: String = shasum.toString
 
     def current(
@@ -124,7 +124,7 @@ object Store {
 
           !fresh_build &&
             build.ok &&
-            test("sources", trim(build.sources), trim(sources_shasum)) &&
+            test("sources", trim(build.sources_conditions), trim(sources_conditions_shasum)) &&
             (soft_build ||
               test("input heaps", build.input_heaps, input_shasum) &&
               test("output heap", build.output_heap, output_shasum) &&
@@ -302,7 +302,7 @@ object Store {
           stmt.bytes(5) = Properties.compress(build_log.ml_statistics, cache = cache)
           stmt.bytes(6) = Properties.compress(build_log.task_statistics, cache = cache)
           stmt.bytes(7) = Build_Log.compress_errors(build_log.errors, cache = cache)
-          stmt.string(8) = build.sources.toString
+          stmt.string(8) = build.sources_conditions.toString
           stmt.string(9) = build.input_heaps.toString
           stmt.string(10) = build.output_heap.toString
           stmt.int(11) = build.return_code
@@ -618,6 +618,7 @@ class Store private(
 
   def check_output(
     name: String,
+    conditions: Thy_Conditions,
     opened_db: Option[SQL.Database] = None,
     sources_shasum: Shasum = Shasum.none,
     input_shasum: Shasum = Shasum.none
@@ -627,7 +628,7 @@ class Store private(
         case Some(build) =>
           val output_shasum = heap_shasum(if (db.is_postgresql) Some(db) else None, name)
           Store.Build_Output.make(build,
-            sources_shasum = sources_shasum,
+            sources_conditions_shasum = sources_shasum ::: conditions.shasum,
             input_shasum = input_shasum,
             output_shasum = output_shasum)
         case None => Store.Build_Output.none

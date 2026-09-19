@@ -212,8 +212,7 @@ end;
 (* presentation tokens *)
 
 datatype token =
-    Ignore
-  | Token of Token.T
+    Token of Token.T
   | Output of Latex.text;
 
 fun token_with pred (Token tok) = pred tok
@@ -226,8 +225,7 @@ val newline_token = token_with Token.is_newline;
 
 fun present_token ctxt tok =
   (case tok of
-    Ignore => []
-  | Token tok => output_token ctxt tok
+    Token tok => output_token ctxt tok
   | Output output => output);
 
 
@@ -399,6 +397,7 @@ fun segment_content ({span, prev_state, state, ...}: segment) =
     fun command_output output = toks |> map_filter (fn tok =>
       if Token.is_command tok then
         SOME (if skip then Token.no_output else Token.put_output output tok)
+      else if Token.is_begin_ignore tok orelse Token.is_end_ignore tok then SOME tok
       else NONE);
   in
     if skip then command_output []
@@ -407,6 +406,31 @@ fun segment_content ({span, prev_state, state, ...}: segment) =
         NONE => toks
       | SOME output => command_output output)
   end;
+
+
+(* meta-comments for ignored material *)
+
+fun err_bad_nesting ps = error ("Bad nesting of meta-comments" ^ Position.here_list ps);
+
+fun check_nesting [] [] = ()
+  | check_nesting stack [] = err_bad_nesting (rev stack)
+  | check_nesting stack (tok :: rest) =
+      if Token.is_begin_ignore tok then check_nesting (Token.pos_of tok :: stack) rest
+      else if Token.is_end_ignore tok then
+        (case stack of
+          [] => err_bad_nesting [Token.pos_of tok]
+        | _ :: stack' => check_nesting stack' rest)
+      else check_nesting stack rest;
+
+val opt_newline = Scan.option (Scan.one Token.is_newline);
+
+val ignored =
+  Scan.depend (fn d =>
+    opt_newline |-- Scan.one Token.is_begin_ignore >> K (d + 1, []) ||
+    Scan.one Token.is_end_ignore >> K (d - 1, []));
+
+
+(* document output commands *)
 
 fun output_command keywords = Scan.some (fn tok =>
   if Token.is_command tok then
@@ -423,80 +447,73 @@ fun output_command keywords = Scan.some (fn tok =>
     end
   else NONE);
 
-val opt_newline = Scan.option (Scan.one Token.is_newline);
+fun output keywords = Scan.peek (fn d =>
+  Document_Source.improper |-- output_command keywords --| Document_Source.improper_end
+    >> (fn (kind, body, flag) => [(SOME kind, (Output body, (flag, d)))]));
 
-fun bad_nesting input =
-  Scan.fail_with (K (fn () => "Bad nesting of meta-comments")) input;
 
-val ignore =
-  Scan.depend (fn d =>
-    opt_newline |-- Scan.one Token.is_begin_ignore >> pair (d + 1) ||
-    Scan.one Token.is_end_ignore --| (if d = 0 then bad_nesting else opt_newline) >> pair (d - 1));
+(* regular commands *)
+
+val command = Scan.peek (fn d =>
+  Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
+  Scan.one Token.is_command --| Document_Source.annotation
+  >> (fn (cmd_mod, cmd) =>
+    map (fn tok => (NONE, (Token tok, ("", d)))) cmd_mod @
+      [(SOME (Token.content_of cmd, Token.pos_of cmd),
+        (Token cmd, (markup_false, d)))]));
+
+
+(* other tokens *)
+
+val other = Scan.peek (fn d => Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
+
+
+(* spans *)
+
+val is_eof = fn (_, (Token x, _)) => Token.is_eof x | _ => false;
+val stopper = Scan.stopper (K (NONE, (Token Token.eof, ("", 0)))) is_eof;
+
+val cmd = Scan.one (is_some o fst);
+val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
+
+local
+  val white_comments = Scan.many (white_comment_token o fst o snd);
+  val blank = Scan.one (blank_token o fst o snd);
+  val newline = Scan.one (newline_token o fst o snd);
+  val before_cmd =
+    Scan.option (newline -- white_comments) --
+    Scan.option (newline -- white_comments) --
+    Scan.option (blank -- white_comments) -- cmd;
+in
+  val span =
+    Scan.repeat non_cmd -- cmd --
+      Scan.repeat (Scan.unless before_cmd non_cmd) --
+      Scan.option (newline >> (single o snd))
+    >> (fn (((toks1, (cmd, tok2)), toks3), tok4) =>
+        make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
+end;
 
 in
 
 fun present_thy options keywords thy_name (segments: segment list) =
   let
-    (* tokens *)
-
-    val ignored = Scan.state --| ignore
-      >> (fn d => [(NONE, (Ignore, ("", d)))]);
-
-    val output = Scan.peek (fn d =>
-      Document_Source.improper |-- output_command keywords --| Document_Source.improper_end
-        >> (fn (kind, body, flag) => [(SOME kind, (Output body, (flag, d)))]));
-
-    val command = Scan.peek (fn d =>
-      Scan.optional (Scan.one Token.is_command_modifier ::: Document_Source.improper) [] --
-      Scan.one Token.is_command --| Document_Source.annotation
-      >> (fn (cmd_mod, cmd) =>
-        map (fn tok => (NONE, (Token tok, ("", d)))) cmd_mod @
-          [(SOME (Token.content_of cmd, Token.pos_of cmd),
-            (Token cmd, (markup_false, d)))]));
-
-    val cmt = Scan.peek (fn d =>
-      Scan.one Document_Source.is_black_comment >> (fn tok => [(NONE, (Token tok, ("", d)))]));
-
-    val other = Scan.peek (fn d =>
-       Parse.not_eof >> (fn tok => [(NONE, (Token tok, ("", d)))]));
-
-    val tokens = ignored || output || command || cmt || other;
+    val command_results =
+      segments |> map_filter (fn {command, state, ...} =>
+        if Toplevel.is_ignored command then NONE else SOME (command, state));
 
 
-    (* spans *)
+    (* presentation spans *)
 
-    val is_eof = fn (_, (Token x, _)) => Token.is_eof x | _ => false;
-    val stopper = Scan.stopper (K (NONE, (Token Token.eof, ("", 0)))) is_eof;
+    val tokens = ignored || output keywords || command || other;
 
-    val cmd = Scan.one (is_some o fst);
-    val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
-
-    val white_comments = Scan.many (white_comment_token o fst o snd);
-    val blank = Scan.one (blank_token o fst o snd);
-    val newline = Scan.one (newline_token o fst o snd);
-    val before_cmd =
-      Scan.option (newline -- white_comments) --
-      Scan.option (newline -- white_comments) --
-      Scan.option (blank -- white_comments) -- cmd;
-
-    val span =
-      Scan.repeat non_cmd -- cmd --
-        Scan.repeat (Scan.unless before_cmd non_cmd) --
-        Scan.option (newline >> (single o snd))
-      >> (fn (((toks1, (cmd, tok2)), toks3), tok4) =>
-          make_span (the cmd) (toks1 @ (tok2 :: (toks3 @ the_default [] tok4))));
-
-    val spans = segments
+    val presentation_spans = segments
       |> maps segment_content
       |> drop_suffix Token.is_space
+      |> tap (check_nesting [])
       |> Source.of_list
       |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk tokens >> flat))
       |> Source.source stopper (Scan.error (Scan.bulk span))
       |> Source.exhaust;
-
-    val command_results =
-      segments |> map_filter (fn {command, state, ...} =>
-        if Toplevel.is_ignored command then NONE else SOME (command, state));
 
 
     (* present commands *)
@@ -509,9 +526,9 @@ fun present_thy options keywords thy_name (segments: segment list) =
     fun present _ [] = I
       | present st ((span, (tr, st')) :: rest) = present_command tr span st st' #> present st' rest;
   in
-    if length command_results = length spans then
+    if length presentation_spans = length command_results then
       (([], []), NONE, true, [], (I, I))
-      |> present (Toplevel.make_state NONE) (spans ~~ command_results)
+      |> present (Toplevel.make_state NONE) (presentation_spans ~~ command_results)
       |> present_trailer
       |> rev
       |> Latex.isabelle_body thy_name

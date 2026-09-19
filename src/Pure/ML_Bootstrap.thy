@@ -6,6 +6,7 @@ ML bootstrap environment -- with access to low-level structures!
 
 theory ML_Bootstrap
 imports Pure
+  options [condition = true]
 begin
 
 ML \<open>

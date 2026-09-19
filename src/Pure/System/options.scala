@@ -472,17 +472,6 @@ final class Options private(
     }
   }
 
-  def proper_value(name: String): Boolean = {
-    val opt = check_name(name)
-    opt.typ match {
-      case Options.Bool => bool(name)
-      case Options.Int => int(name) > 0
-      case Options.Real => real(name) > 0.0
-      case Options.String => string(name).nonEmpty
-      case Options.Unknown => false
-    }
-  }
-
   def declare(
     public: Boolean,
     pos: Position.T,

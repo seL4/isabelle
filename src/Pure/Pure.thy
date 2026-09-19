@@ -5,6 +5,7 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 *)
 
 theory Pure
+options [condition = true]
 keywords
     "!!" "!" "+" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "binder" "by" "congproc" "identifier" "in" "infix" "infixl" "infixr" "is" "open"

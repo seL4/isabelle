@@ -1130,6 +1130,7 @@ object Build_Schedule {
       state.ancestor_results(session_name) match {
         case Some(ancestor_results) if ancestor_results.forall(_.current) =>
           store.check_output(session_name,
+            conditions = build_context.deps.eval_conditions(session_name).value,
             opened_db = _database_server,
             sources_shasum = state.sessions(session_name).sources_shasum,
             input_shasum = store.make_shasum(ancestor_results.map(_.output_shasum))
