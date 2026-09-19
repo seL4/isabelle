@@ -275,6 +275,13 @@ Proofs that had referenced the internals of HOL-Number_Theory.Residues
 should now import the new theory "HOL-Algebra.Residues_Algebra".
 INCOMPATIBILITY.
 
+* Theory "HOL-Library.Multiset":
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
+  - Added lemmas.
+      add_single_left_eq_add_mset
+      add_single_right_eq_add_mset
+
 * Theory "HOL-Library.Finite_Map"
   - Removed function set_of_map. Use Map.graph instead. INCOMPATIBILITY.
   - Removed lemma set_of_map_alt_def. Use Map.Map.graph_eq_to_snd_dom
@@ -955,12 +962,9 @@ INCOMPATIBILITY.
 * Theory "HOL-Library.Multiset":
   - Renamed lemmas. Minor INCOMPATIBILITY.
       filter_image_mset ~> filter_mset_image_mset
-  - Removed lemmas. Minor INCOMPATIBILITY.
+  - Removed lemmas.
       size_multiset_sum_mset[simp]
-      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
   - Added lemmas.
-      add_single_left_eq_add_mset
-      add_single_right_eq_add_mset
       filter_mset_eq_mempty_iff[simp]
       filter_mset_mono_strong
       filter_mset_sum_list
