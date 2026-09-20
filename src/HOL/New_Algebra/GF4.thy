@@ -45,8 +45,7 @@ proof -
   \<comment> \<open>Evaluate term by term, using additivity and @{thm [source] GF2.eval_monom}.\<close>
   have "GF2.eval \<alpha> Phi
         = gf2_add (GF2.eval \<alpha> (GF2.poly_add (GF2.monom 1 2) (GF2.monom 1 1))) (GF2.eval \<alpha> (GF2.poly_const 1))"
-    unfolding Phi_def
-    using GF2.eval_add[OF sum2 GF2_poly_const_carrier assms] .
+    unfolding Phi_def using GF2.eval_add[OF sum2 GF2_poly_const_carrier assms] .
   also have "\<dots> = gf2_add (gf2_add (gf2_mult 1 (GF2.rpow \<alpha> 2)) (gf2_mult 1 (GF2.rpow \<alpha> 1))) 1"
     using GF2.eval_add[OF GF2_monom_carrier GF2_monom_carrier assms]
           GF2.eval_const[OF assms] GF2.eval_monom[OF _ assms] by simp

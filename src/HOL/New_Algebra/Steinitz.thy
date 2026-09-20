@@ -6,8 +6,7 @@ begin
 
 text \<open>Restore HOL's arithmetic notation, which \<open>Vector_Space\<close> (via its ancestor \<open>Ring_Theory\<close>)
   suppresses to disambiguate locale-parameter binding.  Steinitz does not bind \<open>+\<close> or \<open>-\<close> as
-  locale parameters, so it is safe (and needed for e.g.\ nat subtraction) to restore them.  The
-  set-difference notation \<open>\<setminus>\<close> is inherited from \<open>Set_Theory\<close>.\<close>
+  locale parameters, so it is safe (and needed for e.g.\ nat subtraction) to restore them.\<close>
 notation plus (infixl \<open>+\<close> 65)
 notation minus (infixl \<open>-\<close> 65)
 unbundle uminus_syntax
@@ -91,23 +90,7 @@ qed
 
 text \<open>A scalar pulls through a vector finite sum: @{term "a \<odot> vadd.fincomp g A = vadd.fincomp (\<lambda>v. a \<odot> g v) A"}
   (by @{thm [source] scale_distrib_vadd}, induction on @{term A}).\<close>
-lemma scale_fincomp:
-  assumes a: "a \<in> R"
-  shows "finite A \<Longrightarrow> g \<in> A \<rightarrow> V \<Longrightarrow> a \<odot> vadd.fincomp g A = vadd.fincomp (\<lambda>v. a \<odot> g v) A"
-proof (induction A rule: finite_induct)
-  case empty then show ?case by (simp add: scale_zero_vec[OF a])
-next
-  case (insert x A)
-  have gx: "g x \<in> V" and gF: "g \<in> A \<rightarrow> V" using insert.prems by auto
-  have agF: "(\<lambda>v. a \<odot> g v) \<in> A \<rightarrow> V" using a gF by (auto intro: scale_closed)
-  have "a \<odot> vadd.fincomp g (insert x A) = a \<odot> (g x \<oplus> vadd.fincomp g A)"
-    using insert.hyps gx gF by (simp add: vadd.fincomp_insert)
-  also have "\<dots> = (a \<odot> g x) \<oplus> (vadd.fincomp (\<lambda>v. a \<odot> g v) A)"
-    by (simp add: assms gF gx insert.IH scale_distrib_vadd)
-  also have "\<dots> = vadd.fincomp (\<lambda>v. a \<odot> g v) (insert x A)"
-    using insert.hyps a gx by (simp add: agF scale_closed)
-  finally show ?case .
-qed
+lemmas scale_fincomp = mod.scale_fincomp
 
 text \<open>Scaling a linear combination scales its coefficients:
   @{term "a \<odot> lincomb c B = lincomb (\<lambda>v. a \<cdot> c v) B"}.\<close>
