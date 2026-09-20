@@ -67,55 +67,50 @@ fun with_trace ctxt msg f x =
   let val _ = SMT_Config.trace_msg ctxt (fn () => msg) ()
   in f x end
 
-(* TODO: adapt the calling code to produce and pass the input as "string list" natively and
-   convert it here via "Bytes.cat_lines", to allow for longer input and avoid unnecessarily huge
-   strings. *)
-fun run (ctxt : Proof.context) (name : string) (cmd : Bash.params) (input : string) :
+fun run (ctxt : Proof.context) (name : string) (cmd : Bash.params) (input : Bytes.T) :
     Process_Result.T =
-  let val input_bytes = Bytes.string input in
-    (case SMT_Config.certificates_of ctxt of
-      NONE =>
-        if not (SMT_Config.is_available ctxt name) then
-          error ("The SMT solver " ^ quote name ^ " is not installed")
-        else
-          let
-            val unique_suffix =
-              if Config.get ctxt SMT_Config.unique_dest_file then
-                "_" ^ serial_string ()
-              else
-                ""
-            val () =
-              (case Config.get ctxt SMT_Config.problem_dest_file of
-                "" => ()
-              | base_path =>
-                let val in_path = Path.ext "smt_in" (Path.explode (base_path ^ unique_suffix)) in
-                  Bytes.write in_path input_bytes
-                end)
-            val result =
-              with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...")
-                (Cache_IO.run_bytes cmd) input_bytes
-            val () =
-              (case Config.get ctxt SMT_Config.proof_dest_file of
-                "" => ()
-              | base_path =>
-                let
-                  val out_path = Path.ext "smt_out" (Path.explode (base_path ^ unique_suffix))
-                  val output = Bytes.terminate_lines (Process_Result.out_lines result)
-                in
-                  Bytes.write out_path output
-                end)
-          in result end
-    | SOME certs =>
-        (case Cache_IO.lookup_bytes certs input_bytes of
-          (NONE, key) =>
-            if Config.get ctxt SMT_Config.read_only_certificates then
-              error ("Bad certificate cache: missing certificate")
+  (case SMT_Config.certificates_of ctxt of
+    NONE =>
+      if not (SMT_Config.is_available ctxt name) then
+        error ("The SMT solver " ^ quote name ^ " is not installed")
+      else
+        let
+          val unique_suffix =
+            if Config.get ctxt SMT_Config.unique_dest_file then
+              "_" ^ serial_string ()
             else
-              Cache_IO.run_and_cache_bytes certs key cmd input_bytes
-        | (SOME output, _) =>
-            with_trace ctxt ("Using cached certificate from " ^
-              Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
-  end
+              ""
+          val () =
+            (case Config.get ctxt SMT_Config.problem_dest_file of
+              "" => ()
+            | base_path =>
+              let val in_path = Path.ext "smt_in" (Path.explode (base_path ^ unique_suffix)) in
+                Bytes.write in_path input
+              end)
+          val result =
+            with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...")
+              (Cache_IO.run_bytes cmd) input
+          val () =
+            (case Config.get ctxt SMT_Config.proof_dest_file of
+              "" => ()
+            | base_path =>
+              let
+                val out_path = Path.ext "smt_out" (Path.explode (base_path ^ unique_suffix))
+                val output = Bytes.terminate_lines (Process_Result.out_lines result)
+              in
+                Bytes.write out_path output
+              end)
+        in result end
+  | SOME certs =>
+      (case Cache_IO.lookup_bytes certs input of
+        (NONE, key) =>
+          if Config.get ctxt SMT_Config.read_only_certificates then
+            error ("Bad certificate cache: missing certificate")
+          else
+            Cache_IO.run_and_cache_bytes certs key cmd input
+      | (SOME output, _) =>
+          with_trace ctxt ("Using cached certificate from " ^
+            Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
 
 (* Z3 and cvc return 1 if "get-proof" or "get-model" fails.
 veriT returns 255 in that case and 14 for timeouts. *)
@@ -127,7 +122,7 @@ fun run_solver ctxt name cmd input =
   let
     fun pretty tag lines = Pretty.string_of (Pretty.big_list tag (map Pretty.str lines))
 
-    val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
+    val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o Bytes.split_lines) input
 
     val ({elapsed, ...}, result) =
       Timing.timing (SMT_Config.with_timeout ctxt "run_solver" (run ctxt name cmd)) input
@@ -179,9 +174,9 @@ fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
 
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_cmd (Buffer.content input)
+        NONE => run_cmd (Bytes.buffer input)
       | SOME memoize =>
-          split_lines (memoize (cat_lines o run_cmd o cat_lines) [Buffer.content input]))
+          split_lines (memoize (cat_lines o run_cmd o Bytes.cat_lines) [Buffer.content input]))
 
   in (output_lines, replay_data) end
 
