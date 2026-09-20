@@ -284,7 +284,7 @@ fun evaluate compiler cmd =
 
 val polymlN = "PolyML"
 
-fun evaluate_in_polyml (_: Proof.context) (code_files, value_name) dir =
+fun evaluate_in_polyml ctxt (code_files, value_name) dir =
   let
     val code_path = dir + \<^path>\<open>generated.sml\<close>
     val driver_path = dir + \<^path>\<open>driver.sml\<close>
@@ -309,15 +309,17 @@ fun main () =
 \<close>
     val _ = File.write code_path code
     val _ = File.write driver_path driver
+    val context = Context.Proof (ctxt |> Config.put ML_Env.ML_check_strings false)
     val _ =
-      ML_Context.eval
-        {environment = ML_Env.SML, redirect = false, verbose = false, catch_all = true,
-          debug = NONE, writeln = writeln, warning = warning}
-        Position.none
-        (ML_Lex.read_source_text (code, Position.file (File.symbolic_path code_path)) @
-         ML_Lex.read_source_text (driver, Position.file (File.symbolic_path driver_path)) @
-         ML_Lex.read "main ()")
-      handle ERROR msg => error ("Evaluation for " ^ polymlN ^ " failed:\n" ^ msg)
+      Context.setmp_generic_context (SOME context) (fn () =>
+        ML_Context.eval
+          {environment = ML_Env.SML, redirect = false, verbose = false, catch_all = true,
+            debug = NONE, writeln = writeln, warning = warning}
+          Position.none
+          (ML_Lex.read_source_text (code, Position.file (File.symbolic_path code_path)) @
+           ML_Lex.read_source_text (driver, Position.file (File.symbolic_path driver_path)) @
+           ML_Lex.read "main ()")
+        handle ERROR msg => error ("Evaluation for " ^ polymlN ^ " failed:\n" ^ msg)) ()
   in File.read out_path end
 
 

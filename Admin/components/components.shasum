@@ -91,6 +91,7 @@ bc634cae08dea80238a830955894919af995cf06 cygwin-20230711.tar.gz
 ea23f766909632d8a6c0fefafbde467d1d289383 cygwin-20240305.tar.gz
 0a86ad8c3da8f61b6adb5f36c19ae5c7ab663a4f cygwin-20250109.tar.gz
 5de9751f19023446669826a1f47d35e4bfd15ac9 cygwin-20251103.tar.gz
+2edab9b18847abfdf52442245e0d549f6fe397b0 cygwin-20260919.tar.gz
 0fe549949a025d65d52d6deca30554de8fca3b6e e-1.5.tar.gz
 2e293256a134eb8e5b1a283361b15eb812fbfbf1 e-1.6-1.tar.gz
 e1919e72416cbd7ac8de5455caba8901acc7b44d e-1.6-2.tar.gz
@@ -142,6 +143,7 @@ a93a98c80536a6984db118e129b1b3a778c700ce flatlaf-3.5.4.tar.gz
 1363421c87dd24bbff318e37c4788ba0339db7ad flatlaf-3.6.tar.gz
 c4fbb0cb548e3bc57f1c703c71fd6bfa69a178b5 flatlaf-3.7-1.tar.gz
 0d9670c3672cbacadb3624becdc0feaf97121782 flatlaf-3.7.1.tar.gz
+dec6daffd21d4e39f0dacbe480b604f5dfb5dbb2 flatlaf-3.7.2.tar.gz
 9b73a8879e62632cb5bce3b7ba16941238110429 flatlaf-3.7.tar.gz
 b1c40ce6c087da7e70e221ddd3fcadfa569acb2f foiltex-2.1.4b.tar.gz
 f339234ec18369679be0095264e0c0af7762f351 gnu-utils-20210414.tar.gz
@@ -553,6 +555,7 @@ f84c7ecafb07a0d763f1d70edc54f7c43c2e8c63 postgresql-42.4.0.tar.gz
 143d0d32a13d7d8e15b9bab866e14ad4308a6246 postgresql-42.5.0.tar.gz
 36a6e17794a93070278ac590650870ab73e6a7fb postgresql-42.6.0.tar.gz
 65bf0d99f4e80f5802c573106327c337fe608fe7 postgresql-42.7.1.tar.gz
+32617c4987c9aeacf7a8fa8b8a3a8cab9d4c94fc postgresql-42.7.12.tar.gz
 459c2b8da13910ba6c89ad91b9d26f4a63615117 postgresql-42.7.3.tar.gz
 6393156f24d911c8f9f242612aec2563514ceb59 postgresql-42.7.4.tar.gz
 ac7b66661335d97bf714a1721febacc11396b837 postgresql-42.7.5.tar.gz
@@ -627,6 +630,7 @@ b2d3a5935a7a9e23738d3eb6c2a62475f2c94cac spass-3.8ds-5.tar.gz
 e6e995fd6eb34c78234be60ccf3b5ad1bfc25c46 sqlite-3.49.1.0.tar.gz
 6e32d3a23dfcc2f947bdc74cbf5a0da2af9dfae3 sqlite-3.51.0.0.tar.gz
 ad81f1e1f491bc39837507d901a4e55882c0862a sqlite-3.53.2.0.tar.gz
+50881d3ce8f4cac7ee59df7439427130edfac29d sqlite-3.53.4.0.tar.gz
 b016a785f1f78855c00d351ff598355c3b87450f sqlite-jdbc-3.18.0-1.tar.gz
 b85b5bc071a59ef2a8326ceb1617d5a9a5be41cf sqlite-jdbc-3.18.0.tar.gz
 e56117a67ab01fb24c7fc054ede3160cefdac5f8 sqlite-jdbc-3.20.0.tar.gz
@@ -720,6 +724,7 @@ e30e8a802bcae22b6bf0e5ca79677cbef0c1fa6b windows_app-20250315.tar.gz
 01b63b73d3c76c19cd67da1c2d3d2588bc99c4d8 windows_app-20260703.tar.gz
 81a401ceb81091db7a245902ac3373b58e00481e windows_app-20260712.tar.gz
 76ff3ea91d3c781507e6998d9e819ae3564cf495 xz-java-1.10.tar.gz
+84a2b59b47067435249ee0c29611a91512facc2a xz-java-1.12.tar.gz
 1c36a840320dfa9bac8af25fc289a4df5ea3eccb xz-java-1.2-1.tar.gz
 2ae13aa17d0dc95ce254a52f1dba10929763a10d xz-java-1.2.tar.gz
 c22196148fcace5443a933238216cff5112948df xz-java-1.5.tar.gz

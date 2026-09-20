@@ -6,7 +6,35 @@ Isabelle2026 is now available.
 This version introduces many changes over Isabelle2025-2: see the
 NEWS file for further details. Here are notable details:
 
-* TODO
+* Support for inlined theory options and conditional developments.
+
+* Improved support for Apple Silicon, without Intel emulation.
+
+* Improved control over prover output in batch-builds.
+
+* Many Isabelle/jEdit improvements, notably for Accessibility (NVDA).
+
+* Many Isabelle/Scala improvements, notably HTML-based GUI via Scala.js.
+
+* HOL: various improvements to code generation.
+
+* HOL: various improvements of theory libraries, e.g. HOL-Analysis.
+
+* HOL: various improvements of theory libraries, e.g. HOL-Analysis.
+
+* HOL: updates and improvements of Sledgehammer and external provers.
+
+* HOL: various improvements of SMT support, with cvc5 proof reconstruction.
+
+* ML: minor improments of kernel integrity.
+
+* ML: sanity checks for string literals vs. formal names.
+
+* ML: 64_32 mode now supports 32 GiB heap instead of 16 GiB.
+
+* System: support for Scala.js with many Isabelle/Scala modules.
+
+* System: improved logging of Isabelle/Scala and Isabelle/ML.
 
 
 You may get Isabelle2026 from the following mirror sites:
