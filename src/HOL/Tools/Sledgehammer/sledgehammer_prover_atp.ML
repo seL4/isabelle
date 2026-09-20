@@ -261,19 +261,19 @@ fun run_atp mode name
             val f = fn _ =>
               if exec = isabelle_scala_function then
                 let val {output, ...} = SystemOnTPTP.run_system_encoded args
-                in output end
+                in split_lines output end
               else
                 Bash.script command
                   |> Bash.putenv env
                   |> Bash.redirect
                   |> Isabelle_System.bash_process
-                  |> Process_Result.out
+                  |> Process_Result.out_lines
             (* Hackish: The following lines try to make the TPTP problem and command line more
             deterministic and constant. *)
             val hackish_command = make_command (make_args \<^path>\<open>fake_prob_path.p\<close>)
             val arg = Bytes.cat_lines (hackish_command :: drop 2 lines_of_atp_problem)
           in
-            Timing.timing (memoize_fun_call f) arg
+            Timing.timing (trim_line o cat_lines o memoize_fun_call f) arg
           end
 
         val local_name = name |> perhaps (try (unprefix remote_prefix))

@@ -67,7 +67,7 @@ sig
      factss : (string * fact list) list,
      has_already_found_something : unit -> bool,
      found_something : string -> unit,
-     memoize_fun_call : (Bytes.T -> string) -> Bytes.T -> string}
+     memoize_fun_call : (Bytes.T -> string list) -> Bytes.T -> string list}
 
   datatype prover_slice_extra =
     ATP_Slice of atp_slice
@@ -195,7 +195,7 @@ type prover_problem =
    factss : (string * fact list) list,
    has_already_found_something : unit -> bool,
    found_something : string -> unit,
-   memoize_fun_call : (Bytes.T -> string) -> Bytes.T -> string}
+   memoize_fun_call : (Bytes.T -> string list) -> Bytes.T -> string list}
 
 datatype prover_slice_extra =
   ATP_Slice of atp_slice
