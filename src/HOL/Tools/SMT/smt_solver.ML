@@ -70,10 +70,9 @@ fun with_trace ctxt msg f x =
 (* TODO: adapt the calling code to produce and pass the input as "string list" natively and
    convert it here via "Bytes.cat_lines", to allow for longer input and avoid unnecessarily huge
    strings. *)
-fun run ctxt name cmd input =
-  let
-    val input_bytes = Bytes.string input
-  in
+fun run (ctxt : Proof.context) (name : string) (cmd : Bash.params) (input : string) :
+    Process_Result.T =
+  let val input_bytes = Bytes.string input in
     (case SMT_Config.certificates_of ctxt of
       NONE =>
         if not (SMT_Config.is_available ctxt name) then
