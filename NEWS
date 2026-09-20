@@ -214,6 +214,10 @@ checked in the past. INCOMPATIBILITY.
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
 
+* Metis: Updated the Metis prover underlying the "metis" proof method to
+version 2.4 (release 20260920). The new version allocates less memory and
+fixes one implementation defect. Minor INCOMPATIBILITY.
+
 * SMT:
   - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
     to the problem/proof files generated with through the options
