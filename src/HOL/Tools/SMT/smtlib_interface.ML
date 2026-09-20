@@ -23,7 +23,7 @@ sig
   val serialize: (BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) -> (string * string) list -> string list ->
     {dtyps: (BNF_Util.fp_kind * (string * (string * (string * string) list) list)) list,
      funcs: func_decl list, logic: string, sorts: string list} ->
-    (SMT_Util.role * SMT_Translate.sterm) list -> string
+    (SMT_Util.role * SMT_Translate.sterm) list -> Buffer.T
 
   val translate_config: SMT_Util.order -> BNF_Util.fp_kind list -> Proof.context ->
     SMT_Translate.config
@@ -192,7 +192,6 @@ fun serialize (sdtyp : BNF_Util.fp_kind * dtype_decls -> Buffer.T -> Buffer.T) s
     |> Buffer.add "(check-sat)\n"
     |> Buffer.add (if unsat_core then "(get-unsat-core)\n" else
        if models then "(get-model)\n" else "(get-proof)\n")
-    |> Buffer.content
   end
 
 local

@@ -179,8 +179,9 @@ fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
 
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_cmd input
-      | SOME memoize => split_lines (memoize (cat_lines o run_cmd o cat_lines) [input]))
+        NONE => run_cmd (Buffer.content input)
+      | SOME memoize =>
+          split_lines (memoize (cat_lines o run_cmd o cat_lines) [Buffer.content input]))
 
   in (output_lines, replay_data) end
 
