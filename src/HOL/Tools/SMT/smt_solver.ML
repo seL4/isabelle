@@ -35,7 +35,7 @@ sig
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
-    int -> Time.time -> ((string list -> string) -> string list -> string) -> string list -> parsed_proof
+    int -> Time.time -> ((Bytes.T -> string) -> Bytes.T -> string) -> string list -> parsed_proof
 
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
@@ -118,7 +118,7 @@ fun normal_return_codes "z3" = [0, 1]
   | normal_return_codes "verit" = [0, 14, 255]
   | normal_return_codes _ = [0, 1]
 
-fun run_solver ctxt name cmd input =
+fun run_solver ctxt name cmd (input : Bytes.T) : string list =
   let
     fun pretty tag lines = Pretty.string_of (Pretty.big_list tag (map Pretty.str lines))
 
@@ -172,11 +172,12 @@ fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
     val cmd = Bash.script (Bash.strings (command () @ options))
     val run_cmd = run_solver ctxt' name cmd
 
+    val input_bytes = Bytes.buffer input
+
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_cmd (Bytes.buffer input)
-      | SOME memoize =>
-          split_lines (memoize (cat_lines o run_cmd o Bytes.cat_lines) [Buffer.content input]))
+        NONE => run_cmd input_bytes
+      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) input_bytes))
 
   in (output_lines, replay_data) end
 
