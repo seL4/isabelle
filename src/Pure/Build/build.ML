@@ -99,10 +99,9 @@ fun get_theory_segments name =
 
 fun get_theory_elements name =
   let
-    val keywords = Thy_Header.get_keywords (get_theory name);
     val stopper = Document_Output.segment_stopper;
     val segments = get_theory_segments name;
-  in Thy_Element.parse_elements_generic keywords #span stopper segments end;
+  in Thy_Element.parse_elements_generic #span stopper segments end;
 
 
 val check_theory = Theory.check_theory {get = get_theory, all = all_theories};
@@ -212,7 +211,7 @@ fun eval_thy loading_theory (thy: Resources.thy) text_pos text parents =
       fold (fn span => fn i => if Command_Span.is_ignored span then i else i + 1) spans 0;
     val () = loading_theory commands;
 
-    val elements = Thy_Element.parse_elements keywords spans;
+    val elements = Thy_Element.parse_elements spans;
     val command_ranges =
       Command_Span.command_ranges spans |> map (fn (pos, _) => (pos, Markup.command_range));
 
