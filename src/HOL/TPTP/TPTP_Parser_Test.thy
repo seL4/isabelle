@@ -6,7 +6,7 @@ environment variable $TPTP, which should point to the TPTP-vX.Y.Z directory.
 *)
 
 theory TPTP_Parser_Test
-imports TPTP_Test TPTP_Parser_Example
+imports TPTP_Test
 begin
 
 section "Problem-name parsing tests"

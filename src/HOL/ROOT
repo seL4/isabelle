@@ -895,6 +895,9 @@ session "HOL-TPTP" in TPTP = HOL +
     TPTP_Proof_Reconstruction
   theories
     ATP_Problem_Import
+  theories [condition = "$TPTP"]
+    TPTP_Test
+    TPTP_Parser_Test
 
 session "HOL-Probability" (main timing) in "Probability" = "HOL-Analysis" +
   sessions
