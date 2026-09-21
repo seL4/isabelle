@@ -327,7 +327,7 @@ fun revert_bounds ctxt t =
   | bounds =>
       let
         val names = Syntax_Trans.declare_term_names ctxt t (names_of ctxt);
-        val xs = rev (Name.variants names (rev (map #2 bounds)));
+        val xs = rev (Name.variants names (rev (map (Name.clean o #2) bounds)));
         fun substs (((b, T), _), x') =
           let fun subst U = (Free (b, U), Syntax_Trans.mark_bound_abs (x', U))
           in [subst T, subst (Type_Annotation.ignore_type T)] end;

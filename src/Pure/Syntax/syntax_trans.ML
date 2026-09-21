@@ -345,7 +345,7 @@ fun abs_tr' ctxt tm =
     (strip_abss ctxt strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
 fun atomic_abs_tr' ctxt (x, T, t) =
-  let val xT = singleton (variant_bounds ctxt t) (x, T)
+  let val xT = singleton (variant_bounds ctxt t) (Name.clean x, T)
   in (mark_bound_abs xT, subst_bound (mark_bound_body xT, t)) end;
 
 fun abs_ast_tr' asts =
@@ -412,7 +412,7 @@ fun impl_ast_tr' asts =
 (* dependent / nondependent quantifiers *)
 
 fun print_abs ctxt (x, T, b) =
-  let val x' = #1 (Name.variant x (Name.build_context (declare_term_names ctxt b)))
+  let val x' = #1 (Name.variant (Name.clean x) (Name.build_context (declare_term_names ctxt b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
 fun dependent_tr' (q, r) ctxt (A :: Abs (x, T, B) :: ts) =

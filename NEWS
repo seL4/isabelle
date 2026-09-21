@@ -57,6 +57,10 @@ special cases. The default show_results=true, but show_results=false may
 be used in situations where output is too bulky to be printed, e.g. in
 the theory as "context notes [[show_results = false]] begin ... end".
 
+* More robust printing of terms with bound variables that are marked as
+"internal", e.g. from vacuous abstraction like "\<forall>_\<in>A. b" or "\<lambda>(_, _). b"
+--- increase chances that the printed term can be parsed again.
+
 
 *** Pure ***
 
