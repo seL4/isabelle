@@ -306,13 +306,14 @@ fun declare_term_names ctxt =
   let
     val s = the_default "" (default_struct ctxt);
 
-    fun declare (Const ("_struct", _) $ Const ("_indexdefault", _)) = Name.declare s
-      | declare (Const (c, _)) =
-          if Lexicon.is_fixed c then Name.declare (Lexicon.unmark_fixed c) else I
-      | declare (Free (x, _)) = Name.declare x
-      | declare (t $ u) = declare t #> declare u
-      | declare (Abs (_, _, t)) = declare t
-      | declare _ = I;
+    fun declare (Const ("_struct", _) $ Const ("_indexdefault", _)) names = names |> Name.declare s
+      | declare (Const (c, _)) names =
+          if Lexicon.is_fixed c then names |> Name.declare (Lexicon.unmark_fixed c)
+          else names
+      | declare (Free (x, _)) names = names |> Name.declare x
+      | declare (t $ u) names = names |> declare t |> declare u
+      | declare (Abs (_, _, t)) names = names |> declare t
+      | declare _ names = names;
   in declare end;
 
 fun variant_bounds ctxt =

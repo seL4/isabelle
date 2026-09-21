@@ -46,14 +46,14 @@ open YXML;
 
 fun traverse string =
   let
-    fun attrib (a, x) = string Y #> string a #> string "=" #> string x;
-    fun tree (XML.Elem (markup as (name, atts), ts)) =
-          if Markup.is_empty markup then fold tree ts
+    fun attrib (a, x) acc = acc |> string Y |> string a |> string "=" |> string x;
+    fun tree (XML.Elem (markup as (name, atts), ts)) acc =
+          if Markup.is_empty markup then fold tree ts acc
           else
-            string XY #> string name #> fold attrib atts #> string X #>
-            fold tree ts #>
+            acc |> string XY |> string name |> fold attrib atts |> string X |>
+            fold tree ts |>
             string XYX
-      | tree (XML.Text s) = string s;
+      | tree (XML.Text s) acc = acc |> string s;
   in tree end;
 
 val tree_size = Integer.build o traverse (Integer.add o size);

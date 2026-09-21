@@ -298,17 +298,17 @@ fun make_thm
 
 fun fold_proof_atoms all f =
   let
-    fun app (Abst (_, _, prf)) = app prf
-      | app (AbsP (_, _, prf)) = app prf
-      | app (prf % _) = app prf
-      | app (prf1 %% prf2) = app prf1 #> app prf2
-      | app (prf as PThm ({serial = i, ...}, Thm_Body {body, ...})) = (fn (x, seen) =>
+    fun app (Abst (_, _, prf)) acc = acc |> app prf
+      | app (AbsP (_, _, prf)) acc = acc |> app prf
+      | app (prf % _) acc = acc |> app prf
+      | app (prf1 %% prf2) acc = acc |> app prf1 |> app prf2
+      | app (prf as PThm ({serial = i, ...}, Thm_Body {body, ...})) (x, seen) =
           if Intset.member seen i then (x, seen)
           else
             let val (x', seen') =
               (if all then app (join_proof body) else I) (x, Intset.insert i seen)
-            in (f prf x', seen') end)
-      | app prf = (fn (x, seen) => (f prf x, seen));
+            in (f prf x', seen') end
+      | app prf (x, seen) = (f prf x, seen);
   in fn prfs => fn x => #1 (fold app prfs (x, Intset.empty)) end;
 
 fun fold_body_thms f =
@@ -584,27 +584,30 @@ fun map_proof_terms f g =
 fun map_proof_types f =
   Same.commit (map_proof_types_same (Same.function_eq (op =) f));
 
-fun fold_proof_terms f (Abst (_, _, prf)) = fold_proof_terms f prf
-  | fold_proof_terms f (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms f prf
-  | fold_proof_terms f (AbsP (_, NONE, prf)) = fold_proof_terms f prf
-  | fold_proof_terms f (prf % SOME t) = fold_proof_terms f prf #> f t
-  | fold_proof_terms f (prf % NONE) = fold_proof_terms f prf
-  | fold_proof_terms f (prf1 %% prf2) = fold_proof_terms f prf1 #> fold_proof_terms f prf2
-  | fold_proof_terms _ _ = I;
+fun fold_proof_terms f (Abst (_, _, prf)) acc = acc |> fold_proof_terms f prf
+  | fold_proof_terms f (AbsP (_, SOME t, prf)) acc = acc |> f t |> fold_proof_terms f prf
+  | fold_proof_terms f (AbsP (_, NONE, prf)) acc = acc |> fold_proof_terms f prf
+  | fold_proof_terms f (prf % SOME t) acc = acc |> fold_proof_terms f prf |> f t
+  | fold_proof_terms f (prf % NONE) acc = acc |> fold_proof_terms f prf
+  | fold_proof_terms f (prf1 %% prf2) acc =
+      acc |> fold_proof_terms f prf1 |> fold_proof_terms f prf2
+  | fold_proof_terms _ _ acc = acc;
 
-fun fold_proof_terms_types f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms_types f g prf
-  | fold_proof_terms_types f g (Abst (_, NONE, prf)) = fold_proof_terms_types f g prf
-  | fold_proof_terms_types f g (AbsP (_, SOME t, prf)) = f t #> fold_proof_terms_types f g prf
-  | fold_proof_terms_types f g (AbsP (_, NONE, prf)) = fold_proof_terms_types f g prf
-  | fold_proof_terms_types f g (prf % SOME t) = fold_proof_terms_types f g prf #> f t
-  | fold_proof_terms_types f g (prf % NONE) = fold_proof_terms_types f g prf
-  | fold_proof_terms_types f g (prf1 %% prf2) =
-      fold_proof_terms_types f g prf1 #> fold_proof_terms_types f g prf2
-  | fold_proof_terms_types _ g (PAxm (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms_types _ g (PClass (T, _)) = g T
-  | fold_proof_terms_types _ g (Oracle (_, _, SOME Ts)) = fold g Ts
-  | fold_proof_terms_types _ g (PThm ({types = SOME Ts, ...}, _)) = fold g Ts
-  | fold_proof_terms_types _ _ _ = I;
+fun fold_proof_terms_types f g (Abst (_, SOME T, prf)) acc =
+      acc |> g T |> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (Abst (_, NONE, prf)) acc = acc |> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (AbsP (_, SOME t, prf)) acc =
+      acc |> f t |> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (AbsP (_, NONE, prf)) acc = acc |> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (prf % SOME t) acc = acc |> fold_proof_terms_types f g prf |> f t
+  | fold_proof_terms_types f g (prf % NONE) acc = acc |> fold_proof_terms_types f g prf
+  | fold_proof_terms_types f g (prf1 %% prf2) acc =
+      acc |> fold_proof_terms_types f g prf1 |> fold_proof_terms_types f g prf2
+  | fold_proof_terms_types _ g (PAxm (_, _, SOME Ts)) acc = acc |> fold g Ts
+  | fold_proof_terms_types _ g (PClass (T, _)) acc = acc |> g T
+  | fold_proof_terms_types _ g (Oracle (_, _, SOME Ts)) acc = acc |> fold g Ts
+  | fold_proof_terms_types _ g (PThm ({types = SOME Ts, ...}, _)) acc = acc |> fold g Ts
+  | fold_proof_terms_types _ _ _ acc = acc;
 
 fun maxidx_proof prf = fold_proof_terms_types Term.maxidx_term Term.maxidx_typ prf;
 
@@ -2217,23 +2220,22 @@ fun this_id NONE _ = false
 
 fun proof_boxes {included, excluded} proofs =
   let
-    fun boxes_of (Abst (_, _, prf)) = boxes_of prf
-      | boxes_of (AbsP (_, _, prf)) = boxes_of prf
-      | boxes_of (prf % _) = boxes_of prf
-      | boxes_of (prf1 %% prf2) = boxes_of prf1 #> boxes_of prf2
-      | boxes_of (PThm (header as {serial = i, ...}, thm_body)) =
-          (fn boxes =>
-            let val thm_id = thm_header_id header in
-              if Inttab.defined boxes i orelse (excluded thm_id andalso not (included thm_id))
-              then boxes
-              else
-                let
-                  val prf' = thm_body_proof_open thm_body;
-                  val boxes' = Inttab.update (i, (header, prf')) boxes;
-                in boxes_of prf' boxes' end
-            end)
-      | boxes_of MinProof = raise MIN_PROOF ()
-      | boxes_of _ = I;
+    fun boxes_of (Abst (_, _, prf)) boxes = boxes |> boxes_of prf
+      | boxes_of (AbsP (_, _, prf)) boxes = boxes |> boxes_of prf
+      | boxes_of (prf % _) boxes = boxes |> boxes_of prf
+      | boxes_of (prf1 %% prf2) boxes = boxes |> boxes_of prf1 |> boxes_of prf2
+      | boxes_of (PThm (header as {serial = i, ...}, thm_body)) boxes =
+          let val thm_id = thm_header_id header in
+            if Inttab.defined boxes i orelse (excluded thm_id andalso not (included thm_id))
+            then boxes
+            else
+              let
+                val prf' = thm_body_proof_open thm_body;
+                val boxes' = Inttab.update (i, (header, prf')) boxes;
+              in boxes_of prf' boxes' end
+          end
+      | boxes_of MinProof _ = raise MIN_PROOF ()
+      | boxes_of _ boxes = boxes;
   in Inttab.fold_rev (cons o #2) (Inttab.build (fold boxes_of proofs)) [] end;
 
 end;

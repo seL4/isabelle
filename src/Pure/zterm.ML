@@ -31,25 +31,25 @@ struct
 
 (* fold *)
 
-fun fold_tvars f (ZTVar v) = f v
-  | fold_tvars f (ZFun (T, U)) = fold_tvars f T #> fold_tvars f U
-  | fold_tvars f (ZType1 (_, T)) = fold_tvars f T
-  | fold_tvars f (ZType (_, Ts)) = fold (fold_tvars f) Ts
-  | fold_tvars _ _ = I;
+fun fold_tvars f (ZTVar v) acc = acc |> f v
+  | fold_tvars f (ZFun (T, U)) acc = acc |> fold_tvars f T |> fold_tvars f U
+  | fold_tvars f (ZType1 (_, T)) acc = acc |> fold_tvars f T
+  | fold_tvars f (ZType (_, Ts)) acc = acc |> fold (fold_tvars f) Ts
+  | fold_tvars _ _ acc = acc;
 
-fun fold_aterms f (ZApp (t, u)) = fold_aterms f t #> fold_aterms f u
-  | fold_aterms f (ZAbs (_, _, t)) = fold_aterms f t
-  | fold_aterms f a = f a;
+fun fold_aterms f (ZApp (t, u)) acc = acc |> fold_aterms f t |> fold_aterms f u
+  | fold_aterms f (ZAbs (_, _, t)) acc = acc |> fold_aterms f t
+  | fold_aterms f a acc = acc |> f a;
 
 fun fold_vars f = fold_aterms (fn ZVar v => f v | _ => I);
 
-fun fold_types f (ZVar (_, T)) = f T
-  | fold_types f (ZConst1 (_, T)) = f T
-  | fold_types f (ZConst (_, As)) = fold f As
-  | fold_types f (ZAbs (_, T, b)) = f T #> fold_types f b
-  | fold_types f (ZApp (t, u)) = fold_types f t #> fold_types f u
-  | fold_types f (OFCLASS (T, _)) = f T
-  | fold_types _ _ = I;
+fun fold_types f (ZVar (_, T)) acc = acc |> f T
+  | fold_types f (ZConst1 (_, T)) acc = acc |> f T
+  | fold_types f (ZConst (_, As)) acc = acc |> fold f As
+  | fold_types f (ZAbs (_, T, b)) acc = acc |> f T |> fold_types f b
+  | fold_types f (ZApp (t, u)) acc = acc |> fold_types f t |> fold_types f u
+  | fold_types f (OFCLASS (T, _)) acc = acc |> f T
+  | fold_types _ _ acc = acc;
 
 
 (* map *)
@@ -558,16 +558,16 @@ fun instantiate_term_same typ inst =
 
 fun fold_proof {hyps} typ term =
   let
-    fun proof ZNop = I
-      | proof (ZConstp (_, (instT, inst))) =
-          ZTVars.fold (typ o #2) instT #> ZVars.fold (term o #2) inst
-      | proof (ZBoundp _) = I
-      | proof (ZAbst (_, T, p)) = typ T #> proof p
-      | proof (ZAbsp (_, t, p)) = term t #> proof p
-      | proof (ZAppt (p, t)) = proof p #> term t
-      | proof (ZAppp (p, q)) = proof p #> proof q
-      | proof (ZHyp h) = hyps ? term h
-      | proof (OFCLASSp (T, _)) = hyps ? typ T;
+    fun proof ZNop acc = acc
+      | proof (ZConstp (_, (instT, inst))) acc =
+          acc |> ZTVars.fold (typ o #2) instT |> ZVars.fold (term o #2) inst
+      | proof (ZBoundp _) acc = acc
+      | proof (ZAbst (_, T, p)) acc = acc |> typ T |> proof p
+      | proof (ZAbsp (_, t, p)) acc = acc |> term t |> proof p
+      | proof (ZAppt (p, t)) acc = acc |> proof p |> term t
+      | proof (ZAppp (p, q)) acc = acc |> proof p |> proof q
+      | proof (ZHyp h) acc = acc |> hyps ? term h
+      | proof (OFCLASSp (T, _)) acc = acc |> hyps ? typ T;
   in proof end;
 
 fun fold_proof_types hyps typ =

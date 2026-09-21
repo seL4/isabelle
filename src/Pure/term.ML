@@ -521,22 +521,22 @@ fun map_type_tfree f = map_atyps (fn TFree x => f x | _ => raise Same.SAME);
 
 (* fold types and terms *)
 
-fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
-  | fold_atyps f T = f T;
+fun fold_atyps f (Type (_, Ts)) acc = acc |> fold (fold_atyps f) Ts
+  | fold_atyps f T acc = acc |> f T;
 
 fun fold_atyps_sorts f =
   fold_atyps (fn T as TFree (_, S) => f (T, S) | T as TVar (_, S) => f (T, S));
 
-fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
-  | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
-  | fold_aterms f a = f a;
+fun fold_aterms f (t $ u) acc = acc |> fold_aterms f t |> fold_aterms f u
+  | fold_aterms f (Abs (_, _, t)) acc = acc |> fold_aterms f t
+  | fold_aterms f a acc = acc |> f a;
 
-fun fold_term_types f (t as Const (_, T)) = f t T
-  | fold_term_types f (t as Free (_, T)) = f t T
-  | fold_term_types f (t as Var (_, T)) = f t T
-  | fold_term_types f (Bound _) = I
-  | fold_term_types f (t as Abs (_, T, b)) = f t T #> fold_term_types f b
-  | fold_term_types f (t $ u) = fold_term_types f t #> fold_term_types f u;
+fun fold_term_types f (t as Const (_, T)) acc = acc |> f t T
+  | fold_term_types f (t as Free (_, T)) acc = acc |> f t T
+  | fold_term_types f (t as Var (_, T)) acc = acc |> f t T
+  | fold_term_types f (Bound _) acc = acc
+  | fold_term_types f (t as Abs (_, T, b)) acc = acc |> f t T |> fold_term_types f b
+  | fold_term_types f (t $ u) acc = acc |> fold_term_types f t |> fold_term_types f u;
 
 fun fold_types f = fold_term_types (K f);
 
@@ -701,10 +701,10 @@ fun incr_bv inc lev = Same.commit (incr_bv_same inc lev);
 fun incr_boundvars inc = incr_bv inc 0;
 
 (*Scan a pair of terms; while they are similar, accumulate corresponding bound vars*)
-fun match_bvs (Abs (x, _, s), Abs (y, _, t)) =
-      (x <> "" andalso y <> "") ? cons (x, y) #> match_bvs (s, t)
-  | match_bvs (f $ s, g $ t) = match_bvs (s, t) #> match_bvs (f, g)
-  | match_bvs _ = I;
+fun match_bvs (Abs (x, _, s), Abs (y, _, t)) acc =
+      acc |> (x <> "" andalso y <> "") ? cons (x, y) |> match_bvs (s, t)
+  | match_bvs (f $ s, g $ t) acc = acc |> match_bvs (s, t) |> match_bvs (f, g)
+  | match_bvs _ acc = acc;
 
 (* strip abstractions created by parameters *)
 val match_bvars = apply2 strip_abs_body #> match_bvs;
@@ -987,8 +987,8 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 fun fold_subtypes f =
   let
-    fun iter ty =
-      (case ty of Type (_, Ts) => f ty #> fold iter Ts | _ => f ty);
+    fun iter ty acc =
+      (case ty of Type (_, Ts) => acc |> f ty |> fold iter Ts | _ => acc |> f ty);
   in iter end;
 
 fun exists_subtype P =
