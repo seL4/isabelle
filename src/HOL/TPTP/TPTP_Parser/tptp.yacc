@@ -326,8 +326,19 @@ thf_variable : thf_typed_variable (( thf_typed_variable ))
 
 thf_typed_variable : variable_ COLON thf_top_level_type (( (variable_, SOME thf_top_level_type) ))
 
+(* Using thf_unitary_formula here would be ambiguous because this legacy grammar also accepts
+   bare connective terms as thf_atom. *)
 thf_unary_formula : thf_unary_connective LPAREN thf_logic_formula RPAREN ((
   Fmla (thf_unary_connective, [thf_logic_formula])
+))
+                  | thf_unary_connective thf_quantified_formula ((
+  Fmla (thf_unary_connective, [thf_quantified_formula])
+))
+                  | thf_unary_connective term ((
+  Fmla (thf_unary_connective, [Atom (THF_Atom_term term)])
+))
+                  | thf_unary_connective thf_unary_formula ((
+  Fmla (thf_unary_connective, [thf_unary_formula])
 ))
 
 thf_atom : term          (( Atom (THF_Atom_term term) ))
