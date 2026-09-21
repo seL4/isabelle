@@ -56,8 +56,7 @@ translations
   "\<Prod>x:A. B" \<rightharpoonup> "CONST Prod(A, \<lambda>x. B)"
   "A \<rightarrow> B" \<rightharpoonup> "CONST Prod(A, \<lambda>_. B)"
 print_translation \<open>
-  [(\<^const_syntax>\<open>Prod\<close>,
-    fn _ => Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Pi\<close>, \<^syntax_const>\<open>_arrow\<close>))]
+  [(\<^const_syntax>\<open>Prod\<close>, Syntax_Trans.dependent_tr' (\<^syntax_const>\<open>_Pi\<close>, \<^syntax_const>\<open>_arrow\<close>))]
 \<close>
 
 axiomatization where

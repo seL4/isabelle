@@ -40,8 +40,8 @@ sig
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs_tr': string -> Proof.context -> typ -> term list -> term
   val preserve_binder_abs2_tr': string -> Proof.context -> typ -> term list -> term
-  val print_abs: string * typ * term -> string * term
-  val dependent_tr': string * string -> term list -> term
+  val print_abs: Proof.context -> string * typ * term -> string * term
+  val dependent_tr': string * string -> Proof.context -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string ->
@@ -411,16 +411,16 @@ fun impl_ast_tr' asts =
 
 (* dependent / nondependent quantifiers *)
 
-fun print_abs (x, T, b) =
-  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_free_names b)))
+fun print_abs ctxt (x, T, b) =
+  let val x' = #1 (Name.variant x (Name.build_context (declare_term_names ctxt b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
-fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
+fun dependent_tr' (q, r) ctxt (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
-        let val (x', B') = print_abs (x, dummyT, B);
+        let val (x', B') = print_abs ctxt (x, dummyT, B);
         in Term.list_comb (Syntax.const q $ mark_bound_abs (x', T) $ A $ B', ts) end
       else Term.list_comb (Syntax.const r $ A $ incr_boundvars ~1 B, ts)
-  | dependent_tr' _ _ = raise Match;
+  | dependent_tr' _ _ _ = raise Match;
 
 
 (* quote / antiquote *)
