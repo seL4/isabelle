@@ -27,6 +27,11 @@ object Resources {
     def encode(thy: Thy): XML.Body = {
       val options = thy.options.map(spec => (spec.name, spec.value))
       val keywords = thy.keywords.map({ case (a, spec) => (a, (spec.kind, spec.tags)) })
+      val (condition_bad, errors) =
+        Exn.result { (thy.condition_bad, thy.errors) } match {
+          case Exn.Res(res) => res
+          case Exn.Exn(exn) => ("", thy.include_errors(List(Exn.message(exn))).errors)
+        }
 
       import XML.Encode._
       pair(encode_node_name,
@@ -36,7 +41,7 @@ object Resources {
               pair(list(pair(string, pair(string, list(string)))),
                 pair(string, pair(list(string), list(encode_node_name))))))))(
         (thy.name, (thy.pos, (thy.imports, (options, (keywords,
-          (thy.condition_bad, (thy.errors, thy.initiators))))))))
+          (condition_bad, (errors, thy.initiators))))))))
     }
   }
 
