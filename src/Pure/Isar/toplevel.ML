@@ -129,7 +129,7 @@ datatype node =
   Skipped_Proof of int * (thy * thy);
     (*proof depth, resulting theory, original theory*)
 
-val theory_node = fn Theory gthy => SOME gthy | _ => NONE;
+val theory_node = fn Theory thy => SOME thy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 val skipped_proof_node = fn Skipped_Proof _ => true | _ => false;
 
@@ -611,7 +611,7 @@ fun end_proof f = transaction
             in (Theory thy', ctxt') end
           else raise UNDEF
         end
-    | Skipped_Proof (0, (gthy, _)) => node_presentation (Theory gthy)
+    | Skipped_Proof (0, (thy, _)) => node_presentation (Theory thy)
     | _ => raise UNDEF);
 
 local
@@ -688,7 +688,7 @@ val skip_proof_open = transaction0
     | _ => raise UNDEF);
 
 val skip_proof_close = transaction0
-  (fn Skipped_Proof (0, (gthy, _)) => Theory gthy
+  (fn Skipped_Proof (0, (thy, _)) => Theory thy
     | Skipped_Proof (d, x) => Skipped_Proof (d - 1, x)
     | _ => raise UNDEF);
 
@@ -777,7 +777,7 @@ val reset_theory = reset_if is_theory forget_proof;
 val reset_proof =
   reset_if is_proof
     (transaction0
-      (fn Theory gthy => Skipped_Proof (0, (gthy, gthy))
+      (fn Theory thy => Skipped_Proof (0, (thy, thy))
         | _ => raise UNDEF));
 
 val reset_notepad =
