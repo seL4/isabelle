@@ -825,7 +825,7 @@ Usage: isabelle build_worker [OPTIONS]
         filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
       }
 
-    check(message_head, Protocol.message_heading(elem, pos)) &&
+    check(message_head, Protocol.message_heading(elem, pos = pos)) &&
     check(message_body, Pretty.unformatted_string_of(List(elem)))
   }
 
