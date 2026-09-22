@@ -271,7 +271,8 @@ fun pretty_context state =
 fun pretty_state state =
   (case node_of state of
     Toplevel => []
-  | Theory _ => []
+  | Theory {skipped, level, ...} =>
+      if skipped then [Pretty.str ("skipped theory: level " ^ string_of_int level)] else []
   | Proof (prf, _) => Proof.pretty_state (Proof_Node.current prf)
   | Skipped_Proof (d, _) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)]);
 
