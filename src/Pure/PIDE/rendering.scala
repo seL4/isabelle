@@ -636,7 +636,7 @@ abstract class Rendering(
 
   private sealed case class Tooltip_Info(
     range: Text.Range,
-    messages: List[(Long, XML.Elem)] = Nil,
+    messages: List[Command.Results.Entry] = Nil,
     rev_infos: List[(Boolean, Int, XML.Elem)] = Nil
   ) {
     def add_message(r0: Text.Range, serial: Long, msg: XML.Elem): Tooltip_Info = {
