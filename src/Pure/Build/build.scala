@@ -849,10 +849,10 @@ Usage: isabelle build_worker [OPTIONS]
         val result =
           for {
             db <- session_context.session_db()
-            theories = store.read_theories(db, session_name)
+            used_theories = store.read_theories(db, session_name)
             errors = store.read_errors(db, session_name)
             info <- store.read_build(db, session_name)
-          } yield (theories, errors, info.return_code)
+          } yield (used_theories, errors, info.return_code)
         result match {
           case None => store.error_database(session_name)
           case Some((used_theories, errors, rc)) =>
