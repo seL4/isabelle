@@ -11,6 +11,7 @@ import java.time.format.{DateTimeFormatter, DateTimeParseException}
 
 import scala.collection.mutable
 import scala.util.matching.Regex
+import scala.math.Ordering
 
 
 object Build_Log {
@@ -645,6 +646,9 @@ object Build_Log {
   ) {
     def error(s: String): Session_Info =
       copy(errors = errors ::: List(s))
+
+    def sort_theories(ordering: Ordering[Properties.T]): Session_Info =
+      copy(theory_timings = theory_timings.sorted(ordering))
   }
 
   private def parse_session_info(

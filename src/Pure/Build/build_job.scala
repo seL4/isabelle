@@ -10,6 +10,8 @@ package isabelle
 import java.io.BufferedWriter
 import java.nio.file.Files
 
+import scala.math.Ordering
+
 
 trait Build_Job {
   def cancel(): Unit = ()
@@ -260,6 +262,9 @@ object Build_Job {
 
           val session_theories =
             current_background.base.used_theories.map(_.eval_conditions(session_conditions))
+
+          val session_theories_index =
+            Map.from(for ((thy, i) <- session_theories.iterator.zipWithIndex) yield thy.name.theory -> i)
 
 
           /* session */
@@ -590,7 +595,8 @@ object Build_Job {
                 command_timings = true,
                 theory_timings = true,
                 ml_statistics = true,
-                task_statistics = true)
+                task_statistics = true
+              ).sort_theories(Ordering.by(props => session_theories_index(Markup.Name.get(props))))
 
           // write log file
           if (process_result.ok) {
