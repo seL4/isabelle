@@ -12,6 +12,7 @@ import java.io.{File => JFile}
 import java.nio.file.FileSystems
 
 import scala.collection.immutable.SortedMap
+import scala.math.Ordering
 
 
 
@@ -79,6 +80,17 @@ object Rendering {
     Markup.ERROR -> error_pri,
     Markup.ERROR_MESSAGE -> error_pri
   ).withDefaultValue(0)
+
+  val message_ordering: Ordering[Text.Info[Command.Results.Entry]] =
+    (a: Text.Info[Command.Results.Entry], b: Text.Info[Command.Results.Entry]) =>
+      message_pri(a.info._2.name) compare message_pri(b.info._2.name) match {
+        case 0 =>
+          a.range.start compare b.range.start match {
+            case 0 => a.info._1 compare b.info._1
+            case ord => ord
+          }
+        case ord => -ord
+      }
 
   val message_underline_color = Map(
     writeln_pri -> Color.writeln,
@@ -277,6 +289,9 @@ object Rendering {
   val message_elements: Markup.Elements = Markup.Elements(message_pri.keySet)
   val warning_elements: Markup.Elements = Markup.Elements(Markup.WARNING, Markup.LEGACY)
   val error_elements: Markup.Elements = Markup.Elements(Markup.ERROR)
+
+  val main_message_elements: Markup.Elements =
+    Markup.Elements(Markup.WRITELN, Markup.INFORMATION, Markup.WARNING, Markup.LEGACY, Markup.ERROR)
 
   val comment_elements: Markup.Elements =
     Markup.Elements(Markup.ML_COMMENT, Markup.COMMENT, Markup.COMMENT1, Markup.COMMENT2,
@@ -769,6 +784,22 @@ abstract class Rendering(
 
   def errors(range: Text.Range): List[Text.Markup] =
     snapshot.select(range, Rendering.error_elements, _ => Some(_)).map(_.info)
+
+  def main_messages(range: Text.Range): List[Text.Markup] = {
+    val results =
+      snapshot.cumulate[List[Text.Info[Command.Results.Entry]]](
+        range, Nil, Rendering.main_message_elements, command_states =>
+          {
+            case (res, Text.Info(r, XML.Elem(markup, _))) =>
+              for (entry <- Command.State.get_result_proper(command_states, markup.properties))
+                yield Text.Info(r, entry) :: res
+          })
+    results.flatten(_.info)
+      .map(info => info.info._1 -> info)
+      .toMap.valuesIterator.toList
+      .sorted(Rendering.message_ordering)
+      .map(info => info.map(_._2))
+  }
 
 
   /* comments */

@@ -149,6 +149,10 @@ a popup with the list of hyperlinks under the current caret, using the
 same notion of link as C-hover-click via mouse, but showing all
 possibilities.
 
+* The jEdit action "isabelle.line_status" (keyboard shortcut CS+l) shows
+the visual information of the gutter area in text form: line number,
+number of errors + warnings, followed by the actual messages.
+
 * The mouse action C-hover-click is strictly limited to the "C" modifier
 (command on macOS, control on Linux/Windows). This allows to use mouse
 dragging e.g. with CS modifiers for rectangular selection, regardless of

@@ -122,6 +122,11 @@
 	    isabelle.jedit.Isabelle.show_tooltip(textArea, false);
 	  </CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.line-status">
+	  <CODE>
+	    isabelle.jedit.Isabelle.show_line_status(textArea);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.first-error">
 	  <CODE>
 	    isabelle.jedit.Isabelle.goto_first_error(textArea);
