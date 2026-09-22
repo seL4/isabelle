@@ -647,8 +647,13 @@ object Build_Log {
     def error(s: String): Session_Info =
       copy(errors = errors ::: List(s))
 
-    def sort_theories(ordering: Ordering[Properties.T]): Session_Info =
-      copy(theory_timings = theory_timings.sorted(ordering))
+    def sort_theories(session_theories: List[Resources.Thy]): Session_Info = {
+      val index =
+        Map.from(
+          for ((thy, i) <- session_theories.iterator.zipWithIndex)
+            yield thy.name.theory -> i)
+      copy(theory_timings = theory_timings.sortBy(props => index(Markup.Name.get(props))))
+    }
   }
 
   private def parse_session_info(

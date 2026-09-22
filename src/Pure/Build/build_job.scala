@@ -263,9 +263,6 @@ object Build_Job {
           val session_theories =
             current_background.base.used_theories.map(_.eval_conditions(session_conditions))
 
-          val session_theories_index =
-            Map.from(for ((thy, i) <- session_theories.iterator.zipWithIndex) yield thy.name.theory -> i)
-
 
           /* session */
 
@@ -596,7 +593,7 @@ object Build_Job {
                 theory_timings = true,
                 ml_statistics = true,
                 task_statistics = true
-              ).sort_theories(Ordering.by(props => session_theories_index(Markup.Name.get(props))))
+              ).sort_theories(session_theories)
 
           // write log file
           if (process_result.ok) {
