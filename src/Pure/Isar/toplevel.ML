@@ -140,9 +140,9 @@ val skipped_proof_node = fn Skipped_Proof _ => true | _ => false;
 fun init_skipped_proof result_thy orig_thy =
   Skipped_Proof (make_skipped_proof (0, result_thy, orig_thy));
 
-fun nest_skipped_proof i (Skipped_Proof {depth, result_thy, orig_thy}) =
-      Skipped_Proof (make_skipped_proof (depth + i, result_thy, orig_thy))
-  | nest_skipped_proof _ _ = raise UNDEF;
+fun skipped_proof_depth f (Skipped_Proof {depth, result_thy, orig_thy}) =
+      Skipped_Proof (make_skipped_proof (f depth, result_thy, orig_thy))
+  | skipped_proof_depth _ _ = raise UNDEF;
 
 fun cases_node f _ _ Toplevel = f ()
   | cases_node _ g _ (Theory {gthy, ...}) = g gthy
@@ -695,11 +695,11 @@ fun skip_proof f = transaction0
   (fn skip as Skipped_Proof _ => (f (); skip)
     | _ => raise UNDEF);
 
-val skip_proof_open = transaction0 (nest_skipped_proof 1);
+val skip_proof_open = transaction0 (skipped_proof_depth (Integer.add 1));
 
 val skip_proof_close = transaction0
   (fn Skipped_Proof {depth = 0, result_thy, ...} => Theory result_thy
-    | node => nest_skipped_proof ~1 node);
+    | node => skipped_proof_depth (Integer.add ~1) node);
 
 
 (* end context *)
