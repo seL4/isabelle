@@ -1,5 +1,6 @@
 theory Needham_Schroeder_Unguided_Attacker_Example
-imports Needham_Schroeder_Base
+  imports Needham_Schroeder_Base
+  options [condition = build_everything]
 begin
 
 inductive_set ns_public :: "event list set"

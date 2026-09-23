@@ -3,7 +3,10 @@
 A couple of datatypes from Steve Brackin's work.
 *)
 
-theory Brackin imports Main begin
+theory Brackin
+  imports Main
+  options [condition = build_everything]
+begin
 
 datatype T =
     X1 | X2 | X3 | X4 | X5 | X6 | X7 | X8 | X9 | X10 | X11 |

@@ -342,12 +342,13 @@ object Isabelle_Cronjob {
         clean_components = false,
         shared_isabelle_self = true,
         options = "-m32 -B -M1x2 -U 4000 -p timeout_scale=2" +
-          " -e ISABELLE_SWIPL=swipl",
+          " -e ISABELLE_SWIPL=swipl -p build_everything=true",
         args = "-a -d '~~/src/Benchmarks'")),
       List(Remote_Build("Linux B", "lxbroy10", history = 90,
         options = "-m32 -B -M1x4,2,4,6", args = "-N -g timing")),
       List(Remote_Build("Linux C", "linux-netcup-g12", history = 90,
-        options = "-m32 -B -M1x4,2x4,4x2,8", args = "-a -d '~~/src/Benchmarks'",
+        options = "-m32 -B -M1x4,2x4,4x2,8 -p build_everything=true",
+        args = "-a -d '~~/src/Benchmarks'",
         count = () => 2)),
       List(
         Remote_Build("macOS 12 Monterey (Intel)", "mini1-monterey",
@@ -357,7 +358,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/usr/local/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
-            " -e ISABELLE_SWIPL=/usr/local/bin/swipl",
+            " -e ISABELLE_SWIPL=/usr/local/bin/swipl" +
+            " -p build_everything=true",
           args = "-a -d '~~/src/Benchmarks'")),
       List(
         Remote_Build("AFP macOS (macOS 14 Sonoma, Apple Silicon)", "studio1-sonoma", history = 120,
@@ -367,7 +369,8 @@ object Isabelle_Cronjob {
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_GO_SETUP=true" +
             " -e ISABELLE_SMLNJ=/usr/local/smlnj/bin/sml" +
-            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl" +
+            " -p build_everything=true",
           args = "-a -d '~~/src/Benchmarks' -X large -X slow",
           afp = true,
           detect = Build_Log.Prop.build_tags.toString + " = " + SQL.string("AFP"),
@@ -391,7 +394,8 @@ object Isabelle_Cronjob {
           options = "-a -m32 -B -M1x4,2x2,4 -p pide_session=false" +
             " -e ISABELLE_GHC_SETUP=true" +
             " -e ISABELLE_MLTON=/opt/homebrew/bin/mlton -e ISABELLE_MLTON_OPTIONS=" +
-            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl",
+            " -e ISABELLE_SWIPL=/opt/homebrew/bin/swipl" +
+            " -p build_everything=true",
           args = "-a -d '~~/src/Benchmarks'",
           count = () => 3)),
       List(

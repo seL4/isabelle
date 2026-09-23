@@ -5,7 +5,8 @@
 section \<open>Benchmark for large record\<close>
 
 theory Record_Benchmark
-imports Main
+  imports Main
+  options [condition = build_everything]
 begin
 
 declare [[record_timing]]

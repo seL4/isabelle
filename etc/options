@@ -215,6 +215,9 @@ option build_debug : bool = false
 option build_thorough : bool = false
   -- "observe dependencies on options with tag 'content' or 'document'"
 
+option build_everything : bool = false for build build_sync
+  -- "build everything, including guarded benchmark theories"
+
 option build_hostname : string = ""
   -- "alternative hostname for build process (default $ISABELLE_HOSTNAME)"
 

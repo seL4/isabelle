@@ -8,7 +8,8 @@ Miscellaneous tests for the nested-to-mutual reduction.
 section \<open>Miscellaneous Tests for the Nested-to-Mutual Reduction\<close>
 
 theory Misc_N2M
-imports "HOL-Library.BNF_Axiomatization"
+  imports "HOL-Library.BNF_Axiomatization"
+  options [condition = build_everything]
 begin
 
 declare [[typedef_overloaded]]

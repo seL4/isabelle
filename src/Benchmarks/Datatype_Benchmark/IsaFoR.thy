@@ -8,7 +8,8 @@ Benchmark consisting of datatypes defined in IsaFoR.
 section \<open>Benchmark Consisting of Datatypes Defined in IsaFoR\<close>
 
 theory IsaFoR
-imports HOL.Real
+  imports HOL.Real
+  options [condition = build_everything]
 begin
 
 datatype (discs_sels) ('f, 'l) lab =

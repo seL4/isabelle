@@ -472,6 +472,13 @@ command-line tools like "isabelle dump", "isabelle build", and
 derivatives, this is the console. Potential INCOMPATIBILITY: e.g. use
 "isabelle build -o system_log='' ..." to disable it explicitly.
 
+* System option "build_everything" is the conventional guard for
+theories that are somehow optional, and normally not processed (e.g.
+benchmarks). For example, see ~~/src/Benchmarks which now requires
+and explicit options to actually build the content:
+
+  isabelle build -o build_everything -D '~~/src/Benchmarks'
+
 * Both SHA1 and SHA256 are supported in Isabelle/Scala. SHA1 is still
 used routinely, but will be eventually phased out. Result is of type
 Message_Digest.T, with slightly different toString method. Subtle
