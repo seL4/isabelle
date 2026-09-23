@@ -777,20 +777,20 @@ end;
 
 local
 
-fun reset_if cond trans st =
+fun reset_unless cond trans st =
   if cond st then NONE
   else #2 (command_errors (trans empty) st);
 
-val reset_theory = reset_if is_theory forget_proof;
+val reset_theory = reset_unless is_theory forget_proof;
 
 val reset_proof =
-  reset_if is_proof
+  reset_unless is_proof
     (transaction0
       (fn Theory thy => init_skipped_proof thy thy
         | _ => raise UNDEF));
 
 val reset_notepad =
-  reset_if
+  reset_unless
     (fn st =>
       (case try proof_of st of
         SOME state => not (Proof.is_notepad state) orelse can Proof.end_notepad state
