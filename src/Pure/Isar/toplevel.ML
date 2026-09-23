@@ -802,13 +802,14 @@ in
 fun reset_state tr st = setmp_thread_position tr (fn () =>
   let
     val kind = kind_of tr;
+    val kind_theory_body = Symset.member Keyword.theory_body_kinds kind;
+    val kind_proof = Symset.member Keyword.proof_kinds kind;
+    val kind_theory_end = Symset.member Keyword.theory_end_kinds kind;
+
     val res =
-      if Symset.member Keyword.theory_body_kinds kind then reset_theory st
-      else if Symset.member Keyword.proof_kinds kind then reset_proof st
-      else if Symset.member Keyword.theory_end_kinds kind then
-        (case reset_notepad st of
-          NONE => reset_theory st
-        | some => some)
+      if kind_theory_body then reset_theory st
+      else if kind_proof then reset_proof st
+      else if kind_theory_end then (case reset_notepad st of NONE => reset_theory st | some => some)
       else NONE;
   in
     (case res of
