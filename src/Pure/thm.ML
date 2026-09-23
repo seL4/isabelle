@@ -2052,12 +2052,15 @@ fun of_class (cT, raw_c) =
     val thy = Context.certificate_theory cert
       handle ERROR msg => raise CONTEXT (msg, [cT], [], [], NONE);
     val c = Sign.certify_class thy raw_c;
-    val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
+
+    val prop = Logic.mk_of_class (T, c);
+    val Cterm {t = prop', maxidx, sorts, ...} = global_cterm_of thy prop;
 
     fun zproof () = ZTerm.of_class_proof (T, c);
     fun proof () = Proofterm.PClass (T, c);
   in
-    if Sign.of_sort thy (T, [c]) then
+    if prop <> prop' then raise THM ("of_class: bad proposition via cterm_of", 0, [])
+    else if Sign.of_sort thy (T, [c]) then
       Thm (deriv_rule0 zproof proof,
        {cert = cert,
         tags = [],

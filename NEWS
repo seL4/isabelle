@@ -380,6 +380,13 @@ corresponding derived rules, concerning rare boundary cases:
     produce a malformed result (bad maxidx), and its main application
     Thm.instantiate_frees would leave variables uninstantiated.
 
+  - Thm.of_class could be abused in conjunction with
+    Soft_Type_System.setup, to install a "purge" operation that
+    manipulates the Logic.mk_of_class proposition. The original
+    implementation stems from 1994, but the experimental/unused
+    Soft_Type_System from Isabelle2020 made that an unchecked
+    side-entry.
+
 * ML antiquotation @{unchecked_name a} inlines a syntactically
 wellformed long name as string literal, without any formal checking in
 the logical context. This may be used as last resort, when Isabelle/ML
