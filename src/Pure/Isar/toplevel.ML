@@ -800,13 +800,21 @@ val reset_proof =
       (fn Theory thy => init_skipped_proof false thy thy
         | _ => raise UNDEF));
 
+fun is_notepad st =
+  (case node_of st of
+    Proof (prf, _) => Proof.is_notepad (Proof_Node.current prf)
+  | Skipped_Proof {is_notepad, ...} => is_notepad
+  | _ => false);
+
+fun is_notepad_end st = is_notepad st andalso
+  (case node_of st of
+    Proof (prf, _) => can Proof.end_notepad (Proof_Node.current prf)
+  | Skipped_Proof {depth, ...} => depth = 0
+  | _ => false);
+
 val reset_notepad =
-  reset_unless
-    (fn st =>
-      (case try proof_of st of
-        SOME state => not (Proof.is_notepad state) orelse can Proof.end_notepad state
-      | NONE => true))
-    (proof Proof.reset_notepad);
+  reset_unless is_notepad_end
+    (proof Proof.reset_notepad o transaction0 (skipped_proof_depth (K 0)));
 
 in
 
@@ -820,7 +828,7 @@ fun reset_state tr st = setmp_thread_position tr (fn () =>
     val res =
       if kind_theory_body then reset_theory st
       else if kind_proof then reset_proof st
-      else if kind_theory_end then (case reset_notepad st of NONE => reset_theory st | some => some)
+      else if kind_theory_end then (if is_notepad st then reset_notepad st else reset_theory st)
       else NONE;
   in
     (case res of
