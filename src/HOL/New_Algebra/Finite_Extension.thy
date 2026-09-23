@@ -15,7 +15,7 @@ locale finite_subfield_tower = subfield_tower +
 begin
 
 definition extension_degree :: nat
-  where "extension_degree = vs.dimension"
+  where "extension_degree \<equiv> vs.dimension"
 
 lemma extension_degree_eq_dimension:
   "extension_degree = vs.dimension"
@@ -27,8 +27,7 @@ lemma extension_degree_eq_card_basis:
   using vs.dimension_eq_any_field[OF assms]
   by (simp add: extension_degree_def)
 
-lemma finite_basis_exists:
-  "\<exists>B. vs.basis B"
+lemma finite_basis_exists: "\<exists>B. vs.basis B"
   by (rule finite_basis)
 
 text \<open>
@@ -36,8 +35,7 @@ text \<open>
   not require the carrier of the extension to be finite: finite-dimensionality is exactly the basis
   premise of the locale.
 \<close>
-lemma extension_degree_pos:
-  "extension_degree > 0"
+lemma extension_degree_pos: "extension_degree > 0"
 proof -
   obtain B where B: "vs.basis B"
     using finite_basis by blast
@@ -51,11 +49,9 @@ proof -
       using cardB0 by (simp add: card_eq_0_iff)
     have Bempty: "B = {}"
       using Bempty_or_infinite B by (simp add: vs.basis_def)
-    have oneL: "1 \<in> L" by (rule ext.one_closed)
     obtain c where c: "c \<in> {} \<rightarrow>\<^sub>E K" and one_eq: "1 = vs.lincomb c {}"
-      using vs.basis_spanning[OF B, unfolded Bempty] oneL
+      using vs.basis_spanning[OF B, unfolded Bempty] ext.one_closed
       unfolding vs.spanning_def by blast
-    then have "(1 :: 'a) = 0" by simp
     then show False by simp
   qed
 qed
@@ -74,11 +70,7 @@ lemma extension_degree_eq_ext_degree:
 lemma finite_extension_cardinality:
   assumes "finite L"
   shows "card L = card K ^ extension_degree"
-proof -
-  have card: "card L = card K ^ vs.dimension"
-    by (rule finite_subfield_tower_cardinality[OF assms])
-  then show ?thesis by (simp add: extension_degree_def)
-qed
+  by (simp add: assms extension_degree_eq_dimension finite_subfield_tower_cardinality)
 
 text \<open>A finite-dimensional extension of a finite carrier field again has finite carrier.
   A basis identifies the extension bijectively with the finitely supported coordinate functions
@@ -90,14 +82,10 @@ lemma finite_carrier_of_finite_base:
 proof -
   obtain B where basis: "vs.basis B"
     using finite_basis_exists by blast
-  have finB: "finite B"
-    using basis by (simp add: vs.basis_def)
   have fin_coords: "finite (B \<rightarrow>\<^sub>E K)"
-    by (rule finite_PiE[OF finB]) (use finK in auto)
-  have bij: "bij_betw (\<lambda>c. vs.lincomb c B) (B \<rightarrow>\<^sub>E K) L"
-    using basis by (simp add: vs.basis_def)
+    using basis finK unfolding vs.basis_def by (meson finite_PiE)
   have image: "(\<lambda>c. vs.lincomb c B) ` (B \<rightarrow>\<^sub>E K) = L"
-    using bij by (simp add: bij_betw_def)
+    using basis by (simp add: vs.basis_def bij_betw_def)
   show ?thesis
     using finite_imageI[OF fin_coords, of "\<lambda>c. vs.lincomb c B"] image by simp
 qed
@@ -113,23 +101,25 @@ proof -
     using spanning unfolding vs.spanning_def by blast
   have BL: "B \<subseteq> L"
     using spanning unfolding vs.spanning_def by blast
-  have gen_subset: "generate_field (K \<union> B) \<subseteq> L"
-    by (rule generate_field_least[OF ext.Subfield_axioms]) (use base_subset BL in auto)
-  have L_subset: "L \<subseteq> generate_field (K \<union> B)"
+  show ?thesis
   proof
-    fix x assume xL: "x \<in> L"
-    obtain c where c: "c \<in> B \<rightarrow>\<^sub>E K" "x = vs.lincomb c B"
-      using vs.basis_spanning[OF basis] xL unfolding vs.spanning_def by blast
-    have cK: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> K" using c(1) by auto
-    have lincomb_sum: "vs.lincomb c B = (\<Sum>v\<in>B. c v * v)"
-      by (rule vs_lincomb_eq_sum[OF finB BL cK])
-    interpret G: Subfield "generate_field (K \<union> B)" by (rule subfield_generate_field)
-    have sumG: "(\<Sum>v\<in>B. c v * v) \<in> generate_field (K \<union> B)"
-      by (rule G.sum_closed, rule G.mult_closed) (use cK in auto)
-    show "x \<in> generate_field (K \<union> B)"
-      using c(2) lincomb_sum sumG by simp
+    show "generate_field (K \<union> B) \<subseteq> L"
+      by (rule generate_field_least[OF ext.Subfield_axioms]) (use base_subset BL in auto)
+    show "L \<subseteq> generate_field (K \<union> B)"
+    proof
+      fix x assume xL: "x \<in> L"
+      obtain c where c: "c \<in> B \<rightarrow>\<^sub>E K" "x = vs.lincomb c B"
+        using vs.basis_spanning[OF basis] xL unfolding vs.spanning_def by blast
+      have cK: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> K" using c(1) by auto
+      have lincomb_sum: "vs.lincomb c B = (\<Sum>v\<in>B. c v * v)"
+        by (rule vs_lincomb_eq_sum[OF finB BL cK])
+      interpret G: Subfield "generate_field (K \<union> B)" by (rule subfield_generate_field)
+      have sumG: "(\<Sum>v\<in>B. c v * v) \<in> generate_field (K \<union> B)"
+        by (simp add: G.mult_closed G.sum_closed cK generate_field.generate_field_base)
+      show "x \<in> generate_field (K \<union> B)"
+        using c(2) lincomb_sum sumG by simp
+    qed
   qed
-  show ?thesis by (rule subset_antisym[OF L_subset gen_subset])
 qed
 
 end (* finite_subfield_tower *)
@@ -149,12 +139,8 @@ proof -
   obtain C where C: "C \<subseteq> B" and basisC: "vs.basis C"
     using subfield_tower_basis_exists_of_finite_spanning[OF finB BL span] by blast
   show ?thesis
-  proof (rule finite_subfield_tower.intro)
-    show "subfield_tower K L"
-      by unfold_locales (rule base_subset)
-    show "finite_subfield_tower_axioms K L"
-      by (rule finite_subfield_tower_axioms.intro) (rule exI[of _ C], rule basisC)
-  qed
+    using basisC finite_subfield_tower_axioms.intro finite_subfield_tower_def subfield_tower_axioms
+    by blast
 qed
 
 lemma finite_subfield_tower_iff_finite_spanning:
@@ -166,22 +152,14 @@ proof
   obtain B where B: "vs.basis B" using T.finite_basis by blast
   have finB: "finite B" and BL: "B \<subseteq> L"
     using B by (auto simp: vs.basis_def)
-  have mod_span: "vs.mod.spanning B"
-    using vs.spanning_iff_mod_spanning[OF finB BL]
-      vs.basis_spanning[OF B] by blast
   have "L \<subseteq> vs.span B"
-  proof
-    fix x assume xL: "x \<in> L"
-    show "x \<in> vs.span B"
-      using vs.mod.spanningD[OF mod_span xL] by (simp add: vs.span_def)
-  qed
+    using B BL finB vs.basis_spanning vs.mod.spanning_def vs.spanning_iff_mod_spanning by blast
   then show "\<exists>B. finite B \<and> B \<subseteq> L \<and> L \<subseteq> vs.span B"
     using finB BL by blast
 next
   assume "\<exists>B. finite B \<and> B \<subseteq> L \<and> L \<subseteq> vs.span B"
-  then obtain B where "finite B" and "B \<subseteq> L" and "L \<subseteq> vs.span B" by blast
   then show "finite_subfield_tower K L"
-    by (rule finite_subfield_tower_of_finite_spanning)
+    using finite_subfield_tower_of_finite_spanning by force
 qed
 
 end (* subfield_tower *)
@@ -199,36 +177,19 @@ theorem finite_subfield_tower_intermediate_left:
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
   interpret FE: subfield_tower F E
-  proof (rule subfield_tower.intro)
-    show "Subfield F" by (rule T.base.Subfield_axioms)
-    show "Subfield E" by (rule sfE)
-    show "subfield_tower_axioms F E" by unfold_locales (rule FE)
-  qed
+    by (simp add: FE T.base.Subfield_axioms sfE subfield_tower.intro subfield_tower_axioms.intro)
   have E_submodule: "T.vs.mod.submodule E"
-  proof (rule T.vs.mod.submoduleI)
-    show "E \<subseteq> K" by (rule EK)
-    show "0 \<in> E" by (rule Subfield.zero_closed[OF sfE])
-    show "\<And>x y. x \<in> E \<Longrightarrow> y \<in> E \<Longrightarrow> x + y \<in> E"
-      by (rule Subfield.add_closed[OF sfE])
-    show "\<And>c x. c \<in> F \<Longrightarrow> x \<in> E \<Longrightarrow> c * x \<in> E"
-      using FE by (blast intro: Subfield.mult_closed[OF sfE])
-  qed
+    by (simp add: EK FE.vs.scale_closed T.vs.mod.submoduleI)
   interpret S: vector_subspace F "(+)" "(*)" "0" "1" "(+)" "0" K "(*)" E
-  proof (rule vector_subspace.intro)
-    show "Vector_Space.Vector_Space F (+) (*) 0 1 (+) 0 K (*)"
-      by (rule T.vs.Vector_Space_axioms)
-    show "vector_subspace_axioms F (+) 0 K (*) E"
-      by unfold_locales (rule E_submodule)
-  qed
+    by (simp add: E_submodule T.vs.Vector_Space_axioms vector_subspace_axioms_def
+        vector_subspace_def)
   obtain B where B: "T.vs.basis B" using T.finite_basis by blast
   obtain A where basis_FE: "FE.vs.basis A"
     using S.subspace_basis_exists[OF B] by blast
   show ?thesis
-  proof (rule finite_subfield_tower.intro)
-    show "subfield_tower F E" by (rule FE.subfield_tower_axioms)
-    show "finite_subfield_tower_axioms F E"
-      by unfold_locales (rule exI[of _ A], rule basis_FE)
-  qed
+    unfolding finite_subfield_tower_def
+    using FE.subfield_tower_axioms basis_FE finite_subfield_tower_axioms.intro 
+    by blast
 qed
 
 text \<open>The upper part of the same tower is finite-dimensional as well.  An ambient basis over
@@ -241,11 +202,7 @@ theorem finite_subfield_tower_intermediate_right:
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
   interpret EK: subfield_tower E K
-  proof (rule subfield_tower.intro)
-    show "Subfield E" by (rule sfE)
-    show "Subfield K" by (rule T.ext.Subfield_axioms)
-    show "subfield_tower_axioms E K" by unfold_locales (rule EK)
-  qed
+    using EK T.ext.Subfield_axioms sfE subfield_tower.intro subfield_tower_axioms_def by blast
   obtain B where B: "T.vs.basis B" using T.finite_basis by blast
   have finB: "finite B" and BK: "B \<subseteq> K"
     using B by (auto simp: T.vs.basis_def)
@@ -254,12 +211,10 @@ proof -
     fix x assume xK: "x \<in> K"
     obtain c where c: "c \<in> B \<rightarrow>\<^sub>E F" "x = T.vs.lincomb c B"
       using T.vs.basis_spanning[OF B] xK unfolding T.vs.spanning_def by blast
-    have cF: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> F" using c(1) by auto
-    have cE: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> E" using cF FE by blast
     have xsum: "x = (\<Sum>v\<in>B. c v * v)"
-      using c(2) T.vs_lincomb_eq_sum[OF finB BK cF] by simp
+      using c(2) T.vs_lincomb_eq_sum[OF finB BK] c by auto
     have "(\<Sum>v\<in>B. c v * id v) \<in> EK.vs.span (id ` B)"
-      by (rule EK.sum_scale_in_span[OF finB]) (use BK cE in auto)
+      using BK EK.sum_scale_in_span[of B id c] c FE by fastforce
     then show "x \<in> EK.vs.span B" using xsum by simp
   qed
   show ?thesis by (rule EK.finite_subfield_tower_of_finite_spanning[OF finB BK K_span])
