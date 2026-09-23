@@ -74,6 +74,8 @@ sig
     (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: (xstring * Position.T) option -> presentation ->
     transition -> transition
+  val begin_notepad: (bool * Position.T) option -> (xstring * Position.T) option ->
+    transition -> transition
   val local_theory_to_proof: (bool * Position.T) option -> (xstring * Position.T) option ->
     (local_theory -> Proof.state) -> transition -> transition
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
@@ -119,10 +121,10 @@ fun dec_level level = if level <= 0 then raise UNDEF else level - 1;
 fun report_skipped () =
   Position.report_text (Position.thread_data ()) (Markup.bad ()) "Skipped";
 
-type skipped_proof = {depth: int, result_thy: thy, orig_thy: thy};
+type skipped_proof = {depth: int, is_notepad: bool, result_thy: thy, orig_thy: thy};
 
-fun make_skipped_proof (depth, result_thy, orig_thy) : skipped_proof =
-  {depth = depth, result_thy = result_thy, orig_thy = orig_thy};
+fun make_skipped_proof (depth, is_notepad, result_thy, orig_thy) : skipped_proof =
+  {depth = depth, is_notepad = is_notepad, result_thy = result_thy, orig_thy = orig_thy};
 
 datatype node =
   Toplevel
@@ -137,11 +139,11 @@ val theory_node = fn Theory thy => SOME thy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
 val skipped_proof_node = fn Skipped_Proof _ => true | _ => false;
 
-fun init_skipped_proof result_thy orig_thy =
-  Skipped_Proof (make_skipped_proof (0, result_thy, orig_thy));
+fun init_skipped_proof is_notepad result_thy orig_thy =
+  Skipped_Proof (make_skipped_proof (0, is_notepad, result_thy, orig_thy));
 
-fun skipped_proof_depth f (Skipped_Proof {depth, result_thy, orig_thy}) =
-      Skipped_Proof (make_skipped_proof (f depth, result_thy, orig_thy))
+fun skipped_proof_depth f (Skipped_Proof {depth, is_notepad, result_thy, orig_thy}) =
+      Skipped_Proof (make_skipped_proof (f depth, is_notepad, result_thy, orig_thy))
   | skipped_proof_depth _ _ = raise UNDEF;
 
 fun cases_node f _ _ Toplevel = f ()
@@ -628,9 +630,9 @@ fun end_proof f = transaction
 
 local
 
-fun begin_proof init_proof = transaction0
+fun begin_proof is_notepad init_proof = transaction0
   (fn Theory (thy as {skipped, gthy, ...}) =>
-        if skipped then (report_skipped (); init_skipped_proof thy thy)
+        if skipped then (report_skipped (); init_skipped_proof is_notepad thy thy)
         else
           let
             val (finish_gthy, prf) = init_proof gthy;
@@ -644,14 +646,13 @@ fun begin_proof init_proof = transaction0
               else ();
           in
             if skip andalso schematic_goal = SOME false then
-              init_skipped_proof (finish (Interactive.setmp true Proof.global_skip_proof prf)) thy
+              init_skipped_proof is_notepad
+                (finish (Interactive.setmp true Proof.global_skip_proof prf)) thy
             else Proof (Proof_Node.init prf, (finish, thy))
           end
   | _ => raise UNDEF);
 
-in
-
-fun local_theory_to_proof restricted target f = begin_proof
+fun local_theory_to_proof' restricted target is_notepad f = begin_proof is_notepad
   (fn gthy =>
     let
       val (finish, lthy) = Target_Context.switch_named_cmd target gthy;
@@ -661,7 +662,15 @@ fun local_theory_to_proof restricted target f = begin_proof
         |> f;
     in (finish o Local_Theory.reset_group, prf) end);
 
-fun theory_to_proof f = begin_proof
+in
+
+fun begin_notepad restricted target =
+  local_theory_to_proof' restricted target true Proof.begin_notepad;
+
+fun local_theory_to_proof restricted target f =
+  local_theory_to_proof' restricted target false f;
+
+fun theory_to_proof f = begin_proof false
   (fn gthy =>
     (Context.Theory o Sign.reset_group o Sign.change_check o Proof_Context.theory_of,
       (case gthy of
@@ -674,7 +683,9 @@ val forget_proof = transaction0
   (fn Proof (prf, (_, orig_thy)) =>
         if Proof.is_notepad (Proof_Node.current prf) then raise UNDEF
         else Theory orig_thy
-    | Skipped_Proof {orig_thy, ...} => Theory orig_thy
+    | Skipped_Proof {is_notepad, orig_thy, ...} =>
+        if is_notepad then raise UNDEF
+        else Theory orig_thy
     | _ => raise UNDEF);
 
 fun proofs f = transaction0
@@ -786,7 +797,7 @@ val reset_theory = reset_unless is_theory forget_proof;
 val reset_proof =
   reset_unless is_proof
     (transaction0
-      (fn Theory thy => init_skipped_proof thy thy
+      (fn Theory thy => init_skipped_proof false thy thy
         | _ => raise UNDEF));
 
 val reset_notepad =

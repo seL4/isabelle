@@ -17,6 +17,7 @@ sig
     (local_theory -> local_theory) parser -> unit
   val local_theory_to_proof: command_keyword -> string ->
     (local_theory -> Proof.state) parser -> unit
+  val begin_notepad: command_keyword -> string -> unit parser -> unit
   val bootstrap: bool Config.T
   val parse_spans: (string -> string) -> Token.T list -> Command_Span.span list
   val make_span: string -> Token.T list -> Command_Span.span
@@ -162,6 +163,10 @@ fun local_theory_command trans command_keyword comment parse =
 
 val local_theory = local_theory_command Toplevel.local_theory;
 val local_theory_to_proof = local_theory_command Toplevel.local_theory_to_proof;
+
+val begin_notepad =
+  local_theory_command (fn restricted => fn target => fn () =>
+    Toplevel.begin_notepad restricted target);
 
 
 

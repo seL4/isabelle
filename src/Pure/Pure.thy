@@ -819,8 +819,8 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>notepad\<close> "begin proof context"
-    (Parse.begin >> K Proof.begin_notepad);
+  Outer_Syntax.begin_notepad \<^command_keyword>\<open>notepad\<close> "begin proof context"
+    (Parse.begin >> K ());
 
 in end\<close>
 
