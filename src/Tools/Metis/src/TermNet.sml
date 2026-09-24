@@ -29,7 +29,7 @@ local
       if Portable.pointerEqual q1_q2 then cmp qs
       else
         case q1_q2 of
-          (Var,Var) => EQUAL
+          (Var,Var) => cmp qs
         | (Var, Fn _) => LESS
         | (Fn _, Var) => GREATER
         | (Fn f1, Fn f2) => fnCmp f1 f2 qs

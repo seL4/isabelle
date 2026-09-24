@@ -77,7 +77,59 @@ end;
 
 fun weightSubtract w1 w2 = weightAdd w1 (weightNeg w2);
 
+(* ------------------------------------------------------------------------- *)
+(* 2026-09-18: Martin Desharnais-Schaefer proposed optimizing weightTerm as  *)
+(* below to reduce the amount of memory allocation by Metis in Isabelle:     *)
+(*                                                                           *)
+(* "This was based on a test of 2180 problems handed from Isabelle to        *)
+(* Resolution.new, exported with Tptp.write and replayed under Poly/ML's     *)
+(* allocation profiler, one process per problem, 60s limit. The optimized    *)
+(* version uses 15.3% less memory allocation than the reference version. For *)
+(* scale, weightTerm is 1.8–2.2% of Metis's total allocation on this corpus, *)
+(* against 6.8% for the single largest consumer: Literal.subst."             *)
+(* ------------------------------------------------------------------------- *)
+
 fun weightTerm weight =
+    let
+      fun incrementVar m v =
+          let
+            val n = Option.getOpt (NameMap.peek m v, 0)
+          in
+            NameMap.insert m (v, n + 1)
+          end
+
+      fun wt m c (Term.Var v) tms1 tms2 pending =
+          next (incrementVar m v) (c + 1) tms1 tms2 pending
+        | wt m c (Term.Fn (f,a)) tms1 tms2 pending =
+          let
+            val c = c + weight (f, length a)
+          in
+            case a of
+              [] => next m c tms1 tms2 pending
+            | [tm] => wt m c tm tms1 tms2 pending
+            | [Term.Var v, tm] => wt (incrementVar m v) (c + 1) tm tms1 tms2 pending
+            | [tm, Term.Var v] => wt (incrementVar m v) (c + 1) tm tms1 tms2 pending
+            | [Term.Fn (g,[]), tm] => wt m (c + weight (g,0)) tm tms1 tms2 pending
+            | [tm, Term.Fn (g,[])] => wt m (c + weight (g,0)) tm tms1 tms2 pending
+            | tm :: args =>
+              if List.null tms1 then
+                wt m c tm args tms2 pending
+              else if List.null tms2 then
+                wt m c tm args tms1 pending
+              else
+                wt m c tm args tms1 (tms2 :: pending)
+          end
+
+      and next m c (tm :: tms1) tms2 pending = wt m c tm tms1 tms2 pending
+        | next m c [] (tm :: tms2) pending = wt m c tm tms2 [] pending
+        | next m c [] [] (tms1 :: pending) = next m c tms1 [] pending
+        | next m c [] [] [] = Weight (m,c)
+    in
+      fn tm => wt weightEmpty ~1 tm [] [] []
+    end;
+
+(*MetisDebug
+fun weightTermRef weight =
     let
       fun wt m c [] = Weight (m,c)
         | wt m c (Term.Var v :: tms) =
@@ -91,6 +143,16 @@ fun weightTerm weight =
     in
       fn tm => wt weightEmpty ~1 [tm]
     end;
+
+val weightTerm = fn weight => fn tm =>
+    let
+      val w1 = weightTerm weight tm
+      val w2 = weightTermRef weight tm
+    in
+      if weightIsZero (weightSubtract w1 w2) then w1
+      else raise Useful.Bug "KnuthBendixOrdering.weightTerm: doesn't match reference"
+    end;
+*)
 
 fun weightLowerBound (w as Weight (m,c)) =
     if NameMap.exists (fn (_,n) => n < 0) m then NONE else SOME c;

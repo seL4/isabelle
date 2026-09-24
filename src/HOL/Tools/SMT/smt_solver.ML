@@ -35,7 +35,8 @@ sig
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
-    int -> Time.time -> ((Bytes.T -> string) -> Bytes.T -> string) -> string list -> parsed_proof
+    int -> Time.time -> ((Bytes.T -> string list) -> Bytes.T -> string list) -> string list ->
+    parsed_proof
 
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
@@ -177,7 +178,7 @@ fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
     val output_lines =
       (case memoize_fun_call of
         NONE => run_cmd input_bytes
-      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) input_bytes))
+      | SOME memoize => memoize run_cmd input_bytes)
 
   in (output_lines, replay_data) end
 

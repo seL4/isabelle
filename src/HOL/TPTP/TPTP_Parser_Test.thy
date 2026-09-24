@@ -6,7 +6,7 @@ environment variable $TPTP, which should point to the TPTP-vX.Y.Z directory.
 *)
 
 theory TPTP_Parser_Test
-imports TPTP_Test TPTP_Parser_Example
+imports TPTP_Test
 begin
 
 section "Problem-name parsing tests"
@@ -64,6 +64,53 @@ ML \<open>
   TPTP_Parser.parse_expression "" "tff(dt_k4_waybel34, axiom, ~ ($true)).";
   payloads_of it;
 \<close>
+
+ML \<open>
+local
+  open TPTP_Syntax
+
+  val misses =
+    "thf(misses,definition,\n" ^
+    "    ( misses\n" ^
+    "    = ( ^ [X: $i > $o,Y: $i > $o] :\n" ^
+    "          ~ ? [U: $i] :\n" ^
+    "              ( ( X @ U )\n" ^
+    "              & ( Y @ U ) ) ) ) )."
+
+  fun is_apply x
+      (Fmla (Interpreted_ExtraLogic Apply,
+        [Atom (THF_Atom_term (Term_Var x')),
+         Atom (THF_Atom_term (Term_Var "U"))])) = x = x'
+    | is_apply _ _ = false
+
+  val misses_fmla =
+    TPTP_Parser.parse_expression "" misses
+    |> payloads_of
+    |> the_single
+
+  val _ =
+    @{assert}
+      (case misses_fmla of
+        Fmla (Interpreted_Logic Equals,
+          [Atom (THF_Atom_term (Term_FuncG (Uninterpreted "misses", _, []))),
+           Quant (Lambda, [("X", SOME _), ("Y", SOME _)],
+             Fmla (Interpreted_Logic Not,
+               [Quant (Exists, [("U", SOME _)],
+                 Fmla (Interpreted_Logic And, [x_u, y_u]))]))]) =>
+          is_apply "X" x_u andalso is_apply "Y" y_u
+      | _ => false)
+
+  val _ =
+    List.app (ignore o TPTP_Parser.parse_expression "")
+      ["thf(test_atomic,axiom,~ p).",
+       "thf(test_quantified,axiom,~ ? [X : $i] : p).",
+       "thf(test_repeated,axiom,~ ~ p).",
+       "thf(test_parenthesized,axiom,~ (p & q))."]
+in
+  val _ = TPTP_Parser.parse_file "$TPTP/Axioms/SET008^0.ax"
+end
+\<close>
+
 ML \<open>
   TPTP_Parser.parse_expression "" "thf(bla, type, x : $o).";
   TPTP_Parser.parse_expression ""
