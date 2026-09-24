@@ -1,0 +1,18 @@
+diff --git a/product.json b/product.json
+index 395cc7ed..f2ac56a6 100644
+--- a/product.json
++++ b/product.json
+@@ -84,6 +84,13 @@
+ 				},
+ 				"publisherDisplayName": "Microsoft"
+ 			}
++		},
++		{
++			"name": "mathematic.vscode-pdf",
++			"version": "0.2.5",
++			"sha256": "71d0c4b1a6129b75e65dbdcbb8d1b1c1dcdccf2c987b7b5fb7eddea723bbc2e5",
++			"repo": "https://github.com/mathematic-inc/vscode-pdf",
++			"metadata": {}
+ 		}
+ 	],
+ 	"defaultChatAgent": {

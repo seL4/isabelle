@@ -229,7 +229,7 @@ object Component_VSCodium {
         }
 
         // explicit patches
-        for (name <- Seq("cli", "gulpfile", "isabelle_encoding")) {
+        for (name <- Seq("cli", "gulpfile", "isabelle_encoding", "vscode-pdf")) {
           Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
         }
 
