@@ -1,8 +1,57 @@
+diff --git a/build_cli.sh b/build_cli.sh
+index 1d84559..3efefbd 100755
+--- a/build_cli.sh
++++ b/build_cli.sh
+@@ -21,7 +21,7 @@ else
+ fi
+ 
+ TUNNEL_APPLICATION_NAME="$( node -p "require(\"../product.json\").tunnelApplicationName" )"
+-NAME_SHORT="$( node -p "require(\"../product.json\").nameShort" )"
++NAME_LONG="$( node -p "require(\"../product.json\").nameLong" )"
+ 
+ npm pack @vscode/openssl-prebuilt@0.0.11
+ mkdir openssl
+@@ -41,7 +41,7 @@ if [[ "${OS_NAME}" == "osx" ]]; then
+ 
+   cargo build --release --target "${VSCODE_CLI_TARGET}" --bin=code
+ 
+-  cp "target/${VSCODE_CLI_TARGET}/release/code" "../../VSCode-darwin-${VSCODE_ARCH}/${NAME_SHORT}.app/Contents/Resources/app/bin/${TUNNEL_APPLICATION_NAME}"
++  cp "target/${VSCODE_CLI_TARGET}/release/code" "../../VSCode-darwin-${VSCODE_ARCH}/${NAME_LONG}.app/Contents/Resources/app/bin/${TUNNEL_APPLICATION_NAME}"
+ elif [[ "${OS_NAME}" == "windows" ]]; then
+   if [[ "${VSCODE_ARCH}" == "arm64" ]]; then
+     VSCODE_CLI_TARGET="aarch64-pc-windows-msvc"
 diff --git a/prepare_vscode.sh b/prepare_vscode.sh
-index 1ac30e0..66efd47 100755
+index 1ac30e0..1c0ec2c 100755
 --- a/prepare_vscode.sh
 +++ b/prepare_vscode.sh
-@@ -225,13 +225,16 @@ for i in {1..5}; do # try 5 times
+@@ -93,18 +93,18 @@ if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
+   setpath "product" "win32ContextMenu.x64.clsid" "90AAD229-85FD-43A3-B82D-8598A88829CF"
+   setpath "product" "win32ContextMenu.arm64.clsid" "7544C31C-BDBF-4DDF-B15E-F73A46D6723D"
+ else
+-  setpath "product" "nameShort" "VSCodium"
+-  setpath "product" "nameLong" "VSCodium"
+-  setpath "product" "applicationName" "codium"
+-  setpath "product" "linuxIconName" "vscodium"
++  setpath "product" "nameShort" "Isacode"
++  setpath "product" "nameLong" "Isabelle VSCode"
++  setpath "product" "applicationName" "isacode"
++  setpath "product" "linuxIconName" "isacode"
+   setpath "product" "quality" "stable"
+-  setpath "product" "urlProtocol" "vscodium"
++  setpath "product" "urlProtocol" "isacode"
+   setpath "product" "serverApplicationName" "codium-server"
+   setpath "product" "serverDataFolderName" ".vscodium-server"
+-  setpath "product" "darwinBundleIdentifier" "com.vscodium"
+-  setpath "product" "win32AppUserModelId" "VSCodium.VSCodium"
++  setpath "product" "darwinBundleIdentifier" "isabelle.vscode"
++  setpath "product" "win32AppUserModelId" "Isabelle.VSCode"
+   setpath "product" "win32DirName" "VSCodium"
+-  setpath "product" "win32MutexName" "vscodium"
++  setpath "product" "win32MutexName" "isacode"
+   setpath "product" "win32NameVersion" "VSCodium"
+   setpath "product" "win32RegValueName" "VSCodium"
+   setpath "product" "win32ShellNameShort" "VSCodium"
+@@ -225,15 +225,18 @@ for i in {1..5}; do # try 5 times
    sleep $(( 15 * (i + 1)))
  done
  
@@ -18,5 +67,40 @@ index 1ac30e0..66efd47 100755
 -setpath "package" "version" "${RELEASE_VERSION%-insider}"
 +setpath "package" "version" "$MS_TAG"
  
- replace 's|Microsoft Corporation|VSCodium|' package.json
+-replace 's|Microsoft Corporation|VSCodium|' package.json
++replace 's|Microsoft Corporation|Isabelle Prover Organisation|' package.json
  replace "s|--max-old-space-size=8192|--max-old-space-size=${MAX_OLD_SPACE_SIZE}|" package.json
+ 
+ cp resources/server/manifest.json{,.bak}
+@@ -251,8 +254,8 @@ replace "s|\\[\\/\\* BUILTIN_ANNOUNCEMENTS \\*\\/\\]|$( tr -d '\n' < ../announce
+ 
+ ../undo_telemetry.sh
+ 
+-replace 's|Microsoft Corporation|VSCodium|' build/lib/electron.ts
+-replace 's|([0-9]) Microsoft|\1 VSCodium|' build/lib/electron.ts
++replace 's|Microsoft Corporation|Isabelle Prover Organisation|' build/lib/electron.ts
++replace 's|([0-9]) Microsoft|\1 Isabelle Prover|' build/lib/electron.ts
+ 
+ if [[ "${OS_NAME}" == "linux" ]]; then
+   # microsoft adds their apt repo to sources
+diff --git a/utils.sh b/utils.sh
+index 132812c..09ce3e4 100755
+--- a/utils.sh
++++ b/utils.sh
+@@ -1,12 +1,12 @@
+ #!/usr/bin/env bash
+ 
+-APP_NAME="${APP_NAME:-VSCodium}"
++APP_NAME="${APP_NAME:-Isacode}"
+ APP_NAME_LC="$( echo "${APP_NAME}" | awk '{print tolower($0)}' )"
+ ASSETS_REPOSITORY="${ASSETS_REPOSITORY:-VSCodium/vscodium}"
+-BINARY_NAME="${BINARY_NAME:-codium}"
++BINARY_NAME="${BINARY_NAME:-isacode}"
+ GH_REPO_PATH="${GH_REPO_PATH:-VSCodium/vscodium}"
+-ORG_NAME="${ORG_NAME:-VSCodium}"
+-TUNNEL_APP_NAME="${TUNNEL_APP_NAME:-"${BINARY_NAME}-tunnel"}"
++ORG_NAME="${ORG_NAME:-Isabelle Prover Organisation}"
++TUNNEL_APP_NAME="${TUNNEL_APP_NAME:-"codium-tunnel"}"
+ 
+ if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
+   GLOBAL_DIRNAME="${GLOBAL_DIRNAME:-"${APP_NAME_LC}"}-insiders"

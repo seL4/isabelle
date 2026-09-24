@@ -284,12 +284,23 @@ object Component_VSCodium {
     def setup_electron(dir: Path): Unit = {
       val electron = Path.explode("electron")
       if (platform.is_linux) {
-        Isabelle_System.move_file(dir + Path.explode("codium"), dir + electron)
+        Isabelle_System.move_file(dir + Path.explode("isacode"), dir + electron)
+      }
+      else if (platform.is_macos) {
+        val app_contents = dir + Path.explode("Isabelle VSCode.app/Contents")
+        Isabelle_System.move_file(
+          app_contents + Path.explode("MacOS/Isacode"),
+          app_contents + Path.explode("MacOS/Electron"))
+
+        File.change(app_contents + Path.basic("Info.plist"), strict = true)(
+          _.replacing(
+            "<key>CFBundleExecutable</key>\\s*<string>Isacode</string>".r ->
+            "<key>CFBundleExecutable</key>\n<string>Electron</string>"))
       }
       else if (platform.is_windows) {
-        Isabelle_System.move_file(dir + Path.explode("VSCodium.exe"), dir + electron.exe)
+        Isabelle_System.move_file(dir + Path.explode("Isacode.exe"), dir + electron.exe)
         Isabelle_System.move_file(
-          dir + Path.explode("VSCodium.VisualElementsManifest.xml"),
+          dir + Path.explode("Isacode.VisualElementsManifest.xml"),
           dir + Path.explode("electron.VisualElementsManifest.xml"))
       }
     }
@@ -427,7 +438,7 @@ object Component_VSCodium {
       val platform_dir = build_context.platform_dir(component_dir.path)
       Isabelle_System.copy_dir(build_context.build_dir(build_dir), platform_dir)
       if (platform.is_macos) {
-        Isabelle_System.symlink(Path.explode("VSCodium.app/Contents/Resources"),
+        Isabelle_System.symlink(Path.explode("Isabelle VSCode.app/Contents/Resources"),
           platform_dir + resources)
       }
       build_context.setup_electron(platform_dir)
@@ -455,8 +466,8 @@ ISABELLE_VSCODIUM_HOME="$COMPONENT/${ISABELLE_WINDOWS_PLATFORM64:-${ISABELLE_APP
 
 case "$ISABELLE_PLATFORM_FAMILY" in
   macos*)
-    ISABELLE_VSCODIUM_ELECTRON="$ISABELLE_VSCODIUM_HOME/VSCodium.app/Contents/MacOS/Electron"
-    ISABELLE_VSCODIUM_RESOURCES="$ISABELLE_VSCODIUM_HOME/VSCodium.app/Contents/Resources"
+    ISABELLE_VSCODIUM_ELECTRON="$ISABELLE_VSCODIUM_HOME/Isabelle VSCode.app/Contents/MacOS/Electron"
+    ISABELLE_VSCODIUM_RESOURCES="$ISABELLE_VSCODIUM_HOME/Isabelle VSCode.app/Contents/Resources"
     ;;
   *)
     ISABELLE_VSCODIUM_ELECTRON="$ISABELLE_VSCODIUM_HOME/electron"
