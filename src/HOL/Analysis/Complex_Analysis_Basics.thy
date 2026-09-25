@@ -393,6 +393,30 @@ lemma holomorphic_nonconstant:
   by (rule nonzero_deriv_nonconstant [of f "deriv f \<xi>" \<xi> S])
     (use assms in \<open>auto simp: holomorphic_derivI\<close>)
 
+subsection \<open>Holomorphic implies real-$C^\infty$\<close>
+
+text \<open>The real Fréchet derivative of a holomorphic map is \<open>v \<mapsto> deriv f x * v\<close>.\<close>
+
+lemma frechet_derivative_holomorphic:
+  assumes holf: "f holomorphic_on U" and U: "open U" and xU: "x \<in> U"
+  shows "frechet_derivative f (at x) v = deriv f x * v"
+proof -
+  have "(f has_field_derivative deriv f x) (at x)"
+    using holf U xU by (simp add: holomorphic_derivI)
+  hence "(*) (deriv f x) = frechet_derivative f (at x)"
+    using frechet_derivative_at has_field_derivative_def by blast
+  thus ?thesis by simp
+qed
+
+lemma holomorphic_imp_differentiable_real:
+  assumes holf: "f holomorphic_on U" and U: "open U" and xU: "x \<in> U"
+  shows "f differentiable (at x)"
+proof -
+  have "(f has_derivative (*) (deriv f x)) (at x)"
+    using U has_field_derivative_imp_has_derivative holf holomorphic_derivI xU by blast
+  thus ?thesis by (auto simp: differentiable_def)
+qed
+
 subsection\<open>Analyticity on a set\<close>
 
 definition\<^marker>\<open>tag important\<close> analytic_on (infixl \<open>(analytic'_on)\<close> 50)

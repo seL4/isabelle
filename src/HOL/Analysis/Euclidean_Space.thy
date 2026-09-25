@@ -183,6 +183,31 @@ lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>inner x b\<bar>)"
   by (metis (no_types, lifting) order.refl euclidean_representation mult.right_neutral
       norm_Basis norm_scaleR sum_norm_le)
 
+text \<open>Euclidean norm helpers\<close>
+
+lemma norm_sq_eq_sum_coord:
+  fixes w :: "'a::euclidean_space"
+  shows "(norm w)\<^sup>2 = (\<Sum>b\<in>Basis. (inner w b)\<^sup>2)"
+proof -
+  have "(norm w)\<^sup>2 = inner w w" by (simp add: power2_norm_eq_inner)
+  also have "\<dots> = (\<Sum>b\<in>Basis. inner w b * inner w b)"
+    by (rule euclidean_inner)
+  also have "\<dots> = (\<Sum>b\<in>Basis. (inner w b)\<^sup>2)" by (simp add: power2_eq_square)
+  finally show ?thesis .
+qed
+
+lemma norm_basis_combo_sq:
+  fixes f :: "'a::euclidean_space \<Rightarrow> real"
+  shows "(norm (\<Sum>b\<in>(Basis::'a set). f b *\<^sub>R b))\<^sup>2 = (\<Sum>b\<in>(Basis::'a set). (f b)\<^sup>2)"
+proof -
+  have "(norm (\<Sum>b\<in>(Basis::'a set). f b *\<^sub>R b))\<^sup>2
+          = (\<Sum>b\<in>(Basis::'a set). (inner (\<Sum>d\<in>(Basis::'a set). f d *\<^sub>R d) b)\<^sup>2)"
+    by (rule norm_sq_eq_sum_coord)
+  also have "\<dots> = (\<Sum>b\<in>(Basis::'a set). (f b)\<^sup>2)"
+    by (rule sum.cong[OF refl]) simp
+  finally show ?thesis .
+qed
+
 lemma sum_norm_allsubsets_bound:
   fixes f :: "'a \<Rightarrow> 'n::euclidean_space"
   assumes fP: "finite P"

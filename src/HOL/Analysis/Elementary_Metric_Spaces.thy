@@ -461,7 +461,7 @@ section \<open>Limits\<close>
 proposition Lim: "(f \<longlongrightarrow> l) net \<longleftrightarrow> trivial_limit net \<or> (\<forall>\<epsilon>>0. eventually (\<lambda>x. dist (f x) l < \<epsilon>) net)"
   by (auto simp: tendsto_iff trivial_limit_eq)
 
-text \<open>Show that they yield usual definitions in the various cases.\<close>
+text \<open>Show that they yield the usual $\varepsilon$--$\delta$ definitions in the various cases.\<close>
 
 proposition Lim_within_le: "(f \<longlongrightarrow> l)(at a within S) \<longleftrightarrow>
     (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> \<delta> \<longrightarrow> dist (f x) l < \<epsilon>)"
@@ -485,6 +485,41 @@ lemma Lim_transform_within_set:
   shows "\<lbrakk>(f \<longlongrightarrow> l) (at a within S); eventually (\<lambda>x. x \<in> S \<longleftrightarrow> x \<in> T) (at a)\<rbrakk>
          \<Longrightarrow> (f \<longlongrightarrow> l) (at a within T)"
   by (simp add: eventually_at Lim_within) (smt (verit, best))
+
+text \<open>$\varepsilon$--$\delta$ characterizations of one-sided limits\<close>
+
+lemma tendsto_at_left_x_epsilon_def:
+  fixes f :: "real \<Rightarrow> real" and L x :: real
+  shows
+    "(f \<longlongrightarrow> L) (at_left x) \<longleftrightarrow>
+     (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>y. (y < x \<and> x - y < \<delta>) \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+proof -
+  have "(f \<longlongrightarrow> L) (at_left x) \<longleftrightarrow> (\<forall>\<epsilon>>0. eventually (\<lambda>y. \<bar>f y - L\<bar> < \<epsilon>) (at_left x))"
+    by (simp only: tendsto_iff dist_real_def)
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>b<x. \<forall>y<x. b < y \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+    by (subst eventually_at_left[where y = "x - (\<bar>x\<bar> + 1)"], simp, meson)
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>d>0. \<forall>y. y < x \<and> x - y < d \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+    by(safe, metis diff_gt_0_iff_gt diff_strict_left_mono not_less_iff_gr_or_eq,
+             metis (no_types) add.commute diff_less_eq less_add_same_cancel1)
+  finally show ?thesis.
+qed
+
+lemma tendsto_at_right_x_epsilon_def:
+  fixes f :: "real \<Rightarrow> real" and L x :: real
+  shows
+    "(f \<longlongrightarrow> L) (at_right x) \<longleftrightarrow>
+     (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>y. (x < y \<and> y - x < \<delta>) \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+proof -
+  have "(f \<longlongrightarrow> L) (at_right x) =
+        (\<forall>\<epsilon>>0. eventually (\<lambda>x. \<bar>f x - L\<bar> < \<epsilon>) (at_right x))"
+    by (simp only: tendsto_iff dist_real_def)
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>x. \<forall>y>x. y < \<delta> \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+    by(subst eventually_at_right[where y = "\<bar>x\<bar> + 1"], simp_all)
+  also have "\<dots> \<longleftrightarrow> (\<forall>\<epsilon>>0. \<exists>\<delta>>0. \<forall>y. (x < y \<and> y - x < \<delta>) \<longrightarrow> \<bar>f y - L\<bar> < \<epsilon>)"
+    by (auto, metis diff_add_cancel diff_gt_0_iff_gt diff_less_eq,
+        metis add.commute diff_less_eq less_add_same_cancel1)
+  finally show ?thesis.
+qed
 
 text \<open>Another limit point characterization.\<close>
 

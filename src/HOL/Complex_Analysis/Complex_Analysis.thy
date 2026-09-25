@@ -3,6 +3,7 @@ theory Complex_Analysis
   Riemann_Mapping
   Residue_Theorem
   Weierstrass_Factorization
+  Complex_Analytic
 begin
 
 end
