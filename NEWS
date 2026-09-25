@@ -209,6 +209,9 @@ checked in the past. INCOMPATIBILITY.
 *** HOL ***
 
 * Sledgehammer:
+  - The Sledgehammer panel now uses the same default provers as the
+    "sledgehammer" command, including those set via "sledgehammer_params"
+    (system option "sledgehammer_provers" is empty by default).
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
       . zipperposition-2.1 -- include arm64-darwin
