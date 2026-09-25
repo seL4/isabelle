@@ -11,8 +11,7 @@ text \<open>
   predicate itself.
 \<close>
 
-definition primitive_element ::
-    "'a :: field set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool"
+definition primitive_element :: "'a :: field set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool"
   where "primitive_element K L a \<longleftrightarrow> L = eval_img K a"
 
 lemma primitive_elementI:
@@ -23,16 +22,10 @@ lemma primitive_elementD:
   "primitive_element K L a \<Longrightarrow> L = eval_img K a"
   by (simp add: primitive_element_def)
 
-lemma primitive_element_mem:
-  assumes prim: "primitive_element K L a" and K: "Subfield K"
-  shows "a \<in> L"
-  using primitive_elementD[OF prim] Subfield.eval_img_self[OF K] by simp
-
-lemma primitive_element_base:
-  assumes prim: "primitive_element K L a" and K: "Subfield K"
-  shows "K \<subseteq> L"
-  using primitive_elementD[OF prim]
-    Subfield.eval_img_base[OF K] by blast
+lemma
+  assumes "primitive_element K L a" "Subfield K"
+  shows primitive_element_mem: "a \<in> L" and primitive_element_base: "K \<subseteq> L"
+  using assms Subfield.eval_img_base Subfield.eval_img_self primitive_elementD by blast+
 
 subsection \<open>The two-generator theorem over an infinite base\<close>
 
@@ -50,70 +43,47 @@ theorem primitive_element_two_generators:
     and sep_a: "rsquarefree (minpoly F a)" and sep_b: "rsquarefree (minpoly F b)"
   shows "\<exists>theta. eval_img (eval_img F a) b = eval_img F theta"
 proof -
-  define p where "p = minpoly F a"
-  define q where "q = minpoly F b"
-  define A where "A = {x. poly p x = 0}"
-  define B where "B = {y. poly q y = 0}"
-  define C where "C = {(x - a) / (b - y) |x y. x \<in> A \<and> y \<in> B \<and> y \<noteq> b}"
-  have p0: "p \<noteq> 0" and q0: "q \<noteq> 0"
-    unfolding p_def q_def
-    using Subfield.minpoly_nonzero[OF sfF alg_a] Subfield.minpoly_nonzero[OF sfF alg_b]
-    by blast+
+  define p where "p \<equiv> minpoly F a"
+  define q where "q \<equiv> minpoly F b"
+  define A where "A \<equiv> {x. poly p x = 0}"
+  define B where "B \<equiv> {y. poly q y = 0}"
+  define C where "C \<equiv> {(x - a) / (b - y) |x y. x \<in> A \<and> y \<in> B \<and> y \<noteq> b}"
+  obtain p0: "p \<noteq> 0" and q0: "q \<noteq> 0"
+    using p_def q_def rsquarefree_def sep_a sep_b by auto
   have finA: "finite A" and finB: "finite B"
     unfolding A_def B_def using p0 q0 poly_roots_finite by blast+
-  have finC: "finite C"
-    unfolding C_def
-    by (rule finite_subset[of _ "(\<lambda>(x,y). (x-a)/(b-y)) ` (A \<times> B)"])
-       (use finA finB in auto)
+  then have finC: "finite C"
+    unfolding C_def finite_subset[of _ "(\<lambda>(x,y). (x-a)/(b-y)) ` (A \<times> B)"]
+    by (simp add: finite_image_set2)
   have "\<not> F \<subseteq> C"
-  proof
-    assume "F \<subseteq> C"
-    then have "finite F" using finC by (rule finite_subset)
-    then show False using infF by contradiction
-  qed
+    using finC finite_subset infF by blast
   then obtain c where cF: "c \<in> F" and cnot: "c \<notin> C" by blast
   define theta where "theta = a + c * b"
 
-  have unique:
-    "x \<in> A \<Longrightarrow> y \<in> B \<Longrightarrow> theta = x + c * y \<Longrightarrow> x = a \<and> y = b"
-    for x y
+  have unique: "x = a \<and> y = b" 
+    if xA: "x \<in> A" and yB: "y \<in> B" and eq: "theta = x + c * y" for x y
   proof (cases "y = b")
     case True
-    assume xA: "x \<in> A" and yB: "y \<in> B" and eq: "theta = x + c * y"
-    have "x = a" using eq True unfolding theta_def by algebra
-    then show ?thesis using True by blast
+    then show ?thesis
+      using eq theta_def by force
   next
     case False
-    assume xA: "x \<in> A" and yB: "y \<in> B" and eq: "theta = x + c * y"
-    have den: "b - y \<noteq> 0" using False by simp
-    have mult_eq: "c * (b-y) = x-a"
+    then have den: "b - y \<noteq> 0" by simp
+    have "c * (b-y) = x-a"
       using eq unfolding theta_def by algebra
-    have ceq: "c = (x-a)/(b-y)"
-    proof -
-      have "c = (c * (b-y)) * inverse (b-y)" using den by simp
-      also have "... = (x-a) * inverse (b-y)" by (simp add: mult_eq)
-      also have "... = (x-a)/(b-y)" by (simp add: divide_inverse)
-      finally show ?thesis .
-    qed
-    have "c \<in> C"
-      unfolding C_def using xA yB False ceq by blast
-    then show ?thesis using cnot by blast
+    then have ceq: "c = (x-a)/(b-y)"
+      using den eq_divide_imp by blast
+    then show ?thesis using cnot
+      using C_def False xA yB by blast
   qed
 
-  have alg_theta: "algebraic_over F theta"
-  proof -
-    interpret Alg: Subfield "algebraic_elements F"
-      by (rule subfield_algebraic_elements[OF sfF])
-    have aA: "a \<in> algebraic_elements F" and bA: "b \<in> algebraic_elements F"
-      using alg_a alg_b by (simp_all add: algebraic_elements_def)
-    have cA: "c \<in> algebraic_elements F"
-      using Subfield.algebraic_over_self[OF sfF cF]
-      by (simp add: algebraic_elements_def)
-    have "theta \<in> algebraic_elements F"
-      unfolding theta_def by (rule Alg.add_closed[OF aA Alg.mult_closed[OF cA bA]])
-    then show ?thesis by (simp add: algebraic_elements_def)
-  qed
-  define E where "E = eval_img F theta"
+  interpret Alg: Subfield "algebraic_elements F"
+    by (rule subfield_algebraic_elements[OF sfF])
+  have cA: "c \<in> algebraic_elements F"
+    by (simp add: Subfield.algebraic_over_self algebraic_elements_def cF sfF)
+  then have alg_theta: "algebraic_over F theta"
+    using alg_a alg_b algebraic_elements_def theta_def by blast
+  define E where "E \<equiv> eval_img F theta"
   have sfE: "Subfield E"
     unfolding E_def by (rule Subfield.subfield_eval_img[OF sfF alg_theta])
   have FE: "F \<subseteq> E"
@@ -123,7 +93,7 @@ proof -
   have cE: "c \<in> E" using cF FE by blast
   have alg_bE: "algebraic_over E b"
     by (rule algebraic_over_mono[OF alg_b FE])
-  define m where "m = minpoly E b"
+  define m where "m \<equiv> minpoly E b"
   have m_min: "is_minpoly E b m"
     unfolding m_def by (rule Subfield.is_minpoly_minpoly[OF sfE alg_bE])
   have mE: "m \<in> poly_over E" and mroot: "poly m b = 0" and m0: "m \<noteq> 0"
@@ -132,23 +102,15 @@ proof -
     unfolding q_def
     using Subfield.minpoly_over[OF sfF alg_b] poly_over_mono[OF FE] by blast
   have mq: "m dvd q"
-    by (rule Subfield.minpoly_dvd[OF sfE m_min qE])
-       (simp add: q_def Subfield.minpoly_root[OF sfF alg_b])
-  have sep_m: "rsquarefree m"
-    by (rule rsquarefree_dvd[OF mq sep_b[folded q_def]])
+    using Subfield.minpoly_dvd Subfield.minpoly_root alg_b m_min qE q_def sfE sfF by blast
 
-  have every_root: "poly m r = 0 \<Longrightarrow> r = b" for r
+  have every_root: "r = b" if mr: "poly m r = 0" for r
   proof -
-    assume mr: "poly m r = 0"
     interpret Id: field_hom_on E "\<lambda>x. x" by (rule field_hom_on_id[OF sfE])
     have mapm: "map_poly (\<lambda>x. x) m = m"
       by (intro poly_eqI) (simp add: coeff_map_poly)
-    have rootmap: "poly (map_poly (\<lambda>x. x) m) r = 0"
-      unfolding mapm by (rule mr)
-    have ex_h: "\<exists>h. field_hom_on (eval_img E b) h \<and> h b = r \<and> (\<forall>x\<in>E. h x = x)"
-      by (rule Id.iso_extension[OF alg_bE m_min rootmap])
-    obtain h where h: "field_hom_on (eval_img E b) h" "h b = r" "\<forall>x\<in>E. h x = x"
-      using ex_h by blast
+    then obtain h where h: "field_hom_on (eval_img E b) h" "h b = r" "\<forall>x\<in>E. h x = x"
+      using mr Id.iso_extension[OF alg_bE m_min] by metis
     interpret H: field_hom_on "eval_img E b" h by (rule h(1))
     have EL: "E \<subseteq> eval_img E b"
       using Subfield.eval_img_base[OF sfE] by blast
@@ -158,29 +120,19 @@ proof -
     have aeq: "a = theta - c*b" unfolding theta_def by algebra
     have aL: "a \<in> eval_img E b"
       unfolding aeq by (rule H.diff_closed[OF thetaL H.mult_closed[OF cL bL]])
-    have ha: "h a = theta - c*r"
-      unfolding aeq
-      using H.hom_diff[OF thetaL H.mult_closed[OF cL bL]] H.hom_mult[OF cL bL] h(2,3)
-        thetaE cE by simp
     have FL: "F \<subseteq> eval_img E b" using FE EL by blast
     have hfixF: "\<And>x. x \<in> F \<Longrightarrow> h x = x" using h(3) FE by blast
-    have pF: "p \<in> poly_over F"
-      unfolding p_def by (rule Subfield.minpoly_over[OF sfF alg_a])
-    have pa: "poly p a = 0"
-      unfolding p_def by (rule Subfield.minpoly_root[OF sfF alg_a])
+    obtain pF: "p \<in> poly_over F" and pa: "poly p a = 0"
+      using Subfield.minpoly_over Subfield.minpoly_root alg_a p_def sfF by blast
     have proot_h: "poly p (h a) = 0"
-      by (rule hom_preserves_roots[OF h(1) sfF FL hfixF pF aL pa])
-    have proot: "poly p (theta - c*r) = 0"
-      by (subst ha[symmetric], rule proot_h)
+      using FL H.field_hom_on_axioms aL hfixF hom_preserves_roots pF pa sfF by blast
+    have ha: "theta - c*r = h a"
+      by (simp add: H.hom_diff H.hom_mult H.mult_closed aeq bL cE cL h thetaE thetaL)
+    then have proot: "poly p (theta - c*r) = 0"
+      using proot_h by presburger
     obtain s where qs: "q = m * s" using mq by (elim dvdE)
     have qr: "poly q r = 0"
-    proof -
-      have "poly q r = poly (m*s) r" by (simp only: qs)
-      also have "... = poly m r * poly s r" by (simp only: poly_mult)
-      also have "... = 0 * poly s r" by (simp only: mr)
-      also have "... = 0" by algebra
-      finally show ?thesis .
-    qed
+      using mr qs by (metis mult_zero_left poly_mult)
     have rB: "r \<in> B"
       using qr by (simp only: B_def mem_Collect_eq)
     have xrA: "theta - c*r \<in> A"
@@ -191,86 +143,46 @@ proof -
     then show "r = b" by (rule conjunct2)
   qed
   have roots_m: "{r. poly m r = 0} = {b}"
-  proof (rule set_eqI)
-    fix r
-    show "r \<in> {r. poly m r = 0} \<longleftrightarrow> r \<in> {b}"
-    proof
-      assume "r \<in> {r. poly m r = 0}"
-      then have "poly m r = 0" by (simp only: mem_Collect_eq)
-      then have "r = b" by (rule every_root)
-      then show "r \<in> {b}" by (simp only: singleton_iff)
-    next
-      assume "r \<in> {b}"
-      then have "r = b" by (simp only: singleton_iff)
-      then show "r \<in> {r. poly m r = 0}"
-        using mroot by (simp only: mem_Collect_eq)
-    qed
-  qed
-  have card_m: "card {r. poly m r = 0} = degree m"
-    by (rule card_roots_eq_degree_alg_closed[OF m0 sep_m])
-  have deg_m: "degree m = 1"
-  proof -
-    have card_b: "card {b} = 1" by simp
-    have "card {b} = degree m"
-      using card_m by (simp only: roots_m)
-    then show ?thesis using card_b by simp
-  qed
-  have bE: "b \<in> E"
-  proof -
-    have "ext_degree E b = 1"
-      using deg_m by (simp add: ext_degree_def m_def)
-    then show ?thesis
-      by (rule iffD1[OF Subfield.ext_degree_eq_1_iff[OF sfE alg_bE]])
-  qed
-  have aE: "a \<in> E"
-  proof -
-    have cbE: "c*b \<in> E" by (rule Subfield.mult_closed[OF sfE cE bE])
-    have diffE: "theta-c*b \<in> E" by (rule Subfield.diff_closed[OF sfE thetaE cbE])
-    have "theta-c*b = a" unfolding theta_def by (rule add_diff_cancel_right')
-    then show ?thesis using diffE by simp
-  qed
-
-  have double_gen:
-      "eval_img (eval_img F a) b = generate_field (F \<union> {a,b})"
+    by (auto simp: every_root mroot)
+  have "card {r. poly m r = 0} = degree m"
+    using card_roots_eq_degree_alg_closed m0 mq q_def rsquarefree_dvd sep_b by blast
+  then have deg_m: "degree m = 1"
+    by (simp add: roots_m)
+  have "ext_degree E b = 1"
+    using deg_m by (simp add: ext_degree_def m_def)
+  then have bE: "b \<in> E"
+    using Subfield.ext_degree_eq_1_iff alg_bE sfE by blast
+  have diffE: "theta-c*b \<in> E"
+    by (simp add: Subfield.diff_closed Subfield.mult_closed bE cE sfE thetaE)
+  then have aE: "a \<in> E" 
+    using theta_def by fastforce
+  have double_gen: "eval_img (eval_img F a) b = generate_field (F \<union> {a,b})"
   proof -
     have sfFa: "Subfield (eval_img F a)"
       by (rule Subfield.subfield_eval_img[OF sfF alg_a])
-    have FFa: "F \<subseteq> eval_img F a"
-      using Subfield.eval_img_base[OF sfF] by blast
     have alg_bFa: "algebraic_over (eval_img F a) b"
-      by (rule algebraic_over_mono[OF alg_b FFa])
-    have "eval_img (eval_img F a) b = generate_field (eval_img F a \<union> {b})"
-      by (rule Subfield.eval_img_eq_generate_field[OF sfFa alg_bFa])
-    also have "... = generate_field (generate_field (F \<union> {a}) \<union> {b})"
-      by (simp add: Subfield.eval_img_eq_generate_field[OF sfF alg_a])
-    also have "... = generate_field ((F \<union> {a}) \<union> {b})"
-      by (rule generate_field_Un_collapse1)
+      by (metis alg_b sfF algebraic_over_mono primitive_elementI primitive_element_base)
+    have "eval_img (eval_img F a) b =  generate_field (generate_field (F \<union> {a}) \<union> {b})"
+      by (metis alg_a alg_bFa sfF sfFa Subfield.eval_img_eq_generate_field)
     also have "... = generate_field (F \<union> {a,b})"
-      by (rule arg_cong[where f=generate_field]) auto
+      by (metis Un_insert_left Un_insert_right generate_field_Un_collapse1 sup_bot.right_neutral)
     finally show ?thesis .
   qed
   have gen_subset_E: "generate_field (F \<union> {a,b}) \<subseteq> E"
     by (rule generate_field_least[OF sfE]) (use FE aE bE in auto)
   have theta_double: "theta \<in> generate_field (F \<union> {a,b})"
-  proof -
-    interpret G: Subfield "generate_field (F \<union> {a,b})" by (rule subfield_generate_field)
-    have aG: "a \<in> generate_field (F \<union> {a,b})" by auto
-    have bG: "b \<in> generate_field (F \<union> {a,b})" by auto
-    have cG: "c \<in> generate_field (F \<union> {a,b})" using cF by auto
-    show ?thesis unfolding theta_def by (rule G.add_closed[OF aG G.mult_closed[OF cG bG]])
-  qed
+    using cF theta_def by blast
   have E_subset_gen: "E \<subseteq> generate_field (F \<union> {a,b})"
   proof -
     have "E = generate_field (F \<union> {theta})"
       unfolding E_def by (rule Subfield.eval_img_eq_generate_field[OF sfF alg_theta])
     also have "... \<subseteq> generate_field (F \<union> {a,b})"
-      by (rule generate_field_least[OF subfield_generate_field])
-         (use theta_double in auto)
+      using theta_double
+      by (intro generate_field_least[OF subfield_generate_field]) auto
     finally show ?thesis .
   qed
-  have "generate_field (F \<union> {a,b}) = E"
-    using gen_subset_E E_subset_gen by blast
-  then show ?thesis unfolding double_gen E_def by blast
+  then show ?thesis unfolding double_gen E_def
+    using E_def gen_subset_E by blast
 qed
 
 subsection \<open>Finite separable extensions are simple\<close>
@@ -289,68 +201,47 @@ lemma finite_separable_generators_primitive:
 proof -
   interpret T: finite_subfield_tower K L by (rule T)
   from finA AL show ?thesis
-proof (induction A rule: finite_induct)
-  case empty
-  have genK: "generate_field K = K"
-    using generate_field_least[OF T.base.Subfield_axioms subset_refl]
-      subset_generate_field[of K] by blast
-  have alg0: "algebraic_over K (0 :: 'a)"
-    by (rule T.base.algebraic_over_self) (rule T.base.zero_closed)
-  have eval0: "eval_img K 0 = K"
-  proof -
+  proof (induction A rule: finite_induct)
+    case empty
     have "eval_img K 0 = generate_field (K \<union> {0})"
-      by (rule T.base.eval_img_eq_generate_field[OF alg0])
-    also have "... = generate_field K"
-      by (rule arg_cong[where f=generate_field]) (use T.base.zero_closed in auto)
-    also have "... = K" by (rule genK)
-    finally show ?thesis .
-  qed
-  show ?case using T.ext.zero_closed genK eval0 by auto
-next
-  case (insert a A)
-  have aL: "a \<in> L" and AL: "A \<subseteq> L" using insert.prems by auto
-  obtain theta where thetaL: "theta \<in> L"
-    and genA: "generate_field (K \<union> A) = eval_img K theta"
-    using insert.IH[OF AL] by blast
-  have alg_a: "algebraic_over K a" by (rule T.finite_extension_algebraic[OF aL])
-  have alg_theta: "algebraic_over K theta"
-    by (rule T.finite_extension_algebraic[OF thetaL])
-  have sep_a: "rsquarefree (minpoly K a)"
-    by (rule separable_extensionD[OF sep aL alg_a])
-  have sep_theta: "rsquarefree (minpoly K theta)"
-    by (rule separable_extensionD[OF sep thetaL alg_theta])
-  obtain z where pair:
-      "eval_img (eval_img K theta) a = eval_img K z"
-    using primitive_element_two_generators[OF T.base.Subfield_axioms infK alg_theta alg_a
-      sep_theta sep_a] by blast
-  have sfKtheta: "Subfield (eval_img K theta)"
-    by (rule T.base.subfield_eval_img[OF alg_theta])
-  have Ktheta: "K \<subseteq> eval_img K theta"
-    using T.base.eval_img_base by blast
-  have alg_a_theta: "algebraic_over (eval_img K theta) a"
-    by (rule algebraic_over_mono[OF alg_a Ktheta])
-  have generated_insert:
-      "generate_field (K \<union> insert a A) = eval_img (eval_img K theta) a"
-  proof -
-    have set_eq: "K \<union> insert a A = (K \<union> A) \<union> {a}" by auto
-    have "generate_field (K \<union> insert a A) = generate_field ((K \<union> A) \<union> {a})"
-      by (rule arg_cong[OF set_eq])
-    also have "... = generate_field (generate_field (K \<union> A) \<union> {a})"
-      by (rule sym, rule generate_field_Un_collapse1)
-    also have "... = generate_field (eval_img K theta \<union> {a})"
-      by (simp only: genA)
+      by (simp add: T.base.eval_img_eq_generate_field T.base.algebraic_over_self)
+    also have "... =  K"
+      by (simp add: T.base.generate_field_self insert_absorb)
+    finally have eval0: "eval_img K 0 = K" .
+    show ?case using T.ext.zero_closed T.base.generate_field_self eval0 by auto
+  next
+    case (insert a A)
+    have aL: "a \<in> L" and AL: "A \<subseteq> L" using insert.prems by auto
+    obtain theta where thetaL: "theta \<in> L"
+      and genA: "generate_field (K \<union> A) = eval_img K theta"
+      using insert.IH[OF AL] by blast
+    have alg_a: "algebraic_over K a" by (rule T.finite_extension_algebraic[OF aL])
+    have alg_theta: "algebraic_over K theta"
+      by (rule T.finite_extension_algebraic[OF thetaL])
+    have sep_a: "rsquarefree (minpoly K a)"
+      by (rule separable_extensionD[OF sep aL alg_a])
+    have sep_theta: "rsquarefree (minpoly K theta)"
+      by (rule separable_extensionD[OF sep thetaL alg_theta])
+    obtain z where pair: "eval_img (eval_img K theta) a = eval_img K z"
+      using primitive_element_two_generators[OF T.base.Subfield_axioms infK alg_theta alg_a
+          sep_theta sep_a] by blast
+    have sfKtheta: "Subfield (eval_img K theta)"
+      by (rule T.base.subfield_eval_img[OF alg_theta])
+    have alg_a_theta: "algebraic_over (eval_img K theta) a"
+      using T.base.eval_img_base alg_a algebraic_over_mono genA generate_field_mono sup_ge1 by blast
+    have "K \<union> insert a A = (K \<union> A) \<union> {a}" by auto
+    then have "generate_field (K \<union> insert a A) = generate_field (generate_field (K \<union> A) \<union> {a})"
+      by (metis generate_field_Un_collapse1)
     also have "... = eval_img (eval_img K theta) a"
-      by (rule sym, rule Subfield.eval_img_eq_generate_field[OF sfKtheta alg_a_theta])
-    finally show ?thesis .
+      by (simp add: Subfield.eval_img_eq_generate_field alg_a_theta genA sfKtheta)
+    finally have generated_insert:
+      "generate_field (K \<union> insert a A) = eval_img (eval_img K theta) a" .
+    have generated_subset_L: "generate_field (K \<union> insert a A) \<subseteq> L"
+      using generate_field_least[OF T.ext.Subfield_axioms] T.base_subset aL AL by simp
+    have "z \<in> eval_img K z" by (rule T.base.eval_img_self)
+    then show ?case 
+      using pair generated_insert generated_subset_L pair by blast
   qed
-  have generated_subset_L: "generate_field (K \<union> insert a A) \<subseteq> L"
-    by (rule generate_field_least[OF T.ext.Subfield_axioms])
-       (use T.base_subset aL AL in auto)
-  have z_eval: "z \<in> eval_img K z" by (rule T.base.eval_img_self)
-  have zL: "z \<in> L"
-    using z_eval pair generated_insert generated_subset_L by blast
-  show ?case using zL generated_insert pair by blast
-qed
 qed
 
 text \<open>
@@ -375,17 +266,7 @@ proof -
     using Lf.finite_field_mult_cyclic[OF finstar] by blast
   have gL: "g \<in> L" using gstar by (simp add: Lf.Fstar_def)
   have gpow: "G.power g n \<in> eval_img K g" for n
-  proof (induction n)
-    case 0
-    show ?case by (simp add: Subfield.eval_img_1[OF KL.base.Subfield_axioms])
-  next
-    case (Suc n)
-    have gE: "g \<in> eval_img K g"
-      by (rule Subfield.eval_img_self[OF KL.base.Subfield_axioms])
-    have "g * G.power g n \<in> eval_img K g"
-      by (rule Subfield.eval_img_mult[OF KL.base.Subfield_axioms gE Suc.IH])
-    then show ?case by (simp add: G.power_Suc)
-  qed
+  by (induction n) (auto simp: KL.base.eval_img_1 KL.base.eval_img_mult KL.base.eval_img_self)
   have L_subset: "L \<subseteq> eval_img K g"
   proof
     fix x assume xL: "x \<in> L"
@@ -394,11 +275,9 @@ proof -
       case True
       then show ?thesis by (simp add: Subfield.eval_img_0[OF KL.base.Subfield_axioms])
     next
-      case False
-      have xstar: "x \<in> Lf.Fstar" using xL False by (simp add: Lf.Fstar_def)
-      have xcyc: "x \<in> G.cyclic_subgroup g" using xstar by (simp add: cyc)
-      obtain n where "x = G.power g n"
-        using G.cyclic_subgroup_eq_range[OF finstar gstar] xcyc by blast
+      case False 
+      then obtain n where "x = G.power g n"
+        using G.cyclic_subgroup_eq_range[OF finstar gstar] Lf.Fstar_iff cyc xL by blast
       then show ?thesis using gpow by simp
     qed
   qed
@@ -412,9 +291,7 @@ proof -
       by (rule Subfield.eval_img_subset_generate_field[OF KL.base.Subfield_axioms pK])
     have KG: "K \<union> {g} \<subseteq> L"
       using KL.base_subset gL by blast
-    have Gsub: "generate_field (K \<union> {g}) \<subseteq> L"
-      by (rule generate_field_least[OF KL.ext.Subfield_axioms KG])
-    show "x \<in> L" using Gsub xG by blast
+    show "x \<in> L" using generate_field_least[OF KL.ext.Subfield_axioms KG] xG by blast
   qed
   have eq: "L = eval_img K g" using L_subset E_subset by (rule subset_antisym)
   show ?thesis using gL primitive_elementI[OF eq] by blast
@@ -434,58 +311,32 @@ proof -
   show ?thesis
   proof (cases "finite K")
     case True
-    obtain B where basis: "T.vs.basis B" using T.finite_basis by blast
-    have finB: "finite B" using basis by (simp add: T.vs.basis_def)
-    have bij: "bij_betw (\<lambda>c. T.vs.lincomb c B) (B \<rightarrow>\<^sub>E K) L"
-      using basis by (simp add: T.vs.basis_def)
-    have fin_coords: "finite (B \<rightarrow>\<^sub>E K)"
-      by (rule finite_PiE[OF finB]) (use True in auto)
-    have finL: "finite L"
-      using bij_betw_finite[OF bij] fin_coords by blast
-    show ?thesis
-      by (rule finite_field_extension_is_simple[OF T.subfield_tower_axioms finL])
+    then show ?thesis
+      by (simp add: T.finite_carrier_of_finite_base T.subfield_tower_axioms
+          finite_field_extension_is_simple)
   next
     case False
     then have infK: "infinite K" by simp
     obtain B where basis: "T.vs.basis B" using T.finite_basis by blast
     have finB: "finite B" and BL: "B \<subseteq> L"
       using basis by (auto simp: T.vs.basis_def)
-    have gen_subset: "generate_field (K \<union> B) \<subseteq> L"
-      by (rule generate_field_least[OF T.ext.Subfield_axioms]) (use T.base_subset BL in auto)
-    have L_subset: "L \<subseteq> generate_field (K \<union> B)"
-    proof
-      fix x assume xL: "x \<in> L"
-      obtain c where c: "c \<in> B \<rightarrow>\<^sub>E K" "x = T.vs.lincomb c B"
-        using T.vs.basis_spanning[OF basis] xL
-        unfolding T.vs.spanning_def by blast
-      have cK: "\<And>v. v \<in> B \<Longrightarrow> c v \<in> K" using c(1) by auto
-      have lincomb_sum: "T.vs.lincomb c B = (\<Sum>v\<in>B. c v * v)"
-        by (rule T.vs_lincomb_eq_sum[OF finB BL cK])
-      interpret G: Subfield "generate_field (K \<union> B)" by (rule subfield_generate_field)
-      have sumG: "(\<Sum>v\<in>B. c v * v) \<in> generate_field (K \<union> B)"
-        by (rule G.sum_closed, rule G.mult_closed) (use cK in auto)
-      show "x \<in> generate_field (K \<union> B)"
-        using c(2) lincomb_sum sumG by simp
-    qed
-    have Lgen: "L = generate_field (K \<union> B)"
-      by (rule subset_antisym[OF L_subset gen_subset])
-    obtain theta where thetaL: "theta \<in> L"
-      and prim: "generate_field (K \<union> B) = eval_img K theta"
+    have Leq_gen: "L = generate_field (K \<union> B)"
+      using T.generate_field_basis basis by auto
+    obtain theta where "theta \<in> L" and "generate_field (K \<union> B) = eval_img K theta"
       using finite_separable_generators_primitive[OF T infK finB BL sep] by blast
-    have "L = eval_img K theta" using Lgen prim by simp
-    then show ?thesis using thetaL primitive_elementI by blast
+    then show ?thesis using primitive_elementI
+      using Leq_gen by blast
   qed
 qed
 
 lemma (in finite_subfield_tower) primitive_element_degree:
-  assumes prim: "primitive_element K L a"
+  assumes "primitive_element K L a"
   shows "extension_degree = ext_degree K a"
 proof -
   have aL: "a \<in> L"
-    using primitive_element_mem[OF prim base.Subfield_axioms] .
-  have alg: "algebraic_over K a" by (rule finite_extension_algebraic[OF aL])
-  show ?thesis
-    using extension_degree_eq_ext_degree[OF alg primitive_elementD[OF prim]] .
+    using primitive_element_mem[OF assms base.Subfield_axioms] .
+  with assms show ?thesis
+    by (simp add: extension_degree_eq_ext_degree finite_extension_algebraic primitive_elementD)
 qed
 
 end

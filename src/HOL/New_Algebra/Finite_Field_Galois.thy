@@ -29,10 +29,7 @@ proof -
   have frob_bij: "bij_betw (frobenius_power (card F)) K K"
     by (rule T.ext.finite_frobenius_bij_betw[OF finK char e(2)])
   have sigma_bij: "bij_betw ?sigma K K"
-  proof (rule bij_betw_cong[THEN iffD2, OF _ frob_bij])
-    show "\<And>x. x \<in> K \<Longrightarrow> ?sigma x = frobenius_power (card F) x"
-      by (simp add: finite_field_frobenius_def restrict_apply')
-  qed
+    by (simp add: finite_field_frobenius_def frob_bij)
   show ?thesis
     unfolding field_auto_mem_iff
   proof (intro conjI ballI)
@@ -40,24 +37,19 @@ proof -
       using T.ext.frobenius_power_closed
       by (auto simp: finite_field_frobenius_def PiE_iff extensional_def restrict_apply')
     show "bij_betw ?sigma K K" by (rule sigma_bij)
-    show "\<And>x y. x \<in> K \<Longrightarrow> y \<in> K \<Longrightarrow>
-        ?sigma (x + y) = ?sigma x + ?sigma y"
+    show "\<And>x y. x \<in> K \<Longrightarrow> y \<in> K \<Longrightarrow> ?sigma (x + y) = ?sigma x + ?sigma y"
       using frobenius_power_add_char_power[OF char e(2)]
       by (simp add: finite_field_frobenius_def restrict_apply' T.ext.add_closed)
-    show "\<And>x y. x \<in> K \<Longrightarrow> y \<in> K \<Longrightarrow>
-        ?sigma (x * y) = ?sigma x * ?sigma y"
-      by (simp add: finite_field_frobenius_def restrict_apply'
-          T.ext.mult_closed frobenius_power_mult)
+    show "\<And>x y. x \<in> K \<Longrightarrow> y \<in> K \<Longrightarrow> ?sigma (x * y) = ?sigma x * ?sigma y"
+      by (simp add: finite_field_frobenius_def restrict_apply' T.ext.mult_closed frobenius_power_mult)
     show "?sigma 1 = 1"
       by (simp add: finite_field_frobenius_def restrict_apply')
-    show "\<And>x. x \<in> F \<Longrightarrow> ?sigma x = x"
+    show "?sigma x = x" if xF: "x \<in> F" for x
     proof -
-      fix x assume xF: "x \<in> F"
-      have xK: "x \<in> K" using T.base_subset xF by blast
       have fixed: "frobenius_power (card F) x = x"
         by (rule T.base.finite_field_frobenius_identity[OF finF xF])
       show "?sigma x = x"
-        using xK fixed by (simp add: finite_field_frobenius_def restrict_apply')
+        using T.vs.scale_closed xF fixed by (fastforce simp add: finite_field_frobenius_def restrict_apply')
     qed
   qed
 qed
@@ -76,33 +68,16 @@ proof -
     by (rule finite_field_frobenius_in_field_auto[OF assms(1) finF])
   show ?thesis
   proof (induction i)
-    case 0
-    have power0: "G.power ?sigma 0 = identity K"
-      by (rule G.power_0)
-    have app: "G.power ?sigma 0 x = identity K x"
-      by (rule arg_cong[OF power0])
-    have idapp: "identity K x = x" by (rule identity_apply[OF xK])
-    have rhs: "x = x ^ (card F ^ 0)" by simp
-    show ?case by (rule trans[OF app trans[OF idapp rhs]])
+    case 0 then show ?case
+      by (metis power_0 power_one_right restrict_apply' G.power_0 xK)
   next
     case (Suc i)
-    have power_mem: "G.power ?sigma i \<in> field_auto K F"
-      using sigma by simp
     have power_maps: "G.power ?sigma i x \<in> K"
-      using power_mem xK by (auto simp: field_auto_mem_iff PiE_iff)
-    have ih: "G.power ?sigma i x = x ^ (card F ^ i)"
-      by (rule Suc.IH)
-    have "G.power ?sigma (Suc i) x =
-        ?sigma (G.power ?sigma i x)"
-      using xK by (simp add: G.power_Suc compose_eq)
-    also have "... = (G.power ?sigma i x) ^ card F"
-      by (rule finite_field_frobenius_apply[OF power_maps])
-    also have "... = (x ^ (card F ^ i)) ^ card F"
-      by (rule arg_cong[OF ih])
-    also have "... = x ^ ((card F ^ i) * card F)"
-      by (rule power_mult[symmetric])
+      using sigma xK by (simp add: Suc T.ext.power_closed)
+    have "G.power ?sigma (Suc i) x = (G.power ?sigma i x) ^ card F"
+      by (simp add: compose_eq power_maps xK)
     also have "... = x ^ (card F ^ Suc i)"
-      by (simp add: power_Suc mult.commute)
+      by (metis Suc power_Suc2 power_mult)
     finally show ?case .
   qed
 qed
@@ -118,10 +93,8 @@ proof -
   interpret G: Group "field_auto K F" "compose K" "identity K"
     by (rule field_auto_group[OF T.ext.Subfield_axioms T.base_subset])
   let ?sigma = "finite_field_frobenius K (card F)"
-  have sigma: "?sigma \<in> field_auto K F"
-    by (rule finite_field_frobenius_in_field_auto[OF T finF])
   have power_mem: "G.power ?sigma n \<in> field_auto K F"
-    using sigma by simp
+    using finite_field_frobenius_in_field_auto[OF T finF] by simp
   have power_maps: "G.power ?sigma n \<in> K \<rightarrow>\<^sub>E K"
     using power_mem by (simp add: field_auto_mem_iff)
   have id_maps: "identity K \<in> K \<rightarrow>\<^sub>E K"
@@ -132,15 +105,13 @@ proof -
     have iter: "G.power ?sigma n x = x ^ (card F ^ n)"
       by (rule finite_field_frobenius_power_apply[OF T finF xK])
     have top_fixed_frob: "frobenius_power (card K) x = x"
-      by (rule T.ext.finite_field_frobenius_identity[
-        OF T.finite_carrier_of_finite_base[OF finF] xK])
+      using Subfield.finite_field_frobenius_identity T.ext.Subfield_axioms T.finite_carrier_of_finite_base
+        finF xK by blast
     have top_fixed: "x ^ card K = x"
       using top_fixed_frob by (simp add: frobenius_power_def)
-    have card_power: "x ^ (card F ^ n) = x ^ card K"
-      by (simp add: n(2))
     have id_x: "identity K x = x" by (rule identity_apply[OF xK])
     show "G.power ?sigma n x = identity K x"
-      by (rule trans[OF iter trans[OF card_power trans[OF top_fixed id_x[symmetric]]]])
+      using id_x iter n(2) top_fixed by argo
   qed
 qed
 
@@ -150,9 +121,8 @@ text \<open>The Frobenius automorphism has exact order the degree of a finite ex
 theorem finite_field_frobenius_order:
   fixes F K :: "'a :: alg_closed_field set"
   assumes T: "finite_subfield_tower F K" and finF: "finite F"
-  shows "Monoid.element_order (compose K) (identity K)
-      (finite_field_frobenius K (card F)) =
-      finite_subfield_tower.extension_degree F K"
+  shows "Monoid.element_order (compose K) (identity K) (finite_field_frobenius K (card F)) =
+         finite_subfield_tower.extension_degree F K"
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
   interpret G: Group "field_auto K F" "compose K" "identity K"
@@ -167,23 +137,17 @@ proof -
     by (rule finite_field_extension_separable[OF T finF])
   have finG: "finite (field_auto K F)"
     by (rule finite_normal_separable_field_auto[OF T normal sep])
-  define n where "n = finite_subfield_tower.extension_degree F K"
+  define n where "n \<equiv> finite_subfield_tower.extension_degree F K"
   have n_pos: "n > 0"
     unfolding n_def by (rule T.extension_degree_pos)
   have card_eq: "card K = card F ^ n"
     unfolding n_def by (rule finite_field_extension_cardinality[OF T finF])
   have power_n: "G.power ?sigma n = identity K"
     by (rule finite_field_frobenius_power_degree[OF T finF n_pos card_eq])
-  have ord_le:
-      "G.element_order ?sigma \<le> n"
+  have ord_le: "G.element_order ?sigma \<le> n"
     by (rule G.element_order_minimal[OF finG sigma n_pos power_n])
   have q_gt1: "1 < card F"
-  proof -
-    have pair: "{0, 1} \<subseteq> F" using T.base.zero_closed T.base.one_closed by auto
-    have "card {0, 1 :: 'a} \<le> card F"
-      by (rule card_mono[OF finF pair])
-    then show ?thesis by simp
-  qed
+    using T.base.cardK_gt1 finF by blast
   have ord_not_less: "\<not> G.element_order ?sigma < n"
   proof
     assume ord_less: "G.element_order ?sigma < n"
@@ -207,17 +171,14 @@ proof -
         "K \<subseteq> {x :: 'a. x ^ (card F ^ G.element_order ?sigma) = x}"
     proof
       fix x assume xK: "x \<in> K"
-      have iter:
-          "G.power ?sigma (G.element_order ?sigma) x =
-            x ^ (card F ^ G.element_order ?sigma)"
+      have iter: "G.power ?sigma (G.element_order ?sigma) x = x ^ (card F ^ G.element_order ?sigma)"
         by (rule finite_field_frobenius_power_apply[OF T finF xK])
       have ord_id:
           "G.power ?sigma (G.element_order ?sigma) = identity K"
         by (rule G.power_element_order[OF finG sigma])
       have id_x: "identity K x = x" by (rule identity_apply[OF xK])
       have rev:
-          "x ^ (card F ^ G.element_order ?sigma) =
-            G.power ?sigma (G.element_order ?sigma) x"
+          "x ^ (card F ^ G.element_order ?sigma) = G.power ?sigma (G.element_order ?sigma) x"
         by (rule sym[OF iter])
       have result:
           "x ^ (card F ^ G.element_order ?sigma) = identity K x"
@@ -228,18 +189,14 @@ proof -
       show "x \<in> {x :: 'a. x ^ (card F ^ G.element_order ?sigma) = x}"
         by (rule result_set)
     qed
-    have card_top_le:
-        "card K \<le> card {x :: 'a. x ^ (card F ^ G.element_order ?sigma) = x}"
+    have card_top_le: "card K \<le> card {x :: 'a. x ^ (card F ^ G.element_order ?sigma) = x}"
       by (rule card_mono[OF fixed_fin top_subset])
-    have qpow_less_top: "card F ^ G.element_order ?sigma < card K"
-      using power_strict_increasing[OF ord_less q_gt1] card_eq by simp
     have "card K \<le> card F ^ G.element_order ?sigma"
       by (rule order_trans[OF card_top_le fixed_card])
-    with qpow_less_top show False by simp
+    with power_strict_increasing[OF ord_less q_gt1] card_eq show False by simp
   qed
-  have ord_eq: "G.element_order ?sigma = n"
-    using ord_le ord_not_less by auto
-  show ?thesis using ord_eq by (simp add: n_def)
+  show ?thesis  
+    using ord_le ord_not_less n_def by linarith
 qed
 
 text \<open>Every finite-field Galois group is generated by the relative Frobenius.  The equality
@@ -248,31 +205,25 @@ text \<open>Every finite-field Galois group is generated by the relative Frobeni
 theorem finite_field_galois_group_cyclic:
   fixes F K :: "'a :: alg_closed_field set"
   assumes T: "finite_subfield_tower F K" and finF: "finite F"
-  shows "Group.cyclic_subgroup (compose K) (identity K)
-      (finite_field_frobenius K (card F)) = field_auto K F"
+  shows "Group.cyclic_subgroup (compose K) (identity K) (finite_field_frobenius K (card F)) = field_auto K F"
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
   interpret G: Group "field_auto K F" "compose K" "identity K"
     by (rule field_auto_group[OF T.ext.Subfield_axioms T.base_subset])
   let ?sigma = "finite_field_frobenius K (card F)"
-  have sigma: "?sigma \<in> field_auto K F"
-    by (rule finite_field_frobenius_in_field_auto[OF T finF])
-  have normal: "normal_extension K F"
-    by (rule finite_field_extension_normal[OF T finF])
-  have sep: "separable_extension K F"
-    by (rule finite_field_extension_separable[OF T finF])
+  obtain sigma: "?sigma \<in> field_auto K F" and normal: "normal_extension K F" and sep: "separable_extension K F"
+    using T finF 
+    by (auto simp: finite_field_frobenius_in_field_auto finite_field_extension_normal finite_field_extension_separable)
   have finG: "finite (field_auto K F)"
     by (rule finite_normal_separable_field_auto[OF T normal sep])
-  have ord:
-      "G.element_order ?sigma = finite_subfield_tower.extension_degree F K"
+  have ord: "G.element_order ?sigma = finite_subfield_tower.extension_degree F K"
     by (rule finite_field_frobenius_order[OF T finF])
   have group_card:
       "card (field_auto K F) = finite_subfield_tower.extension_degree F K"
     by (rule finite_normal_separable_galois_degree[OF T normal sep])
   have cyc_subset: "G.cyclic_subgroup ?sigma \<subseteq> field_auto K F"
     by (rule G.cyclic_subgroup_subset[OF sigma])
-  have cyc_card:
-      "card (G.cyclic_subgroup ?sigma) = finite_subfield_tower.extension_degree F K"
+  have cyc_card: "card (G.cyclic_subgroup ?sigma) = finite_subfield_tower.extension_degree F K"
     using G.card_cyclic_subgroup[OF finG sigma] ord by simp
   have card_eq: "card (G.cyclic_subgroup ?sigma) = card (field_auto K F)"
     using cyc_card group_card by simp
@@ -303,11 +254,8 @@ theorem finite_field_intermediate_power_roots:
       (finite_subfield_tower.extension_degree F E)"
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
-  have data: "Subfield E \<and> F \<subseteq> E \<and> E \<subseteq> K"
-    using E by (simp add: inter_fields_iff)
-  have sfE: "Subfield E" by (rule conjunct1[OF data])
-  have FE: "F \<subseteq> E" by (rule conjunct1[OF conjunct2[OF data]])
-  have EK: "E \<subseteq> K" by (rule conjunct2[OF conjunct2[OF data]])
+  have sfE: "Subfield E" and FE: "F \<subseteq> E" and EK: "E \<subseteq> K"
+    using E by (auto simp: inter_fields_iff)
   have TFE_raw: "finite_subfield_tower F E"
     by (rule finite_subfield_tower_intermediate_left[OF T sfE FE EK])
   interpret TFE: finite_subfield_tower F E by (rule TFE_raw)
@@ -315,51 +263,40 @@ proof -
   have cardE: "card E = card F ^ TFE.extension_degree"
     by (rule finite_field_extension_cardinality[OF TFE_raw finF])
   have q_gt1: "1 < card F"
-  proof -
-    have pair: "{0, 1} \<subseteq> F" using T.base.zero_closed T.base.one_closed by auto
-    have "card {0, 1 :: 'a} \<le> card F"
-      by (rule card_mono[OF finF pair])
-    then show ?thesis by simp
-  qed
+    using T.base.cardK_gt1 finF by blast
   have m_gt1: "1 < card F ^ TFE.extension_degree"
     by (rule one_less_power[OF q_gt1 TFE.extension_degree_pos])
   have roots:
       "finite {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x} \<and>
-        card {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x} \<le>
-          card F ^ TFE.extension_degree"
+        card {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x} \<le> card F ^ TFE.extension_degree"
     by (rule card_power_fixed_points_le[OF m_gt1])
-  have roots_fin:
-      "finite {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x}"
+  have roots_fin: "finite {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x}"
     by (rule conjunct1[OF roots])
   have roots_card:
-      "card {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x} \<le>
-        card F ^ TFE.extension_degree"
+      "card {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x} \<le> card F ^ TFE.extension_degree"
     by (rule conjunct2[OF roots])
   let ?R = "finite_field_power_roots K F TFE.extension_degree"
   have R_subset:
       "?R \<subseteq> {x :: 'a. x ^ (card F ^ TFE.extension_degree) = x}"
     by (auto simp: finite_field_power_roots_def)
-  have R_fin: "finite ?R"
-    by (rule finite_subset[OF R_subset roots_fin])
   have R_card_le: "card ?R \<le> card F ^ TFE.extension_degree"
     by (rule order_trans[OF card_mono[OF roots_fin R_subset] roots_card])
-  have E_subset_R: "E \<subseteq> ?R"
-  proof
-    fix x assume xE: "x \<in> E"
-    have xK: "x \<in> K" using EK xE by blast
-    have xpow_frob: "frobenius_power (card E) x = x"
-      by (rule TFE.ext.finite_field_frobenius_identity[OF finE xE])
-    have xpow: "x ^ card E = x"
-      using xpow_frob by (simp add: frobenius_power_def)
-    show "x \<in> ?R"
-      using xK xpow cardE by (simp add: finite_field_power_roots_def)
-  qed
-  have card_E_le_R: "card E \<le> card ?R"
-    by (rule card_mono[OF R_fin E_subset_R])
-  have card_eq: "card E = card ?R"
-    using cardE R_card_le card_E_le_R by simp
   show ?thesis
-    by (rule card_subset_eq[OF R_fin E_subset_R card_eq])
+  proof (intro card_subset_eq)
+    show E_subset_R: "E \<subseteq> ?R"
+    proof
+      fix x assume xE: "x \<in> E"
+      have xK: "x \<in> K" using EK xE by blast
+      have "frobenius_power (card E) x = x"
+        by (simp add: TFE.ext.finite_field_frobenius_identity finE xE)
+      then show "x \<in> ?R"
+        using xK cardE by (simp add: frobenius_power_def finite_field_power_roots_def)
+    qed
+    show "finite ?R"
+      by (rule finite_subset[OF R_subset roots_fin])
+    then show "card E = card ?R"
+      by (metis E_subset_R R_card_le cardE card_seteq)
+  qed
 qed
 
 text \<open>Consequently, the degree is a complete invariant for intermediate fields of a finite
@@ -372,17 +309,7 @@ theorem finite_field_intermediate_degree_injective:
       "finite_subfield_tower.extension_degree F E =
         finite_subfield_tower.extension_degree F E'"
   shows "E = E'"
-proof -
-  have rootsE:
-      "E = finite_field_power_roots K F
-        (finite_subfield_tower.extension_degree F E)"
-    by (rule finite_field_intermediate_power_roots[OF T finF E])
-  have rootsE':
-      "E' = finite_field_power_roots K F
-        (finite_subfield_tower.extension_degree F E')"
-    by (rule finite_field_intermediate_power_roots[OF T finF E'])
-  show ?thesis using rootsE rootsE' degree_eq by simp
-qed
+  using assms by (metis finite_field_intermediate_power_roots)
 
 text \<open>The lower degree of every intermediate field divides the total extension degree, as
   expected from the finite-field divisor classification.\<close>
@@ -394,26 +321,16 @@ theorem finite_field_intermediate_degree_dvd:
       finite_subfield_tower.extension_degree F K"
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
-  have data: "Subfield E \<and> F \<subseteq> E \<and> E \<subseteq> K"
-    using E by (simp add: inter_fields_iff)
-  have sfE: "Subfield E" by (rule conjunct1[OF data])
-  have FE: "F \<subseteq> E" by (rule conjunct1[OF conjunct2[OF data]])
-  have EK: "E \<subseteq> K" by (rule conjunct2[OF conjunct2[OF data]])
+  have sfE: "Subfield E" and FE: "F \<subseteq> E" and EK: "E \<subseteq> K"
+    using E by (auto simp: inter_fields_iff)
   have TFE_raw: "finite_subfield_tower F E"
     by (rule finite_subfield_tower_intermediate_left[OF T sfE FE EK])
   have TEK_raw: "finite_subfield_tower E K"
     by (rule finite_subfield_tower_intermediate_right[OF T sfE FE EK])
   interpret C: finite_subfield_tower_chain F E K
     by (rule finite_subfield_tower_chain.intro[OF TFE_raw TEK_raw])
-  have tower_degree:
-      "finite_subfield_tower.extension_degree F K =
-        finite_subfield_tower.extension_degree F E *
-        finite_subfield_tower.extension_degree E K"
-    by (rule C.extension_degree_tower_law_exists)
   show ?thesis
-    unfolding dvd_def
-    by (rule exI[of _ "finite_subfield_tower.extension_degree E K"])
-       (simp add: tower_degree mult.commute)
+    by (simp add: C.extension_degree_tower_law_exists)
 qed
 
 text \<open>Every divisor of the total degree is realised by a unique intermediate field.  The
@@ -442,35 +359,28 @@ proof -
     by (rule finite_field_extension_separable[OF T finF])
   have finG: "finite (field_auto K F)"
     by (rule finite_normal_separable_field_auto[OF T normal sep])
-  define n where "n = finite_subfield_tower.extension_degree F K"
+  define n where "n \<equiv> finite_subfield_tower.extension_degree F K"
   have n_pos: "n > 0"
     unfolding n_def by (rule T.extension_degree_pos)
   have ord_sigma: "G.element_order ?sigma = n"
     unfolding n_def by (rule finite_field_frobenius_order[OF T finF])
-  have d_n: "d dvd n"
-    using d by (simp add: n_def)
   let ?hgen = "G.power ?sigma d"
   have hgen: "?hgen \<in> field_auto K F"
     by (rule G.power_closed[OF sigma])
   let ?H = "G.cyclic_subgroup ?hgen"
-  have Hsub:
-      "Subgroup ?H (field_auto K F) (compose K) (identity K)"
+  have Hsub: "Subgroup ?H (field_auto K F) (compose K) (identity K)"
     by (rule G.cyclic_subgroup_is_subgroup[OF finG hgen])
   have H: "?H \<in> galois_subgroups K F"
     using Hsub by (simp add: galois_subgroups_iff)
   have gcd_eq: "gcd n d = d"
-    by (rule gcd_proj2_if_dvd_nat[OF d_n])
+    by (simp add: d n_def)
   have H_card: "card ?H = n div d"
-    using G.card_cyclic_subgroup[OF finG hgen]
-      G.element_order_power[OF finG sigma] ord_sigma gcd_eq by simp
+    using G.card_cyclic_subgroup G.element_order_power finG gcd_eq hgen ord_sigma sigma by presburger
   let ?E = "fixed_field K ?H"
   have E: "?E \<in> inter_fields K F"
     by (rule GE.fixed_field_in_inter_fields[OF H])
-  have E_data: "Subfield ?E \<and> F \<subseteq> ?E \<and> ?E \<subseteq> K"
-    using E by (simp add: inter_fields_iff)
-  have sfE: "Subfield ?E" by (rule conjunct1[OF E_data])
-  have FE: "F \<subseteq> ?E" by (rule conjunct1[OF conjunct2[OF E_data]])
-  have EK: "?E \<subseteq> K" by (rule conjunct2[OF conjunct2[OF E_data]])
+  have sfE: "Subfield ?E" and FE: "F \<subseteq> ?E" and EK: "?E \<subseteq> K"
+    using E by (auto simp add: inter_fields_iff)
   have TFE_raw: "finite_subfield_tower F ?E"
     by (rule finite_subfield_tower_intermediate_left[OF T sfE FE EK])
   have TEK_raw: "finite_subfield_tower ?E K"
@@ -484,37 +394,21 @@ proof -
   have fixed_group: "field_auto K ?E = ?H"
     by (rule finite_galois_fixed_group[OF T normal sep H])
   have H_degree: "n div d = TEK.extension_degree"
-    using H_card fixed_group
-      finite_normal_separable_galois_degree[OF TEK_raw normalEK sepEK] by simp
+    using H_card fixed_group finite_normal_separable_galois_degree[OF TEK_raw normalEK sepEK] by simp
   interpret C: finite_subfield_tower_chain F ?E K
     by (rule finite_subfield_tower_chain.intro[OF TFE_raw TEK_raw])
-  have tower_degree:
-      "n = TFE.extension_degree * TEK.extension_degree"
+  have tower_degree: "n = TFE.extension_degree * TEK.extension_degree"
     unfolding n_def by (rule C.extension_degree_tower_law_exists)
-  have n_mult: "n div d * d = n"
-    by (rule dvd_div_mult_self[OF d_n])
-  have cancel_eq:
-      "TEK.extension_degree * TFE.extension_degree =
-       TEK.extension_degree * d"
-  proof -
-    have left:
-        "TEK.extension_degree * TFE.extension_degree = n"
-      using tower_degree by (simp add: mult.commute)
-    have right:
-        "TEK.extension_degree * d = n"
-      using n_mult H_degree by (simp add: mult.commute)
-    show ?thesis by (rule trans[OF left right[symmetric]])
-  qed
+  have cancel_eq: "TEK.extension_degree * TFE.extension_degree = TEK.extension_degree * d"
+    using H_degree dvd_div_mult_self[of d n] d tower_degree unfolding n_def by auto
   have lower_degree: "TFE.extension_degree = d"
     using cancel_eq TEK.extension_degree_pos nat_mult_eq_cancel1 by simp
-  have roots:
-      "?E = finite_field_power_roots K F TFE.extension_degree"
+  have roots: "?E = finite_field_power_roots K F TFE.extension_degree"
     by (rule finite_field_intermediate_power_roots[OF T finF E])
   have roots_d: "?E = finite_field_power_roots K F d"
     using roots lower_degree by simp
-  show ?thesis
-    by (rule exI[of _ ?E], intro conjI)
-       (rule E, rule lower_degree, rule roots_d)
+  then show ?thesis
+    using E lower_degree by blast
 qed
 
 end

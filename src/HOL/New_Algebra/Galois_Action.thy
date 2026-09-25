@@ -98,7 +98,7 @@ proof (intro ballI impI)
   have allfix: "\<forall>x \<in> K. \<sigma> x = x"
     \<comment> \<open>The theory prefix is needed: \<open>Complex_Field_Extension\<close> declares a
       \<^typ>\<open>complex\<close>-specific theorem of the same name, which shadows the generic one here.\<close>
-    using Galois_Automorphism.field_auto_faithful[OF Kgen s fixX] .
+    using Galois_Automorphism.field_auto_faithful[OF Kgen s fixX] by force
   have sext: "\<sigma> \<in> K \<rightarrow>\<^sub>E K"
     using s by (simp only: field_auto_mem_iff)
   with allfix show "\<sigma> = identity K"
