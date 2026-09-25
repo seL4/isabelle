@@ -1083,6 +1083,23 @@ proof -
   qed (force intro: qf)
 qed
 
+lemma deriv_real_polynomial_function:
+  assumes "real_polynomial_function p"
+  shows   "real_polynomial_function (deriv p)"
+proof -
+  obtain p' where p': "real_polynomial_function p' \<and> (\<forall>x. (p has_real_derivative (p' x)) (at x))"
+    using assms has_real_derivative_polynomial_function by presburger
+  then have "p' = deriv p"
+    by (metis (lifting) ext DERIV_imp_deriv)
+  then show ?thesis
+    using p' by auto
+qed
+
+lemma polynomial_function_kth_deriv:
+  assumes "real_polynomial_function p"
+  shows   "real_polynomial_function ((deriv ^^ k) p)"
+  by(induct k, simp add: assms, simp add: deriv_real_polynomial_function)
+
 lemma real_polynomial_function_separable:
   fixes x :: "'a::euclidean_space"
   assumes "x \<noteq> y" shows "\<exists>f. real_polynomial_function f \<and> f x \<noteq> f y"

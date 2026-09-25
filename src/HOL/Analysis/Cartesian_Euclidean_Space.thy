@@ -496,6 +496,75 @@ next
     by (rule differentiableI)
 qed
 
+lemma transpose_mv_inner:
+  fixes A :: "real^'n^'m" and v :: "real^'n" and w :: "real^'m"
+  shows "(A *v v) \<bullet> w = v \<bullet> (transpose A *v w)"
+  by (metis dot_lmul_matrix vector_transpose_matrix)
+
+subsection \<open>Hessian chain rule\<close>
+
+text \<open>Row \<open>i\<close> of \<open>A\<^sup>T ** B ** A\<close> is \<open>\<Sigma>\<^sub>r A\<^sub>r\<^sub>i \<sqdot> (A\<^sup>T *v B\<^sub>r)\<close>, with \<open>B\<^sub>r\<close> the \<open>r\<close>-th row of \<open>B\<close>.\<close>
+lemma row_transpose_mult_both:
+  fixes A :: "real^'n^'m" and B :: "real^'m^'m"
+  shows "(transpose A ** B ** A) $ i = (\<Sum>r\<in>UNIV. A $ r $ i *\<^sub>R (transpose A *v (B $ r)))"
+proof (rule vec_eq_iff[THEN iffD2], intro allI)
+  fix j :: 'n
+  have "(transpose A ** B ** A) $ i $ j = (\<Sum>s\<in>UNIV. \<Sum>r\<in>UNIV. A $ r $ i * B $ r $ s * A $ s $ j)"
+    by (simp add: matrix_matrix_mult_def transpose_def sum_distrib_right mult.assoc)
+  also have "\<dots> = (\<Sum>r\<in>UNIV. \<Sum>s\<in>UNIV. A $ r $ i * B $ r $ s * A $ s $ j)"
+    by (rule sum.swap)
+  also have "\<dots> = (\<Sum>r\<in>UNIV. A $ r $ i * (\<Sum>s\<in>UNIV. B $ r $ s * A $ s $ j))"
+    by (simp add: sum_distrib_left mult.assoc)
+  also have "\<dots> = (\<Sum>r\<in>UNIV. A $ r $ i *\<^sub>R (transpose A *v (B $ r))) $ j"
+    by (simp add: mult.commute matrix_vector_mult_def transpose_def)
+  finally show "(Finite_Cartesian_Product.transpose A ** B ** A) $ i $ j =
+          (\<Sum>r\<in>UNIV. A $ r $ i *\<^sub>R (Finite_Cartesian_Product.transpose A *v B $ r)) $ j"
+    by simp
+qed
+
+subsection \<open>Jacobian\<close>
+
+lemma frechet_derivative_jacobian:
+  fixes F :: "real^'n::finite \<Rightarrow> real^'m::finite"
+  assumes "F differentiable (at x)"
+  shows "frechet_derivative F (at x) v = jacobian F (at x) *v v"
+  unfolding jacobian_def
+  by (simp add: assms linear_frechet_derivative)
+
+lemma jacobian_component:
+  fixes F :: "real^'n::finite \<Rightarrow> real^'m::finite"
+  assumes "F differentiable (at x)"
+  shows "jacobian F (at x) $ r $ i = frechet_derivative (\<lambda>y. F y $ r) (at x) (axis i 1)"
+proof -
+  have FD: "(F has_derivative frechet_derivative F (at x)) (at x)"
+    using assms frechet_derivative_works by blast
+
+  have coord_D:  "((\<lambda>y. F y $ r) has_derivative (\<lambda>h. frechet_derivative F (at x) h $ r)) (at x)"
+  proof -
+    have Hcomp: "((\<lambda>y. F y \<bullet> axis r 1) has_derivative
+          (\<lambda>h. frechet_derivative F (at x) h \<bullet> axis r 1)) (at x within UNIV)"
+      using FD by (subst (asm) has_derivative_componentwise_within[where S = UNIV],
+                   auto simp: Basis_vec_def)
+    have comp_fun: "(\<lambda>y. F y \<bullet> axis r 1) = (\<lambda>y. F y $ r)"
+      by (force simp: cart_eq_inner_axis)
+    have comp_deriv: "(\<lambda>h. frechet_derivative F (at x) h \<bullet> axis r 1) = (\<lambda>h. frechet_derivative F (at x) h $ r)"
+      by (force simp: cart_eq_inner_axis)
+    show ?thesis
+      using Hcomp by (simp add: comp_fun comp_deriv)
+  qed
+  have coord_FD: "frechet_derivative (\<lambda>y. F y $ r) (at x) = (\<lambda>h. frechet_derivative F (at x) h $ r)"
+    by (subst frechet_derivative_at[OF coord_D], simp)
+  have "(jacobian F (at x) *v axis i 1) $ r = jacobian F (at x) $ r $ i"
+    by (simp add: matrix_vector_mult_def,
+        metis (full_types) cart_eq_inner_axis inner_real_def inner_vec_def)
+  moreover have "jacobian F (at x) *v axis i 1 = frechet_derivative F (at x) (axis i 1)"
+    using assms by (subst frechet_derivative_jacobian, auto)
+  ultimately have "jacobian F (at x) $ r $ i = frechet_derivative F (at x) (axis i 1) $ r"
+    by simp
+  also have "... = frechet_derivative (\<lambda>y. F y $ r) (at x) (axis i 1)"
+    by (simp add: coord_FD)
+  finally show ?thesis.
+qed
 
 text \<open>Component of the differential must be zero if it exists at a local
   maximum or minimum for that corresponding component\<close>
@@ -508,6 +577,98 @@ proposition differential_zero_maxmin_cart:
   using differential_zero_maxmin_component[of "axis k 1" e x f] assms
     vector_cart[of "\<lambda>j. frechet_derivative f (at x) j $ k"]
   by (simp add: Basis_vec_def axis_eq_axis inner_axis jacobian_def matrix_def)
+
+lemma has_derivative_to_gradient:
+  fixes f :: "real^'n::finite \<Rightarrow> real"
+  assumes "(f has_derivative L) (at x)"
+  shows "GDERIV f x :> (\<Sum>i\<in>UNIV. L (axis i 1) *\<^sub>R axis i 1)"
+proof -
+  let ?g = "(\<Sum>i\<in>UNIV. L (axis i 1) *\<^sub>R axis i 1)"
+  have bl: "bounded_linear L"
+    using assms by (rule has_derivative_bounded_linear)
+  have L_eq: "L = (\<lambda>v. v \<bullet> ?g)"
+  proof
+    fix v :: "real^'n"
+    have v_exp: "v = (\<Sum>i\<in>UNIV. (v $ i) *\<^sub>R axis i 1)"
+      by (metis (no_types) basis_expansion scalar_mult_eq_scaleR)
+    then have "L v = L (\<Sum>i\<in>UNIV. (v $ i) *\<^sub>R axis i 1)"
+      by simp
+    also have "\<dots> = (\<Sum>i\<in>UNIV. L ((v $ i) *\<^sub>R axis i 1))"
+      using bl bounded_linear.linear linear_sum by blast
+    also have "\<dots> = (\<Sum>i\<in>UNIV. (v $ i) * L (axis i 1))"
+      by (simp add: bl linear_simps(5))
+    also have "\<dots> = v \<bullet> ?g"
+      by (simp add: inner_sum_right cart_eq_inner_axis mult.commute)
+    finally show "L v = v \<bullet> ?g".
+  qed
+  with assms show ?thesis
+    by (simp add: gderiv_def)
+qed
+
+text \<open>A differentiable \<open>f :: real\<^sup>n \<Rightarrow> real\<close> has a gradient.\<close>
+lemma Fr_diff_imp_gradient_exists:
+  fixes f :: "real^'n::finite \<Rightarrow> real"
+  assumes "f differentiable (at x)"
+  shows "\<exists>g. GDERIV f x :> g"
+  using assms unfolding differentiable_def by (blast intro: has_derivative_to_gradient)
+
+lemma GDERIV_cmult:
+  fixes f :: "real^'n::finite \<Rightarrow> real"
+  assumes "GDERIV f x :> gf"
+  shows "GDERIV (\<lambda>y. c * f y) x :> c *\<^sub>R gf"
+  using assms unfolding gderiv_def
+  by (auto intro!: derivative_eq_intros simp: inner_commute)
+
+lemma GDERIV_affine:
+  fixes a :: real and b :: "real^'n::finite"
+  shows "GDERIV (\<lambda>x. a + x \<bullet> b) x :> b"
+  unfolding gderiv_def
+  by (auto intro!: derivative_eq_intros simp: inner_commute)
+
+lemma GDERIV_sum:
+  fixes F :: "'i \<Rightarrow> real^'n::finite \<Rightarrow> real"
+  fixes G :: "'i \<Rightarrow> real^'n"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> GDERIV (F i) x :> G i"
+  shows "GDERIV (\<lambda>y. \<Sum>i\<in>I. F i y) x :> (\<Sum>i\<in>I. G i)"
+  using assms
+proof (induction I rule: infinite_finite_induct)
+  case (insert i I)
+  then show ?case by (simp add: GDERIV_add)
+qed (auto simp: gderiv_def)
+
+subsection \<open>Gradient chain rule\<close>
+
+text \<open>If \<open>F\<close> has derivative \<open>J\<close> at \<open>x\<close>, then \<open>\<nabla>(g \<circ> F)(x) = (matrix J)\<^sup>T *v \<nabla>g(F x)\<close>.\<close>
+lemma GDERIV_compose:
+  fixes g :: "real^'m::finite \<Rightarrow> real"
+    and F :: "real^'n::finite \<Rightarrow> real^'m"
+  assumes Gg: "GDERIV g (F x) :> dg"
+      and DF: "(F has_derivative J) (at x)"
+  shows "GDERIV (\<lambda>y. g (F y)) x :> transpose (matrix J) *v dg"
+proof -
+  have Dg: "(g has_derivative (\<lambda>w. w \<bullet> dg)) (at (F x))"
+    using Gg unfolding gderiv_def .
+  have Dcomp: "((\<lambda>y. g (F y)) has_derivative (\<lambda>v. J v \<bullet> dg)) (at x)"
+    using has_derivative_compose[OF DF Dg] by (simp add: o_def)
+  have "\<And>v. J v \<bullet> dg = v \<bullet> (transpose (matrix J) *v dg)"
+    using DF by (metis has_derivative_linear matrix_vector_mul(2) transpose_mv_inner)
+  thus ?thesis
+    using Dcomp by (simp add: gderiv_def)
+qed
+
+corollary GDERIV_compose':
+  fixes g :: "real^'m::finite \<Rightarrow> real"
+    and F :: "real^'n::finite \<Rightarrow> real^'m"
+  assumes Gg: "GDERIV g (F x) :> dg"
+      and DF: "F differentiable (at x)"
+  shows "GDERIV (\<lambda>y. g (F y)) x :> transpose (jacobian F (at x)) *v dg"
+proof -
+  have "(F has_derivative frechet_derivative F (at x)) (at x)"
+    using DF by (simp add: frechet_derivative_works[THEN iffD1])
+  thus ?thesis
+    by (simp add: jacobian_def, metis GDERIV_compose Gg transpose_matrix_vector)
+qed
+
 
 subsection\<^marker>\<open>tag unimportant\<close>\<open>Routine results connecting the types \<^typ>\<open>real^1\<close> and \<^typ>\<open>real\<close>\<close>
 

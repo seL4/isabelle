@@ -25,6 +25,8 @@ theory Analysis
   Cartesian_Euclidean_Space
   Kronecker_Approximation_Theorem
   Weierstrass_Theorems
+  Ck_Implicit_Function
+  Analytic_Inverse_Function
   (* Measure and Integration Theory *)
   Absolute_Continuity
   Rectifiable_Path
