@@ -79,3 +79,6 @@ option mirabelle_theories : string = ""
 
 option mirabelle_subgoals : string = "apply,by,proof,unfolding,using"
   -- "comma-separated list of subgoal classes to consider"
+
+option mirabelle_print_command : bool = false
+  -- "print the source text of each command acted upon"

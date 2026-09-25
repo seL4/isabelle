@@ -250,6 +250,9 @@ fixes one implementation defect. Minor INCOMPATIBILITY.
   - Removed option "cvc_extensions"; use "smt_native_datatypes" and
     "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
+* Mirabelle: Added option -c to "isabelle mirabelle" to log the source
+text of each command acted upon, e.g. "source: by (metis foo bar)".
+
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
 reasonable implementation, but a lot of implementations would require

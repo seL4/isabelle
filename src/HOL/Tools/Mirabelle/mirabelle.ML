@@ -12,7 +12,8 @@ sig
     {index: int, label: string, name: string, arguments: Properties.T, timeout: Time.time,
      output_dir: Path.T}
   type command =
-    {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state}
+    {theory_index: int, name: string, pos: Position.T, source: unit -> string,
+     pre: Proof.state, post: Toplevel.state}
   type action = {run: command -> string, finalize: unit -> string}
   val register_action: string -> (action_context -> string * action) -> unit
 
@@ -63,7 +64,8 @@ fun read_actions str =
 (* actions *)
 
 type command =
-  {theory_index: int, name: string, pos: Position.T, pre: Proof.state, post: Toplevel.state};
+  {theory_index: int, name: string, pos: Position.T, source: unit -> string,
+   pre: Proof.state, post: Toplevel.state};
 type action_context =
   {index: int, label: string, name: string, arguments: Properties.T, timeout: Time.time,
    output_dir: Path.T};
@@ -128,7 +130,8 @@ fun finalize_action ({finalize, ...} : action) context =
       ()
   end
 
-fun apply_action ({run, ...} : action) context (command as {pos, pre, ...} : command) =
+fun apply_action print_command ({run, ...} : action) context
+    (command as {pos, source, pre, ...} : command) =
   let
     val action_path = make_action_path context
     and goal_name_path = Path.basic (#name command)
@@ -138,8 +141,9 @@ fun apply_action ({run, ...} : action) context (command as {pos, pre, ...} : com
     val export_name =
       Path.binding0 (Path.basic "mirabelle" + action_path + Path.basic "goal" + goal_name_path +
         line_path + offset_path + Path.basic (string_of_int (Time.toMilliseconds elapsed)));
+    val s' = if print_command then cat_lines ["source: " ^ source (), s] else s;
   in
-    Export.export (Proof.theory_of pre) export_name [XML.Text s]
+    Export.export (Proof.theory_of pre) export_name [XML.Text s']
   end;
 
 
@@ -197,16 +201,35 @@ fun run_actions actions qualifier loaded_theories =
     val check_theory = check_theories (space_explode "," mirabelle_theories);
     val mirabelle_subgoals = Options.default_string \<^system_option>\<open>mirabelle_subgoals\<close>;
     val considered_subgoals = space_explode "," mirabelle_subgoals;
+    val mirabelle_print_command =
+      Options.default_bool \<^system_option>\<open>mirabelle_print_command\<close>;
 
     fun parallel_app (f : 'a -> unit) (xs : 'a list) : unit =
       chop_groups mirabelle_parallel_group_size xs
       |> List.app (ignore o Par_List.map f)
 
+    fun command_source span =
+      let
+        fun add tok (sep, buf) =
+          if Token.is_proper tok then
+            (false,
+              buf
+              |> (sep andalso not (Buffer.is_empty buf)) ? Buffer.add " "
+              |> Buffer.add (Token.unparse tok))
+          else (true, buf);
+      in
+        (false, Buffer.empty)
+        |> fold add (Command_Span.content span)
+        |> snd
+        |> Buffer.content
+        |> String.translate (fn #"\n" => " " | c => String.str c)
+      end;
+
     fun make_commands (thy_index, (thy, segments)) =
       let
         val thy_long_name = Context.theory_long_name thy;
         val check_thy = check_theory thy_long_name;
-        fun make_command {command = tr, prev_state = st, state = st', ...} =
+        fun make_command {span, command = tr, prev_state = st, state = st'} =
           let
             val name = Toplevel.name_of tr;
             val pos = Toplevel.pos_of tr;
@@ -215,7 +238,7 @@ fun run_actions actions qualifier loaded_theories =
               can (Proof.assert_backward o Toplevel.proof_of) st andalso
               member (op =) considered_subgoals name andalso check_thy pos
             then SOME {theory_index = thy_index, name = name, pos = pos,
-              pre = Toplevel.proof_of st, post = st'}
+              source = fn () => command_source span, pre = Toplevel.proof_of st, post = st'}
             else NONE
           end;
       in
@@ -269,7 +292,8 @@ fun run_actions actions qualifier loaded_theories =
       end)
     (* Don't use multithreading for a dry run because of the high per-thread overhead. *)
     |> (if mirabelle_dry_run then List.app else parallel_app) (fn ((action, context), command) =>
-        apply_action (if mirabelle_dry_run then dry_run_action else action) context command);
+        apply_action mirabelle_print_command (if mirabelle_dry_run then dry_run_action else action)
+          context command);
 
     (* finalize actions *)
     List.app (uncurry finalize_action) contexts
