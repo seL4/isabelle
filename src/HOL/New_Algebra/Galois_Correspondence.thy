@@ -20,21 +20,13 @@ text \<open>Let \<open>F \<subseteq> K\<close> be subfields of an ambient type-c
   adjoints --- is to order one of the two lattices by reverse inclusion.  We order the subgroups by
   \<open>\<supseteq>\<close>; then both maps become isotone and the adjunction reads
   @{text "K\<^sup>H \<subseteq> E \<longleftrightarrow> H \<supseteq> field_auto K E"}.
-
-  This is the general half of the Galois correspondence, and it needs no separability, normality or
-  finiteness hypotheses at all: it is a formal consequence of the definitions, exactly as for the
-  extension/contraction pair on ideals in \<open>Ideal_Extension\<close>.  What genuinely \<^emph>\<open>does\<close> need those
-  hypotheses is the statement that the two maps are mutually inverse \<^emph>\<open>bijections\<close>; the closure
-  operator @{text "E \<mapsto> K\<^bsup>field_auto K E\<^esup>"} is the identity precisely on the intermediate fields over
-  which @{term K} is normal.  The finite normal separable refinement is proved in
-  \<open>Galois_Finite_Correspondence\<close>.\<close>
+\<close>
 
 
 subsection \<open>The fixed field of a set of automorphisms\<close>
 
 text \<open>The subfield of @{term K} fixed pointwise by every automorphism in @{term H}.  We do not
-  require @{term H} to be a subgroup: the definition and its basic properties make sense for an
-  arbitrary set of maps, and the extra generality costs nothing.\<close>
+  require @{term H} to be a subgroup.\<close>
 text \<open>The fixed field is a subfield by the generic closure theorem
   @{thm [source] field_auto_fixed_field_subfield}; the empty case is @{term K} itself.\<close>
 theorem fixed_field_subfield:
@@ -54,7 +46,7 @@ subsection \<open>Intermediate fields and the relative Galois group\<close>
 
 text \<open>The intermediate fields of the extension \<open>F \<subseteq> K\<close>: the subfields lying between the two.\<close>
 definition inter_fields :: "'a :: field set \<Rightarrow> 'a set \<Rightarrow> 'a set set"
-  where "inter_fields K F = {E. Subfield E \<and> F \<subseteq> E \<and> E \<subseteq> K}"
+  where "inter_fields K F \<equiv> {E. Subfield E \<and> F \<subseteq> E \<and> E \<subseteq> K}"
 
 lemma inter_fields_iff:
   "E \<in> inter_fields K F \<longleftrightarrow> Subfield E \<and> F \<subseteq> E \<and> E \<subseteq> K"
@@ -100,23 +92,17 @@ proof -
       ambient groups agree on inverses by @{thm [source] Subgroup.subgroup_inverse_equality}.\<close>
     show "\<And>g. g \<in> field_auto K E \<Longrightarrow> W.invertible g"
       using EF by (blast intro: W.invertible)
-    show "\<And>g. g \<in> field_auto K E \<Longrightarrow> W.inverse g \<in> field_auto K E"
+    show "W.inverse g \<in> field_auto K E" if "g \<in> field_auto K E" for g
     proof -
-      fix g assume g: "g \<in> field_auto K E"
-      then have gW: "g \<in> field_auto K F" using EF by blast
+      have gW: "g \<in> field_auto K F" using that EF by blast
       have inv_in: "S.sub.inverse g \<in> field_auto K E"
-        using g by (simp add: S.sub.invertible_inverse_closed)
+        using that by (simp add: S.sub.invertible_inverse_closed)
       \<comment> \<open>The symmetric-group inverse is a two-sided inverse of \<open>g\<close> in the ambient Galois group
         too, so the two notions of inverse agree.\<close>
       have "W.inverse g = S.sub.inverse g"
       proof (rule W.inverse_equality)
-        show "g \<in> field_auto K F" by (rule gW)
         show "S.sub.inverse g \<in> field_auto K F" using inv_in EF by blast
-        show "compose K g (S.sub.inverse g) = identity K"
-          using g by simp
-        show "compose K (S.sub.inverse g) g = identity K"
-          using g by simp
-      qed
+      qed (use that gW in auto)
       then show "W.inverse g \<in> field_auto K E" using inv_in by simp
     qed
   qed
@@ -124,7 +110,7 @@ qed
 
 text \<open>The set of subgroups of the Galois group, as the second of the two lattices.\<close>
 definition galois_subgroups :: "'a :: field set \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'a) set set"
-  where "galois_subgroups K F =
+  where "galois_subgroups K F \<equiv>
     {H. Subgroup H (field_auto K F) (compose K) (identity K)}"
 
 lemma galois_subgroups_iff:
@@ -133,11 +119,7 @@ lemma galois_subgroups_iff:
 
 lemma galois_subgroups_subset:
   assumes "H \<in> galois_subgroups K F" shows "H \<subseteq> field_auto K F"
-proof -
-  interpret Subgroup H "field_auto K F" "compose K" "identity K"
-    using assms by (simp add: galois_subgroups_iff)
-  show ?thesis by (rule subset)
-qed
+  using assms by (meson Subgroup_def Submonoid.subset galois_subgroups_iff)
 
 
 subsection \<open>The adjunction\<close>
@@ -182,16 +164,12 @@ proof
   then have fixes_E: "\<And>\<sigma> x. \<lbrakk> \<sigma> \<in> H; x \<in> E \<rbrakk> \<Longrightarrow> \<sigma> x = x"
     by (auto dest: fixed_field_memD)
   show "H \<subseteq> field_auto K E"
-  proof
-    fix \<sigma> assume s: "\<sigma> \<in> H"
-    then have "\<sigma> \<in> field_auto K F" using H galois_subgroups_subset by blast
-    then show "\<sigma> \<in> field_auto K E" using s fixes_E by (auto simp: field_auto_def)
-  qed
+    using fixes_E galois_subgroups_subset [OF H] 
+    by (smt (cvc5, dec_internal_enum_inst_sum) field_auto_mem_iff subset_iff)
 next
   assume "H \<subseteq> field_auto K E"
-  then have "\<And>\<sigma> x. \<lbrakk> \<sigma> \<in> H; x \<in> E \<rbrakk> \<Longrightarrow> \<sigma> x = x" by (auto simp: field_auto_def)
-  moreover have "E \<subseteq> K" using E by (simp add: inter_fields_iff)
-  ultimately show "E \<subseteq> fixed_field K H" by (blast intro: fixed_field_memI)
+  then show "E \<subseteq> fixed_field K H"
+    using E by (meson field_auto_base_subset_fixed_field inter_fields_iff)
 qed
 
 text \<open>The two \<^emph>\<open>unit\<close> inequalities, which hold unconditionally and in both directions.  These are
@@ -205,12 +183,7 @@ lemma le_fixed_field_galois_group:
 lemma le_galois_group_fixed_field:
   assumes H: "H \<in> galois_subgroups K F"
   shows "H \<subseteq> field_auto K (fixed_field K H)"
-proof
-  fix \<sigma> assume s: "\<sigma> \<in> H"
-  then have "\<sigma> \<in> field_auto K F" using H galois_subgroups_subset by blast
-  then show "\<sigma> \<in> field_auto K (fixed_field K H)"
-    using s by (auto simp: field_auto_def fixed_field_def)
-qed
+  using assms fixed_field_galois fixed_field_in_inter_fields by blast
 
 
 subsection \<open>The Galois connection\<close>
@@ -237,10 +210,7 @@ theorem galois_correspondence:
      (inter_fields K F) (\<subseteq>)
      (galois_subgroups K F) (\<lambda>H H'. H' \<subseteq> H)
      (field_auto K) (fixed_field K)"
-proof (rule Galois_Connection.intro)
-  show "Partial_Order (inter_fields K F) (\<subseteq>)" by (rule partial_order_inter_fields)
-  show "Partial_Order (galois_subgroups K F) (\<lambda>H H'. H' \<subseteq> H)"
-    by (rule partial_order_galois_subgroups)
+proof (intro partial_order_inter_fields partial_order_galois_subgroups Galois_Connection.intro)
   show "Galois_Connection_axioms
           (inter_fields K F) (\<subseteq>) (galois_subgroups K F) (\<lambda>H H'. H' \<subseteq> H)
           (field_auto K) (fixed_field K)"
@@ -297,21 +267,6 @@ end (* galois_extension *)
 text \<open>\<^bold>\<open>Scope and downstream completion.\<close>  This theory deliberately stops at the
   representation-independent, inclusion-reversing adjunction, packaged as a
   @{locale Galois_Connection}.  No separability, normality or finiteness hypothesis belongs in this
-  layer: the unit, counit and semi-inverse laws are the reusable order-theoretic API.
-
-  The two fixed-point statements are assembled in downstream theories:
-
-    \<^item> \<open>Artin_Degree\<close> supplies the finite-subgroup kernel identity,
-      \<open>field_auto K (fixed_field K H) = H\<close>, through \<open>artin_theorem\<close>.  Its public theorem
-      now derives the required basis from the uniform Artin bound and does not expose the old
-      fixed-vector premise;
-
-    \<^item> \<open>Galois_Finite_Extension\<close> supplies the closure identity for complex splitting fields,
-      with algebraicity discharged by the generated-field API.
-
-  The representation-independent finite normal separable correspondence is completed in
-  \<open>Galois_Finite_Correspondence\<close>: both maps are inverse bijections, their
-  degree/index formulas are proved, normal intermediate fields correspond to normal subgroups, and
-  restriction yields the expected quotient-group isomorphism.\<close>
+  layer: the unit, counit and semi-inverse laws are the reusable order-theoretic API.\<close>
 
 end

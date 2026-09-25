@@ -7,8 +7,7 @@ begin
 text \<open>
   A finite subfield is represented here as a carrier set inside an ambient type-class field.
   The existing finite-field cardinality theorem therefore speaks about the characteristic of
-  the carrier-set locale, whereas the type-class Freshman's Dream speaks about
-  @{term "CHAR('a :: field)"}.  The first lemmas identify those two presentations; the remaining results
+  the carrier-set locale.  The first lemmas identify those two presentations; the remaining results
   expose Frobenius without introducing a second field representation.
 \<close>
 
@@ -30,14 +29,11 @@ lemma carrier_characteristic_eq_CHAR:
   shows "carrier.characteristic = CHAR('a)"
 proof -
   have small_nz: False
-    if npos: "n > 0" and nlt: "n < carrier.characteristic" and "of_nat n = (0 :: 'a)" for n
-  proof -
-    have "carrier.characteristic \<le> n"
-      using that by (simp add: carrier.characteristic_least carrier_natmult_eq_of_nat npos)
-    with nlt show False by simp
-  qed
-  show ?thesis
-    using carrier.characteristic_pos[OF fin] carrier_natmult_eq_of_nat small_nz by (metis CHAR_eq_posI)
+    if "0 < n" and "n < carrier.characteristic" and "of_nat n = (0 :: 'a)" for n
+      using that carrier.characteristic_least carrier_natmult_eq_of_nat 
+       linorder_not_less by auto
+  then show ?thesis
+    using carrier.characteristic_pos[OF fin] carrier_natmult_eq_of_nat by (metis CHAR_eq_posI)
 qed
 
 theorem finite_subfield_cardinality_char_power:
@@ -86,16 +82,17 @@ lemma frobenius_power_inj:
     and eq: "frobenius_power q x = frobenius_power q y"
   shows "x = y"
 proof -
-  have qpos: "q > 0"
-    using char q prime_gt_0_nat by simp
   have "frobenius_power q (x - y) = frobenius_power q x - frobenius_power q y"
     using char q by (metis frobenius_power_add_char_power frobenius_power_uminus_char_power uminus_add_conv_diff)
-  with eq qpos show ?thesis
+  with eq show ?thesis
     by (simp add: frobenius_power_def)
 qed
 
 context Subfield
 begin
+
+interpretation carrier: Field K "(+)" "(*)" 0 1
+  by (rule sf_field)
 
 lemma frobenius_power_closed:
   "x \<in> K \<Longrightarrow> frobenius_power q x \<in> K"
@@ -116,25 +113,24 @@ qed
 lemma finite_field_frobenius_identity:
   assumes fin: "finite K" and xK: "x \<in> K"
   shows "frobenius_power (card K) x = x"
-proof (cases "x = 0")
-  case True
-  have "card K > 0"
+proof -
+  have gt0: "card K > 0"
     using fin zero_closed card_gt_0_iff by blast
-  with True show ?thesis by simp
-next
-  case False
-  interpret carrier: Field K "(+)" "(*)" 0 1
-    by (rule sf_field)
-  have carrier_power: "carrier.multiplicative.power x (card carrier.Fstar) = 1"
-    using False Group.power_order_eq_1 carrier.Group_Fstar xK by fastforce
-  have ambient_power: "carrier.multiplicative.power x n = x ^ n" for n
-    by (induction n) simp_all
-  have cardK_pos: "card K > 0"
-    using fin zero_closed card_gt_0_iff by blast
-  then obtain "x ^ (card K - 1) = 1" "card K = Suc (card K - 1)"
-    using carrier_power ambient_power carrier.Fstar_def by force
-  then show ?thesis
-    by (metis frobenius_power_def mult.comm_neutral power_Suc)
+  show ?thesis
+  proof (cases "x = 0")
+    case True
+    with gt0 show ?thesis by simp
+  next
+    case False
+    have carrier_power: "carrier.multiplicative.power x (card carrier.Fstar) = 1"
+      using False Group.power_order_eq_1 carrier.Group_Fstar xK by fastforce
+    have ambient_power: "carrier.multiplicative.power x n = x ^ n" for n
+      by (induction n) simp_all
+    with gt0 obtain "x ^ (card K - 1) = 1" "card K = Suc (card K - 1)"
+      using carrier_power carrier.Fstar_def by force
+    then show ?thesis
+      by (metis frobenius_power_def mult.comm_neutral power_Suc)
+  qed
 qed
 
 end
