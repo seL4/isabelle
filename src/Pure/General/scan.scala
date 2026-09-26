@@ -187,6 +187,10 @@ object Scan {
       try { cartouche_content(source) }
       catch { case ERROR(_) => source }
 
+    def embedded_content(source: String): String =
+      try { quoted_content("\"", source) }
+      catch { case ERROR(_) => perhaps_cartouche_content(source) }
+
 
     /* nested comments */
 
