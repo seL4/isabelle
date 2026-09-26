@@ -43,8 +43,8 @@ proof (rule normal_extensionI)
     by (rule T.finite_extension_algebraic[OF aK])
   have algE: "algebraic_over E a"
     by (rule algebraic_over_mono[OF algF FE])
-  have minE: "is_minpoly E a (minpoly E a)"
-    by (rule Subfield.is_minpoly_minpoly[OF sfE algE])
+  then have minE: "is_minpoly E a (minpoly E a)"
+    by (rule Subfield.is_minpoly_minpoly[OF sfE])
   have minF_E: "minpoly F a \<in> poly_over E"
     using T.base.minpoly_over[OF algF] poly_over_mono[OF FE] by blast
   have dvd: "minpoly E a dvd minpoly F a"
@@ -370,21 +370,16 @@ proof (intro iffI strip)
     have tauG: "tau \<in> field_auto K F"
       by (simp add: T.base_subset T.ext.Subfield_axioms field_auto_inverse sigma tau_def)
     show "\<sigma> ` E = E"
-    proof 
-      show "E \<subseteq> \<sigma> ` E"
-      proof
-        fix y assume yE: "y \<in> E"
-        have yK: "y \<in> K" using intermediate_data yE by blast
-        have "y \<in> \<sigma> ` K"
-          using sigma yK by (metis bij_betw_imp_surj_on field_auto_mem_iff)
-        then have sigma_tau: "\<sigma> (tau y) = y"
-          unfolding tau_def using yK by (simp add: f_inv_into_f)
-        then show "y \<in> \<sigma> ` E" 
-          unfolding image_iff by (metis image_subset tauG yE image_subset_iff)
-      qed
-      show "\<sigma> ` E \<subseteq> E"
-        by (simp add: image_subset sigma)
-    qed
+    proof (intro antisym subsetI)
+      fix y assume yE: "y \<in> E"
+      have yK: "y \<in> K" using intermediate_data yE by blast
+      have "y \<in> \<sigma> ` K"
+        using sigma yK by (metis bij_betw_imp_surj_on field_auto_mem_iff)
+      then have sigma_tau: "\<sigma> (tau y) = y"
+        unfolding tau_def using yK by (simp add: f_inv_into_f)
+      then show "y \<in> \<sigma> ` E" 
+        unfolding image_iff by (metis image_subset tauG yE image_subset_iff)
+    qed (use image_subset sigma in auto)
   qed
 next
   assume stable: "\<forall>\<sigma>\<in>field_auto K F. \<sigma> ` E = E"
@@ -509,15 +504,9 @@ proof -
     using T.base.minpoly_nonzero T.base.minpoly_over algtheta p_def by presburger
   have p0: "p \<noteq> 0"
     unfolding p_def by (rule T.base.minpoly_nonzero[OF algtheta])
-  have finR: "finite R" unfolding R_def by (rule poly_roots_finite[OF p0])
   have rootsK: "R \<subseteq> K"
-  proof -
-    have "poly_root_set (minpoly F theta) \<subseteq> K"
-      using T.base.generate_field_self T.base.minpoly_root algtheta normal pF thetaK
-      unfolding p_def normal_extension_def
-      by (metis irreducible_over_minpoly subfield_generate_field)
-    then show ?thesis unfolding R_def p_def poly_root_set_def by simp
-  qed
+    using irreducible_over_minpoly normal_extensionD [OF normal pF]
+    using R_def T.base.Subfield_axioms T.base.minpoly_root algtheta p_def thetaK by fastforce
   have thetaR: "theta \<in> R"
     unfolding R_def p_def using T.base.minpoly_root[OF algtheta] by simp
   have Kgen: "K = generate_field (E \<union> R)"
@@ -535,7 +524,7 @@ proof -
   have Kgen': "K = generate_field (E \<union> {r. poly p r = 0})"
     using Kgen unfolding R_def .
   have finR': "finite {r. poly p r = 0}"
-    using finR unfolding R_def .
+    by (simp add: p0 poly_roots_finite)
   have image_subset: "galois_restriction K E F ` field_auto K F \<subseteq> field_auto E F"
     using T.ext.Subfield_axioms gal_res_mem intermediate_data stable by auto
   show ?thesis
@@ -586,9 +575,8 @@ text \<open>The first isomorphism theorem gives
   @{text "Gal(K/F) / Gal(K/E) \<cong> Gal(E/F)"}; the preceding kernel theorem identifies the
   factor-group kernel with the relative Galois group literally.\<close>
 theorem finite_galois_quotient_isomorphism:
-  "(restriction.kernel.Factor_Group,
-     restriction.kernel.quotient_composition,
-     restriction.kernel.Class (identity K)) \<cong>\<^sub>G
+  "(restriction.kernel.Factor_Group, restriction.kernel.quotient_composition, restriction.kernel.Class (identity K))
+   \<cong>\<^sub>G
    (field_auto E F, compose E, identity E)"
   using restriction.first_isomorphism restriction_image by argo
 

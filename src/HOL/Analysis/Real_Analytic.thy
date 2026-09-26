@@ -3774,7 +3774,6 @@ qed
 
 text \<open>The Fubini/Cauchy product of two real unordered sums over a common index set.\<close>
 
-(*Keep the next lemma here: it is line 3784 of the new theory src/HOL/Analysis/Real_Analytic.thy. It stays because its proof needs real to be a t3_space, which Infinite_Sum.thy does not yet know.*)
 lemma prod_has_sum:
   "((\<lambda>(\<alpha>,\<beta>). u \<alpha> * v \<beta>) has_sum (Uv * Vv)) (I \<times> I)"
   if uHS: "(u has_sum Uv) I" and vHS: "(v has_sum Vv) I"
@@ -6308,7 +6307,6 @@ text \<open>Every derivative of \<open>exp_bump\<close> has the form \<open>x \<
   \<open>x > 0\<close> and vanishes for \<open>x \<le> 0\<close>, where \<open>p\<close> is a real polynomial function.  The key
   estimate is that \<open>p (1/x) * exp (-1/x) \<longrightarrow> 0\<close> as \<open>x \<longrightarrow> 0\<^sup>+\<close>.\<close>
 
-(*Keep the next lemma here: it is line 6317 of the new theory src/HOL/Analysis/Real_Analytic.thy. It stays because it only serves the flat function exp_bump below.*)
 lemma flat_poly_tendsto_zero:
   assumes "real_polynomial_function p"
   shows "((\<lambda>x. p (inverse x) * exp (- inverse x)) \<longlongrightarrow> 0) (at_right 0)"
@@ -6324,7 +6322,6 @@ proof -
   from filterlim_compose[OF this filterlim_inverse_at_top_right] show ?thesis .
 qed
 
-(*Keep the next lemma here: it is line 6332 of the new theory src/HOL/Analysis/Real_Analytic.thy. It stays because it only serves the flat function exp_bump below.*)
 lemma flat_poly_has_derivative:
   assumes p: "real_polynomial_function p"
   shows "((\<lambda>x. if 0 < x then p (inverse x) * exp (- inverse x) else 0) has_real_derivative

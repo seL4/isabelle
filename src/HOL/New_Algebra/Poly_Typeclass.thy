@@ -45,7 +45,7 @@ text \<open>A finite-support function read as a polynomial.  Off the finite-supp
   is arbitrary; @{term 0} is chosen so that the map is total.\<close>
 
 definition poly_of_fun :: "(nat \<Rightarrow> 'a :: zero) \<Rightarrow> 'a poly"
-  where "poly_of_fun p = (if finite {i. p i \<noteq> 0} then Abs_poly p else 0)"
+  where "poly_of_fun p \<equiv> (if finite {i. p i \<noteq> 0} then Abs_poly p else 0)"
 
 lemma coeff_poly_of_fun [simp]:
   "finite {i. p i \<noteq> 0} \<Longrightarrow> Polynomial.coeff (poly_of_fun p) = p"
@@ -108,92 +108,55 @@ lemma poly_of_fun_zero [simp]: "poly_of_fun poly_zero = 0"
   by (simp add: poly_zero_def poly_of_fun_def zero_poly_def)
 
 lemma poly_of_fun_one [simp]: "poly_of_fun poly_one = 1"
-proof -
-  have "finite {i. poly_one i \<noteq> (0::'a)}"
-    using poly_one_closed by (simp add: poly_carrier_iff)
-  then show ?thesis
-    by (intro poly_eqI) (simp add: poly_one_def)
-qed
+  by (intro poly_eqI) (simp add: poly_one_def)
 
 lemma poly_of_fun_add [simp]:
   assumes "p \<in> poly_carrier" and "q \<in> poly_carrier"
   shows "poly_of_fun (poly_add p q) = poly_of_fun p + poly_of_fun q"
-proof -
-  have "poly_add p q \<in> poly_carrier"
-    using assms by (rule poly_add_closed)
-  with assms show ?thesis
-    by (intro poly_eqI) (simp add: poly_add_def)
-qed
+  using assms poly_add_closed
+  by (intro poly_eqI) (simp add: poly_add_def)
 
 lemma poly_of_fun_neg [simp]:
   assumes "p \<in> poly_carrier"
   shows "poly_of_fun (poly_neg p) = - poly_of_fun p"
-proof -
-  have "poly_neg p \<in> poly_carrier"
-    using assms by (rule poly_neg_closed)
-  with assms show ?thesis
-    by (intro poly_eqI) (simp add: poly_neg_def)
-qed
+  using assms poly_neg_closed
+  by (intro poly_eqI) (simp add: poly_neg_def)
 
 text \<open>The convolution defining @{const poly_mult} is literally HOL's @{thm [source] coeff_mult},
   once the finite composite is read as a sum.\<close>
 lemma poly_of_fun_mult [simp]:
   assumes "p \<in> poly_carrier" and "q \<in> poly_carrier"
   shows "poly_of_fun (poly_mult p q) = poly_of_fun p * poly_of_fun q"
-proof -
-  have "poly_mult p q \<in> poly_carrier"
-    using assms by (rule poly_mult_closed)
-  with assms show ?thesis
-    by (intro poly_eqI) (simp add: poly_mult_def coeff_mult fincomp_TC_sum)
-qed
+  using assms poly_mult_closed
+  by (intro poly_eqI) (simp add: poly_mult_def coeff_mult fincomp_TC_sum)
 
 
 subsection \<open>Constants, the indeterminate, degree and evaluation\<close>
 
 lemma poly_of_fun_const [simp]: "poly_of_fun (poly_const c) = [:c:]"
-proof -
-  have "poly_const c \<in> poly_carrier"
-    by (rule poly_const_closed) simp
-  then show ?thesis
-    by (intro poly_eqI) (auto simp: poly_const_def poly_carrier_iff coeff_pCons split: nat.split)
-qed
+  unfolding poly_const_def
+  by (intro poly_eqI) (auto simp: poly_carrier_iff coeff_pCons split: nat.split)
 
 lemma poly_of_fun_monom [simp]: "poly_of_fun (monom c k) = Polynomial.monom c k"
-proof -
-  have "monom c k \<in> poly_carrier"
-    by (rule monom_closed) simp
-  then show ?thesis
-    by (intro poly_eqI) (simp add: monom_def poly_carrier_iff)
-qed
+  using local.monom_def by (intro poly_eqI) simp
 
 lemma poly_of_fun_var [simp]: "poly_of_fun var = [:0, 1:]"
-proof -
-  have "var \<in> poly_carrier"
-    by (rule var_closed)
-  then show ?thesis
-    by (simp add: var_def monom_altdef)
-qed
+  by (simp add: var_def monom_altdef)
 
 text \<open>Both notions of degree are pinned by the same two inequalities: no coefficient above the
   degree, and a nonzero coefficient at it.\<close>
 lemma degree_poly_of_fun [simp]:
   assumes p: "p \<in> poly_carrier"
   shows "Polynomial.degree (poly_of_fun p) = degree p"
-proof (cases "p = poly_zero")
-  case True then show ?thesis by simp
-next
-  case False
-  then have ne: "{i. p i \<noteq> 0} \<noteq> {}" by (auto simp: poly_zero_def)
-  have fin: "finite {i. p i \<noteq> 0}" using p by (simp add: poly_carrier_iff)
+proof -
   have c: "Polynomial.coeff (poly_of_fun p) = p" using p by simp
-  have "Polynomial.degree (poly_of_fun p) \<le> degree p"
-    using p c by (intro degree_le) (auto dest: coeff_gt_degree)
-  moreover
-  have "p (degree p) \<noteq> 0"
-    using Max_in [OF fin ne] ne by (simp add: degree_def)
-  then have "degree p \<le> Polynomial.degree (poly_of_fun p)"
-    using c by (metis le_degree)
-  ultimately show ?thesis by simp
+  show ?thesis
+  proof (intro antisym)
+    show "Polynomial.degree (poly_of_fun p) \<le> degree p"
+      using p c by (intro degree_le) (auto dest: coeff_gt_degree)
+    show "degree p \<le> Polynomial.degree (poly_of_fun p)"
+      using c coeff_degree_nonzero degree_le_iff p poly_zero_def by (metis le_degree)
+  qed
 qed
 
 text \<open>Powers in the multiplicative monoid of the type are ordinary powers.\<close>
@@ -210,13 +173,8 @@ lemma poly_poly_of_fun [simp]:
 subsection \<open>Splitting into linear factors\<close>
 
 lemma poly_of_fun_root_factor [simp]: "poly_of_fun (root_factor a) = [:uminus a, 1:]"
-proof -
-  have "poly_of_fun (root_factor a) = poly_of_fun var + (- poly_of_fun (poly_const a))"
-    unfolding root_factor_def
-    by (simp add: var_closed poly_const_closed poly_neg_closed)
-  also have "\<dots> = [:uminus a, 1:]" by simp
-  finally show ?thesis .
-qed
+  unfolding root_factor_def
+  by (simp add: var_closed poly_const_closed poly_neg_closed)
 
 lemma poly_of_fun_poly_prod:
   assumes "\<And>f. f \<in> set fs \<Longrightarrow> f \<in> poly_carrier"
@@ -228,59 +186,38 @@ lemma poly_of_fun_split_form:
   "poly_of_fun (poly_mult (poly_const c) (poly_prod (List.map root_factor as)))
      = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
 proof -
-  have cc: "poly_const c \<in> poly_carrier"
-    by (rule poly_const_closed) simp
   have rf: "\<And>f. f \<in> set (List.map root_factor as) \<Longrightarrow> f \<in> poly_carrier"
     by (auto intro: root_factor_closed)
-  then have pc: "poly_prod (List.map root_factor as) \<in> poly_carrier"
-    by (rule poly_prod_closed)
   have "poly_of_fun (poly_mult (poly_const c) (poly_prod (List.map root_factor as)))
         = [:c:] * poly_of_fun (poly_prod (List.map root_factor as))"
-    using poly_of_fun_mult [OF cc pc] by simp
-  also have "poly_of_fun (poly_prod (List.map root_factor as)) = (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-  proof -
-    have "poly_of_fun (poly_prod (List.map root_factor as))
-          = (\<Prod>f\<leftarrow>List.map root_factor as. poly_of_fun f)"
-      using rf by (rule poly_of_fun_poly_prod)
-    also have "\<dots> = (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-      by (induct as) simp_all
-    finally show ?thesis .
-  qed
+    using rf poly_of_fun_mult [OF poly_const_closed poly_prod_closed] by fastforce
+  also have "poly_of_fun (poly_prod (List.map root_factor as)) = (\<Prod>f\<leftarrow>List.map root_factor as. poly_of_fun f)"
+    using rf by (rule poly_of_fun_poly_prod)
+  also have "\<dots> = (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
+    by (induct as) simp_all
   finally show ?thesis .
 qed
 
-lemma poly_mult_const_prod_carrier:
-  "poly_mult (poly_const c) (poly_prod (List.map root_factor as)) \<in> poly_carrier"
-proof (intro poly_mult_closed poly_prod_closed)
-  show "poly_const c \<in> poly_carrier" by (rule poly_const_closed) simp
-qed (auto intro: root_factor_closed)
+lemma poly_mult_const_prod_carrier: "poly_mult (poly_const c) (poly_prod (List.map root_factor as)) \<in> poly_carrier"
+  by (metis splitsI splits_closed UNIV_I top_greatest)
 
 text \<open>@{const splits} says exactly that the corresponding polynomial of @{typ "'a poly"} is a
   constant times a product of linear factors.  Both directions are the dictionary applied to the
-  defining equation, the reverse using injectivity on the carrier --- which is also why the carrier
-  hypothesis cannot be dropped: an infinite-support function is sent to @{term 0}, so the right-hand
-  side would hold of it vacuously.\<close>
+  defining equation, the reverse using injectivity on the carrier.\<close>
 theorem splits_iff_linear_factors:
   assumes p: "p \<in> poly_carrier"
   shows "splits p \<longleftrightarrow> (\<exists>c as. poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:]))"
 proof
   assume "splits p"
-  then obtain c as where "p = poly_mult (poly_const c) (poly_prod (List.map root_factor as))"
-    by (auto simp: splits_def)
-  then have "poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-    by (simp add: poly_of_fun_split_form)
-  then show "\<exists>c as. poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])" by blast
+  then show "\<exists>c as. poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
+    by (force simp: splits_def poly_of_fun_split_form)
 next
   assume "\<exists>c as. poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
   then obtain c as where q: "poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])" by blast
-  have "poly_of_fun p
-        = poly_of_fun (poly_mult (poly_const c) (poly_prod (List.map root_factor as)))"
+  have "poly_of_fun p = poly_of_fun (poly_mult (poly_const c) (poly_prod (List.map root_factor as)))"
     by (simp add: q poly_of_fun_split_form)
-  with p poly_mult_const_prod_carrier
-  have "p = poly_mult (poly_const c) (poly_prod (List.map root_factor as))"
-    by simp
-  then show "splits p"
-    unfolding splits_def by blast
+  with p poly_mult_const_prod_carrier show "splits p"
+    by (force simp: splits_def)
 qed
 
 text \<open>A splitting polynomial of positive degree has a root: the factor list cannot be empty.\<close>
@@ -290,18 +227,13 @@ theorem splits_imp_root:
 proof -
   from sp obtain c as where q: "poly_of_fun p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
     using splits_iff_linear_factors [OF p] by blast
-  have "as \<noteq> []"
-  proof
-    assume "as = []"
-    with q have "poly_of_fun p = [:c:]" by simp
-    then have "Polynomial.degree (poly_of_fun p) = 0" by simp
-    with p d show False by simp
-  qed
-  then obtain a bs where as: "as = a # bs" by (cases as) auto
+  with assms degree_poly_of_fun[of p] have "as \<noteq> []"
+    by (auto split: if_splits)
+  then obtain a bs where as: "as = a # bs"
+    by (metis list.exhaust)
   have "Polynomial.poly (poly_of_fun p) a = 0"
     unfolding q as by simp
-  with p have "eval a p = 0" by simp
-  then show thesis ..
+  with p that show thesis by simp
 qed
 
 

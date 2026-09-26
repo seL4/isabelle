@@ -517,7 +517,6 @@ next
     unfolding k_times_differentiable_at.simps by simp
 qed
 
-(*Keep the next lemma here: it is line 534 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_const_eq:
   fixes x :: real
   assumes "k > 0"
@@ -532,7 +531,6 @@ next
     using k_times_differentiable_at_const by force
 qed
 
-(*Keep the next lemma here: it is line 548 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_const_cases:
   "(deriv ^^ k) (\<lambda>t::real. c) x = (if k = 0 then c else 0)"
   using kth_deriv_const_eq by auto
@@ -586,7 +584,6 @@ next
 qed
 
 
-(*Keep the next lemma here: it is line 601 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_id_eq':
   fixes x :: real
   shows
@@ -594,24 +591,20 @@ corollary kth_deriv_id_eq':
   using k_times_differentiable_at_id
   by (simp add: funpow_swap1 kth_deriv_const_eq)
 
-(*Keep the next lemma here: it is line 608 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 lemma kth_deriv_id_cases:
   "(deriv ^^ k) (\<lambda>t::real. t) x =
      (if k = 0 then x else if k = 1 then 1 else 0)"
   by (metis kth_deriv_simps(1) kth_deriv_id_eq' One_nat_def not0_implies_Suc)
 
-(*Keep the next lemma here: it is line 613 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_id_ge2_at:
   assumes "k \<ge> 2"
   shows   "(deriv ^^ k) (\<lambda>t::real. t) x = 0"
   using kth_deriv_id_cases assms by fastforce
 
-(*Keep the next lemma here: it is line 618 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_id_1_eq:
   "(deriv ^^ Suc 0) (\<lambda>t. t) x = (1 :: real)"
   using kth_deriv_id_eq' by simp
 
-(*Keep the next lemma here: it is line 622 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 corollary kth_deriv_id_eq:
   assumes "m > 0"
   shows "(deriv ^^ Suc m) (\<lambda>t. t) x = (0 :: real)"
@@ -1114,11 +1107,14 @@ lemma k_times_differentiable_at_pow[kdiff]:
  by (simp add: k_times_differentiable_at_constE k_times_differentiable_at_idE k_times_differentiable_at_pow_funE
       kth_deriv_subE)
 
-(*FAILING
 corollary kth_deriv_cmult_pow [kderivs]:
   "(deriv ^^ k) (\<lambda>t::real. (c * t) ^ n) x = (c ^ n) * (deriv ^^ k) (\<lambda>t. t ^ n) x"
-  by (simp add: kdiff kderivs)
-*)
+proof -
+  have "(\<lambda>t::real. t ^ n) k-times_differentiable_at x"
+    by (simp add: k_times_differentiable_at_idE k_times_differentiable_at_pow_funE)
+  then show ?thesis
+    by (simp add: power_mult_distrib kth_deriv_cmult)
+qed
 
 lemma kth_deriv_affine_cases [kderivs]:
   "(deriv ^^ k) (\<lambda>t::real. a*t + b) x =
@@ -1825,12 +1821,11 @@ proof -
         then obtain d where d_def: "(f has_field_derivative d) (at y within U)"
           using derivative_exists by blast
 
-        have "((\<lambda>x. inverse (f x)) has_field_derivative
-          - (d * inverse (f y ^ Suc (Suc 0)))) (at y within U)"
-          by(rule DERIV_inverse_fun, smt d_def, smt nz yU)
+        have "((\<lambda>x. inverse (f x)) has_field_derivative - (d * inverse (f y ^ Suc (Suc 0))))
+               (at y within U)"
+          using DERIV_inverse_fun d_def nz yU by blast
         then have "((\<lambda>t. inverse (f t)) has_field_derivative (- deriv f y / (f y)^2)) (at y)"
-          by (metis DERIV_imp_deriv at_within_open d_def
-              divide_minus_left divide_real_def numeral_2_eq_2 openU yU)
+          by (metis DERIV_imp_deriv at_within_open d_def divide_minus_left divide_real_def numeral_2_eq_2 openU yU)
         thus "(deriv ^^ 1) (\<lambda>y. inverse (f y)) y =  - deriv f y / (f y)^2"
           by (simp add: DERIV_imp_deriv)
       qed
@@ -2178,10 +2173,8 @@ definition taylor_poly :: "nat \<Rightarrow> (real \<Rightarrow> real) \<Rightar
 
 definition peano_remainder ::
   "nat \<Rightarrow> (real \<Rightarrow> real) \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real"
-  where
-  "peano_remainder n f c x = f x - taylor_poly n f c x"
+  where "peano_remainder n f c x = f x - taylor_poly n f c x"
 
-(*Keep the next lemma here: it is line 2190 of the new theory src/HOL/Analysis/Higher_Order_Derivatives.thy. It stays because its proof uses k_times_differentiable_at lemmas of this theory.*)
 lemma kth_deriv_taylor_term:
   fixes x :: real
   shows "(deriv ^^ k) (\<lambda>t. c * (t - a) ^ i) x =
@@ -2451,7 +2444,7 @@ proof(cases "n=0")
   show "(\<lambda>x. peano_remainder (n+1) f x0 x / (x - x0) ^ (n+1)) \<midarrow>x0\<rightarrow> 0"
   proof -
     have "k_times_differentiable_at 1 (peano_remainder 1 f x0) x0"
-      by(subst peano_kth_deriv_zero_diff[where k = 1], simp, (smt One_nat_def \<open>n = 0\<close> assms)+)
+      using \<open>n = 0\<close> assms by (metis One_nat_def peano_kth_deriv_zero_diff zero_le)
     then obtain Peano_f' where
       r_has_deriv :
         "(peano_remainder 1 f x0 has_real_derivative Peano_f') (at x0)"
@@ -2552,7 +2545,7 @@ next
       proof -
         have "(\<lambda>x. \<bar>((deriv ^^ n) (peano_remainder (Suc n) f x0) x -
             (deriv ^^ n) (peano_remainder (Suc n) f x0) x0) / (x - x0)\<bar>) \<midarrow>x0\<rightarrow> 0"
-          by(rule tendsto_rabs_zero, smt final_term_limit)
+          using final_term_limit tendsto_rabs_zero by blast
         then have "((\<lambda>x. \<bar>(deriv ^^ n) (peano_remainder (Suc n) f x0) x -
             (deriv ^^ n) (peano_remainder (Suc n) f x0) x0\<bar> / \<bar>x - x0\<bar>) \<longlongrightarrow> 0) (at_left x0)"
           by (meson LIM_cong Lim_at_imp_Lim_at_within abs_divide)
@@ -2673,7 +2666,7 @@ next
       proof -
         have "(\<lambda>x. \<bar>((deriv ^^ n) (peano_remainder (Suc n) f x0) x -
             (deriv ^^ n) (peano_remainder (Suc n) f x0) x0) / (x - x0)\<bar>) \<midarrow>x0\<rightarrow> 0"
-          by(rule tendsto_rabs_zero, smt final_term_limit)
+          using final_term_limit tendsto_rabs_zero by blast
         then have "(\<lambda>x. \<bar>((deriv ^^ n) (peano_remainder (Suc n) f x0) x0 -
             (deriv ^^ n) (peano_remainder (Suc n) f x0) x) / (x - x0)\<bar>) \<midarrow>x0\<rightarrow> 0"
           by (smt (verit, best) LIM_cong minus_divide_left)
@@ -2801,27 +2794,20 @@ corollary Taylor_Peano:
      and "f x = (\<Sum>i\<le>(n+1). (deriv ^^ i) f a/fact i * (x-a) ^ i) + h x * (x-a)^(n+1)"
 proof
   define h where h_def:
-    "h x = (if x=a then 0 else peano_remainder (n+1) f a x / (x - a) ^ (n+1))" for x
-
+    "h x \<equiv> (if x=a then 0 else peano_remainder (n+1) f a x / (x - a) ^ (n+1))" for x
   have lim0: "((\<lambda>x. peano_remainder (n+1) f a x / (x - a) ^ (n+1)) \<longlongrightarrow> 0) (at a)"
     using Taylor_Peano_remainder[OF assms].
-
   have ev_ne: "eventually (\<lambda>x. x \<noteq> a) (at a)"
     by (simp add: eventually_at_filter)
-
   have eq_ev: "eventually (\<lambda>x. h x = peano_remainder (Suc n) f a x / (x - a) ^ Suc n) (at a)"
     by (simp add: h_def)
-    show tend0: "((\<lambda>x. h x) \<longlongrightarrow> 0) (at a)"
-      using eq_ev filterlim_cong lim0 by fastforce
-
-
-      have exp_ne:"\<And>x. x \<noteq> a \<Longrightarrow>
+  show tend0: "((\<lambda>x. h x) \<longlongrightarrow> 0) (at a)"
+    using eq_ev filterlim_cong lim0 by fastforce
+  have exp_ne:"\<And>x. x \<noteq> a \<Longrightarrow>
       f x = (\<Sum>i\<le>Suc n. (deriv ^^ i) f a / fact i * (x - a) ^ i) + h x * (x - a) ^ Suc n"
     using h_def peano_remainder_def taylor_poly_def by force
-
   have exp_a: "f a = (\<Sum>i\<le>Suc n. (deriv ^^ i) f a / fact i * (a - a) ^ i) + h a * (a-a) ^ Suc n"
     by (simp add: h_def)
-
   show "f x = (\<Sum>i\<le>n + 1. (deriv ^^ i) f a / fact i * (x - a) ^ i) +
     (if x = a then 0 else peano_remainder (n + 1) f a x / (x - a) ^ (n + 1)) * (x - a) ^ (n + 1)"
     using Suc_eq_plus1 h_def exp_a exp_ne
