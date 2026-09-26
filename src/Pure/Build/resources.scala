@@ -166,7 +166,7 @@ class Resources(
   def migrate_name(name: Document.Node.Name): Document.Node.Name = name
 
   def append_path(prefix: String, source_path: Path): String =
-    File.symbolic_path(Path.explode(prefix) + source_path)
+    File.symbolic_path((Path.explode(prefix) + source_path).expand)
 
   def read_dir(dir: String): List[String] = File.read_dir(Path.explode(dir))
 
