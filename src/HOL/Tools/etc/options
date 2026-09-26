@@ -85,3 +85,6 @@ option mirabelle_subgoals : string = "apply,by,proof,unfolding,using"
 
 option mirabelle_print_command : bool = false
   -- "print the source text of each command acted upon"
+
+option mirabelle_ml_files : string = ""
+  -- "colon-separated list of ML files to evaluate before initializing the actions"

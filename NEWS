@@ -283,6 +283,10 @@ fixes one implementation defect. Minor INCOMPATIBILITY.
   - Added argument "log_classifications" to the action "sledgehammer" to
     write the fact classifications, timings, and outcomes of the tactic
     provers to files in the output directory.
+  - Added option -e to "isabelle mirabelle" to evaluate ML files before
+    initializing the actions, e.g. to register custom actions or fact
+    classifiers. Context-dependent registrations, such as fact classifiers,
+    must be wrapped in Mirabelle.add_goal_setup to reach each goal.
 
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a

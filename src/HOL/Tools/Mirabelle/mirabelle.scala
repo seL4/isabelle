@@ -35,6 +35,7 @@ object Mirabelle {
     actions: List[String],
     output_dir: Path,
     theories: List[String] = Nil,
+    ml_files: List[Path] = Nil,
     selection: Sessions.Selection = Sessions.Selection.empty,
     progress: Progress = new Progress,
     dirs: List[Path] = Nil,
@@ -56,6 +57,7 @@ object Mirabelle {
         options + "timeout_build=false" +
           ("mirabelle_actions=" + actions.mkString(";")) +
           ("mirabelle_theories=" + theories.mkString(",")) +
+          ("mirabelle_ml_files=" + ml_files.map(_.implode).mkString(":")) +
           ("mirabelle_output_dir=" + output_dir.implode)
 
 
@@ -125,6 +127,7 @@ object Mirabelle {
       var exclude_session_groups: List[String] = Nil
       var all_sessions = false
       var dirs: List[Path] = Nil
+      var ml_files: List[Path] = Nil
       var session_groups: List[String] = Nil
       var max_jobs: Option[Int] = None
       var verbose = false
@@ -148,6 +151,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -c           """ + mirabelle_print_command.description +
         " (default " + mirabelle_print_command.default_value + """)
     -d DIR       include session directory
+    -e FILE      evaluate ML FILE before initializing the actions
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -m INT       """ + mirabelle_max_calls.description +
@@ -191,6 +195,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         "a" -> (_ => all_sessions = true),
         "c" -> (_ => options = options + "mirabelle_print_command=true"),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
+        "e:" -> (arg => ml_files = ml_files ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),
         "m:" -> (arg => options = options + ("mirabelle_max_calls=" + arg)),
@@ -215,6 +220,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
       val results =
         mirabelle(options, actions, output_dir.absolute,
           theories = theories,
+          ml_files = ml_files.map(_.absolute),
           selection = Sessions.Selection(
             all_sessions = all_sessions,
             base_sessions = base_sessions,
