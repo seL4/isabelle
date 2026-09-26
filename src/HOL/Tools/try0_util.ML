@@ -41,14 +41,20 @@ val full_attrs : facts_config =
     [{class = Try0.simpN, prefix = "simp: "},
      {class = Try0.introN, prefix = "intro: "},
      {class = Try0.elimN, prefix = "elim: "},
-     {class = Try0.destN, prefix = "dest: "}]
+     {class = Try0.destN, prefix = "dest: "},
+     {class = Try0.splitN, prefix = "split: "},
+     {class = Try0.iffN, prefix = "iff: "},
+     {class = Try0.congN, prefix = "cong: "}]
 val clas_attrs : facts_config =
   Prefixed_Args
     [{class = Try0.introN, prefix = "intro: "},
      {class = Try0.elimN, prefix = "elim: "},
      {class = Try0.destN, prefix = "dest: "}]
 val simp_attrs : facts_config =
-  Prefixed_Args [{class = Try0.simpN, prefix = "add: "}]
+  Prefixed_Args
+    [{class = Try0.simpN, prefix = "add: "},
+     {class = Try0.splitN, prefix = "split: "},
+     {class = Try0.congN, prefix = "cong: "}]
 
 local
 

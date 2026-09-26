@@ -19,6 +19,9 @@ sig
   val introN : string
   val elimN : string
   val destN : string
+  val splitN : string
+  val iffN : string
+  val congN : string
   val native_classes : string list
 
   type facts = {unclassified : xxrefs, classified : xxrefs Symtab.table}
@@ -76,7 +79,10 @@ val simpN = "simp"
 val introN = "intro"
 val elimN = "elim"
 val destN = "dest"
-val native_classes = [simpN, introN, elimN, destN]
+val splitN = "split"
+val iffN = "iff"
+val congN = "cong"
+val native_classes = [simpN, introN, elimN, destN, splitN, iffN, congN]
 
 type facts = {unclassified : xxrefs, classified : xxrefs Symtab.table}
 

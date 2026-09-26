@@ -245,6 +245,7 @@ checked in the past. INCOMPATIBILITY.
     functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
     Try0.get_all_proof_method_names take a Proof.context.
     Minor INCOMPATIBILITY.
+  - Added the fact classes "split", "iff", and "cong".
 
 * Metis: Updated the Metis prover underlying the "metis" proof method to
 version 2.4 (release 20260920). The new version allocates less memory and
