@@ -938,7 +938,6 @@ next
   thus ?case by (simp add: sum.insert[OF insert.hyps(1,2)])
 qed
 
-(*Insert the next lemma at line 920 of src/HOL/Analysis/Infinite_Sum.thy, right after lemma summable_on_finite_sum.*)
 lemma infsum_finite_sum:
   fixes f :: "'i \<Rightarrow> 'j \<Rightarrow> 'b::banach"
   assumes "finite I" and "\<And>i. i \<in> I \<Longrightarrow> (f i) summable_on A"
