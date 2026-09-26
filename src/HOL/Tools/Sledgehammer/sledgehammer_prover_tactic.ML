@@ -91,8 +91,9 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
           end
         val usings_xrefs = map xref_of_fact (sort_by (fst o fst) locals)
         val direct_xrefs = map xref_of_fact (sort_by (fst o fst) globals)
-        val facts : Try0.facts = {usings = usings_xrefs, directs = direct_xrefs, simps = [],
-          intros = [], elims = [], dests = []}
+        val facts : Try0.facts =
+          {unclassified = {usings = usings_xrefs, directs = direct_xrefs}, classified = Symtab.empty}
+          |> Try0.classify_facts ctxt
       in
         Try0.get_proof_method_or_noop name (SOME run_timeout) facts state
       end

@@ -12,14 +12,20 @@ sig
 
   type xref = Facts.ref * Token.src list
 
-  type facts =
-    {usings : xref list,
-     directs : xref list,
-     simps : xref list,
-     intros : xref list,
-     elims : xref list,
-     dests : xref list}
+  type xxrefs = {usings : xref list, directs : xref list}
+  val union_xxrefs : xxrefs -> xxrefs -> xxrefs
+
+  val simpN : string
+  val introN : string
+  val elimN : string
+  val destN : string
+  val native_classes : string list
+
+  type facts = {unclassified : xxrefs, classified : xxrefs Symtab.table}
   val empty_facts : facts
+  val union_facts : facts -> facts -> facts
+  val get_class_xxrefs : string -> facts -> xxrefs
+  val map_class_xxrefs : string -> (xxrefs -> xxrefs) -> facts -> facts
 
   type result = {name: string, command: string, time: Time.time, state: Proof.state}
   type proof_method = Time.time option -> facts -> Proof.state -> result option
@@ -29,6 +35,12 @@ sig
   val get_proof_method : string -> proof_method option
   val get_proof_method_or_noop : string -> proof_method
   val get_all_proof_method_names : unit -> string list
+
+  type fact_classifier = Proof.context -> facts -> facts
+  val register_fact_classifier : string -> fact_classifier -> unit
+  val get_fact_classifier : Proof.context -> string -> fact_classifier option
+  val fact_classifier : string Config.T
+  val classify_facts : Proof.context -> facts -> facts
 
   val default_timeout : int Config.T
   val schedule : string Config.T
@@ -53,27 +65,38 @@ val noneN = "none"
 
 datatype mode = Auto_Try | Try | Normal
 
-datatype modifier = Use | Simp | Intro | Elim | Dest
 type xref = Facts.ref * Token.src list
-type tagged_xref = xref * modifier list
-type facts =
-  {usings : xref list,
-   directs : xref list,
-   simps : xref list,
-   intros : xref list,
-   elims : xref list,
-   dests : xref list}
 
-val empty_facts: facts =
-  {usings = [], directs = [], simps = [], intros = [], elims = [], dests = []}
+type xxrefs = {usings : xref list, directs : xref list}
+
+fun union_xxrefs (left : xxrefs) (right : xxrefs) : xxrefs =
+  {usings = #usings left @ #usings right, directs = #directs left @ #directs right}
+
+val simpN = "simp"
+val introN = "intro"
+val elimN = "elim"
+val destN = "dest"
+val native_classes = [simpN, introN, elimN, destN]
+
+type facts = {unclassified : xxrefs, classified : xxrefs Symtab.table}
+
+val empty_facts : facts = {unclassified = {usings = [], directs = []}, classified = Symtab.empty}
 
 fun union_facts (left : facts) (right : facts) : facts =
-  {usings = #usings left @ #usings right,
-   directs = #directs left @ #directs right,
-   simps = #simps left @ #simps right,
-   intros = #intros left @ #intros right,
-   elims = #elims left @ #elims right,
-   dests = #dests left @ #dests right}
+  {unclassified = union_xxrefs (#unclassified left) (#unclassified right),
+   classified = Symtab.join (K (uncurry union_xxrefs)) (#classified left, #classified right)}
+
+fun get_class_xxrefs (class : string) ({classified, ...} : facts) : xxrefs =
+  the_default {usings = [], directs = []} (Symtab.lookup classified class)
+
+fun map_class_xxrefs (class : string) (f : xxrefs -> xxrefs) (facts : facts) : facts =
+  let
+    val classified = #classified facts
+    val classified' =
+      (case f (get_class_xxrefs class facts) of
+        {usings = [], directs = []} => Symtab.delete_safe class classified
+      | xxrefs => Symtab.update (class, xxrefs) classified)
+  in {unclassified = #unclassified facts, classified = classified'} end
 
 type result = {name: string, command: string, time: Time.time, state: Proof.state}
 type proof_method = Time.time option -> facts -> Proof.state -> result option
@@ -120,6 +143,33 @@ fun maybe_apply_proof_method name mode : proof_method =
     get_proof_method_or_noop name
   else
     noop_proof_method
+
+type fact_classifier = Proof.context -> facts -> facts
+
+structure Fact_Classifier_Data = Generic_Data
+(
+  type T = fact_classifier Symtab.table
+  val empty = Symtab.empty
+  fun merge data = Symtab.merge (K true) data
+)
+
+fun register_fact_classifier (name : string) (classifier : fact_classifier) : unit =
+  let val () = if name = "" then error "Registering unnamed fact classifier" else () in
+    Context.>> (Fact_Classifier_Data.map (Symtab.update (name, classifier)))
+  end
+
+fun get_fact_classifier (ctxt : Proof.context) (name : string) : fact_classifier option =
+  Symtab.lookup (Fact_Classifier_Data.get (Context.Proof ctxt)) name;
+
+val fact_classifier = Attrib.setup_config_string \<^binding>\<open>try0_fact_classifier\<close> (K "")
+
+fun classify_facts (ctxt : Proof.context) (facts : facts) : facts =
+  (case Config.get ctxt fact_classifier of
+    "" => facts
+  | name =>
+      (case get_fact_classifier ctxt name of
+        NONE => (warning ("Fact classifier \"" ^ name ^ "\" is undefined"); facts)
+      | SOME classifier => classifier ctxt facts))
 
 val default_timeout = Attrib.setup_config_int \<^binding>\<open>try0_default_timeout\<close> (K 2)
 val schedule = Attrib.setup_config_string \<^binding>\<open>try0_schedule\<close> (K "")
@@ -197,8 +247,8 @@ fun generic_try0 mode (timeout_opt : Time.time option) (facts : facts) (st : Pro
   let
     val ctxt = Proof.context_of st
     val schedule = get_schedule ctxt
-
-    val timeout =
+    and facts = classify_facts ctxt facts
+    and timeout =
       (case timeout_opt of
         NONE => seconds (Real.fromInt (Config.get ctxt default_timeout))
       | SOME t => t)
@@ -219,17 +269,19 @@ fun try0 timeout_opt = snd oo generic_try0 Normal timeout_opt
 fun try0_trans (facts : facts) =
   Toplevel.keep_proof (ignore o try0 NONE facts o Toplevel.proof_of)
 
+local
+
 val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse.thm)
 
-val parse_attr =
-  Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
-    {usings = [], directs = [], simps = xrefs, intros = [], elims = [], dests = []})
-  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
-    {usings = [], directs = [], simps = [], intros = xrefs, elims = [], dests = []})
-  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
-    {usings = [], directs = [], simps = [], intros = [], elims = xrefs, dests = []})
-  || Args.$$$ "dest" |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
-    {usings = [], directs = [], simps = [], intros = [], elims = [], dests = xrefs})
+fun class_section (class : string) =
+  Args.$$$ class |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
+    map_class_xxrefs class (K {usings = [], directs = xrefs}) empty_facts)
+
+in
+
+val parse_attr = Scan.first (map class_section native_classes)
+
+end
 
 fun parse_attrs x =
   (Args.parens parse_attrs

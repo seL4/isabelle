@@ -225,6 +225,22 @@ checked in the past. INCOMPATIBILITY.
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
 
+* try0:
+  - Changed the ML types Try0.facts and Try0_Util.facts_config: facts
+    are grouped into named classes (e.g. "simp", "intro"), and each proof
+    method declares the argument syntax it accepts (no arguments, plain
+    fact arguments, or class-specific sections such as "simp:").
+    Minor INCOMPATIBILITY.
+  - Facts are passed to a proof method in its own syntax where possible
+    (e.g. "simp:" for "auto", plain arguments for "metis") and via
+    "using" otherwise. In particular, the Sledgehammer tactic provers
+    "auto", "force", and "fastforce" no longer fail when given facts from
+    the background theory, and "argo" now takes facts as plain arguments.
+  - Added optional fact classifiers, which assign facts to classes before
+    the proof methods are tried. They are registered with the ML function
+    Try0.register_fact_classifier and selected with the configuration
+    option "try0_fact_classifier".
+
 * Metis: Updated the Metis prover underlying the "metis" proof method to
 version 2.4 (release 20260920). The new version allocates less memory and
 fixes one implementation defect. Minor INCOMPATIBILITY.
