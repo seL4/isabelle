@@ -281,18 +281,24 @@ fun class_section (class : string) =
   Args.$$$ class |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
     map_class_xxrefs class (K {usings = [], directs = xrefs}) empty_facts)
 
+val parse_unclassified_facts =
+  parse_fact_refs >> (fn xrefs =>
+    {unclassified = {usings = [], directs = xrefs}, classified = Symtab.empty} : facts)
+
+val parse_classified_facts =
+  Scan.repeat1 (Scan.first (map class_section native_classes)) >>
+    (fn factss => fold union_facts factss empty_facts)
+
 in
 
-val parse_attr = Scan.first (map class_section native_classes)
+val parse_facts =
+  Args.parens (parse_unclassified_facts || parse_classified_facts)
+  || Scan.optional parse_classified_facts empty_facts
 
 end
 
-fun parse_attrs x =
-  (Args.parens parse_attrs
-   || Scan.repeat parse_attr >> (fn factss => fold union_facts factss empty_facts)) x
-
 val _ =
   Outer_Syntax.command \<^command_keyword>\<open>try0\<close> "try a combination of proof methods"
-    (Scan.optional parse_attrs empty_facts #>> try0_trans)
+    (parse_facts #>> try0_trans)
 
 end
