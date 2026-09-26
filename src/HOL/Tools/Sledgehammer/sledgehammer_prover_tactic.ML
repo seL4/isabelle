@@ -12,7 +12,7 @@ sig
   type prover = Sledgehammer_Prover.prover
   type base_slice = Sledgehammer_ATP_Systems.base_slice
 
-  val is_tactic_prover : string -> bool
+  val is_tactic_prover : Proof.context -> string -> bool
   val good_slices_of_tactic_prover : string -> base_slice list
   val run_tactic_prover : mode -> string -> prover
 end;
@@ -25,7 +25,8 @@ open ATP_Proof
 open Sledgehammer_Proof_Methods
 open Sledgehammer_Prover
 
-val is_tactic_prover : string -> bool = is_some o Try0.get_proof_method
+fun is_tactic_prover (ctxt : Proof.context) (name : string) : bool =
+  is_some (Try0.get_proof_method ctxt name)
 
 local
 
@@ -95,7 +96,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
           {unclassified = {usings = usings_xrefs, directs = direct_xrefs}, classified = Symtab.empty}
           |> Try0.classify_facts ctxt
       in
-        Try0.get_proof_method_or_noop name (SOME run_timeout) facts state
+        Try0.get_proof_method_or_noop ctxt name (SOME run_timeout) facts state
       end
 
     val timer = Timer.startRealTimer ()

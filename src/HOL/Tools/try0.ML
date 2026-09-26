@@ -32,9 +32,9 @@ sig
   type proof_method_options = {run_if_auto_try: bool}
 
   val register_proof_method : string -> proof_method_options -> proof_method -> unit
-  val get_proof_method : string -> proof_method option
-  val get_proof_method_or_noop : string -> proof_method
-  val get_all_proof_method_names : unit -> string list
+  val get_proof_method : Proof.context -> string -> proof_method option
+  val get_proof_method_or_noop : Proof.context -> string -> proof_method
+  val get_all_proof_method_names : Proof.context -> string list
 
   type fact_classifier = Proof.context -> facts -> facts
   val register_fact_classifier : string -> fact_classifier -> unit
@@ -104,43 +104,41 @@ type proof_method_options = {run_if_auto_try: bool}
 
 val noop_proof_method : proof_method = fn _ => fn _ => fn _ => NONE
 
-local
-  val proof_methods =
-    Synchronized.var "Try0.proof_methods" (Symtab.empty : proof_method Symtab.table);
-  val auto_try_proof_methods_names =
-    Synchronized.var "Try0.auto_try_proof_methods" (Symset.empty : Symset.T);
-in
+structure Proof_Method_Data = Generic_Data
+(
+  type T = (proof_method * proof_method_options) Symtab.table
+  val empty = Symtab.empty
+  fun merge data = Symtab.merge (K true) data
+)
 
-fun register_proof_method name ({run_if_auto_try} : proof_method_options) proof_method =
-  let
-    val () = if name = "" then error "Registering unnamed proof method" else ()
-    val () = Synchronized.change proof_methods (Symtab.update (name, proof_method))
-    val () =
-      if run_if_auto_try then
-        Synchronized.change auto_try_proof_methods_names (Symset.insert name)
-      else
-        ()
-  in () end
+fun register_proof_method (name : string) (options : proof_method_options)
+    (proof_method : proof_method) : unit =
+  let val () = if name = "" then error "Registering unnamed proof method" else () in
+    Context.>> (Proof_Method_Data.map (Symtab.update (name, (proof_method, options))))
+  end
 
-fun get_proof_method (name : string) : proof_method option =
-  Symtab.lookup (Synchronized.value proof_methods) name;
+fun get_proof_methods (ctxt : Proof.context) : (proof_method * proof_method_options) Symtab.table =
+  Proof_Method_Data.get (Context.Proof ctxt)
 
-fun get_all_proof_method_names () : string list =
-  Symtab.fold (fn (name, _) => fn names => name :: names) (Synchronized.value proof_methods) []
+fun get_proof_method (ctxt : Proof.context) (name : string) : proof_method option =
+  Option.map fst (Symtab.lookup (get_proof_methods ctxt) name)
 
-fun should_auto_try_proof_method (name : string) : bool =
-  Symset.member (Synchronized.value auto_try_proof_methods_names) name
+fun get_all_proof_method_names (ctxt : Proof.context) : string list =
+  Symtab.fold (fn (name, _) => fn names => name :: names) (get_proof_methods ctxt) []
 
-end
+fun should_auto_try_proof_method (ctxt : Proof.context) (name : string) : bool =
+  (case Symtab.lookup (get_proof_methods ctxt) name of
+    SOME (_, {run_if_auto_try}) => run_if_auto_try
+  | NONE => false)
 
-fun get_proof_method_or_noop name =
-  (case get_proof_method name of
+fun get_proof_method_or_noop (ctxt : Proof.context) (name : string) : proof_method =
+  (case get_proof_method ctxt name of
     NONE => (warning ("Proof method \"" ^ name ^ "\" is undefined"); noop_proof_method)
   | SOME proof_method => proof_method)
 
-fun maybe_apply_proof_method name mode : proof_method =
-  if mode <> Auto_Try orelse should_auto_try_proof_method name then
-    get_proof_method_or_noop name
+fun maybe_apply_proof_method (ctxt : Proof.context) (name : string) (mode : mode) : proof_method =
+  if mode <> Auto_Try orelse should_auto_try_proof_method ctxt name then
+    get_proof_method_or_noop ctxt name
   else
     noop_proof_method
 
@@ -210,7 +208,7 @@ fun generic_try0_step mode (timeout : Time.time) (facts : facts) (st : Proof.sta
         methods
         |> Par_List.get_some try_method
         |> the_list
-    val maybe_apply_methods = map maybe_apply_proof_method proof_methods
+    val maybe_apply_methods = map (maybe_apply_proof_method (Proof.context_of st)) proof_methods
   in
     if mode = Normal then
       let val names = map quote proof_methods in
@@ -259,7 +257,7 @@ fun generic_try0 mode (timeout_opt : Time.time option) (facts : facts) (st : Pro
           (_, []) => iterate proof_methodss
         | result as (_, _ :: _) => result)
   in
-    iterate (if null schedule then [get_all_proof_method_names ()] else schedule)
+    iterate (if null schedule then [get_all_proof_method_names ctxt] else schedule)
   end;
 
 end

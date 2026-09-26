@@ -54,7 +54,6 @@ val () = raw_named_methods
         Try0_Util.apply_raw_named_method name all_goals tags silence_methods
     in
       Try0.register_proof_method name {run_if_auto_try = run_if_auto_try} meth
-      handle Symtab.DUP _ => ()
     end)
 
 end

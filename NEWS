@@ -240,6 +240,11 @@ checked in the past. INCOMPATIBILITY.
     the proof methods are tried. They are registered with the ML function
     Try0.register_fact_classifier and selected with the configuration
     option "try0_fact_classifier".
+  - Proof methods are registered in theory data, i.e. they are only
+    available in theories importing the registering theory. The ML
+    functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
+    Try0.get_all_proof_method_names take a Proof.context.
+    Minor INCOMPATIBILITY.
 
 * Metis: Updated the Metis prover underlying the "metis" proof method to
 version 2.4 (release 20260920). The new version allocates less memory and

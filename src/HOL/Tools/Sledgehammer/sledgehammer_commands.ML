@@ -171,7 +171,7 @@ structure Data = Theory_Data
 (* The first ATP of the list is used by Auto Sledgehammer. *)
 fun default_provers_param_value ctxt =
   let
-    val try0_provers = Try0.get_all_proof_method_names ()
+    val try0_provers = Try0.get_all_proof_method_names ctxt
     and installed_provers =
       filter (is_prover_installed ctxt) (default_smt_solvers ctxt @ local_atps)
   in
