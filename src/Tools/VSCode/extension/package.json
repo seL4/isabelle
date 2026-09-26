@@ -49,13 +49,13 @@
                 {
                     "id": "isabelle-documentation",
                     "title": "Documentation",
-                    "icon":"./media/documentation-panel.svg"
+                    "icon": "./media/documentation-panel.svg"
                 }
             ]
         },
         "views": {
             "isabelle-symbols": [
-                { 
+                {
                     "id": "isabelle-symbols",
                     "name": "Symbols",
                     "type": "webview",
