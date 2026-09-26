@@ -238,8 +238,8 @@ checked in the past. INCOMPATIBILITY.
     the background theory, and "argo" now takes facts as plain arguments.
   - Added optional fact classifiers, which assign facts to classes before
     the proof methods are tried. They are registered with the ML function
-    Try0.register_fact_classifier and selected with the configuration
-    option "try0_fact_classifier".
+    Try0.register_fact_classifier and selected with the system option
+    "try0_fact_classifier".
   - Proof methods are registered in theory data, i.e. they are only
     available in theories importing the registering theory. The ML
     functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and

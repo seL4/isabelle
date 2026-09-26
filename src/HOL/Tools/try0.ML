@@ -165,7 +165,8 @@ fun register_fact_classifier (name : string) (classifier : fact_classifier) : un
 fun get_fact_classifier (ctxt : Proof.context) (name : string) : fact_classifier option =
   Symtab.lookup (Fact_Classifier_Data.get (Context.Proof ctxt)) name;
 
-val fact_classifier = Attrib.setup_config_string \<^binding>\<open>try0_fact_classifier\<close> (K "")
+val fact_classifier =
+  Attrib.setup_option_string (\<^system_option>\<open>try0_fact_classifier\<close>, \<^here>)
 
 fun classify_facts (ctxt : Proof.context) (facts : facts) : facts =
   (case Config.get ctxt fact_classifier of
