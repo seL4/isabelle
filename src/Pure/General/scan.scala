@@ -107,6 +107,10 @@ object Scan {
       else body
     }
 
+    def perhaps_quoted_content(quote: Symbol.Symbol, source: String): String =
+      try { quoted_content(quote, source) }
+      catch { case ERROR(_) => source }
+
     def quoted_line(quote: Symbol.Symbol, ctxt: Line_Context): Parser[(String, Line_Context)] = {
       ctxt match {
         case Finished =>
@@ -178,6 +182,10 @@ object Scan {
       Library.try_unsuffix(Symbol.close_decoded, source1) orElse
         Library.try_unsuffix(Symbol.close, source1) getOrElse err()
     }
+
+    def perhaps_cartouche_content(source: String): String =
+      try { cartouche_content(source) }
+      catch { case ERROR(_) => source }
 
 
     /* nested comments */
