@@ -21,12 +21,16 @@ object Component_VSCodium {
 
   val linux_packages: List[String] =
     List(
-      "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot", "curl",
-      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev", "libfontconfig1")
+      "sed", "jq", "git", "python3", "gcc", "g++", "make", "pkg-config", "fakeroot", "curl",
+      "libx11-dev", "libxkbfile-dev", "libsecret-1-dev", "libkrb5-dev", "libfontconfig1",
+      "imagemagick", "librsvg2-bin")
 
-  val windows_packages: List[String] = List("jq", "git", "p7zip", "mingw-w64-ucrt-x86_64-rustup")
+  val windows_packages: List[String] =
+    List(
+      "sed", "jq", "git", "p7zip", "mingw-w64-ucrt-x86_64-rustup",
+      "mingw-w64-ucrt-x86_64-imagemagick", "mingw-w64-ucrt-x86_64-librsvg")
 
-  val macos_packages: List[String] = List("jq")
+  val macos_packages: List[String] = List("jq", "imagemagick", "librsvg", "libicns", "gnu-sed")
 
 
   /* vscode parameters */
@@ -228,6 +232,16 @@ object Component_VSCodium {
           make_isabelle_encoding(cat_lines(header)).write(common_dir)
         }
 
+        // base icons
+        def copy_icon(name: String, vscode_name: String = ""): Unit = {
+          val vscode_name1 = proper_string(vscode_name).getOrElse(name)
+          Isabelle_System.copy_file(
+            Path.explode("$ISABELLE_VSCODE_HOME/patches/icons") + Path.basic(name),
+            base_dir + Path.explode("icons/stable") + Path.basic(vscode_name1))
+        }
+        copy_icon("codium_cnl.svg", "codium_clt.svg")
+        Seq("codium_cnl.svg", "codium_cnl_w80_b8.svg").foreach(copy_icon(_))
+
         // explicit patches
         for (name <- Seq("cli", "gulpfile", "isabelle_encoding", "vscode-pdf")) {
           Isabelle_System.apply_patch(dir, read_patch(name), progress = progress)
@@ -384,6 +398,8 @@ object Component_VSCodium {
       Isabelle_System.require_command("git")
       Isabelle_System.require_command("jq")
       Isabelle_System.require_command("rustup")
+      Isabelle_System.require_command("convert")
+      Isabelle_System.require_command("rsvg-convert")
     }
 
 
@@ -418,6 +434,16 @@ object Component_VSCodium {
       write_patch("02-isabelle_sources", sources_patch)
 
       val node_dir = build_context.node_setup(build_dir)
+
+      progress.echo("Building icons ...")
+      val prebuilt_icons =
+        List("src/vs/workbench/browser/media/code-icon.svg",
+          if (platform_context.isabelle_platform.is_windows) "resources/win32/code.ico"
+          else if (platform_context.isabelle_platform.is_macos) "resources/darwin/code.icns"
+          else "resources/linux/code.png")
+      prebuilt_icons.foreach(name => (build_dir + Path.explode("src/stable/" + name)).file.delete())
+      platform_context.bash("./icons/build_icons.sh", cwd = build_dir,
+        env = build_context.settings).check
 
       progress.echo("Installing rust ...")
       platform_context.bash("rustup toolchain install stable", cwd = build_dir).check

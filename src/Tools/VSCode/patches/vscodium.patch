@@ -20,8 +20,68 @@ index 1d84559..3efefbd 100755
  elif [[ "${OS_NAME}" == "windows" ]]; then
    if [[ "${VSCODE_ARCH}" == "arm64" ]]; then
      VSCODE_CLI_TARGET="aarch64-pc-windows-msvc"
+diff --git a/icons/build_icons.sh b/icons/build_icons.sh
+index bca6852..d303f6f 100755
+--- a/icons/build_icons.sh
++++ b/icons/build_icons.sh
+@@ -26,24 +26,51 @@ check_programs() { # {{{
+   for arg in "$@"; do
+     if ! command -v "${arg}" &> /dev/null; then
+       echo "${arg} could not be found"
+-      exit 0
++      exit 1
+     fi
+   done
+ } # }}}
+ 
+-check_programs "icns2png" "composite" "convert" "png2icns" "icotool" "rsvg-convert" "sed"
++check_programs "composite" "convert" "rsvg-convert" "sed"
+ 
+ . "./${VSCODE_PREFIX}utils.sh"
+ 
++# Generate icons according to https://github.com/VSCodium/icons
++ICONS_ROOT="https://raw.githubusercontent.com/VSCodium/icons/b96d266673cd1d7a09d4ddd869c669fcb7a1e8ba"
++BG_PATH="./${VSCODE_PREFIX}icons"
++BG_FILENAME="main.svg"
++cp "$BG_PATH/${QUALITY}/codium_cnl.svg" "icon_head.svg"
++
+ if ! declare -F load_linux_png &>/dev/null; then
+   load_linux_png() {
+-    wget "https://raw.githubusercontent.com/VSCodium/icons/main/icons/linux/circle1/${COLOR}/paulo22s.png" -O "$1"
++    curl -fsSL "$ICONS_ROOT/templates/backgrounds/circle1/main.svg" -o "$BG_PATH/$BG_FILENAME"
++    curl -fsSL "$ICONS_ROOT/templates/backgrounds/circle1/main.conf" -o "main.conf"
++    source "main.conf"
++
++    convert -size 2048x2048 canvas:transparent PNG32:"icon.png"
++    rsvg-convert -w 2048 -h 2048 "${BG_PATH}/${BG_FILENAME}" -o "icon_bg.png"
++    composite "icon_bg.png" -gravity center -background none -colorspace sRGB "icon.png" "icon.png"
++    rsvg-convert -w "${BG_SHAPE_SIZE}" -h "${BG_SHAPE_SIZE}" "icon_head.svg" -o "icon_head.png"
++    composite "icon_head.png" -geometry "+${BG_SHAPE_LEFT}+${BG_SHAPE_TOP}" -background none -colorspace sRGB "icon.png" "icon.png"
++
++    composite \( "icon.png" -resize "${BG_LINUX_SIZE}x${BG_LINUX_SIZE}" \) -gravity center -background none \( -size 1024x1024 canvas:transparent \) "$1"
++
++    rm icon.png icon_bg.png icon_head.png
+   }
+ fi
+ 
+ if ! declare -F load_windows_ico &>/dev/null; then
+   load_windows_ico() {
+-    wget "https://raw.githubusercontent.com/VSCodium/icons/main/icons/win32/nobg/${COLOR}/paulo22s.ico" -O "$1"
++    curl -fsSL "$ICONS_ROOT/templates/backgrounds/nobg/main.conf" -o "main.conf"
++    source "main.conf"
++
++    convert -size 2048x2048 canvas:transparent PNG32:"icon.png"
++    rsvg-convert -w "${BG_SHAPE_SIZE}" -h "${BG_SHAPE_SIZE}" "icon_head.svg" -o "icon_head.png"
++    composite "icon_head.png" -gravity center -background none -colorspace sRGB "icon.png" "icon.png"
++
++    convert "icon.png" -define icon:auto-resize=256,128,96,64,48,32,24,20,16 "$1"
++
++    rm icon.png icon_head.png
+   }
+ fi
+ 
 diff --git a/prepare_vscode.sh b/prepare_vscode.sh
-index 1ac30e0..1c0ec2c 100755
+index 1ac30e0..5e8ef9e 100755
 --- a/prepare_vscode.sh
 +++ b/prepare_vscode.sh
 @@ -93,18 +93,18 @@ if [[ "${VSCODE_QUALITY}" == "insider" ]]; then
