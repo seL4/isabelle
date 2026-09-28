@@ -119,6 +119,7 @@ from the former website http://z3.codeplex.com/releases (16-May-2018).
 For Linux and macOS, the binaries have been built from sources
 """ + download_url + """
 with the following patch (without "-msse -msse2" on ARM64):
+
 """ + build_patch + """
 using the build command-line: """ + build_script + """
 
