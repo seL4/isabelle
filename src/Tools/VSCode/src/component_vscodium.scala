@@ -27,8 +27,8 @@ object Component_VSCodium {
 
   val windows_packages: List[String] =
     List(
-      "sed", "jq", "git", "p7zip", "mingw-w64-ucrt-x86_64-rustup",
-      "mingw-w64-ucrt-x86_64-imagemagick", "mingw-w64-ucrt-x86_64-librsvg")
+      "sed", "jq", "git", "p7zip", "mingw-w64-ucrt-x86_64-imagemagick",
+      "mingw-w64-ucrt-x86_64-librsvg")
 
   val macos_packages: List[String] = List("jq", "imagemagick", "librsvg", "libicns", "gnu-sed")
 
@@ -72,6 +72,7 @@ object Component_VSCodium {
       "CI_BUILD=no",
       "SKIP_ASSETS=yes",
       "SHOULD_BUILD=yes",
+      "SHOULD_BUILD_CLI=no",
       "SHOULD_BUILD_REH=no",
       "SHOULD_BUILD_REH_WEB=no")
 
@@ -397,7 +398,6 @@ object Component_VSCodium {
     if (!platform.is_windows) {
       Isabelle_System.require_command("git")
       Isabelle_System.require_command("jq")
-      Isabelle_System.require_command("rustup")
       Isabelle_System.require_command("convert")
       Isabelle_System.require_command("rsvg-convert")
     }
@@ -444,12 +444,6 @@ object Component_VSCodium {
       prebuilt_icons.foreach(name => (build_dir + Path.explode("src/stable/" + name)).file.delete())
       platform_context.bash("./icons/build_icons.sh", cwd = build_dir,
         env = build_context.settings).check
-
-      progress.echo("Installing rust ...")
-      platform_context.bash("rustup toolchain install stable", cwd = build_dir).check
-      if (platform.is_macos && !platform_context.apple) {
-        platform_context.bash("rustup target add x86_64-apple-darwin", cwd = build_dir).check
-      }
 
       progress.echo("Building VSCodium ...")
       val environment = build_context.environment(build_dir)
@@ -561,7 +555,6 @@ Usage: component_vscodium [OPTIONS]
 
   Linux prerequisites:
     - Ubuntu 20.04 LTS
-    - rustup: see https://www.rust-lang.org/tools/install
     - apt packages:
       sudo apt install -y """ + linux_packages.mkString(" ") + """
 
@@ -582,7 +575,6 @@ Usage: component_vscodium [OPTIONS]
 
   macOS prerequisites:
     - macOS 13 Ventura
-    - rustup: see https://www.rust-lang.org/tools/install
     - Homebrew package manager: see https://brew.sh
     - Homebrew packages:
       brew install """ + macos_packages.mkString(" ") + """
