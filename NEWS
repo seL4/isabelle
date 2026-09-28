@@ -41,9 +41,7 @@ tool setup, later theories may work uniformly on either variant.
 (x86_64-darwin, Intel) and "macos_arm" (arm64-darwin, Apple Silicon).
 The correct version needs to be used for the actual system platform:
 emulated Java via Rosetta 2 is explicitly excluded. Isabelle add-on
-tools usually work on arm64-darwin, with the notable exception of the z3
-prover --- z3 uses x86_64-darwin and thus requires Rosetta 2, as long as
-that is still provided by Apple.
+tools usually work on arm64-darwin.
 
 * Formal entities record more position information, from the history of
 locale interpretations etc. This results in multiple PIDE markup, which
