@@ -12,14 +12,12 @@ text \<open>
 \<close>
 
 definition primitive_element :: "'a :: field set \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool"
-  where "primitive_element K L a \<longleftrightarrow> L = eval_img K a"
+  where "primitive_element K L a \<equiv> L = eval_img K a"
 
-lemma primitive_elementI:
-  "L = eval_img K a \<Longrightarrow> primitive_element K L a"
+lemma primitive_elementI: "L = eval_img K a \<Longrightarrow> primitive_element K L a"
   by (simp add: primitive_element_def)
 
-lemma primitive_elementD:
-  "primitive_element K L a \<Longrightarrow> L = eval_img K a"
+lemma primitive_elementD: "primitive_element K L a \<Longrightarrow> L = eval_img K a"
   by (simp add: primitive_element_def)
 
 lemma
@@ -112,15 +110,15 @@ proof -
     then obtain h where h: "field_hom_on (eval_img E b) h" "h b = r" "\<forall>x\<in>E. h x = x"
       using mr Id.iso_extension[OF alg_bE m_min] by metis
     interpret H: field_hom_on "eval_img E b" h by (rule h(1))
-    have EL: "E \<subseteq> eval_img E b"
-      using Subfield.eval_img_base[OF sfE] by blast
-    have bL: "b \<in> eval_img E b" by (rule Subfield.eval_img_self[OF sfE])
-    have thetaL: "theta \<in> eval_img E b" using thetaE EL by blast
-    have cL: "c \<in> eval_img E b" using cE EL by blast
+    have thetaL: "theta \<in> eval_img E b"
+      using Id.eval_img_base thetaE by auto
+    have cL: "c \<in> eval_img E b"
+      by (simp add: Id.eval_img_base cE)
     have aeq: "a = theta - c*b" unfolding theta_def by algebra
+    have bL: "b \<in> eval_img E b" by (rule Subfield.eval_img_self[OF sfE])
     have aL: "a \<in> eval_img E b"
-      unfolding aeq by (rule H.diff_closed[OF thetaL H.mult_closed[OF cL bL]])
-    have FL: "F \<subseteq> eval_img E b" using FE EL by blast
+      using aeq bL cL thetaL by blast
+    have FL: "F \<subseteq> eval_img E b" using FE Id.eval_img_base by blast
     have hfixF: "\<And>x. x \<in> F \<Longrightarrow> h x = x" using h(3) FE by blast
     obtain pF: "p \<in> poly_over F" and pa: "poly p a = 0"
       using Subfield.minpoly_over Subfield.minpoly_root alg_a p_def sfF by blast
@@ -128,19 +126,16 @@ proof -
       using FL H.field_hom_on_axioms aL hfixF hom_preserves_roots pF pa sfF by blast
     have ha: "theta - c*r = h a"
       by (simp add: H.hom_diff H.hom_mult H.mult_closed aeq bL cE cL h thetaE thetaL)
-    then have proot: "poly p (theta - c*r) = 0"
-      using proot_h by presburger
+    then have xrA: "theta - c*r \<in> A"
+      using proot_h unfolding A_def by (metis mem_Collect_eq)
     obtain s where qs: "q = m * s" using mq by (elim dvdE)
     have qr: "poly q r = 0"
       using mr qs by (metis mult_zero_left poly_mult)
     have rB: "r \<in> B"
       using qr by (simp only: B_def mem_Collect_eq)
-    have xrA: "theta - c*r \<in> A"
-      using proot by (simp only: A_def mem_Collect_eq)
-    have theta_eq: "theta = (theta-c*r) + c*r" by algebra
-    have "theta - c*r = a \<and> r = b"
-      by (rule unique[OF xrA rB theta_eq])
-    then show "r = b" by (rule conjunct2)
+    have theta_eq: "theta = (theta - c*r) + c*r" by algebra
+    then show "r = b" 
+      using unique[OF xrA rB theta_eq] by presburger
   qed
   have roots_m: "{r. poly m r = 0} = {b}"
     by (auto simp: every_root mroot)
@@ -164,7 +159,7 @@ proof -
       by (metis alg_b sfF algebraic_over_mono primitive_elementI primitive_element_base)
     have "eval_img (eval_img F a) b =  generate_field (generate_field (F \<union> {a}) \<union> {b})"
       by (metis alg_a alg_bFa sfF sfFa Subfield.eval_img_eq_generate_field)
-    also have "... = generate_field (F \<union> {a,b})"
+    also have "\<dots> = generate_field (F \<union> {a,b})"
       by (metis Un_insert_left Un_insert_right generate_field_Un_collapse1 sup_bot.right_neutral)
     finally show ?thesis .
   qed
@@ -175,8 +170,8 @@ proof -
   have E_subset_gen: "E \<subseteq> generate_field (F \<union> {a,b})"
   proof -
     have "E = generate_field (F \<union> {theta})"
-      unfolding E_def by (rule Subfield.eval_img_eq_generate_field[OF sfF alg_theta])
-    also have "... \<subseteq> generate_field (F \<union> {a,b})"
+      by (simp add: E_def Subfield.eval_img_eq_generate_field alg_theta sfF)
+    also have "\<dots> \<subseteq> generate_field (F \<union> {a,b})"
       using theta_double
       by (intro generate_field_least[OF subfield_generate_field]) auto
     finally show ?thesis .
@@ -205,7 +200,7 @@ proof -
     case empty
     have "eval_img K 0 = generate_field (K \<union> {0})"
       by (simp add: T.base.eval_img_eq_generate_field T.base.algebraic_over_self)
-    also have "... =  K"
+    also have "\<dots> =  K"
       by (simp add: T.base.generate_field_self insert_absorb)
     finally have eval0: "eval_img K 0 = K" .
     show ?case using T.ext.zero_closed T.base.generate_field_self eval0 by auto
@@ -232,7 +227,7 @@ proof -
     have "K \<union> insert a A = (K \<union> A) \<union> {a}" by auto
     then have "generate_field (K \<union> insert a A) = generate_field (generate_field (K \<union> A) \<union> {a})"
       by (metis generate_field_Un_collapse1)
-    also have "... = eval_img (eval_img K theta) a"
+    also have "\<dots> = eval_img (eval_img K theta) a"
       by (simp add: Subfield.eval_img_eq_generate_field alg_a_theta genA sfKtheta)
     finally have generated_insert:
       "generate_field (K \<union> insert a A) = eval_img (eval_img K theta) a" .
@@ -266,9 +261,9 @@ proof -
     using Lf.finite_field_mult_cyclic[OF finstar] by blast
   have gL: "g \<in> L" using gstar by (simp add: Lf.Fstar_def)
   have gpow: "G.power g n \<in> eval_img K g" for n
-  by (induction n) (auto simp: KL.base.eval_img_1 KL.base.eval_img_mult KL.base.eval_img_self)
-  have L_subset: "L \<subseteq> eval_img K g"
-  proof
+    by (induction n) (auto simp: KL.base.eval_img_1 KL.base.eval_img_mult KL.base.eval_img_self)
+  have "L = eval_img K g" 
+  proof (intro antisym subsetI)
     fix x assume xL: "x \<in> L"
     show "x \<in> eval_img K g"
     proof (cases "x = 0")
@@ -280,9 +275,7 @@ proof -
         using G.cyclic_subgroup_eq_range[OF finstar gstar] Lf.Fstar_iff cyc xL by blast
       then show ?thesis using gpow by simp
     qed
-  qed
-  have E_subset: "eval_img K g \<subseteq> L"
-  proof
+  next
     fix x assume xE: "x \<in> eval_img K g"
     obtain p where pK: "p \<in> poly_over K" and x: "x = poly p g"
       using xE by (rule eval_imgE)
@@ -293,8 +286,7 @@ proof -
       using KL.base_subset gL by blast
     show "x \<in> L" using generate_field_least[OF KL.ext.Subfield_axioms KG] xG by blast
   qed
-  have eq: "L = eval_img K g" using L_subset E_subset by (rule subset_antisym)
-  show ?thesis using gL primitive_elementI[OF eq] by blast
+  then show ?thesis using gL primitive_elementI by blast
 qed
 
 text \<open>
@@ -316,16 +308,12 @@ proof -
           finite_field_extension_is_simple)
   next
     case False
-    then have infK: "infinite K" by simp
-    obtain B where basis: "T.vs.basis B" using T.finite_basis by blast
-    have finB: "finite B" and BL: "B \<subseteq> L"
-      using basis by (auto simp: T.vs.basis_def)
-    have Leq_gen: "L = generate_field (K \<union> B)"
+    obtain B where basis: "T.vs.basis B" and finB: "finite B" and BL: "B \<subseteq> L" 
+      using T.finite_basis by (auto simp: T.vs.basis_def)
+    have "L = generate_field (K \<union> B)"
       using T.generate_field_basis basis by auto
-    obtain theta where "theta \<in> L" and "generate_field (K \<union> B) = eval_img K theta"
-      using finite_separable_generators_primitive[OF T infK finB BL sep] by blast
     then show ?thesis using primitive_elementI
-      using Leq_gen by blast
+      using finite_separable_generators_primitive[OF T False finB BL sep] by blast
   qed
 qed
 
