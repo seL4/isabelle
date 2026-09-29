@@ -16,17 +16,12 @@ text \<open>
 subsection \<open>Polynomials with coefficients in a subfield\<close>
 
 definition poly_over :: "'a :: field set \<Rightarrow> 'a poly set" where
-  "poly_over K = {p. set (coeffs p) \<subseteq> K}"
+  "poly_over K \<equiv> {p. set (coeffs p) \<subseteq> K}"
 
 lemma poly_over_iff_aux:
   assumes "0 \<in> K"
   shows "p \<in> poly_over K \<longleftrightarrow> (\<forall>i. coeff p i \<in> K)"
-proof -
-  have "(set (coeffs p) \<subseteq> K) \<longleftrightarrow> (range (coeff p) \<subseteq> K)"
-    using assms by (auto simp: range_coeff)
-  also have "\<dots> \<longleftrightarrow> (\<forall>i. coeff p i \<in> K)" by auto
-  finally show ?thesis by (simp add: poly_over_def)
-qed
+  using assms forall_coeffs_conv poly_over_def by fastforce
 
 context Subfield
 begin
@@ -111,9 +106,9 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
   proof (cases "degree p < degree d")
     case False
     have dnz: "d \<noteq> 0" using monic ddeg by auto
-    define c where "c = lead_coeff p"
-    define t where "t = monom c (degree p - degree d) * d"
-    define p' where "p' = p - t"
+    define c where "c \<equiv> lead_coeff p"
+    define t where "t \<equiv> monom c (degree p - degree d) * d"
+    define p' where "p' \<equiv> p - t"
     have cK: "c \<in> K" using less.prems by (simp add: c_def lead_coeff_closed)
     have tK: "t \<in> poly_over K" using cK d by (auto simp: t_def intro: poly_over_monom poly_over_mult)
     have p'K: "p' \<in> poly_over K" using less.prems tK by (simp add: p'_def poly_over_diff)
@@ -140,7 +135,7 @@ proof (induction "degree p" arbitrary: p rule: less_induct)
       using qr(3) by (simp add: p'_def t_def algebra_simps)
     moreover have "q + monom c (degree p - degree d) \<in> poly_over K"
       using qr(1) cK by (auto intro: poly_over_add poly_over_monom)
-    ultimately show ?thesis using qr(2,4) by blast
+    ultimately show ?thesis using qr by blast
   qed (use less.prems in auto)
 qed
 
@@ -168,10 +163,10 @@ text \<open>An element @{term a} is \<^emph>\<open>algebraic over @{term K}\<clo
   least positive degree vanishing at @{term a}.\<close>
 
 definition algebraic_over :: "'a :: field set \<Rightarrow> 'a \<Rightarrow> bool" where
-  "algebraic_over K a \<longleftrightarrow> (\<exists>p \<in> poly_over K. p \<noteq> 0 \<and> poly p a = 0)"
+  "algebraic_over K a \<equiv> (\<exists>p \<in> poly_over K. p \<noteq> 0 \<and> poly p a = 0)"
 
 definition is_minpoly :: "'a :: field set \<Rightarrow> 'a \<Rightarrow> 'a poly \<Rightarrow> bool" where
-  "is_minpoly K a m \<longleftrightarrow>
+  "is_minpoly K a m \<equiv>
      m \<in> poly_over K \<and> lead_coeff m = 1 \<and> poly m a = 0 \<and>
      (\<forall>r \<in> poly_over K. r \<noteq> 0 \<and> poly r a = 0 \<longrightarrow> degree m \<le> degree r)"
 
@@ -179,7 +174,7 @@ text \<open>A polynomial is \<^emph>\<open>irreducible over @{term K}\<close> if
   factorisation over @{term K} into two factors of positive degree.  (Over the ambient field
   it may well factor --- e.g.\ split completely --- but not within @{term "poly_over K"}.)\<close>
 definition irreducible_over :: "'a :: field set \<Rightarrow> 'a poly \<Rightarrow> bool" where
-  "irreducible_over K p \<longleftrightarrow>
+  "irreducible_over K p \<equiv>
      p \<noteq> 0 \<and> degree p > 0 \<and>
      (\<forall>b c. b \<in> poly_over K \<longrightarrow> c \<in> poly_over K \<longrightarrow> p = b * c \<longrightarrow> degree b = 0 \<or> degree c = 0)"
 
@@ -187,7 +182,7 @@ text \<open>Algebraicity is preserved when passing to a larger subfield.\<close>
 lemma algebraic_over_mono:
   assumes "algebraic_over K a" and "K \<subseteq> L"
   shows "algebraic_over L a"
-  using assms poly_over_mono[OF assms(2)] by (auto simp: algebraic_over_def)
+  using assms by (meson algebraic_over_def poly_over_mono subsetD)
 
 context Subfield
 begin
@@ -330,10 +325,8 @@ proof -
   have "degree g = 0"
   proof (rule ccontr)
     assume gnz0: "degree g \<noteq> 0"
-    from gdvdm obtain q where mq: "m = g * q" by (elim dvdE)
-    have "q = m div g" using mq gnz by simp
-    then have qK: "q \<in> poly_over K"
-      using gK g_monic gnz0 mK poly_over_div_mod by blast
+    from gdvdm obtain q where mq: "m = g * q"and qK: "q \<in> poly_over K"
+      using gK g_monic gnz0 mK poly_over_div_mod by force
     have "degree q = 0" using minpoly_no_proper_factor[OF m gK qK mq] gnz0 by simp
     then obtain c where qc: "q = [:c:]" by (rule degree_eq_zeroE)
     have cnz: "c \<noteq> 0" using mq mnz qc by auto
@@ -358,14 +351,11 @@ proof -
   have mdeg: "degree m > 0" using minpoly_degree_pos[OF m] .
   have "m dvd p" using minpoly_dvd[OF m pK pa] .
   then obtain c where pc: "p = m * c" and cK: "c \<in> poly_over K"
-    using poly_over_div_mod[OF mK monic mdeg pK]
-    by (metis dvd_mult_div_cancel)
+    using poly_over_div_mod[OF mK monic mdeg pK] by force
   have "degree m = 0 \<or> degree c = 0"
     using irr mK cK by (auto simp: irreducible_over_def pc mult.commute)
-  then have "degree c = 0" using mdeg by simp
-  then obtain k where ck: "c = [:k:]" by (rule degree_eq_zeroE)
-  with irr pc show ?thesis
-    by (auto simp: irreducible_over_def)
+  with irr pc mdeg show ?thesis
+    by (auto simp: irreducible_over_def elim!: degree_eq_zeroE)
 qed
 
 text \<open>Consequently every root of an irreducible @{term p} is a root of the minimal polynomial

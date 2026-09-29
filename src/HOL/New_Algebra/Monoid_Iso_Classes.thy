@@ -18,7 +18,7 @@ text \<open>
 
 definition monoid_iso_rel :: "'a monoid \<Rightarrow> 'a monoid \<Rightarrow> bool"
   where
-    "monoid_iso_rel m n \<longleftrightarrow>
+    "monoid_iso_rel m n \<equiv>
       (mcarrier m, mmult m, munit m) \<cong>\<^sub>M (mcarrier n, mmult n, munit n)"
 
 text \<open>
@@ -85,8 +85,7 @@ proof -
   have T_group: "Group M composition unit" using T by (simp add: T_eq)
   have U_group: "Group M' composition' unit'" using U by (simp add: U_eq)
   have "monoid_iso_class_of (monoid T) = monoid_iso_class_of (monoid U) \<longleftrightarrow> T \<cong>\<^sub>M U"
-    by (rule monoid_iso_class_of_monoid_eq_iff)
-      (use T U Group.axioms(1) in \<open>simp_all add: T_eq U_eq\<close>)
+    by (simp add: Group.axioms(1) T U monoid_iso_class_of_monoid_eq_iff)
   also have "T \<cong>\<^sub>M U \<longleftrightarrow> T \<cong>\<^sub>G U"
     unfolding T_eq U_eq by (rule isomorphic_as_monoids_iff_groups [OF T_group U_group])
   finally show ?thesis .
@@ -117,42 +116,19 @@ proof -
     by (simp add: trivial_Group)
   have class_iff:
       "monoid_iso_class_of (monoid (G, composition, unit)) = trivial_monoid_iso_class \<longleftrightarrow>
-        (G, composition, unit) \<cong>\<^sub>G
-          ({undefined :: 'a}, (\<lambda>x y. undefined), undefined)"
-    unfolding trivial_monoid_iso_class_def trivial_monoid_def
-    by (rule monoid_iso_class_of_monoid_eq_iff_groups)
-      (simp_all add: G.Group_axioms trivial_Group)
+        (G, composition, unit) \<cong>\<^sub>G ({undefined :: 'a}, (\<lambda>x y. undefined), undefined)"
+    by (simp add: assms monoid_iso_class_of_monoid_eq_iff_groups trivial_Group trivial_monoid_def
+        trivial_monoid_iso_class_def)
   also have "... \<longleftrightarrow> G = {unit}"
   proof
-    assume iso: "(G, composition, unit) \<cong>\<^sub>G
-      ({undefined :: 'a}, (\<lambda>x y. undefined), undefined)"
+    assume iso: "(G, composition, unit) \<cong>\<^sub>G ({undefined :: 'a}, (\<lambda>x y. undefined), undefined)"
     then obtain \<eta> where
-      \<eta>: "group_isomorphism \<eta> G composition unit
-        {undefined :: 'a} (\<lambda>(_::'a) (_::'a). undefined) undefined"
+      \<eta>: "group_isomorphism \<eta> G composition unit {undefined :: 'a} (\<lambda>(_::'a) (_::'a). undefined) undefined"
       by (simp add: isomorphic_as_groups_def) blast
     interpret \<eta>: group_isomorphism \<eta> G composition unit
       "{undefined :: 'a}" "\<lambda>(_::'a) (_::'a). undefined" undefined by fact
     show "G = {unit}"
-    proof (rule equalityI)
-      show "G \<subseteq> {unit}"
-      proof
-        fix x
-        assume x: "x \<in> G"
-        have \<eta>x: "\<eta> x = undefined"
-          by (rule singletonD [OF \<eta>.map_closed [OF x]])
-        have \<eta>unit: "\<eta> unit = undefined"
-          by (rule \<eta>.commutes_with_unit)
-        have "x = unit"
-        proof (rule inj_onD [OF \<eta>.injective])
-          show "\<eta> x = \<eta> unit"
-            by (rule trans [OF \<eta>x \<eta>unit [symmetric]])
-          show "x \<in> G" by fact
-          show "unit \<in> G" by (rule G.unit_closed)
-        qed
-        then show "x \<in> {unit}" by simp
-      qed
-      show "{unit} \<subseteq> G" using G.unit_closed by simp
-    qed
+      using \<eta>.injective_iff_kernel_unit \<eta>.map_closed by blast
   next
     assume trivial: "G = {unit}"
     have iso:

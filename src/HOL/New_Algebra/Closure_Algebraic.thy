@@ -29,7 +29,7 @@ text \<open>A definite choice among the extensions supplied by @{thm [source] ex
   so that the type constructed from it below depends on nothing but @{typ 'a}.\<close>
 
 definition wide_extension
-  where "wide_extension =
+  where "wide_extension \<equiv>
     (SOME M. is_extension M
              \<and> (\<forall>P \<in> poly_carrier.
                   Field.splits (ecarrier M) (eadd M) (emult M) ipoly_zero ipoly_one (lift_poly P)))"
@@ -255,15 +255,7 @@ lemma to_wide_mult [simp]: "to_wide (x * y) = to_wide x * to_wide y"
   by transfer (rule wide_const_mult [symmetric])
 
 lemma inj_to_wide: "inj (to_wide :: 'a :: field \<Rightarrow> 'a wide)"
-proof (rule injI)
-  fix x y :: 'a
-  assume "to_wide x = to_wide y"
-  then have "Rep_wide (to_wide x) = Rep_wide (to_wide y)" by simp
-  then have "Ring.ipoly_const 0 x = (Ring.ipoly_const 0 y :: 'a ipoly)"
-    by (simp add: to_wide.rep_eq)
-  then show "x = y"
-    by (simp add: inj_on_eq_iff [OF wide_const_inj])
-qed
+  by (metis UNIV_I injI inj_on_eq_iff to_wide.rep_eq wide_const_inj)
 
 lemma to_wide_eq_iff [simp]: "to_wide x = to_wide y \<longleftrightarrow> x = y"
   using inj_to_wide by (auto dest: injD)
@@ -271,25 +263,11 @@ lemma to_wide_eq_iff [simp]: "to_wide x = to_wide y \<longleftrightarrow> x = y"
 text \<open>Being a ring homomorphism between fields, the embedding automatically respects negation and
   inversion: each is pinned by the equation it solves.\<close>
 
-lemma to_wide_uminus [simp]: "to_wide (- x) = - to_wide x"
-proof -
-  have "to_wide (- x) + to_wide x = 0"
-    using to_wide_add [of "- x" x] by simp
-  then show ?thesis
-    by (simp add: eq_neg_iff_add_eq_0)
-qed
+lemma to_wide_uminus [simp]: "to_wide (- x) = - to_wide x"    
+  using to_wide_add [of "- x" x] eq_neg_iff_add_eq_0 by auto
 
 lemma to_wide_inverse [simp]: "to_wide (inverse x) = inverse (to_wide x)"
-proof (cases "x = 0")
-  case True then show ?thesis by simp
-next
-  case False
-  then have "to_wide x * to_wide (inverse x) = 1"
-    using to_wide_mult [of x "inverse x"] by simp
-  then have "inverse (to_wide x) = to_wide (inverse x)"
-    by (rule inverse_unique)
-  then show ?thesis by simp
-qed
+  using to_wide_mult [of x "inverse x"] inverse_unique right_inverse[of x] by fastforce
 
 lemma to_wide_diff [simp]: "to_wide (x - y) = to_wide x - to_wide y"
   using to_wide_add [of x "- y"] by simp
@@ -341,13 +319,13 @@ lemma Abs_wide_mult:
   by (simp add: times_wide.rep_eq Abs_wide_inverse assms)
 
 lemma Abs_wide_const [simp]: "Abs_wide (Ring.ipoly_const 0 a) = to_wide a"
-  using Rep_wide_inverse [of "to_wide a"] by (simp add: to_wide.rep_eq)
+  by (simp add: to_wide.abs_eq)
 
 text \<open>A polynomial whose coefficients lie in the base subfield, read back as a polynomial over the
   base field itself.\<close>
 
 definition wide_pull :: "'a :: field wide poly \<Rightarrow> nat \<Rightarrow> 'a"
-  where "wide_pull p = (\<lambda>k. of_wide (Polynomial.coeff p k))"
+  where "wide_pull p \<equiv> (\<lambda>k. of_wide (Polynomial.coeff p k))"
 
 lemma wide_pull_carrier: "wide_pull p \<in> Ring.poly_carrier (UNIV :: 'a :: field set) 0"
 proof -
@@ -361,53 +339,39 @@ qed
 lemma to_wide_wide_pull:
   assumes p: "p \<in> poly_over (range (to_wide :: 'a :: field \<Rightarrow> 'a wide))"
   shows "to_wide (wide_pull p k) = Polynomial.coeff p k"
-proof -
-  have "Polynomial.coeff p k \<in> range to_wide"
-    by (rule Subfield.poly_over_coeff [OF subfield_range_to_wide p])
-  then show ?thesis by (simp add: wide_pull_def)
-qed
+  by (simp add: Subfield.poly_over_coeff p subfield_range_to_wide wide_pull_def)
 
 theorem wide_splits:
   fixes p :: "'a :: field wide poly"
   assumes p: "p \<in> poly_over (range to_wide)"
   obtains c as where "p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
 proof -
-  have FA: "Field wcarrier wadd wmult (wzero :: 'a ipoly) wone"
-    by (rule field_wide_extension)
-  have FB: "Field (UNIV :: 'a wide set) (+) (*) 0 1"
-    by (rule field_TC.Field_axioms)
   have RA: "Ring wcarrier wadd wmult (wzero :: 'a ipoly) wone"
-    using FA by (simp add: Field_def commutative_ring_def)
+    using W.Ring_axioms by simp
   have RB: "Ring (UNIV :: 'a wide set) (+) (*) 0 1"
-    using FB by (simp add: Field_def commutative_ring_def)
+    using field_TC.Ring_axioms by simp
   have lift: "Ring.lift_poly 0 (wide_pull p) k \<in> wcarrier" for k
     by (simp add: wide_lift_poly_apply wide_const_mem)
-  have spA: "Field.splits wcarrier wadd wmult wzero wone (Ring.lift_poly 0 (wide_pull p))"
-    by (rule wide_extension_splits [OF wide_pull_carrier])
   have spB: "Field.splits (UNIV :: 'a wide set) (+) (*) 0 1
                (\<lambda>k. Abs_wide (Ring.lift_poly 0 (wide_pull p) k))"
-  proof (rule splits_hom [OF RA RB])
-    show "\<And>y. y \<in> wcarrier \<Longrightarrow> Abs_wide y \<in> (UNIV :: 'a wide set)" by simp
-    show "Abs_wide (wzero :: 'a ipoly) = 0" by simp
-    show "Abs_wide (wone :: 'a ipoly) = 1" by simp
-    show "\<And>y y'. \<lbrakk> y \<in> wcarrier; y' \<in> wcarrier \<rbrakk>
-                  \<Longrightarrow> Abs_wide (wadd y y') = Abs_wide y + Abs_wide y'"
+  proof (intro splits_hom [OF RA RB])
+    show "\<And>y y'. \<lbrakk> y \<in> wcarrier; y' \<in> wcarrier \<rbrakk> \<Longrightarrow> Abs_wide (wadd y y') = Abs_wide y + Abs_wide y'"
       by (rule Abs_wide_add)
-    show "\<And>y y'. \<lbrakk> y \<in> wcarrier; y' \<in> wcarrier \<rbrakk>
-                  \<Longrightarrow> Abs_wide (wmult y y') = Abs_wide y * Abs_wide y'"
+    show "\<And>y y'. \<lbrakk> y \<in> wcarrier; y' \<in> wcarrier \<rbrakk> \<Longrightarrow> Abs_wide (wmult y y') = Abs_wide y * Abs_wide y'"
       by (rule Abs_wide_mult)
-    show "Field wcarrier wadd wmult (wzero :: 'a ipoly) wone" by (rule FA)
-    show "Field (UNIV :: 'a wide set) (+) (*) 0 1" by (rule FB)
+    show "Field wcarrier wadd wmult (wzero :: 'a ipoly) wone"
+      by (rule field_wide_extension)
+    show "Field (UNIV :: 'a wide set) (+) (*) 0 1"
+      by (rule field_TC.Field_axioms)
     show "Field.splits wcarrier wadd wmult wzero wone (Ring.lift_poly 0 (wide_pull p))"
-      by (rule spA)
-  qed
+      by (rule wide_extension_splits [OF wide_pull_carrier])
+  qed auto
   have "(\<lambda>k. Abs_wide (Ring.lift_poly 0 (wide_pull p) k)) = Polynomial.coeff p"
-    by (rule ext) (simp add: wide_lift_poly_apply to_wide_wide_pull [OF p])
+    by (simp add: wide_lift_poly_apply to_wide_wide_pull [OF p])
   with spB have "Field.splits (UNIV :: 'a wide set) (+) (*) 0 1 (Polynomial.coeff p)"
     by simp
-  then obtain c as where "p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-    using splits_coeff_iff by blast
-  then show thesis ..
+  then show thesis 
+    using splits_coeff_iff that by blast
 qed
 
 
@@ -429,12 +393,7 @@ lemma alg_closure_iff: "x \<in> alg_closure \<longleftrightarrow> algebraic_over
   by (simp add: alg_closure_def algebraic_elements_def)
 
 theorem base_subset_alg_closure: "range (to_wide :: 'a :: field \<Rightarrow> 'a wide) \<subseteq> alg_closure"
-proof
-  fix x :: "'a wide"
-  assume "x \<in> range to_wide"
-  then show "x \<in> alg_closure"
-    using Subfield.algebraic_over_self [OF subfield_range_to_wide] by (simp add: alg_closure_iff)
-qed
+    using Subfield.algebraic_over_self [OF subfield_range_to_wide] alg_closure_iff by blast
 
 theorem algebraic_extension_alg_closure:
   "algebraic_extension (alg_closure :: 'a :: field wide set) (range to_wide)"
@@ -486,11 +445,7 @@ proof -
   then have cA: "c \<in> alg_closure"
     using base_subset_alg_closure by blast
   have "a \<in> alg_closure" if "a \<in> set as" for a
-  proof -
-    have "poly p a = 0"
-      using that by (simp add: peq poly_linear_prod_eq_0_iff)
-    then show ?thesis by (rule alg_closure_root [OF p nz])
-  qed
+    using that alg_closure_root [OF p nz] by (simp add: peq poly_linear_prod_eq_0_iff)
   then have asA: "set as \<subseteq> alg_closure" by blast
   show thesis by (rule that [OF cA asA peq])
 qed
@@ -508,23 +463,15 @@ theorem exists_closure:
   where "Subfield L" and "range to_wide \<subseteq> L" and "algebraic_extension L (range to_wide)"
     and "\<And>p. \<lbrakk> p \<in> poly_over (range to_wide); p \<noteq> 0 \<rbrakk>
               \<Longrightarrow> \<exists>c as. c \<in> L \<and> set as \<subseteq> L \<and> p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-proof
-  show "Subfield (alg_closure :: 'a wide set)" by (rule subfield_alg_closure)
-  show "range (to_wide :: 'a \<Rightarrow> 'a wide) \<subseteq> alg_closure" by (rule base_subset_alg_closure)
-  show "algebraic_extension (alg_closure :: 'a wide set) (range to_wide)"
-    by (rule algebraic_extension_alg_closure)
-  show "\<exists>c as. c \<in> alg_closure \<and> set as \<subseteq> alg_closure
-               \<and> p = [:c:] * (\<Prod>a\<leftarrow>as. [:uminus a, 1:])"
-    if "p \<in> poly_over (range (to_wide :: 'a \<Rightarrow> 'a wide))" and "p \<noteq> 0" for p
-    using alg_closure_splits [OF that] by blast
-qed
+  by (metis alg_closure_splits algebraic_extension_alg_closure base_subset_alg_closure
+      subfield_alg_closure)
 
 
 subsection \<open>The closure is algebraically closed\<close>
 
 text \<open>A divisor of a split polynomial of positive degree has a root among its factors.  Peeling one
-  factor at a time: either it is a root of the divisor, or the divisor is coprime to it --- linear
-  monic polynomials being prime --- and the factor can be cancelled.\<close>
+  factor at a time: either it is a root of the divisor, or the divisor is coprime to it (linear
+  monic polynomials are prime) and the factor can be cancelled.\<close>
 
 lemma dvd_split_imp_root:
   fixes q :: "'b :: field_gcd poly"
@@ -533,13 +480,14 @@ lemma dvd_split_imp_root:
   using assms
 proof (induct as arbitrary: \<gamma>)
   case Nil
-  then have dvd0: "q dvd [:\<gamma>:]" by simp
-  have "[:\<gamma>:] \<noteq> 0" using Nil.prems(2) by simp
-  with dvd0 have "degree q \<le> degree [:\<gamma>:]" by (rule dvd_imp_degree_le)
-  then have "degree q = 0" by simp
+  then have "[:\<gamma>:] \<noteq> 0" by simp
+  with Nil have "degree q \<le> degree [:\<gamma>:]"
+    by (metis dvd_imp_degree_le list.map(1) mult_cancel_left1 prod_list.Nil)
   with Nil.prems(3) show ?case by simp
 next
   case (Cons a as)
+  then have dvd1: "q dvd [:uminus a, 1:] * ([:\<gamma>:] * (\<Prod>b\<leftarrow>as. [:uminus b, 1:]))"
+    by simp
   show ?case
   proof (cases "poly q a = 0")
     case True
@@ -550,21 +498,12 @@ next
       by (simp add: poly_eq_0_iff_dvd)
     have pe: "prime_elem [:uminus a, 1 :: 'b:]"
       by (rule prime_elem_linear_poly) simp_all
-    have cop: "coprime [:uminus a, 1 :: 'b:] q"
-      by (rule prime_elem_imp_coprime [OF pe nd])
-    then have copq: "coprime q [:uminus a, 1 :: 'b:]"
-      using coprime_commute by blast
-    have dvd1: "q dvd [:uminus a, 1:] * ([:\<gamma>:] * (\<Prod>b\<leftarrow>as. [:uminus b, 1:]))"
-    proof -
-      have "[:uminus a, 1:] * ([:\<gamma>:] * (\<Prod>b\<leftarrow>as. [:uminus b, 1:]))
-            = [:\<gamma>:] * (\<Prod>b\<leftarrow>a # as. [:uminus b, 1:])"
-        by (simp add: mult.left_commute)
-      then show ?thesis using Cons.prems(1) by simp
-    qed
+    have copq: "coprime q [:uminus a, 1 :: 'b:]"
+      using coprime_commute prime_elem_imp_coprime [OF pe nd] by blast
     have "q dvd [:\<gamma>:] * (\<Prod>b\<leftarrow>as. [:uminus b, 1:])"
       using dvd1 coprime_dvd_mult_right_iff [OF copq] by blast
     then show ?thesis
-      using Cons.hyps [OF _ Cons.prems(2,3)] by auto
+      using Cons by auto
   qed
 qed
 
@@ -584,7 +523,7 @@ text \<open>
   polynomial has a root.
 
   Where HOL-Algebra forms the quotient \<open>A[X]/(P)\<close> and compares its dimension with that of \<open>K[X]\<close>, the
-  linear system does the same counting directly, so no quotient --- which would change the type --- is
+  linear system does the same counting directly, so no quotient (which would change the type) is
   ever constructed.
 \<close>
 theorem alg_closure_alg_closed:
@@ -596,7 +535,7 @@ proof -
   interpret A: Subfield "alg_closure :: 'a wide set" by (rule subfield_alg_closure)
 
   \<comment> \<open>Normalise to a monic polynomial with the same roots.\<close>
-  define q where "q = smult (inverse (lead_coeff p)) p"
+  define q where "q \<equiv> smult (inverse (lead_coeff p)) p"
   have pnz: "p \<noteq> 0" using dp by auto
   then have lc: "lead_coeff p \<noteq> 0" by simp
   have lcA: "lead_coeff p \<in> alg_closure" by (rule A.lead_coeff_closed [OF p])
@@ -606,11 +545,11 @@ proof -
   have monic: "lead_coeff q = 1" by (simp add: q_def lc pnz)
   have roots: "poly q z = 0 \<longleftrightarrow> poly p z = 0" for z
     using lc by (auto simp: q_def)
-  define n where "n = degree q"
+  define n where "n \<equiv> degree q"
   have npos: "0 < n" using dp dq by (simp add: n_def)
 
   \<comment> \<open>A finite extension of the base containing the coefficients.\<close>
-  define S where "S = (\<lambda>i. coeff q i) ` {..n}"
+  define S where "S \<equiv> (\<lambda>i. coeff q i) ` {..n}"
   have finS: "finite S" by (simp add: S_def)
   have SA: "S \<subseteq> alg_closure" using qA by (auto simp: S_def A.poly_over_coeff)
   then have algS: "algebraic_over (range to_wide) x" if "x \<in> S" for x
@@ -628,8 +567,7 @@ proof -
       case True then show ?thesis using SL by (auto simp: S_def)
     next
       case False
-      then have "coeff q i = 0" by (simp add: coeff_eq_0 n_def)
-      then show ?thesis using Subfield.zero_closed [OF sfL] by simp
+      then show ?thesis using Subfield.zero_closed [OF sfL] by (simp add: coeff_eq_0 n_def)
     qed
   qed
 
@@ -640,14 +578,10 @@ proof -
     using T.exists_coordinates by blast
 
   \<comment> \<open>Divide each power of the indeterminate by \<open>q\<close>.\<close>
-  define N where "N = n * card B"
+  define N where "N \<equiv> n * card B"
   have "\<exists>s r. s \<in> poly_over L \<and> r \<in> poly_over L \<and> monom 1 i = s * q + r \<and> degree r < n" for i
-  proof -
-    have "monom (1 :: 'a wide) i \<in> poly_over L"
-      by (rule Subfield.poly_over_monom [OF sfL]) (rule Subfield.one_closed [OF sfL])
-    then show ?thesis
-      using Subfield.poly_over_divmod_exists [OF sfL qL monic] npos by (auto simp: n_def)
-  qed
+    using T.ext.one_closed T.ext.poly_over_divmod_exists T.ext.poly_over_monom monic n_def npos qL
+    by presburger
   then obtain s r where sr: "\<And>i. s i \<in> poly_over L \<and> r i \<in> poly_over L
                                   \<and> monom 1 i = s i * q + r i \<and> degree (r i) < n"
     by metis
@@ -658,8 +592,8 @@ proof -
     using rL by (simp add: Subfield.poly_over_coeff [OF sfL])
 
   \<comment> \<open>More unknowns than equations, so a nontrivial vanishing combination exists.\<close>
-  define I where "I = {..<n} \<times> B"
-  define Amat where "Amat = (\<lambda>(j, b) i. coord (coeff (r i) j) b)"
+  define I where "I \<equiv> {..<n} \<times> B"
+  define Amat where "Amat \<equiv> (\<lambda>(j, b) i. coord (coeff (r i) j) b)"
   have finI: "finite I" by (simp add: I_def finB)
   have cardI: "card I = N" by (simp add: I_def N_def card_cartesian_product)
   have "card I < card {..N}" by (simp add: cardI)
@@ -675,28 +609,11 @@ proof -
   \<comment> \<open>The combination of remainders vanishes identically.\<close>
   define R where "R = (\<Sum>i \<le> N. smult (c i) (r i))"
   have Rdeg: "degree R < n"
-  proof -
-    have smdeg: "degree (smult (c i) (r i)) \<le> n - 1" for i
-    proof -
-      have "degree (smult (c i) (r i)) \<le> degree (r i)" by (rule degree_smult_le)
-      also have "degree (r i) \<le> n - 1" using rdeg [of i] by simp
-      finally show ?thesis .
-    qed
-    have "degree R \<le> n - 1"
-      unfolding R_def
-    proof (rule degree_sum_le)
-      show "finite {..N}" by simp
-      show "degree (smult (c i) (r i)) \<le> n - 1" if "i \<in> {..N}" for i
-        by (rule smdeg)
-    qed
-    then show ?thesis using npos by linarith
-  qed
+    using rdeg R_def by (simp add: degree_sum_less npos)
   have Rcoeff: "coeff R j = 0" if j: "j < n" for j
   proof -
-    have "coeff R j = (\<Sum>i \<le> N. c i * coeff (r i) j)"
-      by (simp add: R_def coeff_sum)
-    also have "\<dots> = (\<Sum>i \<le> N. c i * (\<Sum>b\<in>B. coord (coeff (r i) j) b * b))"
-      using coordS [OF rcoeffL] by simp
+    have "coeff R j = (\<Sum>i \<le> N. c i * (\<Sum>b\<in>B. coord (coeff (r i) j) b * b))"
+      using coordS [OF rcoeffL] by (simp add: R_def coeff_sum)
     also have "\<dots> = (\<Sum>i \<le> N. \<Sum>b\<in>B. c i * (coord (coeff (r i) j) b * b))"
       by (simp add: sum_distrib_left)
     also have "\<dots> = (\<Sum>b\<in>B. \<Sum>i \<le> N. c i * (coord (coeff (r i) j) b * b))"
@@ -704,31 +621,22 @@ proof -
     also have "\<dots> = (\<Sum>b\<in>B. (\<Sum>i \<le> N. Amat (j, b) i * c i) * b)"
     proof (rule sum.cong [OF refl])
       fix b assume "b \<in> B"
-      have "(\<Sum>i \<le> N. c i * (coord (coeff (r i) j) b * b))
-            = (\<Sum>i \<le> N. Amat (j, b) i * c i * b)"
-        by (rule sum.cong [OF refl]) (simp add: Amat_def ac_simps)
+      have "(\<Sum>i \<le> N. c i * (coord (coeff (r i) j) b * b)) = (\<Sum>i \<le> N. Amat (j, b) i * c i * b)"
+        by (simp add: Amat_def ac_simps)
       also have "\<dots> = (\<Sum>i \<le> N. Amat (j, b) i * c i) * b"
         by (simp add: sum_distrib_right)
       finally show "(\<Sum>i \<le> N. c i * (coord (coeff (r i) j) b * b))
                     = (\<Sum>i \<le> N. Amat (j, b) i * c i) * b" .
     qed
     also have "\<dots> = 0"
-    proof (rule sum.neutral, rule ballI)
-      fix b assume "b \<in> B"
-      with j have "(j, b) \<in> I" by (simp add: I_def)
-      then show "(\<Sum>i \<le> N. Amat (j, b) i * c i) * b = 0" using sys by simp
-    qed
+      using sys j by (intro sum.neutral) (simp add: I_def)
     finally show ?thesis .
   qed
   have "R = 0"
-  proof (rule poly_eqI)
-    fix j
-    show "coeff R j = coeff 0 j"
-      using Rcoeff Rdeg by (cases "j < n") (auto simp: coeff_eq_0)
-  qed
+    using Rcoeff Rdeg by fastforce
 
   \<comment> \<open>Hence \<open>q\<close> divides a nonzero polynomial over the base field.\<close>
-  define Q where "Q = (\<Sum>i \<le> N. monom (c i) i)"
+  define Q where "Q \<equiv> (\<Sum>i \<le> N. monom (c i) i)"
   have QK: "Q \<in> poly_over (range (to_wide :: 'a \<Rightarrow> 'a wide))"
     unfolding Q_def using cK by (auto intro!: K.poly_over_sum K.poly_over_monom)
   have coeffQ: "coeff Q i = c i" if "i \<le> N" for i
@@ -736,20 +644,17 @@ proof -
   have Qnz: "Q \<noteq> 0" using cnz coeffQ by force
   have Qsplit: "Q = (\<Sum>i \<le> N. smult (c i) (s i)) * q + R"
   proof -
-    have pt: "monom (c i) i = smult (c i) (s i) * q + smult (c i) (r i)" for i
+    have "monom (c i) i = smult (c i) (s i) * q + smult (c i) (r i)" for i
     proof -
       have "monom (c i) i = smult (c i) (monom 1 i)" by (simp add: smult_monom)
-      also have "\<dots> = smult (c i) (s i * q + r i)" by (simp add: divid [of i])
       also have "\<dots> = smult (c i) (s i) * q + smult (c i) (r i)"
-        by (simp add: smult_add_right mult_smult_left)
+        by (simp add: smult_monom divid [of i] smult_add_right mult_smult_left)
       finally show ?thesis .
     qed
-    have "Q = (\<Sum>i \<le> N. smult (c i) (s i) * q + smult (c i) (r i))"
-      unfolding Q_def using pt by simp
-    also have "\<dots> = (\<Sum>i \<le> N. smult (c i) (s i) * q) + (\<Sum>i \<le> N. smult (c i) (r i))"
-      by (rule sum.distrib)
+    then have "Q = (\<Sum>i \<le> N. smult (c i) (s i) * q + smult (c i) (r i))"
+      by (simp add: Q_def)
     also have "\<dots> = (\<Sum>i \<le> N. smult (c i) (s i)) * q + R"
-      by (simp add: R_def sum_distrib_right)
+      by (simp add: R_def sum.distrib sum_distrib_right)
     finally show ?thesis .
   qed
   with \<open>R = 0\<close> have qdvd: "q dvd Q" by auto
