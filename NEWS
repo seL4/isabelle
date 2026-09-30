@@ -191,6 +191,12 @@ some active markup (sendback and dialog).
 * Various improvements for all panels, and more uniform styling. GUI
 state now persists between context switches, where appropriate.
 
+* Update to recent VSCode 1.135 / VSCodium 1.135.06055 (August 2026),
+Electron 42.8.1, Chromium 148.0.7778.280, Node.js 24.18.1, with pre-
+installed mathematic.vscode-pdf 0.2.5. Name and logos of the IDE are
+changed to distinguish "Isabelle VSCode" (or "Isacode" for short) from
+other VSCode / VSCodium applications.
+
 
 *** HOL ***
 
