@@ -1,7 +1,7 @@
 section \<open>Euclidean type classes as locale Euclidean domains; the integers\<close>
 
 theory Int_Ring
-  imports Field_Typeclass Divisibility_Theory
+  imports Ring_Theory Divisibility_Theory
 begin
 
 text \<open>Isabelle's type class @{class euclidean_ring} (an @{class idom} with a @{const euclidean_size}

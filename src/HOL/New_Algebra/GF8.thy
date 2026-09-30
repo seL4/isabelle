@@ -1,7 +1,7 @@
 section \<open>The eight-element field \<open>GF(8)\<close> via Kronecker's construction\<close>
 
 theory GF8
-  imports GF2_Field
+  imports GF2
 begin
 
 text \<open>A cubic witness for the carrier-set field machinery: the polynomial \<open>X\<^sup>3 + X + 1\<close> is

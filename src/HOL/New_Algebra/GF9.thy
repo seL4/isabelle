@@ -1,8 +1,27 @@
 section \<open>The nine-element field \<open>GF(9)\<close> via Kronecker's construction\<close>
 
 theory GF9
-  imports GF_p_Field
+  imports GF_p Poly_Ring Poly_Ideal
 begin
+
+subsection \<open>The 3-element prime field with polynomial machinery\<close>
+
+text \<open>A single, canonical interpretation of the @{locale Field} locale on \<open>GF(3)\<close>, made \<^emph>\<open>after\<close>
+  \<open>Poly_Ring\<close> and \<open>Poly_Ideal\<close> have been loaded so that polynomial-level facts are visible through the
+  @{text GF3} qualifier.\<close>
+
+interpretation GF3: Field "{0..<3::nat}" "gfp_add 3" "gfp_mult 3" 0 1
+  using gfp_field[of 3] by simp
+
+text \<open>Convenience closure facts for the polynomial machinery over \<open>GF(3)\<close>.\<close>
+
+lemma GF3_one_mem [simp, intro]: "(1::nat) \<in> {0..<3::nat}" by simp
+
+lemma GF3_poly_const_carrier [simp, intro]: "GF3.poly_const 1 \<in> GF3.poly_carrier"
+  by (rule GF3.poly_const_closed) simp
+
+lemma GF3_monom_carrier [simp, intro]: "GF3.monom 1 n \<in> GF3.poly_carrier"
+  by (rule GF3.monom_closed) simp
 
 text \<open>A second end-to-end witness for the carrier-set field machinery, over a non-binary prime
   field: the polynomial \<open>X\<^sup>2 + 1\<close> is irreducible over \<open>GF(3)\<close> (it has no root there, as \<open>-1\<close> is not

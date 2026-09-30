@@ -491,8 +491,8 @@ proof -
     using I mono by (rule Union_chain_ideal)
   obtain c where c: "c \<in> R" and Uc: "(\<Union>n. A n) = principal_ideal c"
     using principal[OF Union_chain_ideal] I mono by metis
-  then obtain N where cN: "c \<in> A N"
-    using Uc c principal_ideal_contains by auto
+  with principal_ideal_contains obtain N where cN: "c \<in> A N"
+    by fastforce
   have "A n = A N" if "N \<le> n" for n
   proof
     show "A N \<subseteq> A n" using mono_le that .

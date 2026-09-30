@@ -1,7 +1,7 @@
 section \<open>A field extension as a vector space over a subfield\<close>
 
 theory Extension_Vector_Space
-  imports Steinitz Field_Typeclass Subfield
+  imports Steinitz Ring_Theory Subfield
 begin
 
 text \<open>We feed the type-class field operations into
@@ -21,7 +21,7 @@ subsection \<open>A subfield is a locale-based field\<close>
 
 text \<open>The carrier @{term K} of a @{locale Subfield} satisfies the locale-based @{locale Field} axioms
   under the ambient type-class operations.  Built bottom-up exactly as in
-  \<open>Field_Typeclass\<close>, but with carrier @{term K} in place of the whole type.\<close>
+  \<open>Ring_Theory\<close>, but with carrier @{term K} in place of the whole type.\<close>
 context Subfield
 begin
 
