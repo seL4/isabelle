@@ -4,11 +4,9 @@ theory New_Algebra
   imports
     (* groups *)
     Subgroup_Lattice
-    Simple_Group
     Monoid_Iso_Classes
     Normal_Series
     Composition_Series
-    Composition_Factor_Classes
     Normal_Chain
     Group_Product
     Group_Family_Product
@@ -36,7 +34,6 @@ theory New_Algebra
     Module_Exact_Sequence
     Module_Family_Product
     Free_Module_Universal
-    Vector_Space_Typeclass
     Grassmann_Dimension
     Finite_Dimensional_Isomorphism
     Finite_Dimensional_Splitting

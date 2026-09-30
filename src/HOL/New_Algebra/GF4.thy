@@ -1,7 +1,7 @@
 section \<open>The four-element field \<open>GF(4)\<close> via Kronecker's construction\<close>
 
 theory GF4
-  imports GF2_Field
+  imports GF2
 begin
 
 text \<open>An end-to-end exercise of the carrier-set field machinery: the polynomial

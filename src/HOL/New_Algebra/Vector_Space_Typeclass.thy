@@ -1,10 +1,10 @@
 section \<open>Linking the locale-based vector-space theory to Isabelle's type classes\<close>
 
 theory Vector_Space_Typeclass
-  imports Vector_Space Field_Typeclass
+  imports Vector_Space Ring_Theory
 begin
 
-text \<open>Following the @{text field_TC} pattern of \<open>Field_Typeclass\<close>, we bridge
+text \<open>Following the @{text field_TC} pattern of \<open>Ring_Theory\<close>, we bridge
   the locale-based @{locale Vector_Space} to Isabelle's type-class arithmetic.  A type-class field
   @{typ "'a :: field"} plays the scalar role, and a type-class abelian additive group
   @{typ "'b :: ab_group_add"} plays the vector role; a scale operation

@@ -1,7 +1,7 @@
 section \<open>Linking the carrier-set polynomial ring to Isabelle's polynomial type\<close>
 
 theory Poly_Typeclass
-  imports Poly_Ring Field_Typeclass "HOL-Computational_Algebra.Polynomial"
+  imports Poly_Ring Ring_Theory "HOL-Computational_Algebra.Polynomial"
 begin
 
 text \<open>

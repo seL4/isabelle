@@ -43,7 +43,7 @@ begin
 lemma diff_closed: "\<lbrakk> x \<in> K; y \<in> K \<rbrakk> \<Longrightarrow> x - y \<in> K"
   using add_closed minus_closed by (metis diff_conv_add_uminus)
 
-text \<open>Built bottom-up, exactly as for the @{text GF2} and @{text Field_Typeclass} witnesses.\<close>
+text \<open>Built bottom-up, exactly as for the @{text GF2} and @{text Ring_Theory} witnesses.\<close>
 lemma add_group: "Group K (+) 0"
 proof (intro GroupI zero_in)
   fix x assume "x \<in> K"
