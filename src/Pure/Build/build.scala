@@ -228,6 +228,7 @@ object Build {
                     try {
                       val current =
                         store.check_output(name,
+                          conditions = deps0.eval_conditions(name).value,
                           opened_db = Some(db),
                           sources_shasum = deps0.sources_shasum(name)
                         ).current(build_thorough = deps0.sessions_structure(name).build_thorough)
@@ -270,7 +271,7 @@ object Build {
 
         val numa_nodes = Host.numa_nodes(enabled = numa_shuffling)
         val build_context =
-          Context(store, build_deps, engine = engine, afp_root = afp_root,
+          Build.Context(store, build_deps, engine = engine, afp_root = afp_root,
             build_hosts = build_hosts, hostname = hostname(build_options),
             clean_sessions = clean_sessions, store_heap = build_heap,
             numa_shuffling = numa_shuffling, numa_nodes = numa_nodes,
@@ -678,7 +679,7 @@ Usage: isabelle build_process [OPTIONS]
             Sessions.deps(sessions_structure, progress = progress, inlined_files = true).check_errors
 
           val build_context =
-            Context(store, build_deps, engine = engine, hostname = hostname(build_options),
+            Build.Context(store, build_deps, engine = engine, hostname = hostname(build_options),
               numa_shuffling = numa_shuffling, build_uuid = build_master.build_uuid,
               build_start = Some(build_master.start), jobs = max_jobs.getOrElse(1))
 
@@ -748,12 +749,12 @@ Usage: isabelle build_worker [OPTIONS]
     unicode_symbols: Boolean = false,
     migrate_file: String => String = identity
   ): Option[Document.Snapshot] = {
-    def decode(str: String): String = Symbol.output(unicode_symbols, str)
+    def recode(str: String): String = Symbol.output(unicode_symbols, str)
 
     def read(name: String): Export.Entry = theory_context(name, permissive = true)
 
     def read_xml(name: String): XML.Body =
-      YXML.parse_body(read(name).bytes, recode = decode, cache = theory_context.cache)
+      YXML.parse_body(read(name).bytes, recode = recode, cache = theory_context.cache)
 
     def read_source_file(name: String): Store.Source_File =
       theory_context.session_context.source_file(name)
@@ -772,7 +773,7 @@ Usage: isabelle build_worker [OPTIONS]
 
           val file = read_source_file(name0)
           val bytes = file.bytes
-          val text = decode(bytes.text)
+          val text = recode(bytes.text)
           val chunk = Symbol.Text_Chunk(text)
           val content = Some((file.digest, chunk))
 
@@ -780,7 +781,7 @@ Usage: isabelle build_worker [OPTIONS]
             Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
         }
 
-      val thy_source = decode(read_source_file(thy_file0).bytes.text)
+      val thy_source = recode(read_source_file(thy_file0).bytes.text)
       val thy_xml = read_xml(Export.MARKUP)
       val blobs_xml =
         for (i <- (1 to blobs.length).toList)
@@ -824,7 +825,7 @@ Usage: isabelle build_worker [OPTIONS]
         filter.forall(r => r.findFirstIn(Protocol_Message.clean_output(s)).nonEmpty)
       }
 
-    check(message_head, Protocol.message_heading(elem, pos)) &&
+    check(message_head, Protocol.message_heading(elem, pos = pos)) &&
     check(message_body, Pretty.unformatted_string_of(List(elem)))
   }
 
@@ -848,10 +849,10 @@ Usage: isabelle build_worker [OPTIONS]
         val result =
           for {
             db <- session_context.session_db()
-            theories = store.read_theories(db, session_name)
+            used_theories = store.read_theories(db, session_name)
             errors = store.read_errors(db, session_name)
             info <- store.read_build(db, session_name)
-          } yield (theories, errors, info.return_code)
+          } yield (used_theories, errors, info.return_code)
         result match {
           case None => store.error_database(session_name)
           case Some((used_theories, errors, rc)) =>

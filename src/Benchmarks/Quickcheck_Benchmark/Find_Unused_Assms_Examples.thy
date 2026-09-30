@@ -1,5 +1,6 @@
 theory Find_Unused_Assms_Examples
-imports Complex_Main
+  imports Complex_Main
+  options [condition = build_everything]
 begin
 
 section \<open>Arithmetics\<close>

@@ -78,7 +78,9 @@ class Tree_View(
     }
 
 
-  /* selection events */
+  /* events */
+
+  def handle_escape(): Unit = ()
 
   def handle_selection(path: TreePath): Unit = ()
 
@@ -93,6 +95,10 @@ class Tree_View(
 
   addKeyListener(new KeyAdapter {
     override def keyPressed(e: KeyEvent): Unit = {
+      if (!e.isConsumed() && GUI.plain_escape(e)) {
+        e.consume()
+        handle_escape()
+      }
       if (!e.isConsumed() && GUI.plain_enter(e)) {
         e.consume()
         handle_selection(getSelectionPath)

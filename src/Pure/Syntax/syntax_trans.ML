@@ -40,8 +40,8 @@ sig
   val mk_binder_tr': string * string -> string * (Proof.context -> term list -> term)
   val preserve_binder_abs_tr': string -> Proof.context -> typ -> term list -> term
   val preserve_binder_abs2_tr': string -> Proof.context -> typ -> term list -> term
-  val print_abs: string * typ * term -> string * term
-  val dependent_tr': string * string -> term list -> term
+  val print_abs: Proof.context -> string * typ * term -> string * term
+  val dependent_tr': string * string -> Proof.context -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string ->
@@ -306,13 +306,14 @@ fun declare_term_names ctxt =
   let
     val s = the_default "" (default_struct ctxt);
 
-    fun declare (Const ("_struct", _) $ Const ("_indexdefault", _)) = Name.declare s
-      | declare (Const (c, _)) =
-          if Lexicon.is_fixed c then Name.declare (Lexicon.unmark_fixed c) else I
-      | declare (Free (x, _)) = Name.declare x
-      | declare (t $ u) = declare t #> declare u
-      | declare (Abs (_, _, t)) = declare t
-      | declare _ = I;
+    fun declare (Const ("_struct", _) $ Const ("_indexdefault", _)) names = names |> Name.declare s
+      | declare (Const (c, _)) names =
+          if Lexicon.is_fixed c then names |> Name.declare (Lexicon.unmark_fixed c)
+          else names
+      | declare (Free (x, _)) names = names |> Name.declare x
+      | declare (t $ u) names = names |> declare t |> declare u
+      | declare (Abs (_, _, t)) names = names |> declare t
+      | declare _ names = names;
   in declare end;
 
 fun variant_bounds ctxt =
@@ -345,7 +346,7 @@ fun abs_tr' ctxt tm =
     (strip_abss ctxt strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
 fun atomic_abs_tr' ctxt (x, T, t) =
-  let val xT = singleton (variant_bounds ctxt t) (x, T)
+  let val xT = singleton (variant_bounds ctxt t) (Name.clean x, T)
   in (mark_bound_abs xT, subst_bound (mark_bound_body xT, t)) end;
 
 fun abs_ast_tr' asts =
@@ -411,16 +412,16 @@ fun impl_ast_tr' asts =
 
 (* dependent / nondependent quantifiers *)
 
-fun print_abs (x, T, b) =
-  let val x' = #1 (Name.variant x (Name.build_context (Term.declare_free_names b)))
+fun print_abs ctxt (x, T, b) =
+  let val x' = #1 (Name.variant (Name.clean x) (Name.build_context (declare_term_names ctxt b)))
   in (x', subst_bound (mark_bound_abs (x', T), b)) end;
 
-fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
+fun dependent_tr' (q, r) ctxt (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
-        let val (x', B') = print_abs (x, dummyT, B);
+        let val (x', B') = print_abs ctxt (x, dummyT, B);
         in Term.list_comb (Syntax.const q $ mark_bound_abs (x', T) $ A $ B', ts) end
       else Term.list_comb (Syntax.const r $ A $ incr_boundvars ~1 B, ts)
-  | dependent_tr' _ _ = raise Match;
+  | dependent_tr' _ _ _ = raise Match;
 
 
 (* quote / antiquote *)

@@ -170,6 +170,10 @@ fun match_instantiate ctxt t thm =
   let val thm' = match_instantiateT ctxt t thm in
     Thm.instantiate (TVars.empty, Vars.make (gen_certify_inst snd (Thm.cterm_of ctxt) ctxt thm' t)) thm'
   end
+  handle Pattern.MATCH =>
+    error (Pretty.string_of (Pretty.big_list "Could not match rule against proposition:"
+      [Pretty.big_list "rule:" [Syntax.pretty_term ctxt (dest_thm thm)],
+       Pretty.big_list "proposition:" [Syntax.pretty_term ctxt (dest_prop t)]]))
 
 fun discharge _ [] thm = thm
   | discharge i (rule :: rules) thm = discharge (i + Thm.nprems_of rule) rules (rule RSN (i, thm))

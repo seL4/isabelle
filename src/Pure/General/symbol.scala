@@ -595,6 +595,9 @@ object Symbol {
   def output(unicode_symbols: Boolean, text: String): String =
     if (unicode_symbols) Symbol.decode(text) else Symbol.encode(text)
 
+  def output_cartouche(unicode_symbols: Boolean, text: String): String =
+    if (unicode_symbols) Symbol.cartouche_decoded(text) else Symbol.cartouche(text)
+
 
   /* classification */
 

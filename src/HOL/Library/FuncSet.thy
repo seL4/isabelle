@@ -755,9 +755,9 @@ proof -
         by auto
       from id have "?f = ?g"
         by auto
-      also have "?f = f" using `f \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5)
+      also have "?f = f" using \<open>f \<in> A \<union> D \<rightarrow>\<^sub>E C\<close> insert(1,2,4,5)
         by (intro ext, auto)
-      also have "?g = g" using `g \<in> A \<union> D \<rightarrow>\<^sub>E C` insert(1,2,4,5)
+      also have "?g = g" using \<open>g \<in> A \<union> D \<rightarrow>\<^sub>E C\<close> insert(1,2,4,5)
         by (intro ext, auto)
       finally show "f = g \<and> c = d"
         using cd by auto

@@ -2298,6 +2298,38 @@ proof (cases "finite S")
   qed simp
 qed simp
 
+text \<open>The triangular double-sum exchange, used for associativity and the key partial-sum estimate.\<close>
+
+lemma sum_triangle_exchange:
+  fixes f :: "nat \<Rightarrow> nat \<Rightarrow> 'c::comm_monoid_add"
+  shows "(\<Sum>d\<le>N. \<Sum>i\<le>d. f i (d - i)) = (\<Sum>i\<le>N. \<Sum>e\<le>N - i. f i e)"
+proof -
+  have L: "(\<Sum>d\<le>N. \<Sum>i\<le>d. f i (d - i)) =
+      (\<Sum>(d, i)\<in>(SIGMA d:{..N}. {..d}). f i (d - i))"
+    by (rule sum.Sigma[OF finite_atMost]) simp
+  also have "\<dots> = (\<Sum>(i, e)\<in>(SIGMA i:{..N}. {..N - i}). f i e)"
+  proof (rule sum.reindex_bij_witness[where i = "\<lambda>(i, e). (i + e, i)" and j = "\<lambda>(d, i). (i, d - i)"])
+    fix a assume a: "a \<in> (SIGMA d:{..N}. {..d})"
+    obtain d i where di: "a = (d, i)" by (cases a)
+    have dN: "d \<le> N" and idd: "i \<le> d" using a di by auto
+    show "(case case a of (d, i) \<Rightarrow> (i, d - i) of (i, e) \<Rightarrow> (i + e, i)) = a"
+      using di idd by simp
+    show "(case a of (d, i) \<Rightarrow> (i, d - i)) \<in> (SIGMA i:{..N}. {..N - i})"
+      using di dN idd by auto
+  next
+    fix b assume b: "b \<in> (SIGMA i:{..N}. {..N - i})"
+    obtain i e where ie: "b = (i, e)" by (cases b)
+    have iN: "i \<le> N" and eN: "e \<le> N - i" using b ie by auto
+    show "(case case b of (i, e) \<Rightarrow> (i + e, i) of (d, i) \<Rightarrow> (i, d - i)) = b"
+      using ie by simp
+    show "(case b of (i, e) \<Rightarrow> (i + e, i)) \<in> (SIGMA d:{..N}. {..d})"
+      using ie iN eN by auto
+  qed auto
+  also have "... = (\<Sum>i\<le>N. \<Sum>e\<le>N - i. f i e)"
+    by (intro sum.Sigma [symmetric]) auto
+  finally show ?thesis .
+qed
+
 lemma sum_natinterval_diff:
   fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
   shows  "sum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =

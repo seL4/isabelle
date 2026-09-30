@@ -224,15 +224,15 @@ fun unify_term net t =
 (*subtraction: collect entries of second net that are NOT present in first net*)
 fun subtract eq net1 net2 =
   let
-    fun subtr (Net _) (Leaf ys) = append ys
-      | subtr (Leaf xs) (Leaf ys) =
-          fold_rev (fn y => if member eq xs y then I else cons y) ys
-      | subtr (Leaf _) (net as Net _) = subtr emptynet net
+    fun subtr (Net _) (Leaf ys) zs = append ys zs
+      | subtr (Leaf xs) (Leaf ys) zs =
+          fold_rev (fn y => if member eq xs y then I else cons y) ys zs
+      | subtr (Leaf _) (net as Net _) zs = subtr emptynet net zs
       | subtr (Net {comb = comb1, var = var1, atoms = atoms1})
-            (Net {comb = comb2, var = var2, atoms = atoms2}) =
-          subtr comb1 comb2
-          #> subtr var1 var2
-          #> Symtab.fold (fn (a, net) =>
+            (Net {comb = comb2, var = var2, atoms = atoms2}) zs =
+          zs |> subtr comb1 comb2
+          |> subtr var1 var2
+          |> Symtab.fold (fn (a, net) =>
             subtr (the_default emptynet (Symtab.lookup atoms1 a)) net) atoms2
   in subtr net1 net2 [] end;
 

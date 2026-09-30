@@ -68,25 +68,29 @@ object Build_Benchmark {
           ML_Heap.restore(heap_db, hierarchy, cache = store.cache.compress)
         }
 
+        val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
+        val session_conditions = deps.eval_conditions(benchmark_session_name)
+        val parent_background = deps.parent_background(benchmark_session_name)
+        val current_background = deps.background(benchmark_session_name)
+
         def get_shasum(name: String): Shasum =
           store.check_output(name,
+            session_conditions.value,
             opened_db = database_server,
             sources_shasum = sessions(name).sources_shasum,
             input_shasum = store.make_shasum(sessions(name).ancestors.map(get_shasum))
           ).output_shasum
 
-        val deps = Sessions.deps(full_sessions.selection(selection)).check_errors
-        val parent_background = deps.parent_background(benchmark_session_name)
-        val current_background = deps.background(benchmark_session_name)
         val input_shasum = get_shasum(benchmark_session_name)
         val node_info = Host.Node_Info(hostname, None, Nil)
 
         val local_build_context = build_context.copy(store = Store(local_options))
 
         val result =
-          Build_Job.start_session(local_build_context, session, progress, Logger.none, server,
-            parent_background = parent_background, current_background = current_background,
-            session.sources_shasum, input_shasum, node_info, false).join
+          Build_Job.start_session(local_build_context, session, session_conditions, progress,
+            Logger.none, server, parent_background = parent_background,
+            current_background = current_background, session.sources_shasum, input_shasum,
+            node_info, false).join
 
         val timing =
           if (result.process_result.ok) result.process_result.timing

@@ -34,7 +34,7 @@ sig
     logic: string -> term list -> smtlib_logic,
     fp_kinds: BNF_Util.fp_kind list,
     serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
-      string }
+      Buffer.T }
   type replay_data = {
     ctxt: Proof.context,
     typs: typ Symtab.table,
@@ -47,7 +47,7 @@ sig
   val add_config: SMT_Util.class * (Proof.context -> config) -> Context.generic -> Context.generic
   val translate: Proof.context -> string -> (string * string) list -> string list ->
     ((int * SMT_Util.role) * thm) list ->
-    string * replay_data
+    Buffer.T * replay_data
 
   val eta_expand: Proof.context -> int Termtab.table -> ('a * term) list -> ('a * term) list
 end;
@@ -157,7 +157,7 @@ type config = {
   logic: string -> term list -> smtlib_logic,
   fp_kinds: BNF_Util.fp_kind list,
   serialize: (string * string) list -> string list -> sign -> (SMT_Util.role * sterm) list ->
-    string }
+    Buffer.T }
 
 type replay_data = {
   ctxt: Proof.context,
@@ -643,7 +643,8 @@ fun translate ctxt prover smt_options comments (ithms : ((int * SMT_Util.role) *
     |-> intermediate (logic prover o map snd) dtyps (builtin SMT_Builtin.dest_builtin) ctxt2
     |>> uncurry (serialize smt_options comments)
 
-    |> (fn x => let val _ = debug_msg ctxt high (fn () => \<^print> ("problem string is:", (fst x))) in x end)
+    |> tap (fn (problem, _) =>
+      debug_msg ctxt high (fn () => \<^print> ("problem string is:", Buffer.content problem)))
     ||> replay_data_of ctxt2 ll_defs rewrite_rules ithms
   end
 

@@ -10,6 +10,8 @@ package isabelle
 import java.io.BufferedWriter
 import java.nio.file.Files
 
+import scala.math.Ordering
+
 
 trait Build_Job {
   def cancel(): Unit = ()
@@ -27,6 +29,7 @@ object Build_Job {
   def start_session(
     build_context: Build.Context,
     session_context: Session_Context,
+    session_conditions: Thy_Conditions.Context,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -37,7 +40,7 @@ object Build_Job {
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, session_context, progress, log, server,
+    new Session_Job(build_context, session_context, session_conditions, progress, log, server,
       parent_background = parent_background, current_background = current_background,
       sources_shasum, input_shasum, node_info, store_heap)
   }
@@ -187,6 +190,7 @@ object Build_Job {
   class Session_Job private[Build_Job](
     build_context: Build.Context,
     session_context: Session_Context,
+    session_conditions: Thy_Conditions.Context,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -254,7 +258,7 @@ object Build_Job {
                   }
             }
 
-          val session_conditions = Thy_Conditions.Context(parent_background, options)
+          session_conditions.make_immutable()
 
           val session_theories =
             current_background.base.used_theories.map(_.eval_conditions(session_conditions))
@@ -588,7 +592,8 @@ object Build_Job {
                 command_timings = true,
                 theory_timings = true,
                 ml_statistics = true,
-                task_statistics = true)
+                task_statistics = true
+              ).sort_theories(session_theories)
 
           // write log file
           if (process_result.ok) {
@@ -603,7 +608,7 @@ object Build_Job {
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
               build =
                 Store.Build_Info(
-                  sources = sources_shasum,
+                  sources_conditions = sources_shasum ::: session.conditions.value.shasum,
                   input_heaps = input_shasum,
                   output_heap = output_shasum,
                   process_result.rc,

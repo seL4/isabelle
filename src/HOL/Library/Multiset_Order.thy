@@ -56,7 +56,7 @@ next
     using \<open>asymp r\<close> by (auto elim: mult1_lessE)
   from \<open>M \<noteq> N\<close> ** *(1,2,3) have "M \<noteq> P"
     using *(4) \<open>asymp r\<close>
-    by (metis asympD add_cancel_right_right add_diff_cancel_left' add_mset_add_single count_inI
+    by (metis asympD add_cancel_right_right add_diff_cancel_left' add_single_right_eq_add_mset[symmetric] count_inI
         count_union diff_diff_add_mset diff_single_trivial in_diff_count multi_member_last)
   moreover
   have count_a: "\<exists>z. r a z \<and> count M z < count P z" if "count P a \<le> count M a"
@@ -67,7 +67,7 @@ next
       by blast
     with * have "count N z \<le> count P z"
       using \<open>asymp r\<close>
-      by (metis add_diff_cancel_left' add_mset_add_single asympD diff_diff_add_mset
+      by (metis add_diff_cancel_left' add_single_right_eq_add_mset[symmetric] asympD diff_diff_add_mset
           diff_single_trivial in_diff_count not_le_imp_less)
     with z show ?thesis by auto
   qed
@@ -237,7 +237,7 @@ proof -
     "R = (\<lambda>x y. x = a \<and> y = c \<or> x = b \<and> y = d \<or> x = c \<and> y = b \<or> x = d \<and> y = a)"
 
   from assms(1) have "{#a, b#} \<noteq> {#c, d#}"
-    by (metis add_mset_add_single distinct.simps(2) list.set(1) list.simps(15) multi_member_this
+    by (metis add_single_right_eq_add_mset[symmetric] distinct.simps(2) list.set(1) list.simps(15) multi_member_this
         set_mset_add_mset_insert set_mset_single)
 
   from assms(1) have "asymp R"

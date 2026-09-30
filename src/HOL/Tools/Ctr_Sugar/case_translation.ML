@@ -161,7 +161,9 @@ fun case_tr err ctxt [t, u] =
           | replace_dummies t used = (t, used);
 
         fun dest_case1 (t as Const (\<^syntax_const>\<open>_case1\<close>, _) $ l $ r) =
-              let val (l', _) = replace_dummies l (Name.build_context (Term.declare_free_names t)) in
+              let val (l', _) =
+                replace_dummies l (Name.build_context (Syntax_Trans.declare_term_names ctxt t))
+              in
                 abs_pat l' []
                   (Syntax.const \<^const_syntax>\<open>case_elem\<close> $ Term_Position.strip_positions l' $ r)
               end
@@ -185,7 +187,7 @@ val _ = Theory.setup (Sign.parse_translation [(\<^syntax_const>\<open>_case_synt
 
 (* print translation *)
 
-fun case_tr' (_ :: x :: t :: ts) =
+fun case_tr' ctxt (_ :: x :: t :: ts) =
       let
         fun mk_clause (Const (\<^const_syntax>\<open>case_abs\<close>, _) $ Abs (s, T, t)) xs used =
               let val (s', used') = Name.variant s used
@@ -198,16 +200,16 @@ fun case_tr' (_ :: x :: t :: ts) =
 
         fun mk_clauses (Const (\<^const_syntax>\<open>case_nil\<close>, _)) = []
           | mk_clauses (Const (\<^const_syntax>\<open>case_cons\<close>, _) $ t $ u) =
-              mk_clause t [] (Name.build_context (Term.declare_free_names t)) :: mk_clauses u
+              mk_clause t [] (Name.build_context (Syntax_Trans.declare_term_names ctxt t)) :: mk_clauses u
           | mk_clauses _ = raise Match;
       in
         list_comb (Syntax.const \<^syntax_const>\<open>_case_syntax\<close> $ x $
           foldr1 (fn (t, u) => Syntax.const \<^syntax_const>\<open>_case2\<close> $ t $ u)
             (mk_clauses t), ts)
       end
-  | case_tr' _ = raise Match;
+  | case_tr' _ _ = raise Match;
 
-val _ = Theory.setup (Sign.print_translation [(\<^const_syntax>\<open>case_guard\<close>, K case_tr')]);
+val _ = Theory.setup (Sign.print_translation [(\<^const_syntax>\<open>case_guard\<close>, case_tr')]);
 
 
 (* declarations *)

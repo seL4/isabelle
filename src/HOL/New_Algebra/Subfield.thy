@@ -59,6 +59,13 @@ lemma sum_closed [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> K) \<
 lemma prod_closed [intro]: "(\<And>x. x \<in> A \<Longrightarrow> f x \<in> K) \<Longrightarrow> (\<Prod>x\<in>A. f x) \<in> K"
   by (induction A rule: infinite_finite_induct) auto
 
+lemma cardK_gt1: 
+  assumes "finite K" shows "card K > 1"
+proof -
+  have pair: "{0, 1} \<subseteq> K" by auto
+  with card_mono[OF assms pair] show ?thesis by simp
+qed
+
 end
 
 lemma subfield_generate_field [intro]:

@@ -129,6 +129,11 @@ lemma sum_clauses:
 lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z" and vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
   by (metis inner_commute vector_eq)+
 
+lemma gradient_unique:
+  "GDERIV f x :> g \<Longrightarrow> GDERIV f x :> g' \<Longrightarrow> g = g'"
+  unfolding gderiv_def
+  by (metis has_derivative_unique vector_eq_ldot)
+
 subsection \<open>Substandard Basis\<close>
 
 lemma ex_card:

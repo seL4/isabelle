@@ -139,14 +139,14 @@ fun make_elem name atts =
 
 fun content_depth depth =
   let
-    fun traverse d (Elem (("", _), ts)) = traverse_body d ts
-      | traverse _ (Elem ((name, atts), [])) =
-          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add "/>"
-      | traverse d (Elem ((name, atts), ts)) =
-          Buffer.add "<" #> Buffer.add (make_elem name atts) #> Buffer.add ">" #>
-          traverse_body d ts #>
-          Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
-      | traverse _ (Text s) = Buffer.add (text s)
+    fun traverse d (Elem (("", _), ts)) buf = traverse_body d ts buf
+      | traverse _ (Elem ((name, atts), [])) buf =
+          buf |> Buffer.add "<" |> Buffer.add (make_elem name atts) |> Buffer.add "/>"
+      | traverse d (Elem ((name, atts), ts)) buf =
+          buf |> Buffer.add "<" |> Buffer.add (make_elem name atts) |> Buffer.add ">" |>
+          traverse_body d ts |>
+          Buffer.add "</" |> Buffer.add name |> Buffer.add ">"
+      | traverse _ (Text s) buf = buf |> Buffer.add (text s)
     and traverse_body 0 _ = Buffer.add "..."
       | traverse_body d ts = fold (traverse (d - 1)) ts;
   in Buffer.build_content o traverse depth end;

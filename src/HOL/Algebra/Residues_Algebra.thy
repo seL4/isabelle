@@ -72,10 +72,7 @@ proof (cases "card (UNIV :: 'a set) = 0")
   have "card H dvd card (rcosets\<^bsub>G\<^esub> H) * card H"
     by simp
   also have "card (rcosets\<^bsub>G\<^esub> H) * card H = Coset.order G"
-  proof (rule lagrange_finite)
-    show "finite (carrier G)"
-      using False card_ge_0_finite by (auto simp: G_def)
-  qed (fact is_subgroup)
+    by (simp add: lagrange subgroup_axioms)
   finally have "card H dvd card (UNIV :: 'a set)"
     by (simp add: Coset.order_def G_def)
   also have "card H = card {..<CHAR('a)}"
@@ -111,32 +108,27 @@ proof -
     case False
     then have "(x + (m - x)) mod m = 0"
       by simp
-    with m_gt_one that show ?thesis
-      by (metis False atLeastAtMost_iff diff_ge_0_iff_ge diff_left_mono int_one_le_iff_zero_less less_le)
+    with m_gt_one False that show ?thesis
+      by (intro bexI[where x="m-x"]) auto
   qed
   with m_gt_one show ?thesis
     by (fastforce simp add: R_m_def residue_ring_def mod_add_right_eq ac_simps  intro!: abelian_groupI)
 qed
 
 lemma comm_monoid: "comm_monoid R"
-proof -
-  have "\<And>x y z. \<lbrakk>x \<in> carrier R; y \<in> carrier R; z \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
+proof 
+  show "\<And>x y z. \<lbrakk>x \<in> carrier R; y \<in> carrier R; z \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> y \<otimes> z = x \<otimes> (y \<otimes> z)"
     "\<And>x y. \<lbrakk>x \<in> carrier R; y \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> y = y \<otimes> x"
     unfolding R_m_def residue_ring_def
     by (simp_all add: algebra_simps mod_mult_right_eq)
-  then show ?thesis
-    unfolding R_m_def residue_ring_def
-    by unfold_locales (use m_gt_one in simp_all)
-qed
+qed (auto simp: m_gt_one R_m_def residue_ring_def)
 
 interpretation comm_monoid R
   using comm_monoid by blast
 
 lemma cring: "cring R"
-  apply (intro cringI abelian_group comm_monoid)
-  unfolding R_m_def residue_ring_def
-  apply (auto simp add: comm_semiring_class.distrib mod_add_eq mod_mult_left_eq)
-  done
+proof (intro cringI abelian_group comm_monoid)
+qed (auto simp add: R_m_def residue_ring_def comm_semiring_class.distrib mod_add_eq mod_mult_left_eq)
 
 end
 
@@ -221,7 +213,6 @@ lemma zero_cong: "\<zero> = 0"
 lemma one_cong: "\<one> = 1 mod m"
   using m_gt_one by (auto simp: R_m_def residue_ring_def)
 
-(* FIXME revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) [^] n = x^n mod m"
   using m_gt_one
 proof (induct n)
@@ -246,18 +237,7 @@ lemma (in residues) sum_cong: "finite A \<Longrightarrow> (\<Oplus>i\<in>A. (f i
 lemma mod_in_res_units [simp]:
   assumes "1 < m" and "coprime a m"
   shows "a mod m \<in> Units R"
-proof (cases "a mod m = 0")
-  case True
-  with assms show ?thesis
-    by (auto simp add: res_units_eq gcd_red_int [symmetric])
-next
-  case False
-  from assms have "0 < m" by simp
-  then have "0 \<le> a mod m" by (rule pos_mod_sign [of m a])
-  with False have "0 < a mod m" by simp
-  with assms show ?thesis
-    by (auto simp add: res_units_eq gcd_red_int [symmetric] ac_simps)
-qed
+    using assms order_less_le res_units_eq by fastforce
 
 lemma res_eq_to_cong: "(a mod m) = (b mod m) \<longleftrightarrow> [a = b] (mod m)"
   by (auto simp: cong_def)
@@ -332,7 +312,8 @@ proof -
   from m_gt_one have "\<bar>m\<bar> > 1"
     by simp
   then have "totatives (nat \<bar>m\<bar>) = nat ` abs ` Units R"
-    by (auto simp add: totatives_def res_units_eq image_iff le_less)
+    unfolding totatives_def res_units_eq
+    by (auto simp add: le_less)
       (use m_gt_one zless_nat_eq_int_zless in force)
   moreover have "\<bar>m\<bar> = m" "abs ` Units R = Units R"
     using m_gt_one by (auto simp add: res_units_eq image_iff)

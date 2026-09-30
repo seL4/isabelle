@@ -185,7 +185,7 @@ in
         String.implode s
       end;
 
-  val isTptpConstName = isTptpName [isRegular,isNumber,isDefined,isSystem]
+  val isTptpConstName = isTptpName [isRegular,isDefined,isSystem]
   and isTptpFnName = isTptpName [isRegular,isDefined,isSystem]
   and isTptpPropName = isTptpName [isRegular,isDefined,isSystem]
   and isTptpRelName = isTptpName [isRegular,isDefined,isSystem];

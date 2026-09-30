@@ -60,7 +60,11 @@ text \<open>
   \<^rail>\<open>
     @@{command theory} @{syntax system_name}
       @'imports' (@{syntax system_name} +) \<newline>
-      keywords? abbrevs? @'begin'
+      options? keywords? abbrevs? @'begin'
+    ;
+    options: @'options' opts
+    ;
+    opts: '[' ( (@{syntax name} '=' value | @{syntax name}) + ',' ) ']'
     ;
     keywords: @'keywords' (keyword_decls + @'and')
     ;
@@ -85,6 +89,13 @@ text \<open>
   theory \<^theory>\<open>Pure\<close>, which is the start of any other formal development
   based on Isabelle. Regular user theories usually refer to some more complex
   entry point, such as theory \<^theory>\<open>Main\<close> in Isabelle/HOL.
+
+  The @{keyword_def "options"} specification declares options that are only
+  used for the subsequent theory body --- neither for the theory imports nor
+  for other theories importing the current theory. This is analogous to
+  session options within a \<^verbatim>\<open>ROOT\<close> file \<^cite>\<open>"isabelle-system"\<close>, but the
+  scope of options is different, and inlined theory options may be edited
+  within a running PIDE session.
 
   The @{keyword_def "keywords"} specification declares outer syntax
   (\chref{ch:outer-syntax}) that is introduced in this theory later on (rare

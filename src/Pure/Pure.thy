@@ -5,6 +5,7 @@ The Pure theory, with definitions of Isar commands and some lemmas.
 *)
 
 theory Pure
+options [condition = true]
 keywords
     "!!" "!" "+" ":" ";" "<" "<=" "==" "=>" "?" "[" "\<comment>" "\<equiv>" "\<leftharpoondown>" "\<rightharpoonup>" "\<rightleftharpoons>"
     "\<subseteq>" "]" "binder" "by" "congproc" "identifier" "in" "infix" "infixl" "infixr" "is" "open"
@@ -818,8 +819,8 @@ ML \<open>
 local
 
 val _ =
-  Outer_Syntax.local_theory_to_proof \<^command_keyword>\<open>notepad\<close> "begin proof context"
-    (Parse.begin >> K Proof.begin_notepad);
+  Outer_Syntax.begin_notepad \<^command_keyword>\<open>notepad\<close> "begin proof context"
+    (Parse.begin >> K ());
 
 in end\<close>
 

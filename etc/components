@@ -12,3 +12,4 @@ src/HOL/Library/Sum_of_Squares
 src/HOL/SPARK
 src/HOL/Tools
 src/HOL/TPTP
+src/Benchmarks

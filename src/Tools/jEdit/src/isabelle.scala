@@ -534,6 +534,46 @@ object Isabelle {
     }
   }
 
+  def show_line_status(text_area: JEditTextArea): Unit = {
+    GUI_Thread.require {}
+
+    val editor_context = JEdit_Editor.Context(text_area)
+    val caret = editor_context.caret_offset
+    val line = text_area.getCaretLine
+    val line_range = JEdit_Lib.line_range(text_area.getBuffer, line)
+
+    for {
+      rendering <- Document_View.get_rendering(text_area)
+      loc0 <- proper_value(text_area.offsetToXY(caret))
+    } {
+      val painter = editor_context.text_area_painter
+      val loc = new Point(loc0.x, loc0.y + painter.getLineHeight * 3 / 4)
+
+      val msgs = rendering.main_messages(line_range).map(_.info)
+
+      val title = {
+        val m = msgs.count(Protocol.is_error)
+        val n = msgs.count(Protocol.is_warning_or_legacy)
+        val a = if (m == 0) "" else if (m == 1) "1 error" else m.toString + " errors"
+        val b = if (n == 0) "" else if (n == 1) "1 warning" else n.toString + " warnings"
+        "Line " + (line + 1) + if_proper(a.nonEmpty || b.nonEmpty, ": ") +
+          List(a, b).filter(_.nonEmpty).mkString(", ")
+      }
+
+      val output =
+        XML.Elem(Markup.Empty, XML.string(title)) ::
+        msgs.map({
+          case elem@XML.Elem(markup, body) =>
+            XML.Elem(markup, XML.string(Protocol.message_heading(elem) + ":\n") ::: body)
+        })
+
+      val results = rendering.snapshot.command_results(line_range)
+      val unicode_symbols = Isabelle_Encoding.is_active(buffer = text_area.getBuffer)
+      Pretty_Tooltip(editor_context.view, painter, loc, rendering, results, output,
+        focus = true, caret_visible = true, unicode_symbols = unicode_symbols)
+    }
+  }
+
   def show_tooltip(text_area: JEditTextArea, control: Boolean): Unit = {
     GUI_Thread.require {}
 

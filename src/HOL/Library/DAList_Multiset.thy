@@ -197,7 +197,7 @@ lemma union_Bag [code]: "Bag xs + Bag ys = Bag (join (\<lambda>x (n1, n2). n1 + 
 
 lemma add_mset_Bag [code]: "add_mset x (Bag xs) =
     Bag (join (\<lambda>x (n1, n2). n1 + n2) (DAList.update x 1 DAList.empty) xs)"
-  unfolding add_mset_add_single[of x "Bag xs"] union_Bag[symmetric]
+  unfolding add_single_right_eq_add_mset[symmetric, of x "Bag xs"] union_Bag[symmetric]
   by (simp add: multiset_eq_iff update.rep_eq empty.rep_eq)
 
 lemma minus_Bag [code]: "Bag xs - Bag ys = Bag (subtract_entries xs ys)"

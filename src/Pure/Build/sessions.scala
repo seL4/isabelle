@@ -484,15 +484,23 @@ object Sessions {
     val sessions_structure: Structure,
     val session_bases: Map[String, Base]
   ) {
+    def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
+    def apply(name: String): Base = session_bases(name)
+    def get(name: String): Option[Base] = session_bases.get(name)
+
     def background(session: String): Background =
       Background(base = apply(session), sessions_structure = sessions_structure, errors = errors)
 
     def parent_background(session: String): Background =
       background(sessions_structure(session).parent getOrElse "")
 
-    def is_empty: Boolean = session_bases.keysIterator.forall(_.isEmpty)
-    def apply(name: String): Base = session_bases(name)
-    def get(name: String): Option[Base] = session_bases.get(name)
+    def eval_conditions(name: String): Thy_Conditions.Context = {
+      val session_info = sessions_structure(name)
+      val session_base = apply(name)
+      val session_conditions = Thy_Conditions.Context(parent_background(name), session_info.options)
+      for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
+      session_conditions
+    }
 
     def sources_shasum(name: String): Shasum = {
       val session_info = sessions_structure(name)
@@ -504,16 +512,12 @@ object Sessions {
         Shasum.make_sorted(session_info.options.changed(filter = _.session_content)
           .map(ch => SHA1.digest(ch.print_prefs) -> Build_Prefs.make(ch.name)))
 
-      val session_conditions = Thy_Conditions.Context(parent_background(name), session_info.options)
-      for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
-      val conditions = session_conditions.shasum
-
       val sources =
         Shasum.make_sorted(
           for ((path, digest) <- session_base.all_sources)
             yield digest -> File.symbolic_path(path))
 
-      meta_info ::: build_prefs ::: conditions ::: sources
+      meta_info ::: build_prefs ::: sources
     }
 
     def errors: List[String] =

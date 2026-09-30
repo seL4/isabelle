@@ -162,7 +162,7 @@ object Protocol {
   def is_exported(msg: XML.Tree): Boolean =
     is_writeln(msg) || is_warning(msg) || is_legacy(msg) || is_error(msg)
 
-  def message_heading(elem: XML.Elem, pos: Position.T): String = {
+  def message_heading(elem: XML.Elem, pos: Position.T = Position.none): String = {
     val h =
       if (is_warning_or_legacy(elem)) "Warning"
       else if (is_error(elem)) "Error"
@@ -181,7 +181,7 @@ object Protocol {
     breakgain: Double = Pretty.default_breakgain,
     metric: Pretty.Metric = Codepoint.Metric
   ): String = {
-    val text1 = if (heading) "\n" + recode(message_heading(elem, pos)) + ":\n" else ""
+    val text1 = if (heading) "\n" + recode(message_heading(elem, pos = pos)) + ":\n" else ""
 
     val body =
       Pretty.string_of(List(elem), recode = recode, margin = margin, breakgain = breakgain,

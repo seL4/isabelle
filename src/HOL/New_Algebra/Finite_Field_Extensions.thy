@@ -13,7 +13,7 @@ text \<open>
 \<close>
 
 definition finite_field_vanishing_poly :: "'a :: field set \<Rightarrow> 'a poly"
-  where "finite_field_vanishing_poly K = monom 1 (card K) - monom 1 1"
+  where "finite_field_vanishing_poly K \<equiv> monom 1 (card K) - monom 1 1"
 
 lemma poly_finite_field_vanishing_poly [simp]:
   "poly (finite_field_vanishing_poly K) x = x ^ card K - x"
@@ -24,11 +24,9 @@ lemma finite_field_vanishing_poly_nonzero:
   shows "finite_field_vanishing_poly K \<noteq> (0 :: 'a :: field poly)"
 proof
   assume zero: "finite_field_vanishing_poly K = (0 :: 'a poly)"
-  have zero_coeff: "coeff (finite_field_vanishing_poly K) (card K) = 0"
-    using zero by simp
   have one_coeff: "coeff (finite_field_vanishing_poly K) (card K) = 1"
     using assms by (simp add: finite_field_vanishing_poly_def coeff_monom)
-  show False using zero_coeff one_coeff by simp
+  with zero show False by auto
 qed
 
 lemma degree_finite_field_vanishing_poly:
@@ -40,15 +38,13 @@ proof -
   proof (rule degree_diff_le)
     show "degree (monom (1 :: 'a) (card K)) \<le> card K"
       by (rule degree_monom_le)
-    have "degree (monom (1 :: 'a) 1) \<le> 1"
-      by (rule degree_monom_le)
-    with assms show "degree (monom (1 :: 'a) 1) \<le> card K" by simp
+    with assms show "degree (monom (1 :: 'a) 1) \<le> card K"
+      using degree_monom_le dual_order.strict_trans2 less_or_eq_imp_le by blast
   qed
-  have leading:
-      "coeff (finite_field_vanishing_poly K :: 'a poly) (card K) = 1"
+  have leading: "coeff (finite_field_vanishing_poly K :: 'a poly) (card K) = 1"
     using assms by (simp add: finite_field_vanishing_poly_def coeff_monom)
   have lower: "card K \<le> degree (finite_field_vanishing_poly K :: 'a poly)"
-    by (rule le_degree) (simp add: leading)
+    by (simp add: le_degree leading)
   show ?thesis by (rule antisym[OF upper lower])
 qed
 
@@ -57,8 +53,7 @@ text \<open>Over any field, at most \<open>m\<close> elements are fixed by the \
 lemma card_power_fixed_points_le:
   fixes m :: nat
   assumes m: "m > 1"
-  shows "finite {x :: 'a :: field. x ^ m = x} \<and>
-    card {x :: 'a. x ^ m = x} \<le> m"
+  shows "finite {x :: 'a :: field. x ^ m = x} \<and> card {x :: 'a. x ^ m = x} \<le> m"
 proof -
   define p where "p = (monom 1 m - monom 1 1 :: 'a poly)"
   have p0: "p \<noteq> 0"
@@ -71,15 +66,9 @@ proof -
   qed
   have upper: "degree p \<le> m"
     unfolding p_def
-  proof (rule degree_diff_le)
-    show "degree (monom (1 :: 'a) m) \<le> m" by (rule degree_monom_le)
-    have "degree (monom (1 :: 'a) 1) \<le> 1" by (rule degree_monom_le)
-    with m show "degree (monom (1 :: 'a) 1) \<le> m" by simp
-  qed
-  have leading: "coeff p m = 1"
-    using m by (simp add: p_def coeff_monom)
+    by (metis m degree_diff_le degree_monom_eq degree_monom_le monom_eq_0_iff order_less_imp_le)
   have lower: "m \<le> degree p"
-    by (rule le_degree) (simp add: leading)
+    using m by (simp add: le_degree p_def coeff_monom)
   have degree: "degree p = m" by (rule antisym[OF upper lower])
   have roots: "{x. poly p x = 0} = {x. x ^ m = x}"
     by (auto simp: p_def poly_monom)
@@ -97,29 +86,14 @@ lemma order_ge_two_imp_pderiv_root:
   assumes p0: "p \<noteq> 0" and two: "2 \<le> order a p"
   shows "poly (pderiv p) a = 0"
 proof -
-  have two': "Suc (Suc 0) \<le> order a p" using two by simp
-  have dvd: "[:-a, 1:] ^ Suc (Suc 0) dvd p"
-    by (rule order_divides[THEN iffD2], rule disjI2, rule two')
+  have "Suc (Suc 0) \<le> order a p" using two by simp
   then obtain r where p: "p = [:-a, 1:] ^ Suc (Suc 0) * r"
-    by (auto simp: dvd_def)
-  have linear_root: "poly [:-a, 1:] a = 0" by simp
-  have deriv_square_root: "poly (pderiv ([:-a, 1:] ^ Suc (Suc 0))) a = 0"
-    by (subst pderiv_power_Suc) (simp add: poly_mult linear_root)
-  have deriv_p:
-      "pderiv p = [:-a, 1:] ^ Suc (Suc 0) * pderiv r +
-        r * pderiv ([:-a, 1:] ^ Suc (Suc 0))"
-    using p by (subst p) (rule pderiv_mult)
-  have square_root: "poly ([:-a, 1:] ^ Suc (Suc 0)) a = 0"
-    by (simp only: poly_power linear_root zero_power)
-  have "poly (pderiv p) a =
-      poly ([:-a, 1:] ^ Suc (Suc 0) * pderiv r +
-        r * pderiv ([:-a, 1:] ^ Suc (Suc 0))) a"
-    by (simp only: deriv_p)
-  also have "... = poly ([:-a, 1:] ^ Suc (Suc 0)) a * poly (pderiv r) a +
+    using order_divides by blast
+  have "poly (pderiv p) a = poly ([:-a, 1:] ^ Suc (Suc 0)) a * poly (pderiv r) a +
       poly r a * poly (pderiv ([:-a, 1:] ^ Suc (Suc 0))) a"
-    by (simp only: poly_add poly_mult)
+    by (metis (no_types) p pderiv_mult poly_add poly_mult)
   also have "... = 0"
-    by (subst square_root, subst deriv_square_root) simp
+    by (force simp: pderiv_pCons)
   finally show ?thesis .
 qed
 
@@ -135,32 +109,21 @@ lemma finite_field_vanishing_poly_roots:
   assumes fin: "finite K"
   shows "{x. poly (finite_field_vanishing_poly K) x = 0} = K"
 proof -
-  have cardK_gt1: "card K > 1"
-  proof -
-    have pair: "{0, 1} \<subseteq> K" by auto
-    have "card {0, 1 :: 'a} \<le> card K"
-      by (rule card_mono[OF fin pair])
-    then show ?thesis by simp
-  qed
   have K_roots: "K \<subseteq> {x. poly (finite_field_vanishing_poly K) x = 0}"
     using finite_field_frobenius_identity[OF fin]
     by (auto simp: frobenius_power_def)
   have p0: "finite_field_vanishing_poly K \<noteq> 0"
-    by (rule finite_field_vanishing_poly_nonzero[OF cardK_gt1])
+    using cardK_gt1 fin finite_field_vanishing_poly_nonzero by blast
   have fin_roots: "finite {x. poly (finite_field_vanishing_poly K) x = 0}"
     by (rule poly_roots_finite[OF p0])
-  have card_roots_le:
-      "card {x. poly (finite_field_vanishing_poly K) x = 0} \<le> card K"
-    using poly_roots_degree[OF p0]
-    by (simp add: degree_finite_field_vanishing_poly[OF cardK_gt1])
+  have card_roots_le: "card {x. poly (finite_field_vanishing_poly K) x = 0} \<le> card K"
+    using poly_roots_degree[OF p0] cardK_gt1 assms
+    by (simp add: degree_finite_field_vanishing_poly)
   have cardK_le:
       "card K \<le> card {x. poly (finite_field_vanishing_poly K) x = 0}"
     by (rule card_mono[OF fin_roots K_roots])
-  have card_eq:
-      "card K = card {x. poly (finite_field_vanishing_poly K) x = 0}"
-    using cardK_le card_roots_le by simp
-  show ?thesis
-    by (rule sym, rule card_subset_eq[OF fin_roots K_roots card_eq])
+  then show ?thesis
+    using K_roots card_roots_le fin_roots by (metis card_seteq)
 qed
 
 lemma finite_field_vanishing_poly_rsquarefree:
@@ -172,38 +135,24 @@ proof -
   have deriv: "pderiv (finite_field_vanishing_poly K) = -1"
     unfolding finite_field_vanishing_poly_def
     by (simp add: pderiv_diff pderiv_monom n)
-  have cardK_gt1: "card K > 1"
-  proof -
-    have pair: "{0, 1} \<subseteq> K" by auto
-    have "card {0, 1 :: 'a} \<le> card K"
-      by (rule card_mono[OF fin pair])
-    then show ?thesis by simp
-  qed
+  have pair: "{0, 1} \<subseteq> K" by auto
   have p0: "finite_field_vanishing_poly K \<noteq> 0"
-    by (rule finite_field_vanishing_poly_nonzero[OF cardK_gt1])
+    using deriv by force
   show ?thesis
     unfolding rsquarefree_def
-  proof (intro conjI allI)
-    show "finite_field_vanishing_poly K \<noteq> 0" by (rule p0)
+  proof (intro conjI allI p0)
     fix x
-    show "order x (finite_field_vanishing_poly K) = 0 \<or>
-        order x (finite_field_vanishing_poly K) = 1"
+    show "order x (finite_field_vanishing_poly K) = 0 \<or> order x (finite_field_vanishing_poly K) = 1"
     proof (cases "poly (finite_field_vanishing_poly K) x = 0")
       case False
-      have "order x (finite_field_vanishing_poly K) = 0"
+      then show ?thesis
         using False by (simp add: order_eq_0_iff[OF p0])
-      then show ?thesis by blast
     next
       case True
       have opos: "order x (finite_field_vanishing_poly K) > 0"
         using True by (simp add: order_gt_0_iff[OF p0])
       have not_two: "\<not> 2 \<le> order x (finite_field_vanishing_poly K)"
-      proof
-        assume two: "2 \<le> order x (finite_field_vanishing_poly K)"
-        have "poly (pderiv (finite_field_vanishing_poly K)) x = 0"
-          by (rule order_ge_two_imp_pderiv_root[OF p0 two])
-        with deriv show False by simp
-      qed
+        using deriv order_1_eq_0 order_ge_two_imp_pderiv_root p0 by fastforce
       with opos show ?thesis by auto
     qed
   qed
@@ -215,12 +164,8 @@ lemma finite_field_vanishing_poly_over_subfield:
   fixes F K :: "'a :: field set"
   assumes sfF: "Subfield F"
   shows "finite_field_vanishing_poly K \<in> poly_over F"
-proof -
-  interpret F: Subfield F by (rule sfF)
-  show ?thesis
-    unfolding finite_field_vanishing_poly_def
-    by (intro F.poly_over_diff F.poly_over_monom F.one_closed)
-qed
+  by (simp add: Subfield.one_closed Subfield.poly_over_diff Subfield.poly_over_monom
+      finite_field_vanishing_poly_def sfF)
 
 text \<open>Every finite carrier extension is separable over each of its subfields.  The
   minimal polynomial of an element of the top field divides the top field's vanishing
@@ -237,19 +182,15 @@ proof (rule separable_extensionI)
   interpret K: Subfield K by (rule sfK)
   fix a
   assume aK: "a \<in> K" and alg: "algebraic_over F a"
-  have min: "is_minpoly F a (minpoly F a)"
-    by (rule Subfield.is_minpoly_minpoly[OF sfF alg])
   have qF: "finite_field_vanishing_poly K \<in> poly_over F"
     by (rule finite_field_vanishing_poly_over_subfield[OF sfF])
   have qa: "poly (finite_field_vanishing_poly K) a = 0"
     using Subfield.finite_field_frobenius_identity[OF sfK finK aK]
     by (simp add: frobenius_power_def)
-  have dvd: "minpoly F a dvd finite_field_vanishing_poly K"
-    by (rule Subfield.minpoly_dvd[OF sfF min qF qa])
-  have squarefree: "rsquarefree (finite_field_vanishing_poly K)"
-    by (rule Subfield.finite_field_vanishing_poly_rsquarefree[OF sfK finK])
-  show "rsquarefree (minpoly F a)"
-    by (rule rsquarefree_dvd[OF dvd squarefree])
+  have "minpoly F a dvd finite_field_vanishing_poly K"
+    using T.base.is_minpoly_minpoly T.base.minpoly_dvd alg qF qa by blast
+  then show "rsquarefree (minpoly F a)"
+    using T.ext.finite_field_vanishing_poly_rsquarefree finK rsquarefree_dvd by blast
 qed
 
 text \<open>Likewise every finite carrier extension is normal over each of its subfields.
@@ -271,43 +212,25 @@ proof (rule normal_extensionI)
     and aK: "a \<in> K" and pa: "poly p a = 0"
   have p0: "p \<noteq> 0"
     using irr by (auto simp: irreducible_over_def)
-  have alg: "algebraic_over F a"
-    unfolding algebraic_over_def using pF p0 pa by blast
   have min: "is_minpoly F a (minpoly F a)"
-    by (rule Subfield.is_minpoly_minpoly[OF sfF alg])
+    using T.base.is_minpoly_minpoly algebraic_over_def p0 pF pa by auto
   have qF: "finite_field_vanishing_poly K \<in> poly_over F"
     by (rule finite_field_vanishing_poly_over_subfield[OF sfF])
   have qa: "poly (finite_field_vanishing_poly K) a = 0"
     using Subfield.finite_field_frobenius_identity[OF sfK finK aK]
     by (simp add: frobenius_power_def)
-  have dvd: "minpoly F a dvd finite_field_vanishing_poly K"
-    by (rule Subfield.minpoly_dvd[OF sfF min qF qa])
-  obtain c where qeq:
-      "finite_field_vanishing_poly K = minpoly F a * c"
-    using dvd by (auto simp: dvd_def)
+  obtain c where qeq: "finite_field_vanishing_poly K = minpoly F a * c"
+    using Subfield.minpoly_dvd[OF sfF min qF qa] by (auto simp: dvd_def)
   show "poly_root_set p \<subseteq> K"
   proof
     fix b assume bp: "b \<in> poly_root_set p"
-    have pb: "poly p b = 0" using bp by simp
-    have minb: "poly (minpoly F a) b = 0"
-      by (rule Subfield.irreducible_over_root_is_minpoly_root[OF sfF irr pF min pa pb])
-    have qb: "poly (finite_field_vanishing_poly K) b = 0"
-      using minb by (simp add: qeq poly_mult)
+    then have minb: "poly (minpoly F a) b = 0"
+      using T.base.irreducible_over_root_is_minpoly_root irr min pF pa poly_root_set_iff by blast
     have roots: "{x. poly (finite_field_vanishing_poly K) x = 0} = K"
       by (rule Subfield.finite_field_vanishing_poly_roots[OF sfK finK])
-    show "b \<in> K" using qb roots by blast
+    show "b \<in> K" 
+      using minb qeq roots by auto
   qed
-qed
-
-text \<open>The standard finite-field formulation now follows without a separate top-carrier
-  hypothesis: finite-dimensionality over a finite base makes the extension carrier finite.\<close>
-theorem finite_field_extension_carrier_finite:
-  fixes F K :: "'a :: field set"
-  assumes T: "finite_subfield_tower F K" and finF: "finite F"
-  shows "finite K"
-proof -
-  interpret T: finite_subfield_tower F K by (rule T)
-  show ?thesis by (rule T.finite_carrier_of_finite_base[OF finF])
 qed
 
 theorem finite_field_extension_cardinality:
@@ -328,8 +251,8 @@ proof -
   interpret T: finite_subfield_tower F K by (rule T)
   have finK: "finite K" by (rule T.finite_carrier_of_finite_base[OF finF])
   show ?thesis
-    by (rule finite_subfield_extension_separable[OF T.base.Subfield_axioms
-          T.ext.Subfield_axioms T.base_subset finK])
+    by (simp add: T.base.Subfield_axioms T.base_subset T.ext.Subfield_axioms finK
+        finite_subfield_extension_separable)
 qed
 
 theorem finite_field_extension_normal:
@@ -339,9 +262,9 @@ theorem finite_field_extension_normal:
 proof -
   interpret T: finite_subfield_tower F K by (rule T)
   have finK: "finite K" by (rule T.finite_carrier_of_finite_base[OF finF])
-  show ?thesis
-    by (rule finite_subfield_extension_normal[OF T.base.Subfield_axioms
-          T.ext.Subfield_axioms T.base_subset finK])
+  then show ?thesis
+    by (simp add: T.base.Subfield_axioms T.base_subset T.ext.Subfield_axioms
+        finite_subfield_extension_normal)
 qed
 
 

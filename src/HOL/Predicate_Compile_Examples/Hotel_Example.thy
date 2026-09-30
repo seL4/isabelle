@@ -71,7 +71,7 @@ where
   Enter g r (k,k') \<Rightarrow> (k,k') \<in> cards s g \<and> (roomk s r \<in> {k, k'}) |
   Exit g r \<Rightarrow> g \<in> isin s r))"
 
-definition no_Check_in :: "event list \<Rightarrow> room \<Rightarrow> bool" where(*>*)
+definition no_Check_in :: "event list \<Rightarrow> room \<Rightarrow> bool" where
 [code drop]: "no_Check_in s r \<equiv> \<not>(\<exists>g c. Check_in g r c \<in> set s)"
 
 definition feels_safe :: "event list \<Rightarrow> room \<Rightarrow> bool"

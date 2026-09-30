@@ -532,7 +532,9 @@ parse_translation \<open>
   let
     fun fun_tr ctxt [cs] =
       let
-        val x = Syntax.free (#1 (Name.variant "x" (Name.build_context (Term.declare_free_names cs))));
+        val x =
+          Syntax.free (#1 (Name.variant "x"
+            (Name.build_context (Syntax_Trans.declare_term_names ctxt cs))));
         val ft = Case_Translation.case_tr true ctxt [x, cs];
       in lambda x ft end
   in [(\<^syntax_const>\<open>_lam_pats_syntax\<close>, fun_tr)] end

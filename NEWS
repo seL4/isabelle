@@ -24,13 +24,13 @@ and ignores everything until the final 'end'. Thus theory imports work
 uniformly, but the respective contents may be empty depending on
 conditions. This allows to construct variants of specifications,
 depending on parameters that are changed by external means (e.g.
-environment variables): with suitable naming conventions and proof tool
-setup, later theories may work again uniformly on either variant.
+Isabelle system options): with suitable naming conventions and proof
+tool setup, later theories may work uniformly on either variant.
 
 * The syntax of system option "condition" has been extended as follows:
+  - "true" and "false" refer to literal Boolean values.
   - "$NAME" refers to a process environment variable. INCOMPATIBILITY,
     was plain NAME before.
-  - "true" and "false" refer to literal Boolean values.
   - "name" refers to a system option; to be enabled, the value needs to
     be true (bool), non-empty (string), or > 0 (int, real).
   - "name()" refers to a predicate defined in Isabelle/Scala (via
@@ -41,9 +41,7 @@ setup, later theories may work again uniformly on either variant.
 (x86_64-darwin, Intel) and "macos_arm" (arm64-darwin, Apple Silicon).
 The correct version needs to be used for the actual system platform:
 emulated Java via Rosetta 2 is explicitly excluded. Isabelle add-on
-tools usually work on arm64-darwin, with the notable exception of the z3
-prover --- z3 uses x86_64-darwin and thus requires Rosetta 2, as long as
-that is still provided by Apple.
+tools usually work on arm64-darwin.
 
 * Formal entities record more position information, from the history of
 locale interpretations etc. This results in multiple PIDE markup, which
@@ -56,6 +54,10 @@ option of the same name serve as a guard to actual output, without any
 special cases. The default show_results=true, but show_results=false may
 be used in situations where output is too bulky to be printed, e.g. in
 the theory as "context notes [[show_results = false]] begin ... end".
+
+* More robust printing of terms with bound variables that are marked as
+"internal", e.g. from vacuous abstraction like "\<forall>_\<in>A. b" or "\<lambda>(_, _). b"
+--- increase chances that the printed term can be parsed again.
 
 
 *** Pure ***
@@ -145,6 +147,10 @@ a popup with the list of hyperlinks under the current caret, using the
 same notion of link as C-hover-click via mouse, but showing all
 possibilities.
 
+* The jEdit action "isabelle.line-status" (keyboard shortcut CS+l) shows
+the visual information of the gutter area in text form: line number,
+number of errors + warnings, followed by the actual messages.
+
 * The mouse action C-hover-click is strictly limited to the "C" modifier
 (command on macOS, control on Linux/Windows). This allows to use mouse
 dragging e.g. with CS modifiers for rectangular selection, regardless of
@@ -198,9 +204,18 @@ changed to distinguish "Isabelle VSCode" (or "Isacode" for short) from
 other VSCode / VSCodium applications.
 
 
+*** Document preparation ***
+
+* Meta-comments (*<*)...(*>*) need to be properly nested: this was never
+checked in the past. INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Sledgehammer:
+  - The Sledgehammer panel now uses the same default provers as the
+    "sledgehammer" command, including those set via "sledgehammer_params"
+    (system option "sledgehammer_provers" is empty by default).
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
       . zipperposition-2.1 -- include arm64-darwin
@@ -213,6 +228,10 @@ other VSCode / VSCodium applications.
     conjunction with "metis", "meson", and "smt".
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
+
+* Metis: Updated the Metis prover underlying the "metis" proof method to
+version 2.4 (release 20260920). The new version allocates less memory and
+fixes one implementation defect. Minor INCOMPATIBILITY.
 
 * SMT:
   - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
@@ -237,6 +256,26 @@ other VSCode / VSCodium applications.
     INCOMPATIBILITY.
   - Removed option "cvc_extensions"; use "smt_native_datatypes" and
     "smt_native_codatatypes" instead. INCOMPATIBILITY.
+
+* Mirabelle: Added option -c to "isabelle mirabelle" to log the source
+text of each command acted upon, e.g. "source: by (metis foo bar)".
+
+* Constants "open" and "uniformity" are not handled as class parameters
+any longer in generated code: there are hardly any instances with a
+reasonable implementation, but a lot of implementations would require
+these as (effectively unused) dictionary parameters. Minor
+INCOMPATIBILITY.
+
+* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class
+parameters any longer in generated code but implemented using their
+counterparts on finite sets. Minor INCOMPATIBILITY.
+
+* Set difference may now be written using the symbol "\<setminus>" (which is not a
+backlash), although the former symbol "-" still works. Minor
+INCOMPATIBILITY.
+
+* New relation "has_log_derivative", which simplifies talking about
+logarithmic derivatives.
 
 * Theory "HOL.Finite_Set"
   - Added lemmas.
@@ -267,13 +306,16 @@ specific "indexed_from". Corresponding theorems renamed:
   sorted_enumerate ~> sorted_indexed_from
   in_enumerate_iff_nth_default_eq ~> in_indexed_from_iff_nth_default_eq
 
-* Session "HOL-New_Algebra": a new library for abstract algebra, based
-on Clemens Ballarin's locale approach and intended to replace
-HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer
-relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra.
-Proofs that had referenced the internals of HOL-Number_Theory.Residues
-should now import the new theory "HOL-Algebra.Residues_Algebra".
-INCOMPATIBILITY.
+* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv
+from type "real" to any archimedian fields, renaming them arch_pow_inv
+and arch_pow. Minor INCOMPATIBILITY.
+
+* Theory "HOL-Library.Multiset":
+  - Removed lemmas. Minor INCOMPATIBILITY.
+      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
+  - Added lemmas.
+      add_single_left_eq_add_mset
+      add_single_right_eq_add_mset
 
 * Theory "HOL-Library.Finite_Map"
   - Removed function set_of_map. Use Map.graph instead. INCOMPATIBILITY.
@@ -291,23 +333,13 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Constants "open" and "uniformity" are not handled as class parameters
-any longer in generated code: there are hardly any instances with a
-reasonable implementation, but a lot of implementations would require
-these as (effectively unused) dictionary parameters. Minor
+* Session "HOL-New_Algebra": a new library for abstract algebra, based
+on Clemens Ballarin's locale approach and intended to replace
+HOL-Algebra. To prevent clashes, HOL-Number_Theory.Residues no longer
+relies on algebra, so HOL-Number_Theory no longer imports HOL-Algebra.
+Proofs that had referenced the internals of HOL-Number_Theory.Residues
+should now import the new theory "HOL-Algebra.Residues_Algebra".
 INCOMPATIBILITY.
-
-* Constants "Inf", "Sup", "Lcd", "Gcd" are not handled as class
-parameters any longer in generated code but implemented using their
-counterparts on finite sets. Minor INCOMPATIBILITY.
-
-* Set difference may now be written using the symbol "\<setminus>" (which is not a
-backlash), although the former symbol "-" still works. Minor
-INCOMPATIBILITY.
-
-* Theory "HOL.Real": Generalised real_arch_pow and real_arch_pow_inv
-from type "real" to any archimedian fields, renaming them arch_pow_inv
-and arch_pow. Minor INCOMPATIBILITY.
 
 * Session "HOL-Analysis": much new material including Bounded_Variation,
 Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
@@ -327,9 +359,6 @@ the abbreviation "matrix_det". INCOMPATIBILITY
 * Session "HOL-Analysis": Theory "Infinite_Product" treats products
 indexed by arbitrary sets, generalising the existing treatment of
 the product of a sequence.
-
-* Session "HOL": New relation "has_log_derivative", which
-simplifies talking about logarithmic derivatives.
 
 
 *** ML ***
@@ -364,6 +393,13 @@ corresponding derived rules, concerning rare boundary cases:
     additional shortcut Thm.generalize_cterm from Isabelle2018 could
     produce a malformed result (bad maxidx), and its main application
     Thm.instantiate_frees would leave variables uninstantiated.
+
+  - Thm.of_class could be abused in conjunction with
+    Soft_Type_System.setup, to install a "purge" operation that
+    manipulates the Logic.mk_of_class proposition. The original
+    implementation stems from 1994, but the experimental/unused
+    Soft_Type_System from Isabelle2020 made that an unchecked
+    side-entry.
 
 * ML antiquotation @{unchecked_name a} inlines a syntactically
 wellformed long name as string literal, without any formal checking in
@@ -456,6 +492,13 @@ Output.system_message etc. appears on the PIDE session log: for
 command-line tools like "isabelle dump", "isabelle build", and
 derivatives, this is the console. Potential INCOMPATIBILITY: e.g. use
 "isabelle build -o system_log='' ..." to disable it explicitly.
+
+* System option "build_everything" is the conventional guard for
+theories that are somehow optional, and normally not processed (e.g.
+benchmarks). For example, see ~~/src/Benchmarks which now requires
+and explicit options to actually build the content:
+
+  isabelle build -o build_everything -D '~~/src/Benchmarks'
 
 * Both SHA1 and SHA256 are supported in Isabelle/Scala. SHA1 is still
 used routinely, but will be eventually phased out. Result is of type

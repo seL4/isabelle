@@ -394,7 +394,7 @@ fun adjust_maxidx_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   else if maxidx < i then
     Cterm {maxidx = i, cert = cert, t = t, T = T, sorts = sorts}
   else
-    Cterm {maxidx = Term.maxidx_term t i, cert = cert, t = t, T = T, sorts = sorts};
+    Cterm {maxidx = Int.max (maxidx_of_term t, i), cert = cert, t = t, T = T, sorts = sorts};
 
 fun incr_indexes_cterm i (ct as Cterm {cert, t, T, maxidx, sorts}) =
   if i < 0 then raise CTERM ("negative increment", [ct])
@@ -933,7 +933,7 @@ fun adjust_maxidx_thm i
     Thm (der, {maxidx = i, cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop})
   else
-    Thm (der, {maxidx = maxidx_tpairs tpairs (Term.maxidx_term prop i),
+    Thm (der, {maxidx = Int.max (maxidx_tpairs tpairs (maxidx_of_term prop), i),
       cert = cert, tags = tags, constraints = constraints, shyps = shyps,
       hyps = hyps, tpairs = tpairs, prop = prop});
 
@@ -2052,12 +2052,15 @@ fun of_class (cT, raw_c) =
     val thy = Context.certificate_theory cert
       handle ERROR msg => raise CONTEXT (msg, [cT], [], [], NONE);
     val c = Sign.certify_class thy raw_c;
-    val Cterm {t = prop, maxidx, sorts, ...} = global_cterm_of thy (Logic.mk_of_class (T, c));
+
+    val prop = Logic.mk_of_class (T, c);
+    val Cterm {t = prop', maxidx, sorts, ...} = global_cterm_of thy prop;
 
     fun zproof () = ZTerm.of_class_proof (T, c);
     fun proof () = Proofterm.PClass (T, c);
   in
-    if Sign.of_sort thy (T, [c]) then
+    if prop <> prop' then raise THM ("of_class: bad proposition via cterm_of", 0, [])
+    else if Sign.of_sort thy (T, [c]) then
       Thm (deriv_rule0 zproof proof,
        {cert = cert,
         tags = [],

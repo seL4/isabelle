@@ -172,7 +172,6 @@ structure Data = Theory_Data
 fun default_provers_param_value ctxt =
   let
     val try0_provers = Try0.get_all_proof_method_names ()
-    \<comment> \<open>see also \<^system_option>\<open>sledgehammer_provers\<close>\<close>
     and installed_provers =
       filter (is_prover_installed ctxt) (default_smt_solvers ctxt @ local_atps)
   in

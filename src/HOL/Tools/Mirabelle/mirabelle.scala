@@ -114,6 +114,7 @@ object Mirabelle {
       val mirabelle_output_dir = options.check_name("mirabelle_output_dir")
       val mirabelle_parallel_group_size = options.check_name("mirabelle_parallel_group_size")
       val mirabelle_subgoals = options.check_name("mirabelle_subgoals")
+      val mirabelle_print_command = options.check_name("mirabelle_print_command")
 
       var actions: List[String] = Nil
       var base_sessions: List[String] = Nil
@@ -144,6 +145,8 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -T THEORY    theory restriction: NAME or NAME[FIRST_LINE:LAST_LINE]
     -X NAME      exclude sessions from group NAME and all descendants
     -a           select all sessions
+    -c           """ + mirabelle_print_command.description +
+        " (default " + mirabelle_print_command.default_value + """)
     -d DIR       include session directory
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
@@ -186,6 +189,7 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
         "T:" -> (arg => theories = theories ::: List(arg)),
         "X:" -> (arg => exclude_session_groups = exclude_session_groups ::: List(arg)),
         "a" -> (_ => all_sessions = true),
+        "c" -> (_ => options = options + "mirabelle_print_command=true"),
         "d:" -> (arg => dirs = dirs ::: List(Path.explode(arg))),
         "g:" -> (arg => session_groups = session_groups ::: List(arg)),
         "j:" -> (arg => max_jobs = Some(Value.Nat.parse(arg))),

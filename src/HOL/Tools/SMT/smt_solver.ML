@@ -35,7 +35,8 @@ sig
 
   (*filter*)
   val smt_filter: Proof.context -> thm -> ((string * ATP_Problem_Generate.stature) * thm) list ->
-    int -> Time.time -> ((string -> string) -> string -> string) -> string list -> parsed_proof
+    int -> Time.time -> ((Bytes.T -> string list) -> Bytes.T -> string list) -> string list ->
+    parsed_proof
 
   (*tactic*)
   val smt_tac: Proof.context -> thm list -> int -> tactic
@@ -67,9 +68,8 @@ fun with_trace ctxt msg f x =
   let val _ = SMT_Config.trace_msg ctxt (fn () => msg) ()
   in f x end
 
-(* TODO: change the type of the input from "string" to "string list" to allow for longer input and
-   avoid unnecessarily huge strings; each string of the list could be, e.g., a line. *)
-fun run ctxt name cmd input =
+fun run (ctxt : Proof.context) (name : string) (cmd : Bash.params) (input : Bytes.T) :
+    Process_Result.T =
   (case SMT_Config.certificates_of ctxt of
     NONE =>
       if not (SMT_Config.is_available ctxt name) then
@@ -86,10 +86,11 @@ fun run ctxt name cmd input =
               "" => ()
             | base_path =>
               let val in_path = Path.ext "smt_in" (Path.explode (base_path ^ unique_suffix)) in
-                File.write in_path input
+                Bytes.write in_path input
               end)
           val result =
-            with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...") (Cache_IO.run cmd) input
+            with_trace ctxt ("Invoking SMT solver " ^ quote name ^ " ...")
+              (Cache_IO.run_bytes cmd) input
           val () =
             (case Config.get ctxt SMT_Config.proof_dest_file of
               "" => ()
@@ -102,12 +103,12 @@ fun run ctxt name cmd input =
               end)
         in result end
   | SOME certs =>
-      (case Cache_IO.lookup certs input of
+      (case Cache_IO.lookup_bytes certs input of
         (NONE, key) =>
           if Config.get ctxt SMT_Config.read_only_certificates then
             error ("Bad certificate cache: missing certificate")
           else
-            Cache_IO.run_and_cache certs key cmd input
+            Cache_IO.run_and_cache_bytes certs key cmd input
       | (SOME output, _) =>
           with_trace ctxt ("Using cached certificate from " ^
             Path.print (Cache_IO.cache_path_of certs) ^ " ...") I output))
@@ -118,11 +119,11 @@ fun normal_return_codes "z3" = [0, 1]
   | normal_return_codes "verit" = [0, 14, 255]
   | normal_return_codes _ = [0, 1]
 
-fun run_solver ctxt name cmd input =
+fun run_solver ctxt name cmd (input : Bytes.T) : string list =
   let
     fun pretty tag lines = Pretty.string_of (Pretty.big_list tag (map Pretty.str lines))
 
-    val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o split_lines) input
+    val _ = SMT_Config.trace_msg ctxt (pretty "Problem:" o Bytes.split_lines) input
 
     val ({elapsed, ...}, result) =
       Timing.timing (SMT_Config.with_timeout ctxt "run_solver" (run ctxt name cmd)) input
@@ -172,10 +173,12 @@ fun invoke memoize_fun_call name command cmd_options smt_options ithms ctxt =
     val cmd = Bash.script (Bash.strings (command () @ options))
     val run_cmd = run_solver ctxt' name cmd
 
+    val input_bytes = Bytes.buffer input
+
     val output_lines =
       (case memoize_fun_call of
-        NONE => run_cmd input
-      | SOME memoize => split_lines (memoize (cat_lines o run_cmd) input))
+        NONE => run_cmd input_bytes
+      | SOME memoize => memoize run_cmd input_bytes)
 
   in (output_lines, replay_data) end
 

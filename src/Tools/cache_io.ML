@@ -9,6 +9,10 @@ sig
   type cache
   val unsynchronized_init: Path.T -> cache
   val cache_path_of: cache -> Path.T
+  val lookup_bytes: cache -> Bytes.T -> Process_Result.T option * Message_Digest.T
+  val run_bytes: Bash.params -> Bytes.T -> Process_Result.T
+  val run_and_cache_bytes: cache -> Message_Digest.T -> Bash.params -> Bytes.T -> Process_Result.T
+  val run_cached_bytes: cache -> Bash.params -> Bytes.T -> Process_Result.T
   val lookup: cache -> string -> Process_Result.T option * Message_Digest.T
   val run: Bash.params -> string -> Process_Result.T
   val run_and_cache: cache -> Message_Digest.T -> Bash.params -> string -> Process_Result.T
@@ -56,8 +60,8 @@ fun unsynchronized_init cache_path =
       else (1, Message_Digest.Table.empty)
   in Cache {path = cache_path, table = Synchronized.var "Cache_IO" table} end
 
-fun lookup (Cache {path = cache_path, table}) input =
-  let val key = SHA1.digest input in
+fun lookup_bytes (Cache {path = cache_path, table}) input =
+  let val key = SHA1.digest_bytes input in
     Synchronized.change_result table (fn tab =>
       (case Message_Digest.Table.lookup (snd tab) key of
         NONE => ((NONE, key), tab)
@@ -75,10 +79,10 @@ fun lookup (Cache {path = cache_path, table}) input =
           in ((SOME result, key), tab) end))
   end
 
-fun run cmd input =
+fun run_bytes cmd input =
   let
     val result = cmd
-      |> Bash.input (Bytes.string input)
+      |> Bash.input input
       |> Bash.redirect
       |> Isabelle_System.bash_process
     val rc = Process_Result.rc result
@@ -92,9 +96,9 @@ fun run cmd input =
     else result
   end
 
-fun run_and_cache (Cache {path = cache_path, table}) key cmd input =
+fun run_and_cache_bytes (Cache {path = cache_path, table}) key cmd input =
   let
-    val result = run cmd input
+    val result = run_bytes cmd input
     val out_lines = Process_Result.out_lines result
     val err_lines = Process_Result.err_lines result
     val (l1, l2) = apply2 length (out_lines, err_lines)
@@ -108,10 +112,15 @@ fun run_and_cache (Cache {path = cache_path, table}) key cmd input =
         in (p+l1+l2+1, Message_Digest.Table.update (key, (p+1, l1, l2)) tab) end)
   in result end
 
-fun run_cached cache cmd input =
-  (case lookup cache input of
-    (NONE, key) => run_and_cache cache key cmd input
+fun run_cached_bytes cache cmd input =
+  (case lookup_bytes cache input of
+    (NONE, key) => run_and_cache_bytes cache key cmd input
   | (SOME output, _) => output)
+
+fun lookup cache = lookup_bytes cache o Bytes.string
+fun run cmd = run_bytes cmd o Bytes.string
+fun run_and_cache cache key cmd = run_and_cache_bytes cache key cmd o Bytes.string
+fun run_cached cache cmd = run_cached_bytes cache cmd o Bytes.string
 
 end
 

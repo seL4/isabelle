@@ -22,6 +22,8 @@ class Documentation_Dockable(view: View, position: String) extends Dockable(view
 
   private val tree =
     new Tree_View(single_selection_mode = true, accessible_name = "Documentation") {
+      override def handle_escape(): Unit = view.getTextArea.requestFocus()
+
       override def handle_selection(path: TreePath): Unit =
         for (entry <- get_selection(path, { case x: Doc.Entry => x })) {
           JEdit_Editor.goto_doc(editor_context, entry.path, focus = true)
