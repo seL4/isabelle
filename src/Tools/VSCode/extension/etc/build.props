@@ -47,4 +47,5 @@ sources = \
   src/sledgehammer_view.scala \
   src/state_panel.scala \
   src/symbols_view.scala \
+  src/vscode_elements.scala \
   src/webview_api.scala
