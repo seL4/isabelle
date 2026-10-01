@@ -381,31 +381,31 @@ object HTML {
     def onmousedown(script: String): Attribute = new Attribute("onmousedown", script)
     def onmouseup(script: String): Attribute = new Attribute("onmouseup", script)
 
-    private def optional_value(text: String): XML.Attributes =
+    def optional_value(text: String): XML.Attributes =
       proper_string(text).map(a => "value" -> a).toList
 
-    private def optional_name(name: String): XML.Attributes =
+    def optional_name(name: String): XML.Attributes =
       proper_string(name).map(a => "name" -> a).toList
 
-    private def optional_title(tooltip: String): XML.Attributes =
+    def optional_title(tooltip: String): XML.Attributes =
       proper_string(tooltip).map(a => "title" -> a).toList
 
-    private def optional_submit(submit: Boolean): XML.Attributes =
+    def optional_submit(submit: Boolean): XML.Attributes =
       if (submit) List("onChange" -> "this.form.submit()") else Nil
 
-    private def optional_checked(selected: Boolean): XML.Attributes =
+    def optional_checked(selected: Boolean): XML.Attributes =
       if (selected) List("checked" -> "") else Nil
 
-    private def optional_action(action: String): XML.Attributes =
+    def optional_action(action: String): XML.Attributes =
       proper_string(action).map(a => "action" -> a).toList
 
-    private def optional_onclick(script: String): XML.Attributes =
+    def optional_onclick(script: String): XML.Attributes =
       proper_string(script).map(onclick(_).xml).toList
 
-    private def optional_onchange(script: String): XML.Attributes =
+    def optional_onchange(script: String): XML.Attributes =
       proper_string(script).map(onchange(_).xml).toList
 
-    private def optional_oninput(script: String): XML.Attributes =
+    def optional_oninput(script: String): XML.Attributes =
       proper_string(script).map(oninput(_).xml).toList
 
     def button(body: XML.Body, name: String = "", tooltip: String = "", submit: Boolean = false,
