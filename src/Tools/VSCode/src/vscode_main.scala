@@ -25,6 +25,7 @@ object VSCode_Main {
     Isabelle_System.getenv("VSCODE_JAVA_OPTIONS")
 
   def run_vscodium(args: List[String],
+    electron_args: List[String] = Nil,
     environment: List[(String, String)] = Nil,
     options: List[String] = Nil,
     java_options: String = default_java_options,
@@ -72,10 +73,10 @@ object VSCode_Main {
         "--user-data-dir", platform_path("$ISABELLE_VSCODE_SETTINGS/user-data"),
         "--extensions-dir", platform_path("$ISABELLE_VSCODE_SETTINGS/extensions"))
     val script =
-      Bash.strings(electron :: args0 ::: args) +
+      Bash.strings(electron :: args0 ::: electron_args ::: args) +
         (if (background) " > /dev/null 2> /dev/null &" else "")
 
-    progress.bash(Bash.strings(List(electron, "-v"))).check
+    progress.bash(Bash.strings(List(electron, "-v") ::: electron_args)).check
 
     progress.bash(script, env = env, echo = true)
   }
@@ -112,30 +113,38 @@ object VSCode_Main {
     if (path.is_file) Some(Shasum.fake(File.read(path))) else None
   }
 
-  def locate_extension(): Option[Path] = {
-    val out = run_vscodium(List("--locate-extension", extension_name)).check.out
+  def locate_extension(electron_args: List[String] = Nil): Option[Path] = {
+    val out =
+      run_vscodium(List("--locate-extension", extension_name),
+        electron_args = electron_args).check.out
     if (out.nonEmpty) Some(Path.explode(File.standard_path(out))) else None
   }
 
-  def uninstall_extension(progress: Progress = new Progress): Unit =
-    locate_extension() match {
+  def uninstall_extension(
+    electron_args: List[String] = Nil,
+    progress: Progress = new Progress
+  ): Unit =
+    locate_extension(electron_args = electron_args) match {
       case None => progress.echo_warning("No Isabelle/VSCode extension to uninstall")
       case Some(dir) =>
-        run_vscodium(List("--uninstall-extension", extension_name)).check
+        run_vscodium(List("--uninstall-extension", extension_name),
+          electron_args = electron_args).check
         progress.echo("Uninstalled Isabelle/VSCode extension from directory:\n" + dir)
     }
 
   def install_extension(
     vsix_path: Path = default_vsix_path,
+    electron_args: List[String] = Nil,
     progress: Progress = new Progress
   ): Unit = {
     val new_shasum = shasum_vsix(vsix_path)
-    val old_shasum = locate_extension().flatMap(shasum_dir)
+    val old_shasum = locate_extension(electron_args = electron_args).flatMap(shasum_dir)
     val current = old_shasum.isDefined && old_shasum.get == new_shasum
 
     if (!current) {
-      run_vscodium(List("--install-extension", File.platform_path(vsix_path))).check
-      locate_extension() match {
+      run_vscodium(List("--install-extension", File.platform_path(vsix_path)),
+        electron_args = electron_args).check
+      locate_extension(electron_args = electron_args) match {
         case None => error("Missing Isabelle/VSCode extension after installation")
         case Some(dir) =>
           progress.echo("Installed Isabelle/VSCode extension " + vsix_path.expand +
@@ -189,6 +198,7 @@ object VSCode_Main {
         var uninstall = false
         var vsix_path = default_vsix_path
         val session_dirs = new mutable.ListBuffer[Path]
+        val electron_args = new mutable.ListBuffer[String]
         val include_sessions = new mutable.ListBuffer[String]
         var logic = Isabelle_System.default_logic()
         val modes = new mutable.ListBuffer[String]
@@ -212,6 +222,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
     -V FILE      specify VSIX file for Isabelle/VSCode extension
                  (default: """ + default_vsix_path + """)
     -d DIR       include session directory
+    -e OPTION    add Electron runtime option
     -i NAME      include session in name-space of theories
     -l NAME      logic session name
     -m MODE      add print mode for output
@@ -237,6 +248,7 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           "U" -> (_ => uninstall = true),
           "V:" -> (arg => vsix_path = Path.explode(arg)),
           "d:" -> (arg => session_dirs += Path.explode(arg)),
+          "e:" -> (arg => electron_args += arg),
           "i:" -> (arg => include_sessions += arg),
           "l:" -> (arg => { logic = arg; logic_requirements = false }),
           "m:" -> (arg => modes += arg),
@@ -275,19 +287,24 @@ Usage: isabelle vscode [OPTIONS] [ARGUMENTS] [-- VSCODE_OPTIONS]
           build_started = (logic => console_progress.echo(Build.build_logic_started(logic))),
           build_failed = (logic => error(Build.build_logic_failed(logic))))
 
-        if (uninstall) uninstall_extension(progress = console_progress)
-        else install_extension(vsix_path = vsix_path, progress = console_progress)
+        if (uninstall)
+          uninstall_extension(electron_args = electron_args.toList, progress = console_progress)
+        else {
+          install_extension(vsix_path = vsix_path, electron_args = electron_args.toList,
+            progress = console_progress)
+        }
 
         val (background, app_progress) =
           if (console) (false, console_progress) else (true, new Progress)
 
         run_vscodium(
           more_args ::: (if (edit_extension) List(File.platform_path(extension_dir)) else Nil),
-          options = "show_results=false" :: options.toList, java_options = java_options.toString,
-          logic = logic, logic_ancestor = logic_ancestor, logic_requirements = logic_requirements,
-          session_dirs = session_dirs.toList, include_sessions = include_sessions.toList,
-          modes = modes.toList, no_build = no_build, server_log = server_log, verbose = verbose,
-          background = background, progress = app_progress).check
+          electron_args = electron_args.toList, options = "show_results=false" :: options.toList,
+          java_options = java_options.toString, logic = logic, logic_ancestor = logic_ancestor,
+          logic_requirements = logic_requirements, session_dirs = session_dirs.toList,
+          include_sessions = include_sessions.toList, modes = modes.toList, no_build = no_build,
+          server_log = server_log, verbose = verbose, background = background, progress =
+          app_progress).check
       })
 
 
