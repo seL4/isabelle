@@ -186,16 +186,17 @@ For example:
 
 *** Isabelle/VSCode Prover IDE ***
 
-* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
+* Output areas now do proper Isabelle pretty-printing according to
+window/panel size and font metrics, and highlight messages, and contain
+controls for some active markup (sendback and dialog).
 
-* Output areas now do proper logical line printing according to panel
-and font dimensions, and highlight messages, and contain controls for
-some active markup (sendback and dialog).
+* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
 
 * History text fields now allow proper keyboard navigation.
 
-* Various improvements for all panels, and more uniform styling. GUI
-state now persists between context switches, where appropriate.
+* Various improvements for Isabelle add-on panels, and more uniform
+styling. GUI state now persists between context switches, where
+appropriate.
 
 * Update to recent VSCode 1.135 / VSCodium 1.135.06055 (August 2026),
 Electron 42.8.1, Chromium 148.0.7778.280, Node.js 24.18.1, with pre-

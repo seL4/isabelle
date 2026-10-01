@@ -14,11 +14,9 @@ NEWS file for further details. Here are notable details:
 
 * Many Isabelle/jEdit improvements, notably for Accessibility (NVDA).
 
-* Many Isabelle/Scala improvements, notably HTML-based GUI via Scala.js.
+* Many Isabelle/VSCode improvements, notably HTML-based GUI via Scala.js.
 
 * HOL: various improvements to code generation.
-
-* HOL: various improvements of theory libraries, e.g. HOL-Analysis.
 
 * HOL: various improvements of theory libraries, e.g. HOL-Analysis.
 
