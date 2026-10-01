@@ -390,6 +390,9 @@ object HTML {
     def optional_title(tooltip: String): XML.Attributes =
       proper_string(tooltip).map(a => "title" -> a).toList
 
+    def optional_placeholder(placeholder: String): XML.Attributes =
+      proper_string(placeholder).map(a => "placeholder" -> a).toList
+
     def optional_submit(submit: Boolean): XML.Attributes =
       if (submit) List("onChange" -> "this.form.submit()") else Nil
 
@@ -425,12 +428,13 @@ object HTML {
               optional_checked(selected) ::: optional_onchange(script))) :: body)
 
     def text_field(columns: Int = 0, text: String = "", name: String = "", tooltip: String = "",
-        submit: Boolean = false, script: String = ""): XML.Elem =
+        placeholder: String = "", submit: Boolean = false, script: String = ""): XML.Elem =
       XML.elem(Markup("input",
         List("type" -> "text") :::
           (if (columns > 0) List("size" -> columns.toString) else Nil) :::
           optional_value(text) ::: optional_name(name) ::: optional_title(tooltip) :::
-          optional_submit(submit) ::: optional_oninput(script)))
+          optional_placeholder(placeholder) ::: optional_submit(submit) :::
+          optional_oninput(script)))
 
     def parameter(text: String = "", name: String = ""): XML.Elem =
       XML.elem(

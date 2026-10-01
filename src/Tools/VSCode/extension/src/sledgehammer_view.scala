@@ -83,7 +83,7 @@ object Sledgehammer_View {
   }
   private def provers_text_field: History_Text_Field =
     History_Text_Field("provers", update_provers, provers, columns = 30,
-      tooltip = "Automatic provers as space-separated list, e.g.\n" + provers0)
+      tooltip = "Automatic provers as space-separated list", placeholder = provers0)
   private val provers_label = HTML.GUI.label("Provers:", "provers")
 
   object isar_proofs_checkbox_clicked extends Scalajs.Fun[Boolean] {

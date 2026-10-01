@@ -139,8 +139,9 @@ object History_Text_Field {
     state: State = State.init(),
     columns: Int = 0,
     tooltip: String = "",
+    placeholder: String = "",
   ): History_Text_Field = {
-    val text_field = new History_Text_Field(name, columns, tooltip, state, on_update)
+    val text_field = new History_Text_Field(name, columns, tooltip, placeholder, state, on_update)
     instances += name -> text_field
     text_field
   }
@@ -150,6 +151,7 @@ class History_Text_Field private(
   name: String,
   columns: Int,
   tooltip: String,
+  placeholder: String,
   state: History_Text_Field.State,
   on_update: History_Text_Field.Update => Unit,
 ) {
@@ -189,7 +191,8 @@ class History_Text_Field private(
       HTML.GUI.onfocus(History_Text_Field.focused.function(JS.string(name), JS.boolean(true)))(
         HTML.GUI.onkeydown(History_Text_Field.key_down.function(JS.string(name), "event"))(
           HTML.GUI.text_field(columns = columns, text = state.input, name = name, tooltip = tooltip,
-            script = History_Text_Field.input.function(JS.string(name), "this.value"))))
+            placeholder = placeholder, script =
+              History_Text_Field.input.function(JS.string(name), "this.value"))))
 
     val drop_down =
       if (!state.focused) Nil
