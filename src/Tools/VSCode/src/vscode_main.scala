@@ -75,7 +75,7 @@ object VSCode_Main {
       Bash.strings(electron :: args0 ::: args) +
         (if (background) " > /dev/null 2> /dev/null &" else "")
 
-    progress.bash(Bash.strings(List(electron, "-v")), env = env).check
+    progress.bash(Bash.strings(List(electron, "-v"))).check
 
     progress.bash(script, env = env, echo = true)
   }
