@@ -532,6 +532,13 @@ null values by other means, e.g. during object initialization.
 argument. Suitable values are Logger.none or Logger.console -- the
 latter ensures that spurious system errors are actually reported.
 
+* The Isabelle component for the MLton compiler now covers all platform
+variants for Linux and macOS (x86_64 and arm64), but still not Windows.
+ISABELLE_MLTON_OPTIONS are empty by default, but may be overridden in
+$ISABELLE_HOME_USER/etc/settings; new ISABELLE_MLTON_NATIVE_OPTIONS
+enable "-codegen native" on x86_64, but not on arm64. Mlton requires a C
+compiler with libgmp, as before.
+
 * The command-line tool "isabelle build_log" works again. It was broken
 in Isabelle2025-1 and Isabelle2025-2.
 
