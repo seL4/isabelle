@@ -44,9 +44,7 @@ theory New_Algebra
     Normal_Closure
     (* finite fields *)
     Finite_Field_Galois
-    GF4
-    GF8
-    GF9
+    GF_p
 begin
 
 end
