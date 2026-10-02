@@ -6,7 +6,6 @@ theory New_Algebra
     Subgroup_Lattice
     Monoid_Iso_Classes
     Normal_Series
-    Composition_Series
     Normal_Chain
     Group_Product
     Group_Family_Product
