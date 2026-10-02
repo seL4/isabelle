@@ -19,7 +19,7 @@ context comm_semiring_1
 begin
 
 definition irreducible :: "'a \<Rightarrow> bool" where
-  "irreducible p \<longleftrightarrow> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p = a * b \<longrightarrow> a dvd 1 \<or> b dvd 1)"
+  "irreducible p \<equiv> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p = a * b \<longrightarrow> a dvd 1 \<or> b dvd 1)"
 
 lemma not_irreducible_zero [simp]: "\<not>irreducible 0"
   by (simp add: irreducible_def)
@@ -103,48 +103,6 @@ proof
   qed (use * in auto)
 qed auto
 
-lemma ring_iso_dvd:
-  assumes hom: "\<And>x y. f (x * y) = f x * f y" and bij: "bij f"
-  shows "f a dvd f b \<longleftrightarrow> a dvd b"
-  using bij_pointE [OF bij] hom unfolding dvd_def
-  by metis
-
-lemma ring_iso_unit:
-  assumes hom: "\<And>x y. f (x * y) = f x * f y" and one: "f 1 = 1" and bij: "bij f"
-  shows "f a dvd 1 \<longleftrightarrow> a dvd 1"
-  using ring_iso_dvd[OF hom bij, of a 1] one by simp
-
-theorem ring_iso_irreducible:
-  assumes hom: "\<And>x y. f (x * y) = f x * f y" and one: "f 1 = 1"
-    and zero: "f 0 = 0" and bij: "bij f"
-  shows "irreducible (f a) \<longleftrightarrow> irreducible a"
-proof -
-  have ne: "f a = 0 \<longleftrightarrow> a = 0"
-    by (metis bij bij_is_inj inj_eq zero)
-  show ?thesis
-  proof
-    assume "irreducible (f a)"
-    then show "irreducible a"
-      by (metis bij hom irreducible_def ne one ring_iso_unit)
-  next
-    assume "irreducible a"
-    then have a: "a \<noteq> 0" "\<not> a dvd 1" "\<And>u v. a = u * v \<Longrightarrow> u dvd 1 \<or> v dvd 1"
-      by (auto simp: irreducible_def)
-    show "irreducible (f a)"
-    proof (rule irreducibleI)
-      show "f a \<noteq> 0" using a(1) ne by simp
-      show "\<not> f a dvd 1" using a(2) ring_iso_unit[OF hom one bij] by simp
-    next
-      fix u v assume "f a = u * v"
-      then obtain u' v' where uv: "u = f u'" "v = f v'"  "a = u' * v'" 
-        using bij_pointE[OF bij] by (metis hom)
-      then show "u dvd 1 \<or> v dvd 1" using uv ring_iso_unit[OF hom one bij]
-        using a(3) by blast
-    qed
-  qed
-qed
-
-
 definition prime_elem :: "'a \<Rightarrow> bool" where
   "prime_elem p \<longleftrightarrow> p \<noteq> 0 \<and> \<not>p dvd 1 \<and> (\<forall>a b. p dvd (a * b) \<longrightarrow> p dvd a \<or> p dvd b)"
 
@@ -193,6 +151,52 @@ lemma prime_elem_imp_not_one [simp]:
 
 end
 
+context
+  fixes f :: "'a::comm_semiring_1 \<Rightarrow> 'b::comm_semiring_1"
+begin
+
+lemma ring_iso_dvd:
+  assumes hom: "\<And>x y. f (x * y) = f x * f y" and bij: "bij f"
+  shows "f a dvd f b \<longleftrightarrow> a dvd b"
+  using bij_pointE [OF bij] hom unfolding dvd_def 
+  by metis
+
+lemma ring_iso_unit:
+  assumes hom: "\<And>x y. f (x * y) = f x * f y" and one: "f 1 = 1" and bij: "bij f"
+  shows "f a dvd 1 \<longleftrightarrow> a dvd 1"
+  using ring_iso_dvd[OF hom bij, of a 1] one by simp
+
+theorem ring_iso_irreducible:
+  assumes hom: "\<And>x y. f (x * y) = f x * f y" and one: "f 1 = 1"
+    and zero: "f 0 = 0" and bij: "bij f"
+  shows "irreducible (f a) \<longleftrightarrow> irreducible a"
+proof -
+  have ne: "f a = 0 \<longleftrightarrow> a = 0"
+    by (metis bij bij_is_inj inj_eq zero)
+  show ?thesis
+  proof
+    assume "irreducible (f a)"
+    then show "irreducible a"
+      using assms irreducibleI ring_iso_unit by (metis comm_semiring_1_class.irreducible_def)
+  next
+    assume "irreducible a"
+    then have a: "a \<noteq> 0" "\<not> a dvd 1" "\<And>u v. a = u * v \<Longrightarrow> u dvd 1 \<or> v dvd 1"
+      by (auto simp: irreducible_def)
+    show "irreducible (f a)"
+    proof (rule irreducibleI)
+      show "f a \<noteq> 0" using a(1) ne by simp
+      show "\<not> f a dvd 1" using a(2) ring_iso_unit[OF hom one bij] by simp
+    next
+      fix u v assume "f a = u * v"
+      then obtain u' v' where uv: "u = f u'" "v = f v'"  "a = u' * v'" 
+        using bij_pointE[OF bij] by (metis hom)
+      then show "u dvd 1 \<or> v dvd 1" using uv ring_iso_unit[OF hom one bij]
+        using a(3) by blast
+    qed
+  qed
+qed
+
+end
 
 lemma (in normalization_semidom) irreducible_cong:
   assumes "normalize a = normalize b"

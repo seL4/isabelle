@@ -1,7 +1,7 @@
 section \<open>Rational Subfields and Irreducibility over the Rationals\<close>
 
 theory Rats_Irreducibility
-  imports Galois_Transitivity Rat_Fract_Iso
+  imports Galois_Transitivity
 begin
 
 text \<open>A complex polynomial all of whose coefficients are rational is the \<open>of_rat\<close>-image of a

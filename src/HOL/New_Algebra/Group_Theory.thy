@@ -1241,7 +1241,7 @@ proof (rule bij_betw_imageI)
         invertible_inverse_closed invertible_right_inverse right.translation_apply right_unit subset)
 next
   show "(inverse x \<cdot> y)\<^sub>R ` (H |\<cdot> x) = H |\<cdot> y"
-    by (force simp add: right.translation_apply associative invertible_right_inverse2)
+    by (force simp: right.translation_apply associative invertible_right_inverse2)
 qed
 
 text \<open>p 52, ll 25--26\<close>
