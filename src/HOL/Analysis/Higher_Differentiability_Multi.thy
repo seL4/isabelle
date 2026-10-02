@@ -2152,7 +2152,7 @@ proof -
        and h_bd: "h < \<delta>" and k_bd: "k < \<delta>"
     for h k
   proof -
-    (* g̃(t) = f(x + h\<sqdot>e\<^sub>i + t\<sqdot>e\<^sub>j) - f(x + t\<sqdot>e\<^sub>j) *)
+    (* g'(t) = f(x + h*e\<^sub>i + t*e\<^sub>j) - f(x + t*e\<^sub>j) *)
     define g' where "g' t = f (x + h *\<^sub>R ?ei + t *\<^sub>R ?ej) - f (x + t *\<^sub>R ?ej)" for t
 
     have g'_deriv: "(g' has_real_derivative (Qt h t - Qt 0 t)) (at t)"
@@ -2167,7 +2167,7 @@ proof -
         unfolding g'_def by (subst derivative_eq_intros, simp_all)
     qed
 
-    (* MVT on g̃ over [0,k] *)
+    (* MVT on g' over [0,k] *)
     have g'_diff: "\<exists>\<eta>'. 0 < \<eta>' \<and> \<eta>' < k \<and> \<Delta> h k = k * (Qt h \<eta>' - Qt 0 \<eta>')"
     proof -
       have "g' k - g' 0 = \<Delta> h k"
