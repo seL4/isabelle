@@ -10,7 +10,6 @@ theory New_Algebra
     Normal_Chain
     Group_Product
     Group_Family_Product
-    Series_Refinement
     Schreier_Refinement
     Simple_Factor_Chain
     Jordan_Hoelder_Uniqueness
@@ -32,7 +31,6 @@ theory New_Algebra
     Module_Exact_Sequence
     Module_Family_Product
     Free_Module_Universal
-    Grassmann_Dimension
     Finite_Dimensional_Isomorphism
     Finite_Dimensional_Splitting
     (* fields, extensions, Galois theory *)

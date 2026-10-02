@@ -4,7 +4,7 @@ theory Zassenhaus_Sanity
   imports "HOL-New_Algebra.Zassenhaus_Lemma"
 begin
 
-text \<open>Zassenhaus is now \<^emph>\<open>load-bearing\<close>: \<open>Series_Refinement\<close> imports it, so the whole Jordan--Hölder
+text \<open>Zassenhaus is now \<^emph>\<open>load-bearing\<close>: \<open>Schreier_Refinement\<close> imports it, so the whole Jordan--Hölder
   development inherits any error in it.  Like that development it was merged on structural evidence
   (it builds, contains no \<open>sorry\<close>).  The checks below test its content.
 
