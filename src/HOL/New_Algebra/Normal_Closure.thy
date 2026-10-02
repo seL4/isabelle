@@ -1,7 +1,7 @@
 section \<open>Stability of root-generated intermediate fields\<close>
 
 theory Normal_Closure
-  imports Galois_Solvable_Tower Radical_Extension
+  imports Galois_Restriction Radical_Extension
 begin
 
 text \<open>The @{const solvable_tower} predicate of \<open>Galois_Solvable_Tower\<close>

@@ -12,7 +12,6 @@ theory New_Algebra
     Group_Family_Product
     Series_Refinement
     Schreier_Refinement
-    Reduced_Schreier_Refinement
     Simple_Factor_Chain
     Jordan_Hoelder_Uniqueness
     Maximal_Normal_Subgroup

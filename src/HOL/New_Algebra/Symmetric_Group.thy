@@ -1,7 +1,7 @@
 section \<open>The Symmetric and Alternating Groups\<close>
 
 theory Symmetric_Group
-  imports Derived_Series "HOL-Combinatorics.Permutations" "HOL-Combinatorics.Cycles"
+  imports Group_Theory "HOL-Combinatorics.Permutations" "HOL-Combinatorics.Cycles"
 begin
 
 text \<open>
@@ -47,7 +47,7 @@ text \<open>
   Our @{term "Sn n"} uses library @{const permutes} maps (identity outside).  The two are 
   reconciled by @{const restrict}: restricting a permutation to @{term S} yields an element
   of @{term "transformations.Sym S"}, and this correspondence is bijective.  This makes
-  the concrete @{term "Sn n"} available to the development's @{locale Group_Action} machinery.
+  the concrete @{term "Sn n"} available to the development's @{text Group_Action} machinery.
 \<close>
 
 lemma restrict_permutes_in_Sym:

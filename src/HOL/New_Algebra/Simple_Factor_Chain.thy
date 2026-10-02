@@ -1,5 +1,5 @@
 theory Simple_Factor_Chain
-  imports Reduced_Schreier_Refinement Composition_Series
+  imports Schreier_Refinement Composition_Series
 begin
 
 section \<open>Normal chains inside a simple factor\<close>
