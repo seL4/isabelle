@@ -21,7 +21,7 @@ theory New_Algebra
     P_Group
     (* rings, ideals, divisibility *)
     Subring_Generated
-    Finite_Field_Cardinality
+    Finite_Field_Frobenius
     Ideal_Extension
     Chinese_Remainder_Rings
     Field_Of_Fractions
