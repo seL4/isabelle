@@ -1,7 +1,7 @@
 section \<open>A normal solvable tower has a solvable Galois group\<close>
 
 theory Galois_Solvable_Tower
-  imports Complex_Field_Extension Galois_Action Galois_Restriction_Core
+  imports Complex_Field_Extension Galois_Action Galois_Restriction
 begin
 
 text \<open>Given a fixed complex splitting field @{term K} and a chain
