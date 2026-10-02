@@ -26,9 +26,8 @@ theory New_Algebra
     Ideal_Extension
     Chinese_Remainder_Rings
     Field_Of_Fractions
-    Poly_Divisibility_Bridge
+    Poly_Divisibility
     Closure_Algebraic
-    Int_Ring
     (* modules and vector spaces *)
     Module_Complements
     Module_Exact_Sequence
@@ -40,7 +39,6 @@ theory New_Algebra
     (* fields, extensions, Galois theory *)
     Field_Extension
     Field_Mult_Cyclic
-    Rats_Irreducibility
     Galois_Restriction_Splitting
     Galois_Finite_Correspondence
     Normal_Closure
