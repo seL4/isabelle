@@ -30,7 +30,7 @@ Contributions to Isabelle2026
 
 * 2026: Hanna Lachnitt (University Stanford), Mathias Fleury and
   Pascal Walter (University Freiburg)
-  HOL: Reconstructing cvc5 proofs in the method "smt".
+  HOL: Reconstructing cvc5 proofs in the proof method "smt".
 
 
 Contributions to Isabelle2025-1

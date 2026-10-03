@@ -18,21 +18,23 @@ NEWS file for further details. Here are notable details:
 
 * HOL: various improvements to code generation.
 
-* HOL: various improvements of theory libraries, e.g. HOL-Analysis.
+* HOL: various improvements of theory libraries, notably HOL-Analysis.
+
+* HOL: additional library material, notably HOL-New_Algebra.
 
 * HOL: updates and improvements of Sledgehammer and external provers.
 
 * HOL: various improvements of SMT support, with cvc5 proof reconstruction.
 
-* ML: minor improments of kernel integrity.
+* ML: 64_32 mode now supports 32 GiB heap instead of 16 GiB.
 
 * ML: sanity checks for string literals vs. formal names.
 
-* ML: 64_32 mode now supports 32 GiB heap instead of 16 GiB.
-
-* System: support for Scala.js with many Isabelle/Scala modules.
+* ML: minor improvements of kernel integrity.
 
 * System: improved logging of Isabelle/Scala and Isabelle/ML.
+
+* System: support for Scala.js with many Isabelle/Scala modules.
 
 
 You may get Isabelle2026 from the following mirror sites:
