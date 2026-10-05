@@ -233,8 +233,8 @@ checked in the past. INCOMPATIBILITY.
     proofs.
 
 * Metis: Updated the Metis prover underlying the "metis" proof method to
-version 2.4 (release 20260920). The new version allocates less memory and
-fixes one implementation defect. Minor INCOMPATIBILITY.
+version 2.4 (release 20260920). The new version allocates less memory
+and fixes one implementation defect. Minor INCOMPATIBILITY.
 
 * SMT:
   - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
@@ -273,9 +273,9 @@ INCOMPATIBILITY.
 parameters any longer in generated code but implemented using their
 counterparts on finite sets. Minor INCOMPATIBILITY.
 
-* Set difference may now be written using the symbol "\<setminus>" (which is not a
-backlash), although the former symbol "-" still works. Minor
-INCOMPATIBILITY.
+* Set difference may now be written using the Isabelle symbol "\<setminus>" (which
+is not a backlash). The generic minus operation "-" is still available
+as before, and used by default.
 
 * New relation "has_log_derivative", which simplifies talking about
 logarithmic derivatives.
@@ -315,7 +315,8 @@ and arch_pow. Minor INCOMPATIBILITY.
 
 * Theory "HOL-Library.Multiset":
   - Removed lemmas. Minor INCOMPATIBILITY.
-      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
+      add_mset_add_single (use add_single_right_eq_add_mset[symmetric]
+      instead)
   - Added lemmas.
       add_single_left_eq_add_mset
       add_single_right_eq_add_mset
@@ -349,7 +350,7 @@ Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
 generalised to Euclidean spaces. Stronger versions of the FTC, now for
 countable rather than finite sets. Minor INCOMPATIBILITY
 
-* Session "HOL-Analysis": Theory "Determinant_Linear_Function" provides
+* Session "HOL-Analysis": theory "Determinant_Linear_Function" provides
 "finite_dimensional_vector_space.det", i.e. the notion of the
 determinant of a linear function from a finite-dimensional vector space
 into itself, generalising (but not replacing) the earlier
