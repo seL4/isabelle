@@ -747,24 +747,20 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           // executable archive (self-extracting 7z)
 
-          val archive_name = isabelle_name + ".7z"
-          val exe_archive = tmp_dir + Path.explode(archive_name)
-          exe_archive.file.delete
+          val sfx_path = tmp_dir + Component_Windows_App.base_path + Path.explode("7z.sfx")
+
+          val archive_name = bundle_info.name
+          val archive_path = context.dist_dir + bundle_info.path
 
           progress.echo("Packaging " + archive_name + " ...")
           execute(tmp_dir,
             File.bash_path(Component_Windows_App.seven_zip_exe()) +
-              " -myv=1602 -y -bd a " + File.bash_path(exe_archive) + " " +
+              " -sfx" + File.bash_path(sfx_path) +
+              " -y -bd a " + File.bash_path(archive_path) + " " +
               Bash.string(isabelle_name))
-          if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
+          if (!archive_path.is_file) error("Failed to create archive: " + archive_path)
 
-          val sfx_exe = tmp_dir + Component_Windows_App.sfx_path()
-          val sfx_txt = Component_Windows_App.sfx_txt(isabelle_name)
-
-          val isabelle_exe = bundle_info.path
-          Bytes.write(context.dist_dir + isabelle_exe,
-            Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
-          File.set_executable(context.dist_dir + isabelle_exe)
+          File.set_executable(archive_path)
         }
 
         other_isabelle.cleanup()
