@@ -61,7 +61,7 @@ AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
   /* build windows_app */
 
   val default_seven_zip_url = "https://github.com/ip7z/7zip/releases/download"
-  val default_seven_zip_version = "26.02"
+  val default_seven_zip_version = "26.04"
 
   def build_windows_app(
     seven_zip_url: String = default_seven_zip_url,
