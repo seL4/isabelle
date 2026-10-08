@@ -1,7 +1,7 @@
 section \<open>Simple Algebraic Extensions inside the Complex Numbers\<close>
 
 theory Field_Extension
-  imports Complex_Field_Extension Rat_Fract_Iso "HOL-Computational_Algebra.Field_as_Ring"
+  imports Complex_Field_Extension "HOL-Computational_Algebra.Field_as_Ring" "HOL-Computational_Algebra.Polynomial_Factorial"
 begin
 
 text \<open>

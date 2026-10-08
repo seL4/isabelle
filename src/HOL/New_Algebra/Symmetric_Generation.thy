@@ -1,7 +1,7 @@
 section \<open>Generating the Symmetric Group\<close>
 
 theory Symmetric_Generation
-  imports Symmetric_Group
+  imports Symmetric_Group Sylow_Theorems
 begin
 
 text \<open>@{term "Sn n"} is finite: it is a set of permutations of a finite set.  Stated here at the top

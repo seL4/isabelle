@@ -4,6 +4,11 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+
+
 New in Isabelle2026 (October 2026)
 ----------------------------------
 
@@ -186,16 +191,17 @@ For example:
 
 *** Isabelle/VSCode Prover IDE ***
 
-* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
+* Output areas now do proper Isabelle pretty-printing according to
+window/panel size and font metrics, and highlight messages, and contain
+controls for some active markup (sendback and dialog).
 
-* Output areas now do proper logical line printing according to panel
-and font dimensions, and highlight messages, and contain controls for
-some active markup (sendback and dialog).
+* Support for hyperlinks from \<^doc>\<open>...\<close>, e.g. \<^doc>\<open>system\<close>.
 
 * History text fields now allow proper keyboard navigation.
 
-* Various improvements for all panels, and more uniform styling. GUI
-state now persists between context switches, where appropriate.
+* Various improvements for Isabelle add-on panels, and more uniform
+styling. GUI state now persists between context switches, where
+appropriate.
 
 * Update to recent VSCode 1.135 / VSCodium 1.135.06055 (August 2026),
 Electron 42.8.1, Chromium 148.0.7778.280, Node.js 24.18.1, with pre-
@@ -530,6 +536,13 @@ null values by other means, e.g. during object initialization.
 * Various Isabelle/Scala programming interfaces now demand a Logger
 argument. Suitable values are Logger.none or Logger.console -- the
 latter ensures that spurious system errors are actually reported.
+
+* The Isabelle component for the MLton compiler now covers all platform
+variants for Linux and macOS (x86_64 and arm64), but still not Windows.
+ISABELLE_MLTON_OPTIONS are empty by default, but may be overridden in
+$ISABELLE_HOME_USER/etc/settings; new ISABELLE_MLTON_NATIVE_OPTIONS
+enable "-codegen native" on x86_64, but not on arm64. Mlton requires a C
+compiler with libgmp, as before.
 
 * The command-line tool "isabelle build_log" works again. It was broken
 in Isabelle2025-1 and Isabelle2025-2.

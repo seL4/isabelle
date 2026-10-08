@@ -817,7 +817,7 @@ proof -
   with a b show ?thesis by simp
 qed
 
-interpretation to_frac: ring_homomorphism to_frac R "(+)" "(\<cdot>)" \<zero> \<one>
+interpretation to_frac: ring_homomorphism to_frac R "addition" "(\<cdot>)" \<zero> \<one>
                                                 Fractions "([+])" "([\<cdot>])" "[\<zero>]" "[\<one>]"
 proof
   have "\<And>x. x \<in> R \<Longrightarrow> to_frac x \<in> Fractions" by (rule to_frac_in_Fractions)

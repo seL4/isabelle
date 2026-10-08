@@ -140,6 +140,8 @@ class Pretty_Text_Area(
       get_search_pattern = get_search_pattern, caret_visible = caret_visible,
       enable_hovering = true)
 
+  Isabelle_Encoding.set_active(getBuffer, unicode_symbols)
+
   private var current_search_results =
     Pretty_Text_Area.Search_Results(getBuffer, Pretty_Text_Area.make_highlight_style())
 

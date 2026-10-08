@@ -3,6 +3,10 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 listed as an author in one of the source files of this Isabelle distribution.
 
 
+Contributions to this Isabelle version
+--------------------------------------
+
+
 Contributions to Isabelle2026
 -----------------------------
 
@@ -30,7 +34,7 @@ Contributions to Isabelle2026
 
 * 2026: Hanna Lachnitt (University Stanford), Mathias Fleury and
   Pascal Walter (University Freiburg)
-  HOL: Reconstructing cvc5 proofs in the method "smt".
+  HOL: Reconstructing cvc5 proofs in the proof method "smt".
 
 
 Contributions to Isabelle2025-1

@@ -25,11 +25,11 @@ kodkodi-20260628
 lipics-3.1.3-1
 llncs-2.25
 minisat-2.2.1-2
-mlton-20241230-1
+mlton-20241230-2
 nunchaku-0.5-1
 opam-2.0.7
 pdfjs-5.4.394
-polyml-5.9.2-4
+polyml-5.9.2-5
 postgresql-42.7.12
 prismjs-1.30.0
 rsync-3.2.7-2
@@ -44,6 +44,6 @@ verit-2026.05
 vscode_extension-20260929
 vscodium-1.135.06055
 xz-java-1.12
-z3-4.4.0pre-7
+z3-4.4.0pre-8
 zipperposition-2.1-2
 zstd-jni-1.5.7-11

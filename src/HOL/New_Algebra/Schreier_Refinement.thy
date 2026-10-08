@@ -1,8 +1,104 @@
+section \<open>The Schreier refinement theorem\<close>
+
 theory Schreier_Refinement
-  imports Series_Refinement
+  imports Normal_Chain Zassenhaus_Lemma
 begin
 
-section \<open>The Schreier refinement theorem\<close>
+subsection \<open>Refining pairs of finite normal series\<close>
+
+text \<open>
+  The Zassenhaus lemma compares one refinement cell determined by a step from
+  each of two normal series.  We name the two families of subgroup products
+  independently of a particular cell.  Fixing one index produces a row of
+  intermediate subgroups refining the corresponding step of the other series.
+\<close>
+
+locale normal_series_pair =
+  A: normal_series G "(\<cdot>)" \<one> A m +
+  B: normal_series G "(\<cdot>)" \<one> B n
+  for G and composition (infixl \<open>\<cdot>\<close> 70) and unit (\<open>\<one>\<close>)
+    and A :: "nat \<Rightarrow> 'a set" and m
+    and B :: "nat \<Rightarrow> 'a set" and n
+begin
+
+definition left_refinement_term :: "nat \<Rightarrow> nat \<Rightarrow> 'a set"
+  where "left_refinement_term i j \<equiv> (case_prod (\<cdot>)) ` ((A (Suc i) \<inter> B j) \<times> A i)"
+
+definition right_refinement_term :: "nat \<Rightarrow> nat \<Rightarrow> 'a set"
+  where "right_refinement_term j i \<equiv> (case_prod (\<cdot>)) ` ((B (Suc j) \<inter> A i) \<times> B j)"
+
+end
+
+locale series_refinement_cell =
+  normal_series_pair G "(\<cdot>)" \<one> A m B n
+  for G and composition (infixl \<open>\<cdot>\<close> 70) and unit (\<open>\<one>\<close>)
+    and A :: "nat \<Rightarrow> 'a set" and m
+    and B :: "nat \<Rightarrow> 'a set" and n
+    and i j +
+  assumes i_lt: "i < m" and j_lt: "j < n"
+begin
+
+lemma ambient_group:
+  "Group G (\<cdot>) \<one>"
+  by (rule A.G.Group_axioms)
+
+lemma A_step_top_subgroup:
+  "subgroup_of_group (A (Suc i)) G (\<cdot>) \<one>"
+  by (simp add: A.term_subgroup Suc_leI ambient_group i_lt subgroup_of_group_def)
+
+lemma B_step_top_subgroup:
+  "subgroup_of_group (B (Suc j)) G (\<cdot>) \<one>"
+  by (simp add: B.term_subgroup Suc_leI ambient_group j_lt subgroup_of_group_def)
+
+interpretation cell: zassenhaus
+    G "A (Suc i)" "B (Suc j)" "A i" "B j" "(\<cdot>)" \<one>
+  by (simp add: zassenhaus.intro A.normal_step A_step_top_subgroup B.normal_step B_step_top_subgroup ambient_group i_lt
+      j_lt)
+
+lemma left_refinement_bottom_eq:
+  "left_refinement_term i j = cell.left_bottom"
+  using cell.left_bottom_def left_refinement_term_def by auto
+
+lemma left_refinement_top_eq:
+  "left_refinement_term i (Suc j) = cell.left_top"
+  using cell.left_top_def left_refinement_term_def by auto
+
+lemma right_refinement_bottom_eq:
+  "right_refinement_term j i = cell.right_bottom"
+  using cell.right_bottom_def right_refinement_term_def by auto
+
+lemma right_refinement_top_eq:
+  "right_refinement_term j (Suc i) = cell.right_top"
+  using cell.right_top_def right_refinement_term_def by auto
+
+lemma left_refinement_normal:
+  "normal_subgroup (left_refinement_term i j) (left_refinement_term i (Suc j)) (\<cdot>) \<one>"
+  using cell.left_bottom_normal left_refinement_bottom_eq left_refinement_top_eq by argo
+
+lemma right_refinement_normal:
+  "normal_subgroup (right_refinement_term j i) (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
+  using cell.right_bottom_normal right_refinement_bottom_eq right_refinement_top_eq by argo
+
+text \<open>
+  Opposite sides of every refinement cell have the same native quotient-group
+  isomorphism class.  This is the factor-level form of Zassenhaus needed by a
+  later Schreier refinement theorem; the statement contains no HOL-Algebra
+  records and no representatives of quotient isomorphisms.
+\<close>
+theorem refinement_cell_factor_class_eq:
+  "normal_factor_class (left_refinement_term i j) (left_refinement_term i (Suc j)) (\<cdot>) \<one> =
+   normal_factor_class (right_refinement_term j i) (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
+proof -
+  have "normal_factor (left_refinement_term i j) (left_refinement_term i (Suc j)) (\<cdot>) \<one> \<cong>\<^sub>G
+        normal_factor (right_refinement_term j i) (right_refinement_term j (Suc i)) (\<cdot>) \<one>"
+    unfolding normal_factor_def left_refinement_bottom_eq left_refinement_top_eq
+      right_refinement_bottom_eq right_refinement_top_eq
+    by (rule cell.butterfly_lemma)
+  then show ?thesis
+    by (simp add: left_refinement_normal normal_factor_class_eq_iff right_refinement_normal)
+qed
+
+end
 
 text \<open>
   The factors of a refinement are read row by row.  The following elementary
@@ -271,6 +367,82 @@ proof -
     unfolding left_refinement_factor_classes_def right_refinement_factor_classes_def mset_concat_map_upt
     using transpose by blast
 qed
+
+end
+
+subsection \<open>Reduced Schreier refinements\<close>
+
+text \<open>
+  A finite normal chain may repeat a term.  Its corresponding quotient is the
+  one-element group and contributes no genuine factor.  The operation below
+  removes precisely the canonical trivial isomorphism class while retaining
+  multiplicity and forgetting order.
+\<close>
+definition nontrivial_factor_multiset ::
+    "'a monoid_iso_class list \<Rightarrow> 'a monoid_iso_class multiset"
+  where
+    "nontrivial_factor_multiset factors \<equiv> filter_mset (\<lambda>C. C \<noteq> trivial_monoid_iso_class) (mset factors)"
+
+lemma nontrivial_factor_multiset_cong:
+  assumes "mset factors = mset factors'"
+  shows "nontrivial_factor_multiset factors = nontrivial_factor_multiset factors'"
+  using assms unfolding nontrivial_factor_multiset_def by simp
+
+lemma nontrivial_factor_multiset_append [simp]:
+  "nontrivial_factor_multiset (factors @ factors') =
+    nontrivial_factor_multiset factors + nontrivial_factor_multiset factors'"
+  unfolding nontrivial_factor_multiset_def by simp
+
+lemma nontrivial_factor_multiset_Nil [simp]:
+  "nontrivial_factor_multiset [] = {#}"
+  unfolding nontrivial_factor_multiset_def by simp
+
+lemma nontrivial_factor_multiset_singleton [simp]:
+  "nontrivial_factor_multiset [C] =
+    (if C = trivial_monoid_iso_class then {#} else {#C#})"
+  unfolding nontrivial_factor_multiset_def by simp
+
+lemma nontrivial_factor_multiset_concat_map_upt:
+  "nontrivial_factor_multiset (concat (List.map f [0..<m])) =
+    (\<Sum>i<m. nontrivial_factor_multiset (f i))"
+  by (induction m) (simp_all add: sum.lessThan_Suc)
+
+context normal_series_pair
+begin
+
+text \<open>
+  The trivial-class test has a concrete chain interpretation: it detects
+  exactly an adjacent repetition.  These equivalences are the bridge used by
+  the later Jordan--Hölder argument when a refinement row lies inside a simple
+  factor.
+\<close>
+lemma left_refinement_factor_class_eq_trivial_iff:
+  assumes i: "i < m" and j: "j < n"
+  shows "left_refinement_factor_class i j = trivial_monoid_iso_class
+    \<longleftrightarrow> left_refinement_term i j = left_refinement_term i (Suc j)"
+  by (simp add: i j left_refinement_factor_class_def left_refinement_step normal_factor_class_eq_trivial_iff)
+
+lemma right_refinement_factor_class_eq_trivial_iff:
+  assumes i: "i < m" and j: "j < n"
+  shows "right_refinement_factor_class j i = trivial_monoid_iso_class
+    \<longleftrightarrow> right_refinement_term j i = right_refinement_term j (Suc i)"
+  by (simp add: i j normal_factor_class_eq_trivial_iff right_refinement_factor_class_def right_refinement_step)
+
+definition left_reduced_refinement_factor_multiset :: "'a set monoid_iso_class multiset"
+  where "left_reduced_refinement_factor_multiset \<equiv> nontrivial_factor_multiset left_refinement_factor_classes"
+
+definition right_reduced_refinement_factor_multiset :: "'a set monoid_iso_class multiset"
+  where "right_reduced_refinement_factor_multiset \<equiv> nontrivial_factor_multiset right_refinement_factor_classes"
+
+text \<open>
+  Removing repetition factors from equivalent Schreier refinements preserves
+  equality.  Unlike @{thm schreier_refinement}, this form is ready to compare
+  directly with the factor multiset of a composition series.
+\<close>
+theorem reduced_schreier_refinement:
+  "left_reduced_refinement_factor_multiset = right_reduced_refinement_factor_multiset"
+  by (simp add: left_reduced_refinement_factor_multiset_def nontrivial_factor_multiset_def
+      right_reduced_refinement_factor_multiset_def schreier_refinement)
 
 end
 

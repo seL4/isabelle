@@ -31,6 +31,9 @@ object Isabelle_Encoding {
     NAME == name
   }
 
+  def set_active(buffer: JEditBuffer, active: Boolean): Unit =
+    buffer.setStringProperty(JEditBuffer.ENCODING, if (active) NAME else UTF8.charset_name)
+
   def gui_style(buffer: JEditBuffer = null): GUI.Style_Symbol =
     GUI.Style_Symbol_Recoded(is_active(buffer = buffer))
 }

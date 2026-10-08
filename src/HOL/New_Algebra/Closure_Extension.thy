@@ -1,7 +1,7 @@
 section \<open>Extensions of a Field inside the Indexed Polynomial Ring\<close>
 
 theory Closure_Extension
-  imports Indexed_Poly Poly_Divisibility_Bridge "HOL.Zorn"
+  imports Indexed_Poly Poly_Divisibility "HOL.Zorn"
 begin
 
 text \<open>

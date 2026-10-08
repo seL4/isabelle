@@ -263,4 +263,30 @@ sublocale sub: Vector_Space R "(+)" "(\<cdot>)" "\<zero>" "\<one>" "(\<oplus>)" 
 
 end
 
+text \<open>Following the @{text field_TC} pattern of \<open>Ring_Theory\<close>, we bridge
+  the locale-based @{locale Vector_Space} to Isabelle's type-class arithmetic.  A type-class field
+  @{typ "'a :: field"} plays the scalar role, and a type-class abelian additive group
+  @{typ "'b :: ab_group_add"} plays the vector role; a scale operation
+  @{term "scale :: 'a \<Rightarrow> 'b \<Rightarrow> 'b"} satisfying the four vector-space axioms then witnesses
+  @{locale Vector_Space} on the whole types as carriers.\<close>
+
+lemma vector_space_TC:
+  fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b"
+  assumes scale_add_right: "\<And>a x y. scale a (plus x y) = plus (scale a x) (scale a y)"
+    and scale_add_left:    "\<And>a b x. scale (plus a b) x = plus (scale a x) (scale b x)"
+    and scale_scale:       "\<And>a b x. scale a (scale b x) = scale (a * b) x"
+    and scale_one:         "\<And>x. scale 1 x = x"
+  shows "Vector_Space (UNIV :: 'a set) plus (*) 0 1 plus 0 (UNIV :: 'b set) scale"
+proof -
+  interpret F: Field "UNIV :: 'a set" "plus" "(*)" 0 1 by (rule field_TC.Field_axioms)
+  show ?thesis
+  proof (intro Vector_Space.intro Vector_Space_axioms.intro)
+    show "Field (UNIV :: 'a set) plus (*) 0 1" by (rule field_TC.Field_axioms)
+    show "Abelian_Group (UNIV :: 'b set) plus 0" by (rule add_abelian_TC)
+  qed (simp_all add: scale_add_right scale_add_left scale_scale scale_one)
+qed
+
+text \<open>Concrete specialisations to Isabelle's built-in \<open>real_vector\<close> and \<open>complex_vector\<close> classes
+   can be added by any consumer.\<close>
+
 end

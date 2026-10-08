@@ -1,7 +1,7 @@
 section \<open>Transfer of Solvability\<close>
 
 theory Solvable_Transfer
-  imports Derived_Series
+  imports Commutator
 begin
 
 text \<open>

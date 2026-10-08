@@ -6,13 +6,10 @@ theory New_Algebra
     Subgroup_Lattice
     Monoid_Iso_Classes
     Normal_Series
-    Composition_Series
     Normal_Chain
     Group_Product
     Group_Family_Product
-    Series_Refinement
     Schreier_Refinement
-    Reduced_Schreier_Refinement
     Simple_Factor_Chain
     Jordan_Hoelder_Uniqueness
     Maximal_Normal_Subgroup
@@ -22,33 +19,28 @@ theory New_Algebra
     P_Group
     (* rings, ideals, divisibility *)
     Subring_Generated
-    Finite_Field_Cardinality
+    Finite_Field_Frobenius
     Ideal_Extension
     Chinese_Remainder_Rings
     Field_Of_Fractions
-    Poly_Divisibility_Bridge
+    Poly_Divisibility
     Closure_Algebraic
-    Int_Ring
     (* modules and vector spaces *)
     Module_Complements
     Module_Exact_Sequence
     Module_Family_Product
     Free_Module_Universal
-    Grassmann_Dimension
     Finite_Dimensional_Isomorphism
     Finite_Dimensional_Splitting
     (* fields, extensions, Galois theory *)
     Field_Extension
     Field_Mult_Cyclic
-    Rats_Irreducibility
     Galois_Restriction_Splitting
     Galois_Finite_Correspondence
     Normal_Closure
     (* finite fields *)
     Finite_Field_Galois
-    GF4
-    GF8
-    GF9
+    GF_p
 begin
 
 end

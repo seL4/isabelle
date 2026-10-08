@@ -29,8 +29,6 @@ Checklist for official releases
 - test "isabelle build HOL-Codegenerator_Test" with -new-syntax
   (see also etc/settings:ISABELLE_SCALAC_OPTIONS);
 
-- test Windows Subsystem for Linux (e.g. on Windows Server 2022);
-
 - check (non-)executable files:
     $ find . "(" -name "*.thy" -o -name "*.ML" -o -name "*.scala" -o -name ROOT ")" -executable
     $ find -type f -executable
