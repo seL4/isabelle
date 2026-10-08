@@ -64,10 +64,8 @@ object Sledgehammer_View {
   /* query operation */
 
   private def process_indicator: XML.Elem = {
-    val elem =
-      if (current_status == "" || current_status == "Finished") HTML.div(Nil)
-      else HTML.div("loading", Nil)
-    HTML.id("sledgehammer-spinner")(elem)
+    if (current_status == "" || current_status == "Finished") HTML.span(Nil)
+    else VSCode_Elements.spinner
   }
 
 
@@ -84,13 +82,13 @@ object Sledgehammer_View {
   private def provers_text_field: History_Text_Field =
     History_Text_Field("provers", update_provers, provers, columns = 30,
       tooltip = "Automatic provers as space-separated list", placeholder = provers0)
-  private val provers_label = HTML.GUI.label("Provers:", "provers")
+  private val provers_label = VSCode_Elements.label("Provers:", "provers")
 
   object isar_proofs_checkbox_clicked extends Scalajs.Fun[Boolean] {
     def apply(state: Boolean): Unit = { isar_proofs = state }
   }
   private def isar_proofs_checkbox: XML.Elem =
-    HTML.GUI.checkbox(HTML.text("Isar proofs"),
+    VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
       selected = isar_proofs, script = isar_proofs_checkbox_clicked.function("this.checked"))
 
@@ -98,7 +96,7 @@ object Sledgehammer_View {
     def apply(state: Boolean): Unit = { try0 = state }
   }
   private def try0_checkbox =
-    HTML.GUI.checkbox(HTML.text("Try methods"),
+    VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
       selected = try0, script = try0_checkbox_clicked.function("this.checked"))
 
@@ -106,18 +104,18 @@ object Sledgehammer_View {
     def apply(): Unit = provers_text_field.submit()
   }
   private def apply_query: XML.Elem = {
-    HTML.GUI.button(List(HTML.bold(HTML.text("Apply"))),
+    VSCode_Elements.button("Apply",
       tooltip = "Search for first-order proof using automatic theorem provers",
       script = apply_query_clicked.function())
   }
 
   private val cancel_query =
-    HTML.GUI.button(HTML.text("Cancel"),
+    VSCode_Elements.button("Cancel", secondary = true,
       tooltip = "Interrupt unfinished sledgehammering",
       script = Webview_Api.Post.function(JSON.Format(LSP.Sledgehammer_Cancel())))
 
   private val locate_query =
-    HTML.GUI.button(HTML.text("Locate"),
+    VSCode_Elements.button("Locate", secondary = true,
       tooltip = "Locate context of current query within source text",
       script = Webview_Api.Post.function(JSON.Format(LSP.Sledgehammer_Locate())))
 
