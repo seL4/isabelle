@@ -15,7 +15,10 @@ body {
 }
 
 pre {
-  font-family: var(--vscode-editor-font-family);
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  margin-block: var(--vscode-spacing-size40);
 }
 
 ol,
@@ -137,8 +140,9 @@ span.active:hover {
 }
 
 .source {
-  display: flex;
-  flex-direction: column;
+  font-size: var(--vscode-editor-font-size);
+  font-weight: var(--vscode-editor-font-weight);
+  font-family: var(--vscode-editor-font-family);
 }
 
 .information_message {
@@ -351,6 +355,14 @@ span.active:hover {
 
 /* proper inline label */
 .vscode-label { display: inline-block; }
+
+/* source buttons cannot use normal styling */
+.vscode-button.source {
+  display: inline-block;
+  line-height: normal;
+  padding-top: var(--vscode-spacing-size40);
+  padding-bottom: var(--vscode-spacing-size40);
+}
 
 /* incorrect secondary border color */
 .vscode-button.secondary { border-color: var(--vscode-button-secondaryBorder); }

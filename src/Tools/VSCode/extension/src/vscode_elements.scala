@@ -35,9 +35,12 @@ object VSCode_Elements {
   }
 
   def button(text: String, name: String = "", tooltip: String = "", secondary: Boolean = false,
-      block: Boolean = false, script: String = ""): XML.Elem =
-    HTML.class_("vscode-button" + if_proper(secondary, " secondary") + if_proper(block, " block"))(
+      block: Boolean = false, source: Boolean = false, script: String = ""): XML.Elem = {
+    val styles =
+      if_proper(secondary, " secondary") + if_proper(block, " block") + if_proper(source, " source")
+    HTML.class_("vscode-button" + styles)(
       HTML.GUI.button(HTML.text(text), name = name, tooltip = tooltip, script = script))
+  }
 
   def checkbox(text: String, name: String = "", tooltip: String = "", selected: Boolean = false,
       script: String = ""): XML.Elem = {
