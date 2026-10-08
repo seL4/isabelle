@@ -23,7 +23,7 @@ object Component_Windows_App {
   def seven_zip_exe(base: Path = base_path): Path =
     base + Path.basic(tool_platform()) + Path.basic("7zz")
 
-  val sfx_name = "7zsd_All_x64.sfx"
+  val sfx_name = "7z.sfx"
   def sfx_path(base: Path = base_path): Path = base + Path.basic(sfx_name)
 
   def sfx_txt(name: String): String = {
@@ -54,28 +54,41 @@ AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
       Seven_Zip_Platform("x86_64-darwin", "{U}/{V}/7z{v}-mac.tar.xz"),
       Seven_Zip_Platform("x86_64-linux", "{U}/{V}/7z{v}-linux-x64.tar.xz"))
 
+  private val seven_zip_windows_url_template = "{U}/{V}/7z{v}-x64.exe"
   private val seven_zip_windows = "{U}/{V}/7zr.exe"
 
 
   /* build windows_app */
 
-  val default_sfx_url =
-    "https://github.com/chrislake/7zsfxmm/releases/download/1.7.1.3901/7zsd_extra_171_3901.7z"
-
   val default_seven_zip_url = "https://github.com/ip7z/7zip/releases/download"
   val default_seven_zip_version = "26.02"
 
   def build_windows_app(
-    sfx_url: String = default_sfx_url,
     seven_zip_url: String = default_seven_zip_url,
     seven_zip_version: String = default_seven_zip_version,
     progress: Progress = new Progress,
     target_dir: Path = Path.current
   ): Unit = {
     require(Platform.is_windows, "Windows platform required")
+    Isabelle_System.require_command("mt.exe", test = "/?")
 
     Isabelle_System.with_tmp_dir("build") { tmp_dir =>
       val component_dir = Components.Directory(tmp_dir + Path.basic("windows_app")).create()
+
+
+      /* exe manifest */
+
+      def change_manifest(name: String, f: String => String): Unit = {
+        Isabelle_System.bash(
+          "mt.exe " + Bash.string("-inputresource:" + name + ";#1") + " -out:manifest",
+          cwd = tmp_dir).check
+
+        File.change(tmp_dir + Path.basic("manifest"), strict = true)(f)
+
+        Isabelle_System.bash(
+          "mt.exe -manifest manifest " + Bash.string("-outputresource:" + name + ";#1"),
+          cwd = tmp_dir).check
+      }
 
 
       /* 7zip tool */
@@ -100,14 +113,25 @@ AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
 
       /* 7zip sfx module */
 
-      val sfx_archive = Path.basic(Url.get_base_name(sfx_url).get)
+      val windows_url = make_url(seven_zip_windows_url_template)
+      val windows_archive = Path.basic(Url.get_base_name(windows_url).get)
       val tmp_7z_exe = tmp_dir + Path.basic("7z.exe")
 
-      Isabelle_System.download_file(sfx_url, tmp_dir + sfx_archive, progress = progress)
+      Isabelle_System.download_file(windows_url, tmp_dir + windows_archive, progress = progress)
       Isabelle_System.download_file(make_url(seven_zip_windows), tmp_7z_exe, progress = progress)
       File.set_executable(tmp_7z_exe)
 
-      Isabelle_System.bash("./7z x -y " + File.bash_path(sfx_archive), cwd = tmp_dir).check
+      Isabelle_System.bash(
+        "./7z x -y " + File.bash_path(windows_archive) + " " + Bash.string(sfx_name),
+        cwd = tmp_dir).check
+
+      change_manifest(sfx_name, _.replacing(
+        "</dependency>\r\n" ->
+        ("</dependency>\r\n" +
+          """<trustInfo xmlns="urn:schemas-microsoft-com:asm.v2"><security><requestedPrivileges><requestedExecutionLevel level="asInvoker" uiAccess="false"></requestedExecutionLevel></requestedPrivileges></security></trustInfo>""")
+        )
+      )
+
       Isabelle_System.copy_file(sfx_path(base = tmp_dir), component_dir.path)
 
 
@@ -150,8 +174,9 @@ AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
 
 * 7zip: https://www.7-zip.org
 
-* Self-extracting installer:
-  """ + sfx_url + """
+* 7z.sfx: changed manifest for non-admin
+
+* Isabelle.exe: via jpackage
 
 
         Makarius
@@ -179,7 +204,6 @@ AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
       Scala_Project.here,
       { args =>
         var target_dir = Path.current
-        var sfx_url = default_sfx_url
         var seven_zip_url = default_seven_zip_url
         var seven_zip_version = default_seven_zip_version
         var verbose = false
@@ -189,17 +213,17 @@ Usage: isabelle component_windows_app [OPTIONS]
 
   Options are:
     -D DIR       target directory (default ".")
-    -S URL       download URL for 7zip sfx module, default:
-                 """ + default_sfx_url + """
     -U URL       download URL for 7zip tool, default:
                  """ + default_seven_zip_url + """
     -V VERSION   version for 7zip download (default: """ + default_seven_zip_version + """)
     -v           verbose
 
   Build auxiliary parts for Isabelle as Windows application.
+
+  Windows prerequisites:
+    - mt.exe from https://learn.microsoft.com/en-us/windows/apps/windows-sdk/downloads
 """,
           "D:" -> (arg => target_dir = Path.explode(arg)),
-          "S:" -> (arg => sfx_url = arg),
           "U:" -> (arg => seven_zip_url = arg),
           "V:" -> (arg => seven_zip_version = arg),
           "v" -> (_ => verbose = true))
@@ -209,7 +233,7 @@ Usage: isabelle component_windows_app [OPTIONS]
 
         val progress = new Console_Progress(verbose = verbose)
 
-        build_windows_app(sfx_url = sfx_url, seven_zip_url = seven_zip_url,
-          seven_zip_version = seven_zip_version, progress = progress, target_dir = target_dir)
+        build_windows_app(seven_zip_url = seven_zip_url, seven_zip_version = seven_zip_version,
+          progress = progress, target_dir = target_dir)
       })
 }
