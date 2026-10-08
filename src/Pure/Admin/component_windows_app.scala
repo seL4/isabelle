@@ -26,21 +26,6 @@ object Component_Windows_App {
   val sfx_name = "7z.sfx"
   def sfx_path(base: Path = base_path): Path = base + Path.basic(sfx_name)
 
-  def sfx_txt(name: String): String = {
-    val txt = """;!@Install@!UTF-8!
-GUIFlags="64"
-InstallPath="%UserDesktop%"
-BeginPrompt="Unpack {NAME}?"
-ExtractPathText="Target directory"
-ExtractTitle="Unpacking {NAME} ..."
-Shortcut="Du,{%%T\{NAME}\{NAME}.exe},{},{},{},{{NAME}},{%%T\{NAME}}"
-RunProgram="\"%%T\{NAME}\{NAME}.exe\""
-AutoInstall="\"%%T\{NAME}\{NAME}.exe\" -init"
-;!@InstallEnd@!
-""".replacing("{NAME}" -> name)
-    Library.trim_split_lines(txt).map(_ + Platform_Family.windows.line_ending).mkString
-  }
-
 
   /* 7zip platform downloads */
 
