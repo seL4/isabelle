@@ -66,4 +66,20 @@ object VSCode_Elements {
         placeholder = placeholder, script = script)
     HTML.div("vscode-textfield", before ::: text_field :: after)
   }
+
+
+  /* additional elements */
+
+  def tab_header(text: String, selected: Boolean = false, tooltip: String = "", script: String = "")
+      : XML.Elem =
+    HTML.class_("vscode-tab-header" + if_proper(selected, " active"))(
+      HTML.GUI.button(HTML.text(text), tooltip = tooltip, script = script)) + ("role" -> "tab")
+
+  def tab_panel(body: XML.Body, selected: Boolean = false): XML.Elem = {
+    val panel = HTML.div("vscode-tab-panel", body) + ("role" -> "tabpanel")
+    if (selected) panel else panel + ("hidden" -> "true")
+  }
+
+  def tabs(elems: List[(XML.Elem, XML.Elem)]): XML.Elem =
+    HTML.div(HTML.div("vscode-tablist", elems.map(_._1)) + ("role" -> "tablist") :: elems.map(_._2))
 }
