@@ -1,9 +1,4 @@
-pre {
-  font-family: inherit;
-  display: flex;
-  flex-direction: column;
-  margin-block: var(--vscode-spacing-size40);
-}
+/** Isabelle CSS **/
 
 form {
   font-family: var(--vscode-font-family);
@@ -16,24 +11,32 @@ form > div > * {
   margin: var(--vscode-spacing-size20);
 }
 
+pre {
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  margin-block: var(--vscode-spacing-size40);
+}
+
+.source {
+  font-size: var(--vscode-editor-font-size);
+  font-weight: var(--vscode-editor-font-weight);
+  font-family: var(--vscode-editor-font-family);
+}
+
 .source a {
   color: inherit;
   text-decoration: none;
 }
 
-.source a:hover,
-.source a:active {
-  text-decoration: underline;
-}
+.source a:hover, .source a:active  { text-decoration: underline; }
 
-sub, sup { 
-  font-size: 80%;
-}
+sub, sup { font-size: 80%; }
 
 span.hidden {
   font-family: Vacuous;
   font-size: 1%;
-  color: rgba(255,255,255,0);
+  color: transparent;
 }
 
 span.active {
@@ -46,40 +49,37 @@ span.active {
 }
 
 span.active:hover {
-  color: var(--vscode-button-foreground);
   background-color: var(--vscode-button-hoverBackground);
   box-shadow:
     0 -1px 0 var(--vscode-button-hoverBackground),
     0 1px 0 var(--vscode-button-hoverBackground);
 }
 
-.source {
-  font-size: var(--vscode-editor-font-size);
-  font-weight: var(--vscode-editor-font-weight);
-  font-family: var(--vscode-editor-font-family);
-}
-
 .information_message {
   display: block;
   background-color: color-mix(in srgb, var(--vscode-editorInfo-foreground) 20%, transparent);
 }
+
 .warning_message, .legacy_message {
   display: block;
   background-color: color-mix(in srgb, var(--vscode-editorWarning-foreground) 20%, transparent);
 }
+
 .error_message {
   display: block;
   background-color: color-mix(in srgb, var(--vscode-editorError-foreground) 20%, transparent);
 }
+
 .writeln_message, .tracing_message {
   display: block;
   background-color: color-mix(in srgb, var(--vscode-editor-foreground) 20%, transparent);
 }
+
 .separator {
   visibility: hidden;
   overflow: hidden;
-  flex: 0 0 2px;
-  block-size: 2px;
+  flex: 0 0 var(--vscode-spacing-size20);
+  block-size: var(--vscode-spacing-size20);
   line-height: 0;
 }
 
