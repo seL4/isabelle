@@ -747,7 +747,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           // executable archive (self-extracting 7z)
 
-          val sfx_path = tmp_dir + Component_Windows_App.base_path + Path.explode("7z.sfx")
+          val sfx_path = tmp_dir + Component_Windows_App.sfx_path()
 
           val archive_name = bundle_info.name
           val archive_path = context.dist_dir + bundle_info.path
