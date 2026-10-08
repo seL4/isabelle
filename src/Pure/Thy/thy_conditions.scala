@@ -16,8 +16,10 @@ object Thy_Conditions {
   def init(background: Sessions.Background, options: Options): Thy_Conditions =
     new Thy_Conditions(background, options, SortedMap.empty)
 
-  def explode(options: Options): List[String] =
+  def domain(options: Options): List[String] =
     space_explode(',', options.string(Condition.name))
+
+  val filter_option: Set[String] = Set(Condition.name)
 
 
   /* context with mutable state (or cache) */
@@ -47,15 +49,14 @@ object Thy_Conditions {
         }
       }
 
-    def eval_restrict(specs: Options.Update): Thy_Conditions = synchronized {
-      val eval_options = conditions.update_options(specs)
-      val conds = Thy_Conditions.explode(eval_options)
-      val conditions1 = conditions.evaluate(conds)
+    def eval_restrict(opts: Options.Update): Thy_Conditions = synchronized {
+      val domain = conditions.domain(opts)
+      val conditions1 = conditions.evaluate(domain)
       if (immutable && conditions.changed(conditions1)) {
         error("Cannot change immutable conditions context")
       }
       if (!immutable) { conditions = conditions1 }
-      conditions1.restrict(conds.toSet)
+      conditions1.restrict(domain)
     }
   }
 
@@ -91,9 +92,6 @@ final class Thy_Conditions private(
 ) {
   def changed(other: Thy_Conditions): Boolean = rep != other.rep
 
-  def restrict(domain: Set[String]): Thy_Conditions =
-    new Thy_Conditions(background, options, rep.filter(p => domain(p._1)))
-
   def errors: List[String] =
     List.from(for (case (_, Exn.Exn(e)) <- rep.iterator) yield Exn.message(e))
 
@@ -121,8 +119,13 @@ final class Thy_Conditions private(
     if (bads.isEmpty) "" else bads.mkString("(", ", ", ")")
   }
 
-  def update_options(specs: Options.Update): Options =
-    options ++ specs.filter(p => p._1 == Thy_Conditions.Condition.name)
+  def domain(opts: Options.Update): List[String] =
+    Thy_Conditions.domain(options ++ opts.filter(p => Thy_Conditions.filter_option(p._1)))
+
+  def restrict(domain: List[String]): Thy_Conditions = {
+    val domain_set = domain.toSet
+    new Thy_Conditions(background, options, rep.filter(p => domain_set(p._1)))
+  }
 
   def evaluate(cond: String): Thy_Conditions =
     if (rep.isDefinedAt(cond)) this
@@ -165,9 +168,6 @@ final class Thy_Conditions private(
     }
 
   def evaluate(conds: List[String]): Thy_Conditions = conds.foldLeft(this)(_ evaluate _)
-
-  def eval(opts: Options): Thy_Conditions = evaluate(Thy_Conditions.explode(opts))
-  def eval(specs: Options.Update): Thy_Conditions = eval(update_options(specs))
 
   override def toString: String = {
     val a = if_proper(failed, "failed = " + quote(failed.mkString(",")))
