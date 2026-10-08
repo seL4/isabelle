@@ -27,11 +27,7 @@ object Resources {
     def encode(thy: Thy): XML.Body = {
       val options = thy.options.map(spec => (spec.name, spec.value))
       val keywords = thy.keywords.map({ case (a, spec) => (a, (spec.kind, spec.tags)) })
-      val (condition_bad, errors) =
-        Exn.result { (thy.condition_bad, thy.errors) } match {
-          case Exn.Res(res) => res
-          case Exn.Exn(exn) => ("", thy.include_errors(List(Exn.message(exn))).errors)
-        }
+      val (condition_bad, errors) = thy.condition_bad_errors
 
       import XML.Encode._
       pair(encode_node_name,
@@ -67,12 +63,14 @@ object Resources {
         quote(name.toString) + if_proper(more, " " + more)
       }
 
-    def condition_bad: String =
-      if (name.is_empty) ""
+    def condition_bad_errors: (String, List[String]) =
+      if (name.is_empty) ("", errors)
       else {
         conditions match {
-          case Some(cond) => cond.bad_message
-          case None => error("Unevaluated conditions for theory " + quote(name.toString))
+          case None =>
+            val err = "Unevaluated conditions for theory " + quote(name.toString)
+            ("", include_errors(List(err)).errors)
+          case Some(cond) => (cond.bad_message, errors)
         }
       }
 
