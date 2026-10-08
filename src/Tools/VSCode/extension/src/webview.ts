@@ -39,7 +39,7 @@ export function get_html(
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="${uri(codicons_css)}" rel="stylesheet" type="text/css">
         ${vscode_elements.map(name =>
-    `<link href="${uri(element_css(name))}" rel="stylesheet" type="text/css">`).join("\n") }
+         `<link href="${uri(element_css(name))}" rel="stylesheet" type="text/css">`).join("\n") }
         <link href="${uri(vscode_css)}" rel="stylesheet" type="text/css">
         <style>
             @font-face {
