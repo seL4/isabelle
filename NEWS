@@ -37,6 +37,12 @@ tool setup, later theories may work uniformly on either variant.
     'services' in etc/build.props and suitable instances of the service
     class isabelle.Thy_Conditions.Predicates).
 
+* The system option "condition_proofs" is analogous to "condition", but
+skips proof checking only. Thus [condition_proofs = false] is like the
+historical option [skip_proofs = true], but "condition_proofs" may
+depend on the process environment, session options, Isabelle/Scala
+predicates.
+
 * The Isabelle application bundle has been split into "macos"
 (x86_64-darwin, Intel) and "macos_arm" (arm64-darwin, Apple Silicon).
 The correct version needs to be used for the actual system platform:

@@ -16,10 +16,14 @@ object Thy_Conditions {
   def init(background: Sessions.Background, options: Options): Thy_Conditions =
     new Thy_Conditions(background, options, SortedMap.empty)
 
-  def domain(options: Options): List[String] =
-    space_explode(',', options.string(Condition.name))
+  private val any_option: List[String] = List("condition", "condition_proofs")
 
-  val filter_option: Set[String] = Set(Condition.name)
+  def domain(options: Options): List[String] =
+    any_option.flatMap(name => space_explode(',', options.string(name)))
+
+  val filter_any_option: Set[String] = any_option.toSet
+  val filter_theory_option: Set[String] = Set(any_option(0))
+  val filter_proofs_option: Set[String] = Set(any_option(1))
 
 
   /* context with mutable state (or cache) */
@@ -49,8 +53,11 @@ object Thy_Conditions {
         }
       }
 
-    def eval_restrict(opts: Options.Update): Thy_Conditions = synchronized {
-      val domain = conditions.domain(opts)
+    def eval_restrict(
+      opts: Options.Update,
+      filter: Set[String] = Thy_Conditions.filter_any_option
+    ): Thy_Conditions = synchronized {
+      val domain = conditions.domain(opts, filter = filter)
       val conditions1 = conditions.evaluate(domain)
       if (immutable && conditions.changed(conditions1)) {
         error("Cannot change immutable conditions context")
@@ -119,8 +126,10 @@ final class Thy_Conditions private(
     if (bads.isEmpty) "" else bads.mkString("(", ", ", ")")
   }
 
-  def domain(opts: Options.Update): List[String] =
-    Thy_Conditions.domain(options ++ opts.filter(p => Thy_Conditions.filter_option(p._1)))
+  def domain(
+    opts: Options.Update,
+    filter: Set[String] = Thy_Conditions.filter_any_option
+  ): List[String] = Thy_Conditions.domain(options ++ opts.filter(p => filter(p._1)))
 
   def restrict(domain: List[String]): Thy_Conditions = {
     val domain_set = domain.toSet

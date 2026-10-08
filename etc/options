@@ -149,6 +149,9 @@ option context : string = "" for content
 option condition : string = "" for content
   -- "pre-conditions to evaluate theory body (separated by commas)"
 
+option condition_proofs : string = "" for content
+  -- "pre-conditions to check proofs within theory body (separated by commas)"
+
 option timeout : real = 0 for build
   -- "timeout for session build job (seconds > 0)"
 

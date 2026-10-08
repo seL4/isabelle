@@ -36,7 +36,7 @@ sig
     imports: (node_name * Position.T) list,
     options: Options.update_pos,
     keywords: Thy_Header.keywords,
-    condition_bad: string,
+    condition_bad: bool * string,
     errors: string list,
     initiators: node_name list}
   val no_thy: thy
@@ -44,7 +44,8 @@ sig
   val map_thy_pos: (Position.T -> Position.T) -> thy -> thy
   val map_thy_errors: (string list -> string list) -> thy -> thy
   val check_thy_errors: thy -> thy
-  val skipping_theory: (string -> unit) -> thy -> bool
+  val skipped: thy -> Toplevel.skipped
+  val skipping_theory: (string -> unit) -> thy -> unit
   val begin_theory: thy -> theory list -> theory
   val theory_qualifier: string -> string
   val find_theory_file: string -> Path.T option
@@ -253,13 +254,13 @@ type thy =
   imports: (node_name * Position.T) list,
   options: Options.update_pos,
   keywords: Thy_Header.keywords,
-  condition_bad: string,
+  condition_bad: bool * string,
   errors: string list,
   initiators: node_name list};
 
 val no_thy: thy =
  {name = empty_node_name, pos = Position.none, imports = [], options = [],
-   keywords = [], condition_bad = "", errors = [], initiators = []};
+   keywords = [], condition_bad = (false, ""), errors = [], initiators = []};
 
 val decode_thy: thy XML.Decode.T =
   let
@@ -272,7 +273,7 @@ val decode_thy: thy XML.Decode.T =
       (pair position
         (pair (list (pair decode_node_name position))
           (pair (list (pair string_none (option string_none)))
-            (pair (list keyword) (pair YXML.string_of_body
+            (pair (list keyword) (pair (pair bool YXML.string_of_body)
               ((pair (list YXML.string_of_body) (list decode_node_name))))))))
   end
   #> (fn (name, (pos, (imports, (options, (keywords, (condition_bad, (errors, initiators))))))) =>
@@ -299,9 +300,18 @@ fun check_thy_errors (thy: thy) =
 
 (* begin theory *)
 
-fun skipping_theory output ({name, condition_bad, ...}: thy) =
-  if condition_bad = "" then false
-  else (output ("Skipping theory " ^ quote (#theory name) ^ " " ^ condition_bad); true);
+fun skipped ({condition_bad = (proofs, bad), ...}: thy): Toplevel.skipped =
+  if bad = "" then Toplevel.no_skipped else {theory = not proofs, proofs = proofs};
+
+fun skipping_theory output (thy as {name = {theory, ...}, condition_bad = (_, bad), ...}: thy) =
+  let
+    fun out msg = output (msg ^ " " ^ quote theory ^ " " ^ bad);
+    val skipped = skipped thy;
+  in
+    if #theory skipped then out "Skipping theory"
+    else if #proofs skipped then out "Skipping proofs of theory"
+    else ()
+  end;
 
 fun begin_theory ({name, pos, keywords, ...}: thy) parents =
   let

@@ -35,7 +35,7 @@ object Resources {
           pair(list(pair(encode_node_name, properties)),
             pair(list(pair(string, option(string))),
               pair(list(pair(string, pair(string, list(string)))),
-                pair(string, pair(list(string), list(encode_node_name))))))))(
+                pair(pair(bool, string), pair(list(string), list(encode_node_name))))))))(
         (thy.name, (thy.pos, (thy.imports, (options, (keywords,
           (condition_bad, (errors, thy.initiators))))))))
     }
@@ -63,16 +63,31 @@ object Resources {
         quote(name.toString) + if_proper(more, " " + more)
       }
 
-    def condition_bad_errors: (String, List[String]) =
-      if (name.is_empty) ("", errors)
+    def condition_bad_errors: ((Boolean, String), List[String]) = {
+      def result(proofs: Boolean = false, bad: String = "", errors: List[String] = errors) =
+        ((proofs, bad), errors)
+
+      if (name.is_empty) result()
       else {
         conditions match {
           case None =>
             val err = "Unevaluated conditions for theory " + quote(name.toString)
-            ("", include_errors(List(err)).errors)
-          case Some(cond) => (cond.bad_message, errors)
+            result(errors = include_errors(List(err)).errors)
+          case Some(cond) =>
+            def condition_bad(filter: Set[String]): String =
+              cond.restrict(cond.domain(options, filter = filter)).bad_message
+
+            condition_bad(Thy_Conditions.filter_theory_option) match {
+              case bad if bad.nonEmpty => result(bad = bad)
+              case _ =>
+                condition_bad(Thy_Conditions.filter_proofs_option) match {
+                  case bad if bad.nonEmpty => result(proofs = true, bad = bad)
+                  case _ => result()
+                }
+            }
         }
       }
+    }
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 
