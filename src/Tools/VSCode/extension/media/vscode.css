@@ -418,3 +418,44 @@ div.vscode-textfield input[type="text"] { width: 100%; }
 }
 
 .vscode-tab-panel { padding-block: var(--vscode-spacing-size80); }
+
+
+/** additional VSCode dropdown **/
+
+.vscode-dropdown-container {
+  display: inline-block;
+  position: relative;
+}
+
+.vscode-dropdown {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--vscode-dropdown-listBackground, var(--vscode-dropdown-background));
+  color: var(--vscode-dropdown-foreground);
+  border: var(--vscode-strokeThickness) solid var(--vscode-dropdown-border, var(--vscode-widget-border, transparent));
+}
+
+.vscode-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--vscode-spacing-size40) var(--vscode-spacing-size80);
+}
+
+.vscode-dropdown-item.clickable { cursor: pointer; }
+.vscode-dropdown-item.clickable:hover {
+  background: var(--vscode-list-hoverBackground);
+  color: var(--vscode-list-hoverForeground);
+}
+
+.vscode-dropdown-item.active {
+  background: var(--vscode-list-focusBackground);
+  color: var(--vscode-list-focusForeground);
+  outline: var(--vscode-strokeThickness) solid var(--vscode-list-focusOutline, transparent);
+  outline-offset: calc(-1 * var(--vscode-strokeThickness));
+}

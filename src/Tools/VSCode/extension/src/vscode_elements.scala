@@ -82,4 +82,18 @@ object VSCode_Elements {
 
   def tabs(elems: List[(XML.Elem, XML.Elem)]): XML.Elem =
     HTML.div(HTML.div("vscode-tablist", elems.map(_._1)) + ("role" -> "tablist") :: elems.map(_._2))
+
+  def dropdown_item(body: XML.Body, focused: Boolean = false, script: String = ""): XML.Elem = {
+    val styles = if_proper(script, " clickable") + if_proper(focused, " active")
+    HTML.GUI.onclick(script)(HTML.div("vscode-dropdown-item" + styles, body))
+  }
+
+  def dropdown(elem: XML.Elem, items: List[XML.Elem], open: Boolean = false, script: String = "")
+      : XML.Elem = {
+    val pane = HTML.GUI.onmousedown("event.preventDefault()")(HTML.div("vscode-dropdown", items))
+    val container =
+      HTML.div("vscode-dropdown-container",
+        List(elem, if (open) pane else pane + ("hidden" -> "true")))
+    HTML.GUI.onfocusout(script)(container)
+  }
 }
