@@ -193,13 +193,17 @@ directory individually.
         } yield bundled(line)).toList))
   }
 
-  def get_bundled_components(dir: Path, platform: Platform_Family): (List[String], String) = {
+  def get_bundled_components(dir: Path, platform: Platform_Family): (List[String], String, String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
       for { case Bundled(name) <- Components.Directory(dir).read_components() } yield name
     val jdk_component =
-      components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
-    (components, jdk_component)
+      components.find(_.startsWith("jdk"))
+        .getOrElse(error("Missing jdk component"))
+    val setup_component =
+      components.find(_.startsWith("isabelle_setup"))
+        .getOrElse(error("Missing isabelle_setup component"))
+    (components, jdk_component, setup_component)
   }
 
   def activate_components(dir: Path, platform: Platform_Family, more_names: List[String]): Unit = {
@@ -562,7 +566,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         val contrib_dir = Components.contrib(isabelle_target)
 
-        val (bundled_components, jdk_component) = get_bundled_components(isabelle_target, platform)
+        val (bundled_components, jdk_component, setup_component) =
+          get_bundled_components(isabelle_target, platform)
         val jdk_home = Path.explode("contrib") + Path.explode(jdk_component)
 
         for (name <- bundled_components) {
@@ -710,8 +715,11 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           val cygwin_template = Path.explode("~~/Admin/Windows/Cygwin")
 
-          Isabelle_System.copy_file(cygwin_template + Path.explode("Cygwin-Terminal.bat"),
-            isabelle_target)
+          val cygwin_terminal = Path.explode("Cygwin-Terminal.bat")
+          Isabelle_System.copy_file(cygwin_template + cygwin_terminal, isabelle_target)
+          File.change(isabelle_target + cygwin_terminal, strict = true) {
+            _.replacing("{JDK_COMPONENT}" -> jdk_component, "{SETUP_COMPONENT}" -> setup_component)
+          }
 
           val cygwin_mirror =
             File.read(isabelle_target + Path.explode("contrib/cygwin/isabelle/cygwin_mirror"))
