@@ -50,6 +50,10 @@ class Setup
                     check_args(n == 1);
                     echo(Environment.join_standard_paths(Build.classpath()));
                     break;
+                case "cygwin_init":
+                    check_args(n == 3);
+                    Environment.cygwin_init(args[1], args[2]);
+                    break;
                 case "gui_setup":
                     check_args(n == 1);
                     String msg = GUI_Setup.gui_setup();
