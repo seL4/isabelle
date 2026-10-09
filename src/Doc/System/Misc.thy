@@ -38,7 +38,7 @@ text \<open>
 \<open>Usage: isabelle docker_build [OPTIONS] APP_ARCHIVE
 
   Options are:
-    -B NAME      base image (default "ubuntu:24.04")
+    -B NAME      base image (default "ubuntu:26.04")
     -E           set Isabelle/bin/isabelle as entrypoint
     -P NAME      additional Ubuntu package collection ("X11", "latex")
     -W DIR       working directory that is accessible to docker,
@@ -72,14 +72,14 @@ text \<open>
   Option \<^verbatim>\<open>-B\<close> specifies the Docker image taken as starting point for the
   Isabelle installation: it needs to be a suitable version of Ubuntu Linux,
   see also \<^url>\<open>https://hub.docker.com/_/ubuntu\<close>. The default for Isabelle2025-2
-  is \<^verbatim>\<open>ubuntu:24.04\<close>, but \<^verbatim>\<open>ubuntu:22.04\<close> and \<^verbatim>\<open>ubuntu:20.04\<close> also work. Other
+  is \<^verbatim>\<open>ubuntu:26.04\<close>, but \<^verbatim>\<open>ubuntu:24.04\<close> and \<^verbatim>\<open>ubuntu:22.04\<close> also work. Other
   versions might require experimentation with the package selection.
 
   Option \<^verbatim>\<open>-p\<close> includes additional Ubuntu packages, using the terminology
   of \<^verbatim>\<open>apt-get install\<close> within the underlying Linux distribution.
 
   Option \<^verbatim>\<open>-P\<close> refers to high-level package collections: \<^verbatim>\<open>X11\<close> or \<^verbatim>\<open>latex\<close> as
-  provided by \<^verbatim>\<open>isabelle docker_build\<close> (assuming Ubuntu 24.04/22.04/20.04
+  provided by \<^verbatim>\<open>isabelle docker_build\<close> (assuming Ubuntu 26.04/24.04/22.04
   LTS). This imposes extra weight on the resulting Docker images. Note that
   \<^verbatim>\<open>X11\<close> will only provide remote X11 support according to the modest GUI
   quality standards of the late 1990-ies.
