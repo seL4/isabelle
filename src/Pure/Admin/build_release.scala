@@ -748,10 +748,14 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           def ext_permissive(path: Path): String = Url.get_ext(path.implode)
 
+          val non_executable =
+            Set("css", "ftl", "gz", "html", "js", "json", "md", "mp3", "png", "svg", "ts", "ttf",
+              "txt", "woff", "woff2")
+
           def pred_755(path: Path): Boolean =
             ext_permissive(path) match {
               case "exe" | "dll" => true
-              case ext => File.is_executable(path)
+              case ext => !non_executable(ext) && File.is_executable(path)
             }
 
           def pred_444(path: Path): Boolean =
