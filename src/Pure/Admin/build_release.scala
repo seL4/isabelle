@@ -735,10 +735,35 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               isabelle_target + Path.explode("contrib/cygwin") + path)
           }
 
-          execute(isabelle_target,
-            """find . -type f -not -name "*.exe" -not -name "*.dll" """ +
-            (if (Platform.is_macos) "-perm +100" else "-executable") +
-            " -print0 > contrib/cygwin/isabelle/executables")
+          val permissions =
+            Isabelle_System.make_directory(
+              isabelle_target + Path.explode("contrib/cygwin/isabelle/permissions"))
+
+          def write_permissions(name: String, pred: Path => Boolean, dirs: Boolean = false): Unit = {
+            val entries =
+              File.find_files(isabelle_target, pred = pred, include_dirs = dirs, relative = true)
+                .map(_.implode).sorted
+            File.write_gzip(permissions + Path.basic(name).gz, entries.mkString("\u0000"))
+          }
+
+          def ext_permissive(path: Path): String = Url.get_ext(path.implode)
+
+          def pred_755(path: Path): Boolean =
+            ext_permissive(path) match {
+              case "exe" | "dll" => true
+              case ext => File.is_executable(path)
+            }
+
+          def pred_444(path: Path): Boolean =
+            ext_permissive(path) match {
+              case "scala" | "ML" | "thy" => true
+              case _ => false
+            }
+
+          write_permissions("directories", _.is_dir, dirs = true)
+          write_permissions("755", pred_755)
+          write_permissions("444", pred_444)
+          write_permissions("644", path => !pred_755(path) && !pred_444(path))
 
           execute(isabelle_target,
             """find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" """ +
