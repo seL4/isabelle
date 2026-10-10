@@ -212,7 +212,7 @@ public option ML_system_apple : bool = true for build
 
 section "Build Process"
 
-option build_debug : bool = false
+option build_debug : bool = true
   -- "print details about differing sources and heaps"
 
 option build_thorough : bool = false
