@@ -758,7 +758,7 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           def pred_755(path: Path): Boolean =
             ext_permissive(path) match {
-              case "exe" | "dll" => true
+              case "exe" | "dll" | "bat" => true
               case ext => !non_executable(ext) && File.is_executable(path)
             }
 
