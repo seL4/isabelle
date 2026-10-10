@@ -8,6 +8,8 @@ package isabelle
 
 import isabelle.find_facts.Find_Facts
 
+import java.nio.file.Files
+
 import scala.collection.mutable
 
 
@@ -741,8 +743,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           def write_permissions(name: String, pred: Path => Boolean, dirs: Boolean = false): Unit = {
             val entries =
-              File.find_files(isabelle_target, pred = pred, include_dirs = dirs, relative = true)
-                .map(_.implode).sorted
+              File.find_files(isabelle_target,
+                pred = path => !Files.isSymbolicLink(path.java_path) && pred(path),
+                include_dirs = dirs, relative = true
+              ).map(_.implode).sorted
             File.write_gzip(permissions + Path.basic(name).gz, entries.mkString("\u0000"))
           }
 
