@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 export PATH=/bin
 
 bash /etc/postinstall/base-files-mketc.sh.done
