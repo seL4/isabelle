@@ -1102,7 +1102,7 @@ Since SMT solvers are potentially nonterminating, there is a timeout
 (given in seconds) to restrict their runtime.
 \<close>
 
-declare [[smt_timeout = 20]]
+declare [[smt_timeout = 0]]
 
 text \<open>
 SMT solvers apply randomized heuristics. In case a problem is not

@@ -238,9 +238,6 @@ version 2.4 (release 20260920). The new version allocates less memory
 and fixes one implementation defect. Minor INCOMPATIBILITY.
 
 * SMT:
-  - Back to original smt_timeout=20. The timeout got lost in
-    Isabelle2021, leading to "verit" and "z3" processes hanging around
-    indefinitely.
   - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
     to the problem/proof files generated with through the options
     "smt_problem_dest_dir" and "smt_proof_dest_dir"; this allows saving
