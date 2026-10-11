@@ -257,6 +257,9 @@ not affect the running ML session. *)
     val component_dir =
       Components.Directory(target_dir + Path.basic(component_name1)).create(progress = progress)
 
+    File.write(component_dir.platform_props,
+      "macos_arm = arm64-darwin arm64_32-darwin x86_64-darwin x86_64_32-darwin\n")
+
 
     /* download and build */
 
