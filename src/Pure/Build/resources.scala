@@ -25,9 +25,17 @@ object Resources {
     }
 
     def encode(thy: Thy): XML.Body = {
-      val options = thy.options.map(spec => (spec.name, spec.value))
+      val thy_options = thy.options.map(spec => (spec.name, spec.value))
       val keywords = thy.keywords.map({ case (a, spec) => (a, (spec.kind, spec.tags)) })
       val (condition_bad, errors) = thy.condition_bad_errors
+
+      val skip_proofs =
+        condition_bad match {
+          case (true, bad) if bad.nonEmpty => List("skip_proofs" -> Some("true"))
+          case _ => Nil
+        }
+
+      val options = thy_options ::: skip_proofs
 
       import XML.Encode._
       pair(encode_node_name,

@@ -44,7 +44,8 @@ sig
   val map_thy_pos: (Position.T -> Position.T) -> thy -> thy
   val map_thy_errors: (string list -> string list) -> thy -> thy
   val check_thy_errors: thy -> thy
-  val skipped: thy -> Toplevel.skipped
+  val skip_theory: thy -> bool
+  val skip_proofs: thy -> bool
   val skipping_theory: (string -> unit) -> thy -> unit
   val begin_theory: thy -> theory list -> theory
   val theory_qualifier: string -> string
@@ -300,16 +301,13 @@ fun check_thy_errors (thy: thy) =
 
 (* begin theory *)
 
-fun skipped ({condition_bad = (proofs, bad), ...}: thy): Toplevel.skipped =
-  if bad = "" then Toplevel.no_skipped else {theory = not proofs, proofs = proofs};
+fun skip_theory ({condition_bad = (proofs, bad), ...}: thy) = bad <> "" andalso not proofs;
+fun skip_proofs ({condition_bad = (proofs, bad), ...}: thy) = bad <> "" andalso proofs;
 
 fun skipping_theory output (thy as {name = {theory, ...}, condition_bad = (_, bad), ...}: thy) =
-  let
-    fun out msg = output (msg ^ " " ^ quote theory ^ " " ^ bad);
-    val skipped = skipped thy;
-  in
-    if #theory skipped then out "Skipping theory"
-    else if #proofs skipped then out "Skipping proofs of theory"
+  let fun out msg = output (msg ^ " " ^ quote theory ^ " " ^ bad) in
+    if skip_theory thy then out "Skipping theory"
+    else if skip_proofs thy then out "Skipping proofs of theory"
     else ()
   end;
 
