@@ -14,6 +14,7 @@ import isabelle._
 object DOM_Metric {
   private def string_bounds(s: String): dom.DOMRect = {
     val span = dom.document.createElement("span")
+    span.setAttribute("class", "source")
     span.setAttribute("style", "white-space: pre-wrap;")
     span.textContent = s
 
