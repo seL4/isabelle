@@ -132,6 +132,11 @@ text \<open>
   official jEdit documentation does not know about the Isabelle plugin with
   its support for continuous checking of formal source text: jEdit is a plain
   text editor, but Isabelle/jEdit is a Prover IDE.
+
+  The \<^emph>\<open>Documentation\<close> panel can be navigated quickly using the keyboard:
+  arrow keys to move the selected entry, \<^verbatim>\<open>ENTER\<close> to open an entry, and
+  \<^verbatim>\<open>ESCAPE\<close> or \<^verbatim>\<open>S+F1\<close> to focus to the main text area --- which then allows
+  \<^verbatim>\<open>F1\<close> to reactivate \<^emph>\<open>Documentation\<close>.
 \<close>
 
 
