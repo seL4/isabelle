@@ -412,7 +412,7 @@ fun schedule_of_provers (ctxt : Proof.context) (provers : string list) num_slice
     val (tactics, known_provers, unknown_provers) =
       let
         fun partition_into name (tactics, known_provers, unknown_provers) =
-          if Option.isSome (Try0.get_proof_method name) then
+          if Option.isSome (Try0.get_proof_method ctxt name) then
             (name :: tactics, known_provers, unknown_provers)
           else if member (op =) default_schedule name then
             (tactics, name :: known_provers, unknown_provers)

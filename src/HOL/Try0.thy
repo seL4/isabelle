@@ -16,7 +16,6 @@ ML \<open>
 val () =
   Try0.register_proof_method "simp" {run_if_auto_try = true}
     (Try0_Util.apply_raw_named_method "simp" false Try0_Util.simp_attrs Simplifier_Trace.disable)
-  handle Symtab.DUP _ => ()
 \<close>
 
 end
