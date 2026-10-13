@@ -39,4 +39,3 @@ tsconfig.json
 .vscode/settings.json
 .vscode/tasks.json
 yarn.lock
-.yarnrc
