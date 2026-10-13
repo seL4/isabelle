@@ -32,6 +32,10 @@ import dotty.tools.dotc.reporting
 object Scalajs {
   /** compilation **/
 
+  object Module {
+    val main_js = Path.explode("main.js")
+  }
+
   final case class Module(name: String, class_name: String, main: String = "main") {
     def js_path: Path = Path.basic(name).ext("js")
   }
