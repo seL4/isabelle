@@ -174,9 +174,8 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             (outcome, command)
           end)
 
-    val timer = Timer.startRealTimer ()
-    val (outcome, command) = classify_facts_and_run_proof_method ()
-    val run_time = Timer.checkRealTimer timer
+    val ({elapsed = run_time, ...}, (outcome, command)) =
+      Timing.timing classify_facts_and_run_proof_method ()
 
     val used_facts =
       (case outcome of
