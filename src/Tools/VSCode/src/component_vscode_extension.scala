@@ -287,7 +287,7 @@ val symbol_provider = Symbol_Static
             Library.make_lines(
               "set -e",
               node_dir.path_setup,
-              "yarn install --ignore-engines",
+              "yarn install --frozen-lockfile --ignore-engines",
               "vsce package"),
             cwd = build_dir, echo = true).check
         val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r
