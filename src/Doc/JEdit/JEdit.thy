@@ -1085,13 +1085,14 @@ text \<open>
   actions (see \secref{sec:auto-tools} and \secref{sec:sledgehammer}).
 
   \<^medskip>
-  Alternatively, the subsequent actions (with keyboard shortcuts) allow to
-  show tooltip messages or navigate error positions:
+  It is also possible to show tooltip messages or navigate error positions via
+  the subsequent actions (with keyboard shortcuts):
 
   \<^medskip>
   \begin{tabular}[t]{l}
   @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close>) \\
   @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close>) \\
+  @{action_ref "isabelle.line-status"} (\<^verbatim>\<open>CS+l\<close>) \\
   \end{tabular}\quad
   \begin{tabular}[t]{l}
   @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close>) \\
@@ -1100,6 +1101,20 @@ text \<open>
   @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close>) \\
   \end{tabular}
   \<^medskip>
+
+  The jEdit action @{action "isabelle.line-status"} displays the same per-line
+  information as the gutter area, but avoids visual GUI interaction. The
+  headline accounts for errors and warnings; the body text lists all messages
+  in the order priorities. See also \figref{fig:output-line-status}
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{output2} \\
+  \includegraphics[scale=0.333]{output3} \\
+  \end{center}
+  \caption{Line status output via keyboard shortcut \<^verbatim>\<open>CS+l\<close>}
+  \label{fig:output-line-status}
+  \end{figure}
 \<close>
 
 
