@@ -507,8 +507,8 @@ text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
   in the text force jEdit to fall back on a different encoding like
   \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text
   buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation
-  \<^emph>\<open>File~/ Reload Unicode Symbols\<close> helps to resolve such problems (after
-  repairing malformed parts of the text).
+  \<^emph>\<open>File~/ Reload as Plain Text\<close> (\<^verbatim>\<open>F9\<close>) and \<^emph>\<open>File~/ Reload as Unicode
+  Symbols\<close> (\<^verbatim>\<open>S+F9\<close>) help to sort out the underlying text encoding.
 
   If the loaded text already contains Unicode sequences that are in conflict
   with the Isabelle symbol encoding, the fallback-encoding UTF-8 is used and
