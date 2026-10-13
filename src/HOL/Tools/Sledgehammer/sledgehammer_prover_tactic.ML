@@ -165,7 +165,8 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             val ({elapsed = method_time, ...}, (outcome, command)) =
               Timing.timing run_proof_method classified_facts
             val () =
-              if Config.get ctxt fact_classification_dest_dir = "" then ()
+              if Config.get ctxt fact_classification_dest_dir = "" then
+                ()
               else
                 write_fact_classification_log ctxt name mode max_facts classifier_time method_time
                   outcome command classified_facts
