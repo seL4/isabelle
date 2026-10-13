@@ -28,7 +28,7 @@ object Print_Operation {
     private def put(msg: Prover.Protocol_Output): Boolean = {
       val ops = {
         import XML.Decode._
-        list(pair(string, string))(Symbol.decode_yxml(msg.text))
+        list(pair(string, string))(Symbol.decode_yxml(msg.chunk))
       }
       print_operations.change(_ => ops)
       true

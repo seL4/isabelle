@@ -278,9 +278,6 @@ class Prover(
       (Symbol.decode(a), Symbol.decode(b))
     }
 
-    def decode_xml(bytes: Bytes): XML.Body =
-      Symbol.decode_yxml_failsafe(bytes.text, cache = cache)
-
     val thread_name = "message_output"
     Isabelle_Thread.fork(name = thread_name) {
       try {
@@ -293,7 +290,7 @@ class Prover(
               val props = rest.take(props_length).map(decode_prop)
               val chunks = rest.drop(props_length)
               if (kind == Markup.PROTOCOL) protocol_message(props, chunks)
-              else output(kind, props, chunks.flatMap(decode_xml))
+              else output(kind, props, chunks.flatMap(Symbol.decode_yxml_failsafe(_, cache = cache)))
             case Some(_) => Prover.bad_chunks()
           }
         }

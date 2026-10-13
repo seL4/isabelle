@@ -324,7 +324,7 @@ object Build_Job {
                   try {
                     val (rc, errs) = {
                       import XML.Decode._
-                      pair(int, list(self))(Symbol.decode_yxml(msg.text))
+                      pair(int, list(self))(Symbol.decode_yxml(msg.chunk))
                     }
                     val errors =
                       for (err <- errs) yield {
