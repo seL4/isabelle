@@ -49,13 +49,13 @@
                 {
                     "id": "isabelle-documentation",
                     "title": "Documentation",
-                    "icon":"./media/documentation-panel.svg"
+                    "icon": "./media/documentation-panel.svg"
                 }
             ]
         },
         "views": {
             "isabelle-symbols": [
-                { 
+                {
                     "id": "isabelle-symbols",
                     "name": "Symbols",
                     "type": "webview",
@@ -360,6 +360,8 @@
         "typescript": "^4.5.5"
     },
     "dependencies": {
+        "@vscode-elements/elements-lite": "^0.4.0",
+        "@vscode/codicons": "^0.0.46-24",
         "vscode-languageclient": "~7.0.0",
         "vscode-languageserver-types": "~3.16.0"
     }

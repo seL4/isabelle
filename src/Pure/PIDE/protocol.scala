@@ -57,7 +57,7 @@ object Protocol {
             case a :: bs => (a, bs)
             case _ => throw new XML.XML_Body(body)
           }
-        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(text)))
+        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(YXML.Source(text))))
       }
       catch {
         case ERROR(_) => None
@@ -70,7 +70,7 @@ object Protocol {
     def unapply(text: String): Option[List[Document_ID.Version]] =
       try {
         import XML.Decode._
-        Some(list(long)(Symbol.decode_yxml(text)))
+        Some(list(long)(Symbol.decode_yxml(YXML.Source(text))))
       }
       catch {
         case ERROR(_) => None

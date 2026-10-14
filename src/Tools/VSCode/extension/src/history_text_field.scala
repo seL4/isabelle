@@ -43,13 +43,13 @@ object History_Text_Field {
   case class Item(value: String, index: Int, focused: Boolean) {
     def html(name: String): XML.Elem = {
       val remove_button =
-        HTML.GUI.onclick(Item.remove_clicked.function(JS.string(name), JS.int(index), "event"))(
-          HTML.span("history-entry-remove", HTML.text("\u2716")))
+        VSCode_Elements.action_button("close", script =
+          Item.remove_clicked.function(JS.string(name), JS.int(index), "event"))
 
       val content = HTML.text(value) ::: remove_button :: Nil
 
-      HTML.GUI.onclick(Item.clicked.function(JS.string(name), JS.int(index)))(
-        HTML.div(if_proper(focused, "active ") + "history-entry", content))
+      VSCode_Elements.dropdown_item(content, focused = focused, script =
+        Item.clicked.function(JS.string(name), JS.int(index)))
     }
   }
 
@@ -139,8 +139,9 @@ object History_Text_Field {
     state: State = State.init(),
     columns: Int = 0,
     tooltip: String = "",
+    placeholder: String = "",
   ): History_Text_Field = {
-    val text_field = new History_Text_Field(name, columns, tooltip, state, on_update)
+    val text_field = new History_Text_Field(name, columns, tooltip, placeholder, state, on_update)
     instances += name -> text_field
     text_field
   }
@@ -150,6 +151,7 @@ class History_Text_Field private(
   name: String,
   columns: Int,
   tooltip: String,
+  placeholder: String,
   state: History_Text_Field.State,
   on_update: History_Text_Field.Update => Unit,
 ) {
@@ -179,28 +181,24 @@ class History_Text_Field private(
           e.preventDefault()
           update(state.next_entry(rev = true))
         case dom.KeyCode.Escape =>
-          e.currentTarget.asInstanceOf[dom.HTMLElement].blur()
+          e.target.asInstanceOf[dom.HTMLElement].blur()
         case _ =>
       }
     }
 
   def html: XML.Elem = {
     val input_field = 
-      HTML.GUI.onfocus(History_Text_Field.focused.function(JS.string(name), JS.boolean(true)))(
+      HTML.GUI.onfocusin(History_Text_Field.focused.function(JS.string(name), JS.boolean(true)))(
         HTML.GUI.onkeydown(History_Text_Field.key_down.function(JS.string(name), "event"))(
-          HTML.GUI.text_field(columns = columns, text = state.input, name = name, tooltip = tooltip,
-            script = History_Text_Field.input.function(JS.string(name), "this.value"))))
+          VSCode_Elements.text_field(columns = columns, text = state.input, name = name, tooltip =
+            tooltip, placeholder = placeholder, script =
+              History_Text_Field.input.function(JS.string(name), "this.value"))))
 
-    val drop_down =
-      if (!state.focused) Nil
-      else {
-        val entries =
-          HTML.div("history-entry", HTML.text("Previously entered strings:")) ::
-            state.history_items.map(_.html(name))
-        List(HTML.GUI.onmousedown("event.preventDefault()")(HTML.div("history-dropdown", entries)))
-      }
+    val items =
+      VSCode_Elements.dropdown_item(HTML.text("Previously entered strings:")) ::
+        state.history_items.map(_.html(name))
 
-    HTML.GUI.onfocusout(History_Text_Field.focused.function(JS.string(name), JS.boolean(false)))(
-      HTML.div("history-text-field", input_field :: drop_down))
+    VSCode_Elements.dropdown(input_field, items, open = state.focused, script =
+      History_Text_Field.focused.function(JS.string(name), JS.boolean(false)))
   }
 }

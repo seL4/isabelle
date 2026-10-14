@@ -13,34 +13,45 @@ import * as Decorations from "./decorations"
 import * as VSCode_Lib from "./vscode_lib"
 
 
+const vscode_css = Path.join("media", "vscode.css")
+const codicons_css = Path.join("node_modules", "@vscode", "codicons", "dist", "codicon.css")
+const isabelle_font = Path.join("fonts", "IsabelleDejaVuSansMono.ttf")
+function element_css(name: string) {
+  return Path.join(
+    "node_modules", "@vscode-elements", "elements-lite", "components", name, `${name}.css`)
+}
+
 export function get_html(
   webview: Webview,
   extension_path: string,
   title: string,
   script_name: string,
 ): string {
-  const script_uri = webview.asWebviewUri(Uri.file(Path.join(extension_path, "media", script_name)))
-  const css_uri = webview.asWebviewUri(Uri.file(Path.join(extension_path, "media", "vscode.css")))
-  const font_uri =
-    webview.asWebviewUri(Uri.file(Path.join(extension_path, "fonts", "IsabelleDejaVuSansMono.ttf")))
+  function uri(path: string): Uri {
+    return webview.asWebviewUri(Uri.file(Path.join(extension_path, path)))
+  }
+  const vscode_elements = ["action-button", "button", "checkbox", "label", "textfield"]
 
   return `<!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="${css_uri}" rel="stylesheet" type="text/css">
+        <link href="${uri(codicons_css)}" rel="stylesheet" type="text/css">
+        ${vscode_elements.map(name =>
+         `<link href="${uri(element_css(name))}" rel="stylesheet" type="text/css">`).join("\n") }
+        <link href="${uri(vscode_css)}" rel="stylesheet" type="text/css">
         <style>
             @font-face {
                 font-family: "Isabelle DejaVu Sans Mono";
-                src: url(${font_uri});
+                src: url(${uri(isabelle_font)});
             }
             ${_get_decorations()}
         </style>
         <title>${title}</title>
       </head>
       <body>
-        <script type="module" src="${script_uri}"></script>
+        <script type="module" src="${uri(Path.join("media", script_name))}"></script>
       </body>
     </html>`
 }

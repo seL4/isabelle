@@ -66,7 +66,7 @@ object Completion {
         if (COMPLETION_HISTORY.is_file) {
           try {
             import XML.Decode._
-            list(pair(string, int))(Symbol.decode_yxml(File.read(COMPLETION_HISTORY)))
+            list(pair(string, int))(Symbol.decode_yxml(Bytes.read(COMPLETION_HISTORY)))
           }
           catch {
             case ERROR(msg) => ignore_error(msg); Nil

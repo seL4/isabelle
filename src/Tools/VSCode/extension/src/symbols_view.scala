@@ -35,12 +35,11 @@ object Symbols_View {
     val tooltip =
       cat_lines(drop_caret(txt) :: abbrs.filterNot(_ == "").sorted.map(a => "abbrev: " + a))
 
-    HTML.class_("symbol-button")(
-      HTML.GUI.button(HTML.text(symbol), tooltip = tooltip, script =
-        Webview_Api.Post.function(JSON.Format(msg))))
+    VSCode_Elements.button(symbol, tooltip = tooltip, secondary = true, source = true, script =
+      Webview_Api.Post.function(JSON.Format(msg)))
   }
 
-  private def abbrev_panel: XML.Body = {
+  private def abbrev_panel: List[XML.Elem] = {
     val entries: List[(String, List[String])] =
       Multi_Map(
         (for {
@@ -58,10 +57,8 @@ object Symbols_View {
     abbrev_elem(symbol, Symbol.symbols.get_abbrevs(symbol))
 
   private val reset_elem: XML.Elem =
-    HTML.class_("reset-button")(
-      HTML.GUI.button(HTML.text("Reset"),
-        tooltip = "Reset control symbols within text",
-        script = Webview_Api.Post.function(JSON.Format(JSON.Object("command" -> "reset_control")))))
+    VSCode_Elements.button("Reset", secondary = true, tooltip = "Reset control symbols within text",
+      script = Webview_Api.Post.function(JSON.Format(JSON.Object("command" -> "reset_control"))))
 
 
   /* search */
@@ -77,10 +74,10 @@ object Symbols_View {
     for (entry <- Symbol.symbols.entries if entry.code.isDefined)
     yield entry.symbol -> Word.lowercase(entry.symbol)
 
-  private def search_panel: XML.Body = {
+  private def search_panel: List[XML.Elem] = {
     val search_field = 
-      HTML.GUI.text_field(columns = 10, text = search_input, name = "search-input", script =
-        search_changed.function("this.value"))
+      VSCode_Elements.text_field(text = search_input, script =
+        search_changed.function("this.value")) + ("style" -> "width: 100%;")
 
     val search_words = Word.explode(Word.lowercase(search_input))
     val search_limit = 50
@@ -89,13 +86,14 @@ object Symbols_View {
       else
         for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield symbol_elem(sym)
 
-    val more_results =
-      if (results.length <= search_limit) Nil
-      else HTML.text("(" + (results.length - search_limit) + " more ...)")
+    val search_results =
+      if (results.length <= search_limit) results
+      else {
+        val more = HTML.span(HTML.text("(" + (results.length - search_limit) + " more ...)"))
+        results.take(50) ::: more :: Nil
+      }
 
-    val search_results = HTML.div("search-results", results.take(50) ::: more_results)
-
-    List(HTML.div("search-container", List(search_field, search_results)))
+    search_field :: search_results
   }
 
 
@@ -109,16 +107,17 @@ object Symbols_View {
     }
   }
 
-  private class Tab(name: String, content: XML.Body, tooltip: String = "") {
+  private class Tab(name: String, elems: List[XML.Elem], tooltip: String = "") {
     def title: String = Word.implode(Word.explode('_', name).map(Word.perhaps_capitalized))
 
     def button(index: Int): XML.Elem =
-      HTML.class_(if_proper(index == active_tab, "active ") + "tab")(
-        HTML.GUI.button(HTML.text(title), tooltip = tooltip, script =
-          tab_clicked.function(JS.value(index))))
+      VSCode_Elements.tab_header(title, selected = index == active_tab, tooltip = tooltip, script =
+        tab_clicked.function(JS.value(index)))
 
-    def panel(index: Int): XML.Elem =
-      HTML.div(if_proper(index != active_tab, "hidden ") + "tab-content", content)
+    def panel(index: Int): XML.Elem = {
+      val content = HTML.Wrap_Panel(elems, alignment = HTML.Wrap_Panel.Alignment.center)
+      VSCode_Elements.tab_panel(List(content), selected = index == active_tab)
+    }
   }
 
   private def group_tabs: XML.Body = {
@@ -134,9 +133,7 @@ object Symbols_View {
 
     val tabs = (abbrevs_tab :: symbols_tabs ::: search_tab :: Nil).zipWithIndex
 
-    List(
-      HTML.div("tabs", for ((tab, i) <- tabs) yield tab.button(i)),
-      HTML.div("content", for ((tab, i) <- tabs) yield tab.panel(i)))
+    List(VSCode_Elements.tabs(for ((tab, i) <- tabs) yield (tab.button(i), tab.panel(i))))
   }
 
 

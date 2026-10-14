@@ -23,7 +23,7 @@ object State_Panel {
   /* controls */
 
   private def auto_update_button =
-    HTML.GUI.checkbox(HTML.text("Auto update"),
+    VSCode_Elements.checkbox("Auto update",
       tooltip = "Indicate automatic update following cursor movement",
       selected = auto_update_enabled, script = auto_update_button_clicked.function("this.checked"))
 
@@ -35,7 +35,7 @@ object State_Panel {
   }
 
   private val update_button =
-    HTML.GUI.button(HTML.text("Update"),
+    VSCode_Elements.button("Update",
       tooltip = "Update display according to the command at cursor position",
       script = update_button_clicked.function())
 
@@ -44,7 +44,7 @@ object State_Panel {
   }
 
   private val locate_button =
-    HTML.GUI.button(HTML.text("Locate"),
+    VSCode_Elements.button("Locate", secondary = true,
       tooltip = "Update display according to the command at cursor position",
       script = locate_button_clicked.function())
 
