@@ -573,11 +573,11 @@ object Symbol {
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
-  def decode_yxml(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body(YXML.Source(text), recode = decode, cache = cache)
+  def decode_yxml(source: YXML.Source, cache: XML.Cache = XML.Cache.none): XML.Body =
+    YXML.parse_body(source, recode = decode, cache = cache)
 
-  def decode_yxml_failsafe(text: String, cache: XML.Cache = XML.Cache.none): XML.Body =
-    YXML.parse_body_failsafe(YXML.Source(text), recode = decode, cache = cache)
+  def decode_yxml_failsafe(source: YXML.Source, cache: XML.Cache = XML.Cache.none): XML.Body =
+    YXML.parse_body_failsafe(source, recode = decode, cache = cache)
 
   def encode_yxml(body: XML.Body): String =
     YXML.string_of_body(body, recode = encode)
