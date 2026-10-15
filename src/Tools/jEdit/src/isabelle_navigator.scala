@@ -264,9 +264,17 @@ class Isabelle_Navigator_View(view: View) extends Isabelle_Navigator {
     for (target <- _goto_target.get(name)) {
       _goto_target = _goto_target - name
       for (caret <- target.caret_offset(buffer)) {
-        val text_areas = JEdit_Lib.jedit_text_areas(buffer).toList
-        for (text_area <- text_areas) text_area.setCaretPosition(caret)
-        if (text_areas.isEmpty) buffer.unsetProperty(Buffer.SCROLL_VERT)
+        val edit_panes = JEdit_Lib.jedit_edit_panes(buffer).toList
+        for (edit_pane <- edit_panes) {
+          edit_pane.getTextArea.setCaretPosition(caret)
+          val caret_info =
+            Untyped.get(edit_pane, "caretsForPath")
+              .asInstanceOf[java.util.Map[AnyRef, AnyRef]].get(buffer.getPath)
+          if (caret_info != null) {
+            Untyped.set(caret_info, "scrollVert", Integer.valueOf(-1))
+          }
+        }
+        buffer.unsetProperty(Buffer.SCROLL_VERT)
         buffer.setIntegerProperty(Buffer.CARET, caret)
         buffer.setBooleanProperty(Buffer.CARET_POSITIONED, true)
       }

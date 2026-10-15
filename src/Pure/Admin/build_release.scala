@@ -8,6 +8,8 @@ package isabelle
 
 import isabelle.find_facts.Find_Facts
 
+import java.nio.file.Files
+
 import scala.collection.mutable
 
 
@@ -193,13 +195,17 @@ directory individually.
         } yield bundled(line)).toList))
   }
 
-  def get_bundled_components(dir: Path, platform: Platform_Family): (List[String], String) = {
+  def get_bundled_components(dir: Path, platform: Platform_Family): (List[String], String, String) = {
     val Bundled = new Bundled(platform = Some(platform))
     val components =
       for { case Bundled(name) <- Components.Directory(dir).read_components() } yield name
     val jdk_component =
-      components.find(_.startsWith("jdk")) getOrElse error("Missing jdk component")
-    (components, jdk_component)
+      components.find(_.startsWith("jdk"))
+        .getOrElse(error("Missing jdk component"))
+    val setup_component =
+      components.find(_.startsWith("isabelle_setup"))
+        .getOrElse(error("Missing isabelle_setup component"))
+    (components, jdk_component, setup_component)
   }
 
   def activate_components(dir: Path, platform: Platform_Family, more_names: List[String]): Unit = {
@@ -562,7 +568,8 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         val contrib_dir = Components.contrib(isabelle_target)
 
-        val (bundled_components, jdk_component) = get_bundled_components(isabelle_target, platform)
+        val (bundled_components, jdk_component, setup_component) =
+          get_bundled_components(isabelle_target, platform)
         val jdk_home = Path.explode("contrib") + Path.explode(jdk_component)
 
         for (name <- bundled_components) {
@@ -710,8 +717,11 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           val cygwin_template = Path.explode("~~/Admin/Windows/Cygwin")
 
-          Isabelle_System.copy_file(cygwin_template + Path.explode("Cygwin-Terminal.bat"),
-            isabelle_target)
+          val cygwin_terminal = Path.explode("Cygwin-Terminal.bat")
+          Isabelle_System.copy_file(cygwin_template + cygwin_terminal, isabelle_target)
+          File.change(isabelle_target + cygwin_terminal, strict = true) {
+            _.replacing("{JDK_COMPONENT}" -> jdk_component, "{SETUP_COMPONENT}" -> setup_component)
+          }
 
           val cygwin_mirror =
             File.read(isabelle_target + Path.explode("contrib/cygwin/isabelle/cygwin_mirror"))
@@ -727,10 +737,41 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               isabelle_target + Path.explode("contrib/cygwin") + path)
           }
 
-          execute(isabelle_target,
-            """find . -type f -not -name "*.exe" -not -name "*.dll" """ +
-            (if (Platform.is_macos) "-perm +100" else "-executable") +
-            " -print0 > contrib/cygwin/isabelle/executables")
+          val permissions =
+            Isabelle_System.make_directory(
+              isabelle_target + Path.explode("contrib/cygwin/isabelle/permissions"))
+
+          def write_permissions(name: String, pred: Path => Boolean, dirs: Boolean = false): Unit = {
+            val entries =
+              File.find_files(isabelle_target,
+                pred = path => !Files.isSymbolicLink(path.java_path) && pred(path),
+                include_dirs = dirs, relative = true
+              ).map(_.implode).sorted
+            File.write_gzip(permissions + Path.basic(name).gz, entries.mkString("\u0000"))
+          }
+
+          def ext_permissive(path: Path): String = Url.get_ext(path.implode)
+
+          val non_executable =
+            Set("css", "ftl", "gz", "html", "js", "json", "md", "mp3", "png", "svg", "ts", "ttf",
+              "txt", "woff", "woff2")
+
+          def pred_755(path: Path): Boolean =
+            ext_permissive(path) match {
+              case "exe" | "dll" | "bat" => true
+              case ext => !non_executable(ext) && File.is_executable(path)
+            }
+
+          def pred_444(path: Path): Boolean =
+            ext_permissive(path) match {
+              case "scala" | "ML" | "thy" => true
+              case _ => false
+            }
+
+          write_permissions("directories", _.is_dir, dirs = true)
+          write_permissions("755", pred_755)
+          write_permissions("444", pred_444)
+          write_permissions("644", path => !pred_755(path) && !pred_444(path))
 
           execute(isabelle_target,
             """find . -type l -exec echo "{}" ";" -exec readlink "{}" ";" """ +
@@ -747,24 +788,20 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
           // executable archive (self-extracting 7z)
 
-          val archive_name = isabelle_name + ".7z"
-          val exe_archive = tmp_dir + Path.explode(archive_name)
-          exe_archive.file.delete
+          val sfx_path = tmp_dir + Component_Windows_App.sfx_path()
+
+          val archive_name = bundle_info.name
+          val archive_path = context.dist_dir + bundle_info.path
 
           progress.echo("Packaging " + archive_name + " ...")
           execute(tmp_dir,
             File.bash_path(Component_Windows_App.seven_zip_exe()) +
-              " -myv=1602 -y -bd a " + File.bash_path(exe_archive) + " " +
+              " -sfx" + File.bash_path(sfx_path) +
+              " -y -bd a " + File.bash_path(archive_path) + " " +
               Bash.string(isabelle_name))
-          if (!exe_archive.is_file) error("Failed to create archive: " + exe_archive)
+          if (!archive_path.is_file) error("Failed to create archive: " + archive_path)
 
-          val sfx_exe = tmp_dir + Component_Windows_App.sfx_path()
-          val sfx_txt = Component_Windows_App.sfx_txt(isabelle_name)
-
-          val isabelle_exe = bundle_info.path
-          Bytes.write(context.dist_dir + isabelle_exe,
-            Bytes.read(sfx_exe) + Bytes(sfx_txt) + Bytes.read(exe_archive))
-          File.set_executable(context.dist_dir + isabelle_exe)
+          File.set_executable(archive_path)
         }
 
         other_isabelle.cleanup()

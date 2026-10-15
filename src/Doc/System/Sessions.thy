@@ -307,6 +307,12 @@ text \<open>
       \<^verbatim>\<open>services\<close> in \<^verbatim>\<open>etc/build.props\<close> and suitable instances of the service
       class @{scala_type isabelle.Thy_Conditions.Predicates}).
 
+    \<^item> @{system_option_def "condition_proofs"} is analogous to @{system_option
+    condition}, but skips proof checking only. Thus
+    \<^verbatim>\<open>[condition_proofs = false]\<close> is like the historical option
+    \<^verbatim>\<open>[skip_proofs = true]\<close>, but @{system_option condition_proofs} may depend
+    on the process environment, session options, Isabelle/Scala predicates.
+
     \<^item> @{system_option_def "timeout"} and @{system_option_def "timeout_scale"}
     specify a real wall-clock timeout for the session as a whole: the two
     values are multiplied and taken as the number of seconds. Typically,

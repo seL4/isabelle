@@ -217,9 +217,8 @@ fun eval_thy loading_theory (thy: Resources.thy) text_pos text parents =
 
     val text_id = Position.copy_id text_pos Position.none;
 
-    val condition_bad = #condition_bad thy;
     fun init () =
-     {skipped = condition_bad <> "",
+     {skip_theory = Resources.skip_theory thy,
       theory = Resources.begin_theory thy parents};
 
     fun excursion () =

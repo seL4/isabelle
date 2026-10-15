@@ -87,7 +87,7 @@ Right-arrows of all kinds always associate to the right. In particular,
 the formula
 \<open>A\<^sub>1 \<Longrightarrow> A\<^sub>2 \<Longrightarrow> A\<^sub>3\<close> means \<open>A\<^sub>1 \<Longrightarrow> (A\<^sub>2 \<Longrightarrow> A\<^sub>3)\<close>.
 The (Isabelle-specific\footnote{To display implications in this style in
-Isabelle/jEdit you need to set Plugins $>$ Plugin Options $>$ Isabelle/General $>$ Print Mode to ``\texttt{brackets}'' and restart.}) notation \mbox{\<open>\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A\<close>}
+Isabelle/jEdit you need to set Options $>$ Isabelle Options $>$ Print Mode to ``\texttt{brackets}'' and restart.}) notation \mbox{\<open>\<lbrakk> A\<^sub>1; \<dots>; A\<^sub>n \<rbrakk> \<Longrightarrow> A\<close>}
 is short for the iterated implication \mbox{\<open>A\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> A\<^sub>n \<Longrightarrow> A\<close>}.
 Sometimes we also employ inference rule notation:
 \inferrule{\mbox{\<open>A\<^sub>1\<close>}\\ \mbox{\<open>\<dots>\<close>}\\ \mbox{\<open>A\<^sub>n\<close>}}

@@ -25,13 +25,17 @@ object Resources {
     }
 
     def encode(thy: Thy): XML.Body = {
-      val options = thy.options.map(spec => (spec.name, spec.value))
+      val thy_options = thy.options.map(spec => (spec.name, spec.value))
       val keywords = thy.keywords.map({ case (a, spec) => (a, (spec.kind, spec.tags)) })
-      val (condition_bad, errors) =
-        Exn.result { (thy.condition_bad, thy.errors) } match {
-          case Exn.Res(res) => res
-          case Exn.Exn(exn) => ("", thy.include_errors(List(Exn.message(exn))).errors)
+      val (condition_bad, errors) = thy.condition_bad_errors
+
+      val skip_proofs =
+        condition_bad match {
+          case (true, bad) if bad.nonEmpty => List("skip_proofs" -> Some("true"))
+          case _ => Nil
         }
+
+      val options = thy_options ::: skip_proofs
 
       import XML.Encode._
       pair(encode_node_name,
@@ -39,7 +43,7 @@ object Resources {
           pair(list(pair(encode_node_name, properties)),
             pair(list(pair(string, option(string))),
               pair(list(pair(string, pair(string, list(string)))),
-                pair(string, pair(list(string), list(encode_node_name))))))))(
+                pair(pair(bool, string), pair(list(string), list(encode_node_name))))))))(
         (thy.name, (thy.pos, (thy.imports, (options, (keywords,
           (condition_bad, (errors, thy.initiators))))))))
     }
@@ -67,14 +71,31 @@ object Resources {
         quote(name.toString) + if_proper(more, " " + more)
       }
 
-    def condition_bad: String =
-      if (name.is_empty) ""
+    def condition_bad_errors: ((Boolean, String), List[String]) = {
+      def result(proofs: Boolean = false, bad: String = "", errors: List[String] = errors) =
+        ((proofs, bad), errors)
+
+      if (name.is_empty) result()
       else {
         conditions match {
-          case Some(cond) => cond.bad_message
-          case None => error("Unevaluated conditions for theory " + quote(name.toString))
+          case None =>
+            val err = "Unevaluated conditions for theory " + quote(name.toString)
+            result(errors = include_errors(List(err)).errors)
+          case Some(cond) =>
+            def condition_bad(filter: Set[String]): String =
+              cond.restrict(cond.domain(options, filter = filter)).bad_message
+
+            condition_bad(Thy_Conditions.filter_theory_option) match {
+              case bad if bad.nonEmpty => result(bad = bad)
+              case _ =>
+                condition_bad(Thy_Conditions.filter_proofs_option) match {
+                  case bad if bad.nonEmpty => result(proofs = true, bad = bad)
+                  case _ => result()
+                }
+            }
         }
       }
+    }
 
     val imports_no_pos: List[Document.Node.Name] = imports.map(_._1)
 

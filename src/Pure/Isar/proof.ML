@@ -1188,14 +1188,17 @@ fun terminal_proof qeds initial terminal state =
     val (terminal_method, terminal_immed) = (apfst o Option.map o apfst) check_closure terminal;
   in
     if Goal.skip_proofs_enabled () andalso not (is_relevant state) then
-      state
-      |> Interactive.setmp true (proof (SOME (Method.sorry_text, initial_range)))
-      |> Seq.maps_results (qeds (#1 initial_range, (NONE, terminal_immed)))
+      Interactive.setmp true (fn () =>
+        state
+        |> proof (SOME (Method.sorry_text, initial_range))
+        |> Seq.maps_results (qeds (#1 initial_range, (NONE, terminal_immed)))
+        |> Seq.the_result "") ()
     else
       state
       |> proof (SOME (initial_text, initial_range))
       |> Seq.maps_results (qeds (#1 initial_range, (terminal_method, terminal_immed)))
-  end |> Seq.the_result "";
+      |> Seq.the_result ""
+  end;
 
 in
 

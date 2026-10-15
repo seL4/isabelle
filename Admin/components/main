@@ -12,7 +12,7 @@ find_facts_web-20251022
 flatlaf-3.7.2
 foiltex-2.1.4b
 isabelle_fonts-20241227
-isabelle_setup-20260630
+isabelle_setup-20261009
 itext-2.1.5
 javamail-20251022
 jdk-25.0.4
@@ -27,9 +27,9 @@ llncs-2.25
 minisat-2.2.1-2
 mlton-20241230-2
 nunchaku-0.5-1
-opam-2.0.7
+opam-2.0.7-1
 pdfjs-5.4.394
-polyml-5.9.2-5
+polyml-5.9.2-6
 postgresql-42.7.12
 prismjs-1.30.0
 rsync-3.2.7-2
