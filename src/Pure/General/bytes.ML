@@ -61,7 +61,7 @@ val compact = implode o rev;
 
 fun eq (Bytes {buffer, chunks, m, n}, Bytes {buffer = buffer', chunks = chunks', m = m', n = n'}) =
   m = m' andalso n = n' andalso chunks = chunks' andalso
-  (buffer = buffer' orelse compact buffer = compact buffer);
+  (buffer = buffer' orelse compact buffer = compact buffer');
 
 fun contents (Bytes {buffer, chunks, ...}) =
   rev (chunks |> not (null buffer) ? cons (compact buffer));
