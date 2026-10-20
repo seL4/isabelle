@@ -107,8 +107,8 @@ fun occurs_terms (seen: seen, env: Envir.env, v: indexname, ts: term list): bool
              case Envir.lookup env (w, T) of
                NONE => false
              | SOME t => occur t)
-      | occur (Abs (_, _, body)) = occur body
-      | occur (f $ t) = occur t orelse occur f;
+      | occur (Abs (_, _, b)) = occur b
+      | occur (a $ b) = occur b orelse occur a;
   in occurs ts end;
 
 
