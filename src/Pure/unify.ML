@@ -629,13 +629,6 @@ fun unifiers (params as (context, env, tus)) =
       | Pattern.Pattern => hounifiers [] params;
 
 
-(*For smash_flexflex1*)
-fun var_head_of (env,t) : indexname * typ =
-  (case head_of (strip_abs_body (Envir.norm_term env t)) of
-    Var (v, T) => (v, T)
-  | _ => raise CANTUNIFY);  (*not flexible, cannot use trivial substitution*)
-
-
 (*Eliminate a flex-flex pair by the trivial substitution, see Huet (1975)
   Unifies ?f t1 ... rm with ?g u1 ... un by ?f -> \<lambda>x1...xm. ?a, ?g -> \<lambda>x1...xn. ?a
   Unfortunately, unifies ?f t u with ?g t u by ?f, ?g -> \<lambda>x y. ?a,
@@ -645,8 +638,13 @@ fun var_head_of (env,t) : indexname * typ =
   Handles ?f t1 ... rm with ?f u1 ... um to avoid multiple updates. *)
 fun smash_flexflex1 (t, u) env : Envir.env =
   let
-    val vT as (v, T) = var_head_of (env, t)
-    and wU as (w, U) = var_head_of (env, u);
+    fun var_head_of tm =
+      (case head_of (strip_abs_body (Envir.norm_term env tm)) of
+        Var var => var
+      | _ => raise CANTUNIFY);  (*not flexible, cannot use trivial substitution*)
+
+    val vT as (v, T) = var_head_of t
+    and wU as (w, U) = var_head_of u;
     val (env', var) = Envir.genvar (#1 v) (env, Envir.body_type env T);
     val env'' = Envir.vupdate (wU, type_abs (env', U, var)) env';
   in
