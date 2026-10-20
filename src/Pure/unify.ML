@@ -643,13 +643,13 @@ fun smash_flexflex1 (t, u) env : Envir.env =
         Var var => var
       | _ => raise CANTUNIFY);  (*not flexible, cannot use trivial substitution*)
 
-    val vT as (v, T) = var_head_of t
-    and wU as (w, U) = var_head_of u;
-    val (env', var) = Envir.genvar (#1 v) (env, Envir.body_type env T);
-    val env'' = Envir.vupdate (wU, type_abs (env', U, var)) env';
+    val v as (_, T) = var_head_of t
+    and w as (_, U) = var_head_of u;
+    val (env', var) = Envir.genvar (#1 (#1 v)) (env, Envir.body_type env T);
+    val env'' = Envir.vupdate (w, type_abs (env', U, var)) env';
   in
-    if vT = wU then env''  (*the other update would be identical*)
-    else Envir.vupdate (vT, type_abs (env', T, var)) env''
+    if v = w then env''  (*the other update would be identical*)
+    else Envir.vupdate (v, type_abs (env', T, var)) env''
   end;
 
 
