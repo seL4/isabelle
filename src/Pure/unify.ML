@@ -83,7 +83,7 @@ fun member_seen seen v = Seen.member (! seen) v;
 fun insert_seen seen v = Unsynchronized.change seen (Seen.insert v);
 
 (*OCCURS CHECK
-  Does the uvar occur in the term t?
+  Does the variable name v occur in the term t?
   two forms of search, for whether there is a rigid path to the current term.
   "seen" is set of variables passed through, is a memo variable for sharing.
   This version searches for nonrigid occurrence, returns true if found.
@@ -91,11 +91,9 @@ fun insert_seen seen v = Unsynchronized.change seen (Seen.insert v);
   the occurs check must ignore the types of variables. This avoids
   that ?x::?'a is unified with f(?x::T), which may lead to a cyclic
   substitution when ?'a is instantiated with T later. *)
-fun occurs_terms (seen: seen, env: Envir.env, v: indexname, ts: term list): bool =
+fun occurs_term (seen: seen, env: Envir.env, v: indexname, t: term) : bool =
   let
-    fun occurs [] = false
-      | occurs (t :: ts) = occur t orelse occurs ts
-    and occur (Const _) = false
+    fun occur (Const _) = false
       | occur (Bound _) = false
       | occur (Free _) = false
       | occur (Var (w, T)) =
@@ -109,7 +107,7 @@ fun occurs_terms (seen: seen, env: Envir.env, v: indexname, ts: term list): bool
              | SOME t => occur t)
       | occur (Abs (_, _, b)) = occur b
       | occur (a $ b) = occur b orelse occur a;
-  in occurs ts end;
+  in occur t end;
 
 
 (* f a1 ... an  ---->  f  using the assignments*)
@@ -151,7 +149,7 @@ Warning: finds a rigid occurrence of ?f in ?f(t).
 fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
   let
     fun nonrigid t =
-      if occurs_terms (seen, env, v, [t]) then Nonrigid
+      if occurs_term (seen, env, v, t) then Nonrigid
       else NoOcc
     fun occurs [] = NoOcc
       | occurs (t :: ts) =
@@ -423,7 +421,7 @@ fun MATCH context (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign context (env, rbinder, t, u) : Envir.env =
   let val vT as (v, T) = get_eta_var (rbinder, 0, t) in
-    if occurs_terms (init_seen (), env, v, [u]) then raise ASSIGN
+    if occurs_term (init_seen (), env, v, u) then raise ASSIGN
     else
       let val env = unify_types context (Envir.body_type env T, fastype env (rbinder, u)) env
       in Envir.vupdate (vT, Logic.rlist_abs (rbinder, u)) env end
