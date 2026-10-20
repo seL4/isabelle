@@ -78,7 +78,7 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
 val class_width = fold (Integer.max o size) Try0.native_classes 0
 val kind_width = size "direct"
 
-fun make_fact_lines (facts : Try0.facts) : string list =
+fun make_fact_lines (facts : Try0.xref Try0.facts) : string list =
   let
     fun make_fact_line class kind xref =
       implode_space ["fact", StringCvt.padRight #" " class_width class,
@@ -93,7 +93,7 @@ fun make_fact_lines (facts : Try0.facts) : string list =
 
 fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode : mode)
     (max_facts : int) (classifier_time : Time.time) (method_time : Time.time)
-    (outcome : atp_failure option) (command : string) (facts : Try0.facts) : unit =
+    (outcome : atp_failure option) (command : string) (facts : Try0.xref Try0.facts) : unit =
   let
     val command = collapse_whitespace (Protocol_Message.clean_output command)
     val slice_fields =
@@ -145,8 +145,8 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
         val usings_xrefs = map xref_of_fact (sort_by (fst o fst) locals)
         val direct_xrefs = map xref_of_fact (sort_by (fst o fst) globals)
       in
-        {unclassified = {usings = usings_xrefs, directs = direct_xrefs}, classified = Symtab.empty}
-        |> Try0.classify_facts ctxt
+        Try0.unclassified_facts {usings = usings_xrefs, directs = direct_xrefs}
+        |> Try0.classify_facts state
       end
 
     fun run_proof_method facts =
