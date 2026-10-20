@@ -44,6 +44,7 @@ sig
   type fact_classifier = Proof.state -> xxref facts -> xxref facts
   val register_fact_classifier : string -> fact_classifier -> Context.generic -> Context.generic
   val get_fact_classifier : Context.generic -> string -> fact_classifier option
+  val get_all_fact_classifier_names : Context.generic -> string list
   val fact_classifier : string Config.T
   val classify_facts : Proof.state -> xref facts -> xref facts
 
@@ -174,6 +175,9 @@ fun register_fact_classifier (name : string) (classifier : fact_classifier)
 
 fun get_fact_classifier (context : Context.generic) (name : string) : fact_classifier option =
   Symtab.lookup (Fact_Classifier_Data.get context) name;
+
+fun get_all_fact_classifier_names (context : Context.generic) : string list =
+  Symtab.keys (Fact_Classifier_Data.get context)
 
 val fact_classifier =
   Attrib.setup_option_string (\<^system_option>\<open>try0_fact_classifier\<close>, \<^here>)
