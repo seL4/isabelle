@@ -30,44 +30,40 @@ object Sledgehammer_View {
 
   /* gui state */
 
-  private var provers0: String = ""
+  private var state: State = State()
   private var current_status: String = ""
-  private var provers: History_Text_Field.State = History_Text_Field.State.init()
-  private var isar_proofs: Boolean = false
-  private var try0: Boolean = true
 
   object State {
-    def apply(
-      provers0: String,
-      provers: History_Text_Field.State,
-      isar_proofs: Boolean,
-      try0: Boolean
-    ): JSON.Object.T =
-      JSON.Object(
-        "provers0" -> provers0,
-        "provers" -> provers.json,
-        "isar_proofs" -> isar_proofs,
-        "try0" -> try0)
-
-    def unapply(json: JSON.Object.T): Option[(String, History_Text_Field.State, Boolean, Boolean)] =
+    def unapply(json: JSON.Object.T): Option[State] =
       for {
         provers0 <- JSON.string(json, "provers0")
         case History_Text_Field.State(provers) <- JSON.value(json, "provers")
         isar_proofs <- JSON.bool(json, "isar_proofs")
         try0 <- JSON.bool(json, "try0")
-      } yield (provers0, provers, isar_proofs, try0)
+      } yield State(provers0 = provers0, provers = provers, isar_proofs = isar_proofs, try0 = try0)
 
     def load(): Unit = {
-      for (case State(provers0, provers, isar_proofs, try0) <- vscode.get_state) {
-        view.provers0 = provers0
-        view.provers = provers
-        view.isar_proofs = isar_proofs
-        view.try0 = try0
+      for { case State(state) <- vscode.get_state } {
+        view.state = state
       }
     }
 
     def save(): Unit =
-      vscode.set_state(Some(State(provers0, provers, isar_proofs, try0)))
+      vscode.set_state(Some(state.json))
+  }
+
+  case class State (
+    provers0: String = "",
+    provers: History_Text_Field.State = History_Text_Field.State.init(),
+    isar_proofs: Boolean = false,
+    try0: Boolean = false,
+  ) {
+    def json: JSON.Object.T =
+      JSON.Object(
+        "provers0" -> provers0,
+        "provers" -> provers.json,
+        "isar_proofs" -> isar_proofs,
+        "try0" -> try0)
   }
 
 
@@ -82,29 +78,29 @@ object Sledgehammer_View {
   /* controls */
 
   def handle_provers_update(provers_update: History_Text_Field.Update): Unit = {
-    provers = provers_update.state
+    state = state.copy(provers = provers_update.state)
     if (provers_update.submit) {
       State.save()
-      vscode.post(LSP.Sledgehammer_Request(provers.input, isar_proofs, try0))
+      vscode.post(LSP.Sledgehammer_Request(state.provers.input, state.isar_proofs, state.try0))
     }
     else update()
   }
   private def provers_text_field: History_Text_Field =
-    History_Text_Field("provers", handle_provers_update, provers, columns = 30,
-      tooltip = "Automatic provers as space-separated list", placeholder = provers0)
+    History_Text_Field("provers", handle_provers_update, state.provers, columns = 30,
+      tooltip = "Automatic provers as space-separated list", placeholder = state.provers0)
   private val provers_label = VSCode_Elements.label("Provers:", "provers")
 
-  def handle_isar_proofs(state: Boolean): Unit = { isar_proofs = state }
+  def handle_isar_proofs(state: Boolean): Unit = { view.state = view.state.copy(isar_proofs = state) }
   private def isar_proofs_checkbox: XML.Elem =
     VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
-      selected = isar_proofs, script = isar_proofs_clicked.function("this.checked"))
+      selected = state.isar_proofs, script = isar_proofs_clicked.function("this.checked"))
 
-  def handle_try0(state: Boolean): Unit = { try0 = state }
+  def handle_try0(state: Boolean): Unit = { view.state = view.state.copy(try0 = state) }
   private def try0_checkbox =
     VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
-      selected = try0, script = try0_clicked.function("this.checked"))
+      selected = state.try0, script = try0_clicked.function("this.checked"))
 
   def handle_apply_query(): Unit = provers_text_field.submit()
   private def apply_query: XML.Elem = {
@@ -152,7 +148,7 @@ object Sledgehammer_View {
           current_status = JSON.string(json, "message").get
           update()
         case Some("provers") =>
-          provers0 = JSON.string(json, "provers").get
+          state = state.copy(provers0 = JSON.string(json, "provers").get)
           update()
         case Some("result") =>
           val content = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
