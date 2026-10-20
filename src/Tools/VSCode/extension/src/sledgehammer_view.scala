@@ -68,6 +68,11 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
   view =>
 
 
+  /* output text area */
+
+  private val output = new Pretty_Text_Area(_ => update(view.state))
+
+
   /* query operation */
 
   private var current_status: String = ""
@@ -127,11 +132,6 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
         process_indicator, apply_query, cancel_query, locate_query))
 
 
-  /* output text area */
-
-  private val pretty_text_area = new Pretty_Text_Area(_ => update(state))
-
-
   /* main */
 
   private def update(state: Sledgehammer_View.State): Unit = {
@@ -139,7 +139,7 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
       view.state = state
       vscode.set_state(Some(state.json))
     }
-    Scalajs.DOM.update(HTML.control_markup(controls :: pretty_text_area.html, hidden = true))
+    Scalajs.DOM.update(HTML.control_markup(controls :: output.html, hidden = true))
   }
 
   def init(): Unit = {
@@ -154,12 +154,12 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
           update(state.copy(provers0 = JSON.string(json, "provers").get))
         case Some("result") =>
           val content = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
-          pretty_text_area.handle_update(content)
+          output.handle_update(content)
         case _ =>
       }
     }
 
-    pretty_text_area.init()
+    output.init()
     vscode.post(JSON.Object("command" -> "ready"))
     update(state)
   }
