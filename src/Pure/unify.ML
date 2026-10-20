@@ -76,17 +76,22 @@ fun eta_norm env =
   in eta_nm end;
 
 
+structure Seen = Set(type key = indexname val ord = Term_Ord.fast_indexname_ord);
+type seen = Seen.T Unsynchronized.ref;
+fun init_seen () : seen = Unsynchronized.ref Seen.empty;
+fun member_seen seen v = Seen.member (! seen) v;
+fun insert_seen seen v = Unsynchronized.change seen (Seen.insert v);
+
 (*OCCURS CHECK
   Does the uvar occur in the term t?
   two forms of search, for whether there is a rigid path to the current term.
-  "seen" is list of variables passed through, is a memo variable for sharing.
+  "seen" is set of variables passed through, is a memo variable for sharing.
   This version searches for nonrigid occurrence, returns true if found.
   Since terms may contain variables with same name and different types,
   the occurs check must ignore the types of variables. This avoids
   that ?x::?'a is unified with f(?x::T), which may lead to a cyclic
   substitution when ?'a is instantiated with T later. *)
-fun occurs_terms (seen: indexname list Unsynchronized.ref,
-      env: Envir.env, v: indexname, ts: term list): bool =
+fun occurs_terms (seen: seen, env: Envir.env, v: indexname, ts: term list): bool =
   let
     fun occurs [] = false
       | occurs (t :: ts) = occur t orelse occurs ts
@@ -94,11 +99,11 @@ fun occurs_terms (seen: indexname list Unsynchronized.ref,
       | occur (Bound _) = false
       | occur (Free _) = false
       | occur (Var (w, T)) =
-          if member (op =) (!seen) w then false
+          if member_seen seen w then false
           else if Term.eq_ix (v, w) then true
             (*no need to lookup: v has no assignment*)
           else
-            (seen := w :: !seen;
+            (insert_seen seen w;
              case Envir.lookup env (w, T) of
                NONE => false
              | SOME t => occur t)
@@ -143,7 +148,7 @@ If head is an abstraction then possibly no rigid path (head could be a
 Warning: finds a rigid occurrence of ?f in ?f(t).
   Should NOT be called in this case: there is a flex-flex unifier
 *)
-fun rigid_occurs_term (seen: indexname list Unsynchronized.ref, env, v: indexname, t) =
+fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
   let
     fun nonrigid t =
       if occurs_terms (seen, env, v, [t]) then Nonrigid
@@ -162,10 +167,10 @@ fun rigid_occurs_term (seen: indexname list Unsynchronized.ref, env, v: indexnam
       | occur (Bound _) = NoOcc
       | occur (Free _) = NoOcc
       | occur (Var (w, T)) =
-          if member (op =) (!seen) w then NoOcc
+          if member_seen seen w then NoOcc
           else if Term.eq_ix (v, w) then Rigid
           else
-            (seen := w :: !seen;
+            (insert_seen seen w;
              case Envir.lookup env (w, T) of
                NONE => NoOcc
              | SOME t => occur t)
@@ -210,7 +215,7 @@ fun get_eta_var ([], _, Var vT) = vT
   If v occurs nonrigidly then must use full algorithm. *)
 fun assignment context (rbinder, t, u) env =
   let val vT as (v,T) = get_eta_var (rbinder, 0, t) in
-    (case rigid_occurs_term (Unsynchronized.ref [], env, v, u) of
+    (case rigid_occurs_term (init_seen (), env, v, u) of
       NoOcc =>
         let val env = unify_types context (Envir.body_type env T, fastype env (rbinder, u)) env
         in Envir.update (vT, Logic.rlist_abs (rbinder, u)) env end
@@ -418,7 +423,7 @@ fun MATCH context (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign context (env, rbinder, t, u) : Envir.env =
   let val vT as (v, T) = get_eta_var (rbinder, 0, t) in
-    if occurs_terms (Unsynchronized.ref [], env, v, [u]) then raise ASSIGN
+    if occurs_terms (init_seen (), env, v, [u]) then raise ASSIGN
     else
       let val env = unify_types context (Envir.body_type env T, fastype env (rbinder, u)) env
       in Envir.vupdate (vT, Logic.rlist_abs (rbinder, u)) env end
