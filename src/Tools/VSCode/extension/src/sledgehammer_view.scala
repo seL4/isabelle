@@ -13,25 +13,20 @@ import org.scalajs.dom
 
 
 object Sledgehammer_View {
-  view =>
+  private var instance: Option[Sledgehammer_View] = None
 
   object isar_proofs_clicked extends Scalajs.Fun[Boolean] {
-    def apply(state: Boolean): Unit = handle_isar_proofs(state)
+    def apply(state: Boolean): Unit = instance.foreach(_.handle_isar_proofs(state))
   }
   object try0_clicked extends Scalajs.Fun[Boolean] {
-    def apply(state: Boolean): Unit = handle_try0(state)
+    def apply(state: Boolean): Unit = instance.foreach(_.handle_try0(state))
   }
   object apply_query_clicked extends Scalajs.Fun_Unit {
-    def apply(): Unit = handle_apply_query()
+    def apply(): Unit = instance.foreach(_.handle_apply_query())
   }
 
-  private val vscode = Webview_Api.acquire
 
-
-  /* gui state */
-
-  private var state: State = State()
-  private var current_status: String = ""
+  /* persistent GUI state */
 
   object State {
     def unapply(json: JSON.Object.T): Option[State] =
@@ -41,15 +36,6 @@ object Sledgehammer_View {
         isar_proofs <- JSON.bool(json, "isar_proofs")
         try0 <- JSON.bool(json, "try0")
       } yield State(provers0 = provers0, provers = provers, isar_proofs = isar_proofs, try0 = try0)
-
-    def load(): Unit = {
-      for { case State(state) <- vscode.get_state } {
-        view.state = state
-      }
-    }
-
-    def save(): Unit =
-      vscode.set_state(Some(state.json))
   }
 
   case class State (
@@ -67,7 +53,24 @@ object Sledgehammer_View {
   }
 
 
+  /* component */
+
+  def main(): Unit = {
+    val vscode = Webview_Api.acquire
+    val state = (for { case State(state) <- vscode.get_state } yield state) getOrElse State()
+    val view = new Sledgehammer_View(vscode, state)
+    instance = Some(view)
+    view.init()
+  }
+}
+
+class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgehammer_View.State) {
+  view =>
+
+
   /* query operation */
+
+  private var current_status: String = ""
 
   private def process_indicator: XML.Elem = {
     if (current_status == "" || current_status == "Finished") HTML.span(Nil)
@@ -92,19 +95,20 @@ object Sledgehammer_View {
   private def isar_proofs_checkbox: XML.Elem =
     VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
-      selected = state.isar_proofs, script = isar_proofs_clicked.function("this.checked"))
+      selected = state.isar_proofs,
+      script = Sledgehammer_View.isar_proofs_clicked.function("this.checked"))
 
   def handle_try0(state: Boolean): Unit = update(view.state.copy(try0 = state))
   private def try0_checkbox =
     VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
-      selected = state.try0, script = try0_clicked.function("this.checked"))
+      selected = state.try0, script = Sledgehammer_View.try0_clicked.function("this.checked"))
 
   def handle_apply_query(): Unit = provers_text_field.submit()
   private def apply_query: XML.Elem = {
     VSCode_Elements.button("Apply",
       tooltip = "Search for first-order proof using automatic theorem provers",
-      script = apply_query_clicked.function())
+      script = Sledgehammer_View.apply_query_clicked.function())
   }
 
   private val cancel_query =
@@ -130,17 +134,15 @@ object Sledgehammer_View {
 
   /* main */
 
-  def update(state: State): Unit = {
+  private def update(state: Sledgehammer_View.State): Unit = {
     if (view.state != state) {
       view.state = state
-      State.save()
+      vscode.set_state(Some(state.json))
     }
     Scalajs.DOM.update(HTML.control_markup(controls :: pretty_text_area.html, hidden = true))
   }
 
-  def main(): Unit = {
-    State.load()
-
+  def init(): Unit = {
     Webview_Api.on_message { e =>
       val json = Scalajs.JSON.unapply(e.data).get
 
