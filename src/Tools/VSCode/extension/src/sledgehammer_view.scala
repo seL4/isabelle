@@ -78,25 +78,23 @@ object Sledgehammer_View {
   /* controls */
 
   def handle_provers_update(provers_update: History_Text_Field.Update): Unit = {
-    state = state.copy(provers = provers_update.state)
+    update(state.copy(provers = provers_update.state))
     if (provers_update.submit) {
-      State.save()
       vscode.post(LSP.Sledgehammer_Request(state.provers.input, state.isar_proofs, state.try0))
     }
-    else update()
   }
   private def provers_text_field: History_Text_Field =
     History_Text_Field("provers", handle_provers_update, state.provers, columns = 30,
       tooltip = "Automatic provers as space-separated list", placeholder = state.provers0)
   private val provers_label = VSCode_Elements.label("Provers:", "provers")
 
-  def handle_isar_proofs(state: Boolean): Unit = { view.state = view.state.copy(isar_proofs = state) }
+  def handle_isar_proofs(state: Boolean): Unit = update(view.state.copy(isar_proofs = state))
   private def isar_proofs_checkbox: XML.Elem =
     VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
       selected = state.isar_proofs, script = isar_proofs_clicked.function("this.checked"))
 
-  def handle_try0(state: Boolean): Unit = { view.state = view.state.copy(try0 = state) }
+  def handle_try0(state: Boolean): Unit = update(view.state.copy(try0 = state))
   private def try0_checkbox =
     VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
@@ -127,13 +125,16 @@ object Sledgehammer_View {
 
   /* output text area */
 
-  private val pretty_text_area = new Pretty_Text_Area(_ => update())
+  private val pretty_text_area = new Pretty_Text_Area(_ => update(state))
 
 
   /* main */
 
-  def update(): Unit = {
-    State.save()
+  def update(state: State): Unit = {
+    if (view.state != state) {
+      view.state = state
+      State.save()
+    }
     Scalajs.DOM.update(HTML.control_markup(controls :: pretty_text_area.html, hidden = true))
   }
 
@@ -146,10 +147,9 @@ object Sledgehammer_View {
       JSON.string(json, "command") match {
         case Some("status") =>
           current_status = JSON.string(json, "message").get
-          update()
+          update(state)
         case Some("provers") =>
-          state = state.copy(provers0 = JSON.string(json, "provers").get)
-          update()
+          update(state.copy(provers0 = JSON.string(json, "provers").get))
         case Some("result") =>
           val content = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
           pretty_text_area.handle_update(content)
@@ -159,6 +159,6 @@ object Sledgehammer_View {
 
     pretty_text_area.init()
     vscode.post(JSON.Object("command" -> "ready"))
-    update()
+    update(state)
   }
 }
