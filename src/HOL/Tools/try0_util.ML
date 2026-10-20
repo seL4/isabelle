@@ -102,43 +102,43 @@ fun flatten_facts (facts : Try0.xref Try0.facts) : Try0.xref Try0.positioned_fac
   Try0.union_positioned_facts (#unclassified facts) (all_classified_xrefs facts)
 
 fun accumulate_listed_class (facts : Try0.xref Try0.facts) {class : string, prefix : string}
-    (class_attrs : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
+    (method_args : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
   (case Try0.lookup_facts_class class facts of
-    NONE => (class_attrs, unsupported)
+    NONE => (method_args, unsupported)
   | SOME {usings, directs} =>
-      (class_attrs ^ " " ^ prefix ^ implode_space (map string_of_xref (usings @ directs)),
+      (method_args ^ " " ^ prefix ^ implode_space (map string_of_xref (usings @ directs)),
        unsupported))
 
 fun accumulate_unlisted_class (facts : Try0.xref Try0.facts) (class : string)
-    (class_attrs : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
+    (method_args : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
   let
     val unsupported =
       Try0.lookup_facts_class class facts
       |> the_default Try0.empty_positioned_facts
       |> Try0.union_positioned_facts unsupported
   in
-    (class_attrs, unsupported)
+    (method_args, unsupported)
   end
 
-fun mk_attrs_and_usings No_Args (facts : Try0.xref Try0.facts) : string * Try0.xref list =
+fun mk_method_args_and_usings No_Args (facts : Try0.xref Try0.facts) : string * Try0.xref list =
       let val {usings, directs} = flatten_facts facts in ("", directs @ usings) end
-  | mk_attrs_and_usings Direct_Args facts =
+  | mk_method_args_and_usings Direct_Args facts =
       let val {usings, directs} = flatten_facts facts in
         (implode_space ("" :: map string_of_xref directs), usings)
       end
-  | mk_attrs_and_usings (Prefixed_Args class_prefixes) facts =
+  | mk_method_args_and_usings (Prefixed_Args class_prefixes) facts =
       let
         val listed_classes = map #class class_prefixes
         val unlisted_classes_in_canonical_order =
           subtract (op =) listed_classes (classes_in_canonical_order (#classified facts))
 
-        val (class_attrs, unsupported) =
+        val (method_args, unsupported) =
           ("", {usings = [], directs = []})
           |> fold (accumulate_listed_class facts) class_prefixes
           |> fold (accumulate_unlisted_class facts) unlisted_classes_in_canonical_order
 
         val {usings, directs} = Try0.union_positioned_facts (#unclassified facts) unsupported
-      in (class_attrs, directs @ usings) end
+      in (method_args, directs @ usings) end
 
 in
 
@@ -149,10 +149,10 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
     val state = Proof.map_contexts silence_methods state
     val ctxt = Proof.context_of state
 
-    val (attrs, usings) = mk_attrs_and_usings facts_config facts
+    val (method_args, usings) = mk_method_args_and_usings facts_config facts
 
     val text =
-      name ^ attrs
+      name ^ method_args
       |> parse_method ctxt
       |> Method.method_cmd ctxt
       |> Method.Basic
@@ -167,15 +167,19 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
     val num_after = num_goals st'
     val command =
       let
-        val usings = map (Pretty.str o string_of_xref) usings
-        val using_clause = if null usings then [] else Pretty.str "using" :: usings
         val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
         val command_clause =
           [Pretty.str ((if num_after = 0 then "by " else "apply ") ^
-              (name ^ attrs |> attrs <> "" ? enclose "(" ")"))] @
+              (name ^ method_args |> method_args <> "" ? enclose "(" ")"))] @
           (if multiple_goals andalso num_after > 0 then [Pretty.str select] else [])
+        val using_command_clause =
+          if null usings then
+            command_clause
+          else
+            Pretty.str "using" ::
+              fold_rev (cons o Pretty.str o string_of_xref) usings command_clause
       in
-        using_clause @ command_clause
+        using_command_clause
         |> Pretty.block o Pretty.breaks
         |> Pretty.symbolic_string_of (* markup string *)
       end
