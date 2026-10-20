@@ -25,6 +25,7 @@ object Output_View {
       pretty_text_area.handle_update(YXML.parse_body(YXML.Source(e.data.toString)))
     }
 
+    pretty_text_area.init()
     vscode.post(JSON.Object("command" -> "ready"))
   }
 }

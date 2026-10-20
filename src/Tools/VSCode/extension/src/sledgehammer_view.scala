@@ -131,16 +131,14 @@ object Sledgehammer_View {
 
   /* output text area */
 
-  private var current_output: XML.Body = Nil
-  private val pretty_text_area =
-    new Pretty_Text_Area(output => { current_output = output; update() })
+  private val pretty_text_area = new Pretty_Text_Area(_ => update())
 
 
   /* main */
 
   def update(): Unit = {
     State.save()
-    Scalajs.DOM.update(HTML.control_markup(controls :: current_output, hidden = true))
+    Scalajs.DOM.update(HTML.control_markup(controls :: pretty_text_area.html, hidden = true))
   }
 
   def main(): Unit = {
@@ -157,12 +155,13 @@ object Sledgehammer_View {
           provers0 = JSON.string(json, "provers").get
           update()
         case Some("result") =>
-          val output = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
-          pretty_text_area.handle_update(output)
+          val content = YXML.parse_body(YXML.Source(JSON.string(json, "content").get))
+          pretty_text_area.handle_update(content)
         case _ =>
       }
     }
 
+    pretty_text_area.init()
     vscode.post(JSON.Object("command" -> "ready"))
     update()
   }

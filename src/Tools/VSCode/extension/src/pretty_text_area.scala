@@ -13,6 +13,8 @@ import isabelle.vscode._
 
 
 object Pretty_Text_Area {
+  /* entities and active markup */
+
   private val vscode = Webview_Api.acquire
   private val elements =
     Browser_Info.extra_elements.copy(entity = Markup.Elements.full,
@@ -56,11 +58,14 @@ class Pretty_Text_Area(
 ) {
   /* gui state */
 
+  private var current_content: XML.Body = Nil
   private var current_output: XML.Body = Nil
   private var current_metric: DOM_Metric = DOM_Metric()
   private var current_margin: Double = current_metric.content(container)
   private var resize_timeout: Option[Int] = None
   private var window_loaded = false
+
+  def html: XML.Body = current_output
 
 
   /* update */
@@ -81,20 +86,21 @@ class Pretty_Text_Area(
   private def update(): Unit = {
     if (window_loaded) {
       val formatted =
-        Pretty.formatted(Pretty.separate(current_output), margin = current_margin,
+        Pretty.formatted(Pretty.separate(current_content), margin = current_margin,
           metric = current_metric)
-      handle_output(List(HTML.source(Pretty_Text_Area.make_html(formatted))))
+      current_output = List(HTML.source(Pretty_Text_Area.make_html(formatted)))
+      handle_output(current_output)
     }
   }
 
-  def handle_update(output: XML.Body): Unit = {
-    if (current_output != output) {
-      current_output = output
+  def handle_update(content: XML.Body): Unit = {
+    if (current_content != content) {
+      current_content = content
       update()
     }
   }
 
-  def resize(): Unit = {
+  private def resize(): Unit = {
     val margin = current_metric.content(container)
 
     if (margin != current_margin) {
@@ -104,8 +110,10 @@ class Pretty_Text_Area(
   }
 
 
-  /* handlers */
+  /* main */
 
-  Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => handle_resize())
-  Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => handle_load())
+  def init(): Unit = {
+    Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => handle_resize())
+    Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => handle_load())
+  }
 }

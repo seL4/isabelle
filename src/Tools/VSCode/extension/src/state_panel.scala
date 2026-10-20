@@ -77,6 +77,7 @@ object State_Panel {
       }
     }
 
+    pretty_text_area.init()
     vscode.post(JSON.Object("command" -> "ready"))
   }
 }
