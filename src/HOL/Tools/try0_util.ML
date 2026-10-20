@@ -124,7 +124,7 @@ fun mk_attrs_and_usings No_Args (facts : Try0.xref Try0.facts) : string * Try0.x
       let val {usings, directs} = flatten_facts facts in ("", directs @ usings) end
   | mk_attrs_and_usings Direct_Args facts =
       let val {usings, directs} = flatten_facts facts in
-        ((if null directs then "" else " " ^ implode_space (map string_of_xref directs)), usings)
+        (implode_space ("" :: map string_of_xref directs), usings)
       end
   | mk_attrs_and_usings (Prefixed_Args class_prefixes) facts =
       let
