@@ -123,7 +123,7 @@ fun match_ptype (PType (_, ps), PType (_, qs)) = match_patternsT (ps, qs)
 
 (* Is there a unifiable constant? *)
 fun pconst_mem f consts (s, ps) =
-  exists (curry (match_ptype o f) ps) (map snd (filter (curry (op =) s o fst) consts))
+  exists (fn (s', qs) => s = s' andalso match_ptype (f (ps, qs))) consts
 
 fun pconst_hyper_mem f const_tab (s, ps) =
   exists (curry (match_ptype o f) ps) (these (Symtab.lookup const_tab s))
