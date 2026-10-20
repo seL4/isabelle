@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/pretty_text_area.scala
+/*  Title:      Tools/VSCode/extension/src/pretty_text_area.scala
     Author:     Fabian Huch
 
 GUI component for pretty-printed text with markup within Isabelle/VSCode.

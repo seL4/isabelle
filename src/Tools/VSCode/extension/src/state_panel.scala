@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/state_panel.scala
+/*  Title:      Tools/VSCode/extension/src/state_panel.scala
     Author:     Fabian Huch
 
 State panel within Isabelle/VSCode extension.

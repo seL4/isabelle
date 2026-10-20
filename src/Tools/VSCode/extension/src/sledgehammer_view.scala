@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/sledgehammer_view.scala
+/*  Title:      Tools/VSCode/extension/src/sledgehammer_view.scala
     Author:     Fabian Huch
 
 Sledgehammer view within Isabelle/VSCode extension.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/symbols_view.scala
+/*  Title:      Tools/VSCode/extension/src/symbols_view.scala
     Author:     Fabian Huch
 
 Isabelle symbols view within Isabelle/VSCode extension.

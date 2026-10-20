@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/history_text_field.scala
+/*  Title:      Tools/VSCode/extension/src/history_text_field.scala
     Author:     Fabian Huch
 
 VSCode component for text fields with history.

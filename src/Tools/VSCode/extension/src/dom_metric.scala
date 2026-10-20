@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/dom_metric.scala
+/*  Title:      Tools/VSCode/extension/src/dom_metric.scala
     Author:     Fabian Huch
 
 Pretty-printing metric based on DOM rendering of symbol codepoints.

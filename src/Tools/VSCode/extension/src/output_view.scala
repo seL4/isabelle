@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/output_view.scala
+/*  Title:      Tools/VSCode/extension/src/output_view.scala
     Author:     Fabian Huch
 
 Output view within Isabelle/VSCode extension.
