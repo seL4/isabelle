@@ -291,7 +291,12 @@ class Prover(
               val chunks = rest.drop(props_length)
               if (kind == Markup.PROTOCOL) protocol_message(props, chunks)
               else {
-                val body = chunks.flatMap(Symbol.decode_yxml(_, cache = cache, failsafe = true))
+                val body =
+                  chunks.flatMap { chunk =>
+                    val source =
+                      if (chunk.size <= Bytes.chunk_size) YXML.Source(chunk.text) else chunk
+                    Symbol.decode_yxml(source, cache = cache, failsafe = true)
+                  }
                 output(kind, props, body)
               }
             case Some(_) => Prover.bad_chunks()
