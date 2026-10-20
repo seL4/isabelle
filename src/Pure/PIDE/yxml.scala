@@ -187,28 +187,4 @@ object YXML {
       case List(elem: XML.Elem) => elem
       case _ => err("single XML element expected")
     }
-
-
-  /* failsafe parsing */
-
-  private def markup_broken(source: Source) =
-    XML.Elem(Markup.Broken, List(XML.Text(source.toString)))
-
-  def parse_body_failsafe(
-    source: Source,
-    recode: String => String = identity,
-    cache: XML.Cache = XML.Cache.none
-  ): XML.Body = {
-    try { parse_body(source, recode = recode, cache = cache) }
-    catch { case ERROR(_) => List(markup_broken(source)) }
-  }
-
-  def parse_failsafe(
-    source: Source,
-    recode: String => String = identity,
-    cache: XML.Cache = XML.Cache.none
-  ): XML.Tree = {
-    try { parse(source, recode = recode, cache = cache) }
-    catch { case ERROR(_) => markup_broken(source) }
-  }
 }

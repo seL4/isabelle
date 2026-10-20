@@ -578,8 +578,12 @@ object Symbol {
     cache: XML.Cache = XML.Cache.none,
     failsafe: Boolean = false
   ): XML.Body = {
-    if (failsafe) YXML.parse_body_failsafe(source, recode = decode, cache = cache)
-    else YXML.parse_body(source, recode = decode, cache = cache)
+    Exn.result { YXML.parse_body(source, recode = decode, cache = cache) } match {
+      case Exn.Res(res) => res
+      case Exn.Exn(exn) if failsafe =>
+        List(XML.Elem(Markup.Broken, List(XML.Text(source.toString))))
+      case Exn.Exn(exn) => throw exn
+    }
   }
 
   def encode_yxml(body: XML.Body): String =
