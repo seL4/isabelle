@@ -151,12 +151,7 @@ fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
     fun nonrigid t =
       if occurs_term (seen, env, v, t) then Nonrigid
       else NoOcc
-    fun occurs [] = NoOcc
-      | occurs (t :: ts) =
-          (case occur t of
-            Rigid => Rigid
-          | oc => (case occurs ts of NoOcc => oc | oc2 => oc2))
-    and occomb (f $ t) =
+    fun occomb (f $ t) =
         (case occur t of
           Rigid => Rigid
         | oc => (case occomb f of NoOcc => oc | oc2 => oc2))
