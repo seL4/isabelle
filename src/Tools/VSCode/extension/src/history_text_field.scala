@@ -152,13 +152,14 @@ class History_Text_Field private(
   columns: Int,
   tooltip: String,
   placeholder: String,
-  state: History_Text_Field.State,
+  private var state: History_Text_Field.State,
   handle_update: History_Text_Field.Update => Unit,
 ) {
   history_text_field =>
 
   private def update(state: History_Text_Field.State, submit: Boolean = false): Unit =
     if (submit || history_text_field.state != state) {
+      history_text_field.state = state
       handle_update(History_Text_Field.Update(state, submit))
     }
 
