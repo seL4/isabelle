@@ -1704,8 +1704,10 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) _ vTs (t as Const 
       handle General.Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify thy (t, u) =
-  error ("Non-unifiable terms:\n" ^
-    Syntax.string_of_term_global thy t ^ "\n\n" ^ Syntax.string_of_term_global thy u);
+  let val ctxt = Syntax.init_pretty_global thy in
+    error ("Non-unifiable terms:\n" ^
+      Syntax.string_of_term ctxt t ^ "\n\n" ^ Syntax.string_of_term ctxt u)
+  end;
 
 fun decompose thy Ts (p as (t, u)) env =
   let
@@ -1866,10 +1868,12 @@ fun solve _ [] bigenv = bigenv
   | solve thy cs bigenv =
       let
         fun search _ [] =
-              error ("Unsolvable constraints:\n" ^
-                Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
-                  Pretty.item (Syntax.pretty_flexpair (Syntax.init_pretty_global thy)
-                    (apply2 (Envir.norm_term bigenv) p))) cs)))
+              let val ctxt = Syntax.init_pretty_global thy in
+                error ("Unsolvable constraints:\n" ^
+                  Pretty.string_of (Pretty.chunks (map (fn (_, p, _) =>
+                    Pretty.item (Syntax.pretty_flexpair ctxt
+                      (apply2 (Envir.norm_term bigenv) p))) cs)))
+              end
           | search env ((u, p as (t1, t2), vs)::ps) =
               if u then
                 let
