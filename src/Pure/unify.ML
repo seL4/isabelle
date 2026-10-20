@@ -611,10 +611,10 @@ fun hounifiers binders (context, env, tus : (term * term) list)
                  else (); Seq.pull reseq)
               else
                (if tdepth > unify_trace_bound then
-                  print_dpairs context "Enter MATCH" (env',flexrigid@flexflex)
+                  print_dpairs context "Enter MATCH" (env', flexrigid @ flexflex)
                 else ();
                 Seq.pull (Seq.it_right
-                    (add_unify (tdepth + 1)) (MATCH context (env',dp, frigid'@flexflex), reseq))))
+                    (add_unify (tdepth + 1)) (MATCH context (env', dp, frigid' @ flexflex), reseq))))
         end
         handle CANTUNIFY =>
          (if tdepth > unify_trace_bound
