@@ -15,6 +15,16 @@ import org.scalajs.dom
 object Sledgehammer_View {
   view =>
 
+  object isar_proofs_clicked extends Scalajs.Fun[Boolean] {
+    def apply(state: Boolean): Unit = handle_isar_proofs(state)
+  }
+  object try0_clicked extends Scalajs.Fun[Boolean] {
+    def apply(state: Boolean): Unit = handle_try0(state)
+  }
+  object apply_query_clicked extends Scalajs.Fun_Unit {
+    def apply(): Unit = handle_apply_query()
+  }
+
   private val vscode = Webview_Api.acquire
 
 
@@ -71,7 +81,7 @@ object Sledgehammer_View {
 
   /* controls */
 
-  private def update_provers(provers_update: History_Text_Field.Update): Unit = {
+  def handle_provers_update(provers_update: History_Text_Field.Update): Unit = {
     provers = provers_update.state
     if (provers_update.submit) {
       State.save()
@@ -80,29 +90,23 @@ object Sledgehammer_View {
     else update()
   }
   private def provers_text_field: History_Text_Field =
-    History_Text_Field("provers", update_provers, provers, columns = 30,
+    History_Text_Field("provers", handle_provers_update, provers, columns = 30,
       tooltip = "Automatic provers as space-separated list", placeholder = provers0)
   private val provers_label = VSCode_Elements.label("Provers:", "provers")
 
-  object isar_proofs_checkbox_clicked extends Scalajs.Fun[Boolean] {
-    def apply(state: Boolean): Unit = { isar_proofs = state }
-  }
+  def handle_isar_proofs(state: Boolean): Unit = { isar_proofs = state }
   private def isar_proofs_checkbox: XML.Elem =
     VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
-      selected = isar_proofs, script = isar_proofs_checkbox_clicked.function("this.checked"))
+      selected = isar_proofs, script = isar_proofs_clicked.function("this.checked"))
 
-  object try0_checkbox_clicked extends Scalajs.Fun[Boolean] {
-    def apply(state: Boolean): Unit = { try0 = state }
-  }
+  def handle_try0(state: Boolean): Unit = { try0 = state }
   private def try0_checkbox =
     VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
-      selected = try0, script = try0_checkbox_clicked.function("this.checked"))
+      selected = try0, script = try0_clicked.function("this.checked"))
 
-  object apply_query_clicked extends Scalajs.Fun_Unit {
-    def apply(): Unit = provers_text_field.submit()
-  }
+  def handle_apply_query(): Unit = provers_text_field.submit()
   private def apply_query: XML.Elem = {
     VSCode_Elements.button("Apply",
       tooltip = "Search for first-order proof using automatic theorem provers",

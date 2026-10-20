@@ -51,7 +51,7 @@ object Pretty_Text_Area {
 }
 
 class Pretty_Text_Area(
-  on_update: XML.Body => Unit,
+  handle_output: XML.Body => Unit,
   container: dom.HTMLElement = dom.document.body
 ) {
   /* gui state */
@@ -65,13 +65,13 @@ class Pretty_Text_Area(
 
   /* update */
 
-  def on_resize(): Unit =
+  def handle_resize(): Unit =
     if (window_loaded) {
       resize_timeout.foreach(dom.window.clearTimeout)
-      resize_timeout = Some(dom.window.setTimeout(() => handle_resize(), 50.0))
+      resize_timeout = Some(dom.window.setTimeout(() => resize(), 50.0))
     }
 
-  def on_load(): Unit = {
+  def handle_load(): Unit = {
     current_metric = DOM_Metric()
     current_margin = current_metric.content(container)
     window_loaded = true
@@ -83,7 +83,7 @@ class Pretty_Text_Area(
       val formatted =
         Pretty.formatted(Pretty.separate(current_output), margin = current_margin,
           metric = current_metric)
-      on_update(List(HTML.source(Pretty_Text_Area.make_html(formatted))))
+      handle_output(List(HTML.source(Pretty_Text_Area.make_html(formatted))))
     }
   }
 
@@ -94,7 +94,7 @@ class Pretty_Text_Area(
     }
   }
 
-  def handle_resize(): Unit = {
+  def resize(): Unit = {
     val margin = current_metric.content(container)
 
     if (margin != current_margin) {
@@ -106,6 +106,6 @@ class Pretty_Text_Area(
 
   /* handlers */
 
-  Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => on_resize())
-  Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => on_load())
+  Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => handle_resize())
+  Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => handle_load())
 }

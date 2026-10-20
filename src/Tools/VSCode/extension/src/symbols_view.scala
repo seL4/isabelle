@@ -12,6 +12,13 @@ import isabelle._
 object Symbols_View {
   private val vscode = Webview_Api.acquire
 
+  object search_changed extends Scalajs.Fun[String] {
+    def apply(input: String): Unit = handle_search(input)
+  }
+  object tab_clicked extends Scalajs.Fun[Int] {
+    def apply(tab: Int): Unit = handle_tab(tab)
+  }
+
 
   /* gui state */
 
@@ -63,12 +70,10 @@ object Symbols_View {
 
   /* search */
 
-  object search_changed extends Scalajs.Fun[String] {
-    def apply(input: String): Unit = {
-      search_input = input
-      update()
-    }
-  }
+  def handle_search(input: String): Unit = {
+   search_input = input
+   update()
+ }
 
   private val search_space =
     for (entry <- Symbol.symbols.entries if entry.code.isDefined)
@@ -99,12 +104,10 @@ object Symbols_View {
 
   /* tabs */
 
-  object tab_clicked extends Scalajs.Fun[Int] {
-    def apply(tab: Int): Unit = {
-      active_tab = tab
-      vscode.set_state(Some(State(active_tab)))
-      update()
-    }
+  def handle_tab(tab: Int): Unit = {
+    active_tab = tab
+    vscode.set_state(Some(State(active_tab)))
+    update()
   }
 
   private class Tab(name: String, elems: List[XML.Elem], tooltip: String = "") {

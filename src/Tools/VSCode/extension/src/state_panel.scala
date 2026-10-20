@@ -14,6 +14,15 @@ import isabelle._
 object State_Panel {
   private val vscode = Webview_Api.acquire
 
+  object auto_update_clicked extends Scalajs.Fun[Boolean] {
+    def apply(state: Boolean): Unit = handle_auto_update(state)
+  }
+  object update_clicked extends Scalajs.Fun_Unit {
+    def apply(): Unit = handle_update()
+  }
+  object locate_clicked extends Scalajs.Fun_Unit {
+    def apply(): Unit = handle_locate()
+  }
 
   /* gui state */
 
@@ -22,35 +31,26 @@ object State_Panel {
 
   /* controls */
 
+  def handle_auto_update(state: Boolean): Unit = {
+    auto_update_enabled = state
+    vscode.post(JSON.Object("command" -> "auto_update", "enabled" -> auto_update_enabled))
+  }
   private def auto_update_button =
     VSCode_Elements.checkbox("Auto update",
       tooltip = "Indicate automatic update following cursor movement",
-      selected = auto_update_enabled, script = auto_update_button_clicked.function("this.checked"))
+      selected = auto_update_enabled, script = auto_update_clicked.function("this.checked"))
 
-  object auto_update_button_clicked extends Scalajs.Fun[Boolean] {
-    def apply(state: Boolean): Unit = {
-      auto_update_enabled = state
-      vscode.post(JSON.Object("command" -> "auto_update", "enabled" -> auto_update_enabled))
-    }
-  }
-
+  def handle_update(): Unit = vscode.post(JSON.Object("command" -> "update"))
   private val update_button =
     VSCode_Elements.button("Update",
       tooltip = "Update display according to the command at cursor position",
-      script = update_button_clicked.function())
+      script = update_clicked.function())
 
-  object update_button_clicked extends Scalajs.Fun_Unit {
-    def apply(): Unit = vscode.post(JSON.Object("command" -> "update"))
-  }
-
+  def handle_locate(): Unit = vscode.post(JSON.Object("command" -> "locate"))
   private val locate_button =
     VSCode_Elements.button("Locate", secondary = true,
       tooltip = "Update display according to the command at cursor position",
-      script = locate_button_clicked.function())
-
-  object locate_button_clicked extends Scalajs.Fun_Unit {
-    def apply(): Unit = vscode.post(JSON.Object("command" -> "locate"))
-  }
+      script = locate_clicked.function())
 
   private def controls = HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
 
