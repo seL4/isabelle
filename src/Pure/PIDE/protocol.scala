@@ -210,10 +210,10 @@ object Protocol {
   /* ML profiling */
 
   object ML_Profiling {
-    def unapply(msg: XML.Tree): Option[isabelle.ML_Profiling.Report] =
+    def unapply(msg: XML.Tree): Option[(Markup, isabelle.ML_Profiling.Report)] =
       msg match {
-        case XML.Elem(_, List(tree)) if is_tracing(msg) =>
-          Markup.ML_Profiling.unapply_report(tree)
+        case XML.Elem(markup, List(tree)) if is_tracing(msg) =>
+          Markup.ML_Profiling.unapply_report(tree).map((markup, _))
         case _ => None
       }
   }
