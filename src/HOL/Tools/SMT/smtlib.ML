@@ -131,7 +131,7 @@ fun read_hex l
 
 (* symbols *)
 
-val symbol_chars = ATP_Util.explode_string "~!@$%^&*_+=<>.?/-"
+val symbol_chars = String.explode_str "~!@$%^&*_+=<>.?/-"
 
 fun is_sym c =
   Symbol.is_ascii_letter c orelse
@@ -204,7 +204,7 @@ and quoted r f g l s cs ts tss =
 
 (* overall parser *)
 
-fun read_line l line = read l (ATP_Util.explode_string line)
+fun read_line l line = read l (String.explode_str line)
 
 fun add_line line (l, (None, tss)) =
       if size line = 0 orelse nth_string line 0 = ";" then (l + 1, (None, tss))
@@ -234,7 +234,7 @@ fun pretty_tree (Num i) = Pretty.str (string_of_int i)
         Pretty.str (sgn ^ String.substring (digits, 0, i) ^ "." ^ String.extract (digits, i, NONE))
       end
   | pretty_tree (Str s) =
-      ATP_Util.explode_string s
+      String.explode_str s
       |> maps (fn "\"" => ["\\", "\""] | "\\" => ["\\", "\\"] | c => [c])
       |> implode
       |> enclose "\"" "\""
@@ -242,7 +242,7 @@ fun pretty_tree (Num i) = Pretty.str (string_of_int i)
   | pretty_tree (Sym s) =
       if String.isPrefix "(" s (* for bit vector functions *) orelse
          String.isPrefix "#b" s (* for bit vector constants *) orelse
-         forall is_sym (ATP_Util.explode_string s) then
+         forall is_sym (String.explode_str s) then
         Pretty.str s
       else
         Pretty.str ("|" ^ s ^ "|")

@@ -695,7 +695,7 @@ fun read_radix_int radix cs =
 
 val read_int = read_radix_int 10;
 
-fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
+fun oct_char s = chr (#1 (read_radix_int 8 (String.explode_str s)));
 
 
 

@@ -33,7 +33,7 @@ open Fdl_Parser;
 
 fun err_unfinished () = error "An unfinished SPARK environment is still open."
 
-val strip_number = apply2 implode o chop_suffix Fdl_Lexer.is_digit o raw_explode;
+val strip_number = apply2 implode o chop_suffix Fdl_Lexer.is_digit o String.explode_str;
 
 val name_ord = prod_ord string_ord (option_ord int_ord) o
   apply2 (strip_number ##> Int.fromString);
@@ -69,7 +69,7 @@ structure VCs = Theory_Data
 
 (** utilities **)
 
-val to_lower = raw_explode #> map Symbol.to_ascii_lower #> implode;
+val to_lower = String.explode_str #> map Symbol.to_ascii_lower #> implode;
 
 val lcase_eq = (op =) o apply2 (to_lower o Long_Name.base_name);
 
@@ -83,7 +83,7 @@ fun strip_prfx s =
     fun strip ys [] = ("", implode ys)
       | strip ys ("_" :: "_" :: xs) = (implode (rev xs), implode ys)
       | strip ys (x :: xs) = strip (x :: ys) xs
-  in strip [] (rev (raw_explode s)) end;
+  in strip [] (rev (String.explode_str s)) end;
 
 fun unprefix_pfun "" s = s
   | unprefix_pfun prfx s =

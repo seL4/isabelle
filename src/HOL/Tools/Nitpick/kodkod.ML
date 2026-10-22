@@ -894,7 +894,7 @@ val extract_instance =
                                 raise SYNTAX (\<^unchecked_name>\<open>Kodkod.extract_instance\<close>,
                                               "ill-formed Kodkodi output"))
                             parse_instance))
-  o strip_blanks o raw_explode
+  o strip_blanks o String.explode_str
 
 val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"

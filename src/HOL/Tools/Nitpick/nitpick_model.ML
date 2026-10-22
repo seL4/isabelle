@@ -129,7 +129,7 @@ fun nth_atom_number pool T j =
 
 fun atom_suffix s =
   nat_subscript
-  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (raw_explode s)))  (* FIXME Symbol.explode (?) *)
+  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (String.explode_str s)))  (* FIXME Symbol.explode (?) *)
      ? prefix "\<^sub>,"
 
 fun nth_atom_name thy atomss pool prefix T j =

@@ -16,6 +16,7 @@ sig
   val member: string -> char -> bool
   val fold: (char -> 'a -> 'a) -> string -> 'a -> 'a
   val fold_rev: (char -> 'a -> 'a) -> string -> 'a -> 'a
+  val explode_str: string -> string list
 end;
 
 structure String: STRING =
@@ -46,5 +47,8 @@ fun fold_rev f str x0 =
     val n = size str;
     fun iter (x, i) = if Int.>= (i, 0) then iter (f (nth str i) x, i - 1) else x;
   in iter (x0, n - 1) end;
+
+fun explode_str str =
+  fold_rev (fn c => fn cs => String.str c :: cs) str [];
 
 end;

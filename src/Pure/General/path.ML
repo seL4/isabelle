@@ -216,7 +216,7 @@ val thy = ext "thy";
 val platform_exe = ML_System.platform_is_windows ? ext "exe";
 
 val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
-  (case chop_suffix (fn c => c <> ".") (raw_explode s) of
+  (case chop_suffix (fn c => c <> ".") (String.explode_str s) of
     ([], _) => (Path [Basic s], "")
   | (cs, e) => (Path [Basic (implode (take (length cs - 1) cs))], implode e)));
 

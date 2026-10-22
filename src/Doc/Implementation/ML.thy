@@ -1376,7 +1376,7 @@ paragraph \<open>Historical note.\<close>
 text \<open>
   In the original SML90 standard the primitive ML type \<^ML_type>\<open>char\<close> did not
   exists, and \<^ML_text>\<open>explode: string -> string list\<close> produced a list of
-  singleton strings like \<^ML>\<open>raw_explode: string -> string list\<close> in
+  singleton strings like \<^ML>\<open>String.explode_str: string -> string list\<close> in
   Isabelle/ML today. When SML97 came out, Isabelle did not adopt its somewhat
   anachronistic 8-bit or 16-bit characters, but the idea of exploding a string
   into a list of small strings was extended to ``symbols'' as explained above.

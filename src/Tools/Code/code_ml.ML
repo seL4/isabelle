@@ -375,7 +375,7 @@ val print_ocaml_string =
     fun chr i =
       let
         val xs = string_of_int i;
-        val ys = replicate_string (3 - length (raw_explode xs)) "0";
+        val ys = replicate_string (3 - length (String.explode_str xs)) "0";
       in "\\" ^ ys ^ xs end;
     fun char c =
       let

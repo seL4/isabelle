@@ -189,7 +189,7 @@ fun enforce_case' false cs =
   | enforce_case' true cs =
       nth_map 0 Symbol.to_ascii_upper cs;
 
-fun enforce_case upper = implode o enforce_case' upper o raw_explode;
+fun enforce_case upper = implode o enforce_case' upper o String.explode_str;
 
 fun desymbolize perhaps_upper "" =
       if the_default false perhaps_upper then "X" else "x"
@@ -210,7 +210,7 @@ fun desymbolize perhaps_upper "" =
           if is_valid x then x :: xs
           else
             (case Symbol.decode x of
-              Symbol.Sym name => "_" :: raw_explode name @ sep xs
+              Symbol.Sym name => "_" :: String.explode_str name @ sep xs
             | _ => sep xs);
         val upper_lower = Option.map enforce_case' perhaps_upper |> the_default I;
       in fold_rev desymb ys [] |> desep |> upper_lower |> implode end;

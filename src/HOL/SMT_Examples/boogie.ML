@@ -14,7 +14,7 @@ struct
 
 (* utility functions *)
 
-val as_int = fst o read_int o raw_explode
+val as_int = fst o read_int o String.explode_str
 
 val isabelle_name =
   let

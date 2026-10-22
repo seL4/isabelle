@@ -82,7 +82,7 @@ fun enclose bg en body = string bg @ body @ string en;
 fun trim_blanks trees =
   trees |> maps
     (fn Elem (markup, body) => [Elem (markup, trim_blanks body)]
-      | Text s => s |> raw_explode |> trim Symbol.is_blank |> implode |> string);
+      | Text s => s |> String.explode_str |> trim Symbol.is_blank |> implode |> string);
 
 
 (* filter markup elements *)
@@ -220,7 +220,7 @@ in
 val parse_comments =
   blanks -- Scan.repeat (parse_comment -- blanks >> K ()) >> K ();
 
-val parse_string = Scan.read Symbol.stopper parse_chars o raw_explode;
+val parse_string = Scan.read Symbol.stopper parse_chars o String.explode_str;
 
 fun parse_content xs =
   (parse_optional_text @@@
@@ -247,7 +247,7 @@ val parse_document =
 
 fun parse s =
   (case Scan.finite Symbol.stopper (Scan.error (!! (err (fn () => "Malformed element"))
-      (blanks |-- parse_document --| blanks))) (raw_explode s) of
+      (blanks |-- parse_document --| blanks))) (String.explode_str s) of
     (x, []) => x
   | (_, ys) => error ("XML parsing error: unprocessed input\n" ^ Symbol.beginning 100 ys));
 

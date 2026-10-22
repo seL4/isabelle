@@ -16,7 +16,6 @@ sig
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val strip_spaces_except_between_idents : string -> string
   val explode_spaces_except_between_idents_and_append : string -> string list -> string list
-  val explode_string : string -> string list
   val first_field_substring : string -> substring -> (substring * substring) option
   val elide_string : int -> string -> string
   val find_enclosed : string -> string -> string -> string list
@@ -135,9 +134,6 @@ val strip_spaces_except_between_idents = strip_spaces true is_ident_char
 fun explode_spaces_except_between_idents_and_append s tail =
   List.revAppend (fold_stripped_spaces true is_ident_char (cons o String.str) s [], tail)
 
-(* Tail-recursive version of raw_explode *)
-fun explode_string s = fold_rev_string cons s []
-
 (* Nonallocating version of first_field: prefix and suffix are views of the substring, with
    Substring.string prefix ^ pattern ^ Substring.string suffix = Substring.string s *)
 fun first_field_substring (pattern : string) (s : substring) : (substring * substring) option =
@@ -173,7 +169,7 @@ fun find_enclosed left right s =
       | NONE => [])
   in find (Substring.full s) end
 
-val subscript = implode o map (prefix "\<^sub>") o explode_string  (* FIXME Symbol.explode (?) *)
+val subscript = implode o map (prefix "\<^sub>") o String.explode_str  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =
   n |> string_of_int |> not (print_mode_active Print_Mode.ASCII) ? subscript
 
