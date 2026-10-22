@@ -14,8 +14,10 @@ object ML_Profiling {
   sealed case class Entry(name: String, count: Long) {
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
-    def print(total_count: Long): String = {
-      val p = Profiling.percentage(count, total_count).permille / 1000.0
+    def account: Long = if (name == "GARBAGE COLLECTION (total)") 0 else count
+
+    def print(total_account: Long): String = {
+      val p = Profiling.percentage(count, total_account).permille / 1000.0
       Library.format("%12d %.3f %s", Value.Long.obj(count), Value.Double.obj(p), name)
     }
   }
@@ -23,11 +25,11 @@ object ML_Profiling {
   sealed case class Report(kind: String, entries: List[Entry]) {
     def clean_name: Report = copy(entries = entries.map(_.clean_name))
 
-    lazy val total_count: Long = entries.iterator.map(_.count).sum
-    def total: Entry = Entry("TOTAL", total_count)
+    lazy val total_account: Long = entries.iterator.map(_.account).sum
+    def total: Entry = Entry("TOTAL", total_account)
 
     def print: String =
-      ("profile_" + kind + ":\n") + cat_lines((entries ::: List(total)).map(_.print(total_count)))
+      ("profile_" + kind + ":\n") + cat_lines((entries ::: List(total)).map(_.print(total_account)))
   }
 
   def account(reports: List[Report]): List[Report] = {
