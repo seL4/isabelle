@@ -24,7 +24,7 @@ struct
 
 open String;
 
-fun nth str i = sub (str, i);
+fun nth str i = String.sub (str, i);
 
 fun exists pred str =
   let
