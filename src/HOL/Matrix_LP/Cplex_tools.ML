@@ -156,7 +156,7 @@ fun is_normed_cplexProg (cplexProg (_, goal, constraints, bounds)) =
 
 fun is_NL s = s = "\n"
 
-fun is_blank s = forall (fn c => c <> #"\n" andalso Char.isSpace c) (String.explode s)
+val is_blank = String.forall (fn c => c <> #"\n" andalso Char.isSpace c)
 
 fun is_num a =
     let
@@ -825,7 +825,7 @@ datatype cplexResult = Unbounded
              | Undefined
              | Optimal of string * ((string * string) list)
 
-fun is_separator x = forall (fn c => c = #"-") (String.explode x)
+val is_separator = String.forall (fn c => c = #"-")
 
 fun is_sign x = (x = "+" orelse x = "-")
 
