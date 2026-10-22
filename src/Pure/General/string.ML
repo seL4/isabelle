@@ -23,6 +23,7 @@ sig
   val fold_str: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val fold_rev_str: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val explode_str: string -> string list
+  val translate_str: (string -> string) -> string -> string
 end;
 
 structure String: STRING =
@@ -63,5 +64,7 @@ fun fold_str f = fold (f o String.str);
 fun fold_rev_str f = fold_rev (f o String.str);
 
 fun explode_str str = fold_rev_str (fn c => fn cs => c :: cs) str [];
+
+fun translate_str f = String.translate (f o String.str);
 
 end;

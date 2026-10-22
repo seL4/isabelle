@@ -27,7 +27,7 @@ val isabelle_name =
       | "#" => "_H_"
       | "^" => "_T_"
       | _   => ("_" ^ string_of_int (ord s) ^ "_"))
-  in prefix "b_" o translate_string purge end
+  in prefix "b_" o String.translate_str purge end
 
 
 (* context *)

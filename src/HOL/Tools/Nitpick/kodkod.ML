@@ -526,7 +526,7 @@ fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
 
 fun inline_comment "" = ""
   | inline_comment comment =
-    " /* " ^ translate_string (fn "\n" => " " | "*" => "* " | s => s) comment ^
+    " /* " ^ String.translate_str (fn "\n" => " " | "*" => "* " | s => s) comment ^
     " */"
 
 fun block_comment "" = ""

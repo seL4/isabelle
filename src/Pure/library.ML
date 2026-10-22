@@ -153,7 +153,6 @@ sig
   val trim_split_lines: string -> string list
   val normalize_lines: string -> string
   val replicate_string: int -> string -> string
-  val translate_string: (string -> string) -> string -> string
   val encode_lines: string -> string
   val decode_lines: string -> string
   val align_right: string -> int -> string -> string
@@ -771,10 +770,8 @@ fun replicate_string (0: int) _ = ""
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
 
-fun translate_string f = String.translate (f o String.str);
-
-val encode_lines = translate_string (fn "\n" => "\v" | c => c);
-val decode_lines = translate_string (fn "\v" => "\n" | c => c);
+val encode_lines = String.translate_str (fn "\n" => "\v" | c => c);
+val decode_lines = String.translate_str (fn "\v" => "\n" | c => c);
 
 fun align_right c k s =
   let

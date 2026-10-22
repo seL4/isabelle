@@ -12,13 +12,14 @@ New in this Isabelle version
 * Various low-level string operations have been renamed as follows.
 INCOMPATIBILITY.
 
-  nth_string       ~>  String.nth_str
-  fold_string      ~>  String.fold_str
-  fold_rev_string  ~>  String.fold_rev_str
-  exists_string    ~>  String.exists_str
-  forall_string    ~>  String.forall_str
-  member_string    ~>  String.member_str
-  raw_explode      ~>  String.explode_str
+  nth_string           ~>  String.nth_str
+  fold_string          ~>  String.fold_str
+  fold_rev_string      ~>  String.fold_rev_str
+  exists_string        ~>  String.exists_str
+  forall_string        ~>  String.forall_str
+  member_string        ~>  String.member_str
+  raw_explode          ~>  String.explode_str
+  translate_string     ~>  String.translate_str
   Bytes.exists_string  ~>  Bytes.exists_str
   Bytes.forall_string  ~>  Bytes.forall_str
 

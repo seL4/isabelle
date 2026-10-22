@@ -60,7 +60,7 @@ fun environment name body = [XML.Elem (Markup.latex_environment name, body)];
 (* output name for LaTeX macros *)
 
 val output_name =
-  translate_string
+  String.translate_str
     (fn "_" => "UNDERSCORE"
       | "'" => "PRIME"
       | "0" => "ZERO"
@@ -83,7 +83,7 @@ fun enclose_name bg en = enclose bg en o output_name;
 val specials = Symset.make (String.explode_str "\"#$%&',-<>\\^_`{}~");
 
 val output_ascii =
-  translate_string
+  String.translate_str
     (fn " " => "\\ "
       | "\t" => "\\ "
       | "\n" => "\\isanewline\n"

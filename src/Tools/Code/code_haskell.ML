@@ -36,7 +36,7 @@ infixr 5 @|;
 (** Haskell serializer **)
 
 val print_haskell_string =
-  quote o translate_string (fn c =>
+  quote o String.translate_str (fn c =>
     if Symbol.is_ascii c then GHC.print_codepoint (ord c)
     else error "non-ASCII byte in Haskell string literal");
 

@@ -410,7 +410,7 @@ end;
 (* URLs *)
 
 val escape_url =
-  translate_string (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
+  String.translate_str (fn c => if c = "%" orelse c = "#" orelse c = "^" then "\\" ^ c else c);
 
 val _ = Theory.setup
   (Document_Output.antiquotation_raw_embedded \<^binding>\<open>url\<close> (Scan.lift Parse.embedded_input)

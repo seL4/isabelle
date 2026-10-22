@@ -36,7 +36,7 @@ val specials = Symset.make (String.explode_str "+,-./:_");
 
 fun string "" = "\"\""
   | string str =
-      str |> translate_string (fn ch =>
+      str |> String.translate_str (fn ch =>
         let val c = ord ch in
           (case ch of
             "\t" => "$'\\t'"

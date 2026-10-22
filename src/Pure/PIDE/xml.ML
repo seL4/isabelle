@@ -127,7 +127,7 @@ fun encode "<" = "&lt;"
   | encode "\"" = "&quot;"
   | encode c = c;
 
-val text = translate_string encode;
+val text = String.translate_str encode;
 
 
 (* output content *)
