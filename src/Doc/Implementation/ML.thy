@@ -1354,10 +1354,9 @@ text %mlref \<open>
   \<^descr> Type \<^ML_type>\<open>Symbol.symbol\<close> represents individual Isabelle symbols.
 
   \<^descr> \<^ML>\<open>Symbol.explode\<close>~\<open>str\<close> produces a symbol list from the packed form.
-  This function supersedes \<^ML>\<open>String.explode\<close> for virtually all purposes
-  of manipulating text in Isabelle!\<^footnote>\<open>The runtime overhead for exploded strings
-  is mainly that of the list structure: individual symbols that happen to be a
-  singleton string do not require extra memory in Poly/ML.\<close>
+  This function supersedes \<^ML>\<open>String.explode\<close> and
+  \<^ML>\<open>String.explode_str\<close> for virtually all purposes of manipulating text
+  in Isabelle!
 
   \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>,
   \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
