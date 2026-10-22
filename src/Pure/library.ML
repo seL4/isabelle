@@ -130,12 +130,6 @@ sig
   val oct_char: string -> string
 
   (*strings*)
-  val nth_string: string -> int -> string
-  val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
-  val fold_rev_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
-  val exists_string: (string -> bool) -> string -> bool
-  val forall_string: (string -> bool) -> string -> bool
-  val member_string: string -> string -> bool
   val last_string: string -> string option
   val first_field: string -> string -> (string * string) option
   val enclose: string -> string -> string -> string
@@ -701,20 +695,6 @@ fun oct_char s = chr (#1 (read_radix_int 8 (String.explode_str s)));
 
 (** strings **)
 
-(* functions tuned for strings, avoiding explode *)
-
-fun nth_string str = String.str o String.nth str;
-
-fun fold_string f = String.fold (f o String.str);
-
-fun fold_rev_string f = String.fold_rev (f o String.str);
-
-fun exists_string pred = String.exists (pred o String.str);
-
-fun forall_string pred = String.forall (pred o String.str);
-
-fun member_string str s = exists_string (fn s' => s = s') str;
-
 fun last_string "" = NONE
   | last_string s = SOME (str (String.nth s (size s - 1)));
 
@@ -781,7 +761,7 @@ fun trim_line s =
 val trim_split_lines = trim_line #> split_lines #> map trim_line;
 
 fun normalize_lines str =
-  if member_string str "\r" then
+  if String.member_str str "\r" then
     split_lines str |> map trim_line |> cat_lines
   else str;
 

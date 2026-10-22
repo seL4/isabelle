@@ -257,7 +257,7 @@ fun make_name hol =
 
 fun make_bound a =
   (case try (unprefix "_") a of
-    SOME b => if forall_string Symbol.is_ascii_digit b then "u" else b
+    SOME b => if String.forall_str Symbol.is_ascii_digit b then "u" else b
   | NONE => a);
 
 fun make_free x ty = Thm.free (#isabelle (make_name x), ty);

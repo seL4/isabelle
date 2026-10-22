@@ -75,7 +75,7 @@ val illegal_char = ["/", "\\", "$", ":", "\"", "'", "<", ">", "|", "?", "*"];
 fun check_elem s =
   if member (op =) illegal_elem s then err_elem "Illegal" s
   else
-    (s, ()) |-> fold_string (fn c => fn () =>
+    (s, ()) |-> String.fold_str (fn c => fn () =>
       if ord c < 32 then
         err_elem ("Illegal control character " ^ string_of_int (ord c) ^ " in") s
       else if member (op =) illegal_char c then

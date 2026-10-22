@@ -23,8 +23,8 @@ sig
   val add_substring: substring -> T -> T
   val add: string -> T -> T
   val beginning: int -> T -> string
-  val exists_string: (string -> bool) -> T -> bool
-  val forall_string: (string -> bool) -> T -> bool
+  val exists_str: (string -> bool) -> T -> bool
+  val forall_str: (string -> bool) -> T -> bool
   val last_string: T -> string option
   val trim_line: T -> T
   val append: T -> T -> T
@@ -93,11 +93,11 @@ fun add_substring s (bytes as Bytes {buffer, chunks, m, n}) =
 
 val add = add_substring o Substring.full;
 
-fun exists_string pred (Bytes {buffer, chunks, ...}) =
-  let val ex = (exists o Library.exists_string) pred
+fun exists_str pred (Bytes {buffer, chunks, ...}) =
+  let val ex = (exists o String.exists_str) pred
   in ex buffer orelse ex chunks end;
 
-fun forall_string pred = not o exists_string (not o pred);
+fun forall_str pred = not o exists_str (not o pred);
 
 fun last_string (Bytes {buffer, chunks, ...}) =
   (case buffer of

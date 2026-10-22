@@ -43,7 +43,7 @@ fun string "" = "\"\""
           | "\r" => "$'\\r'"
           | _ =>
               if Symbol.is_ascii_letter ch orelse Symbol.is_ascii_digit ch orelse
-                member_string "+,-./:_" ch then ch
+                String.member_str "+,-./:_" ch then ch
               else if c < 16 then "$'\\x0" ^ Int.fmt StringCvt.HEX c ^ "'"
               else if c < 32 orelse c >= 127 then "$'\\x" ^ Int.fmt StringCvt.HEX c ^ "'"
               else "\\" ^ ch)

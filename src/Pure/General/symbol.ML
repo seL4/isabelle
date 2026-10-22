@@ -200,7 +200,7 @@ fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + Char.ord #"A" - Cha
 
 fun is_ascii_identifier s =
   size s > 0 andalso is_ascii_letter (String.substring (s, 0, 1)) andalso
-  forall_string is_ascii_letdig s;
+  String.forall_str is_ascii_letdig s;
 
 val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> implode);
 

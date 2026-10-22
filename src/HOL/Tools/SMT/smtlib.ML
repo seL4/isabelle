@@ -207,7 +207,7 @@ and quoted r f g l s cs ts tss =
 fun read_line l line = read l (String.explode_str line)
 
 fun add_line line (l, (None, tss)) =
-      if size line = 0 orelse nth_string line 0 = ";" then (l + 1, (None, tss))
+      if size line = 0 orelse String.nth_str line 0 = ";" then (l + 1, (None, tss))
       else (l + 1, read_line l line None tss)
   | add_line line (l, (unfinished, tss)) =
       (l + 1, read_line l line unfinished tss)

@@ -11,11 +11,17 @@ signature STRING =
 sig
   include STRING
   val nth: string -> int -> char
+  val nth_str: string -> int -> string
   val exists: (char -> bool) -> string -> bool
   val forall: (char -> bool) -> string -> bool
+  val exists_str: (string -> bool) -> string -> bool
+  val forall_str: (string -> bool) -> string -> bool
   val member: string -> char -> bool
+  val member_str: string -> string -> bool
   val fold: (char -> 'a -> 'a) -> string -> 'a -> 'a
   val fold_rev: (char -> 'a -> 'a) -> string -> 'a -> 'a
+  val fold_str: (string -> 'a -> 'a) -> string -> 'a -> 'a
+  val fold_rev_str: (string -> 'a -> 'a) -> string -> 'a -> 'a
   val explode_str: string -> string list
 end;
 
@@ -25,6 +31,7 @@ struct
 open String;
 
 fun nth str i = String.sub (str, i);
+fun nth_str str = String.str o nth str;
 
 fun exists pred str =
   let
@@ -34,7 +41,11 @@ fun exists pred str =
 
 fun forall pred = not o exists (not o pred);
 
+fun exists_str pred = exists (pred o String.str);
+fun forall_str pred = forall (pred o String.str);
+
 fun member str c = exists (fn c' => c = c') str;
+fun member_str str s = exists_str (fn s' => s = s') str;
 
 fun fold f str x0 =
   let
@@ -48,7 +59,9 @@ fun fold_rev f str x0 =
     fun iter (x, i) = if Int.>= (i, 0) then iter (f (nth str i) x, i - 1) else x;
   in iter (x0, n - 1) end;
 
-fun explode_str str =
-  fold_rev (fn c => fn cs => String.str c :: cs) str [];
+fun fold_str f = fold (f o String.str);
+fun fold_rev_str f = fold_rev (f o String.str);
+
+fun explode_str str = fold_rev_str (fn c => fn cs => c :: cs) str [];
 
 end;

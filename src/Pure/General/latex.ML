@@ -87,7 +87,7 @@ val output_ascii =
       | "\n" => "\\isanewline\n"
       | s =>
           s
-          |> member_string "\"#$%&',-<>\\^_`{}~" s ? enclose "{\\char`\\" "}"
+          |> String.member_str "\"#$%&',-<>\\^_`{}~" s ? enclose "{\\char`\\" "}"
           |> suffix "{\\kern0pt}");
 
 fun output_ascii_breakable sep =
@@ -204,7 +204,7 @@ fun cite {kind, location, citations} =
   let
     val _ =
       citations |> List.app (fn (s, pos) =>
-        if member_string s ","
+        if String.member_str s ","
         then error ("Single citation expected, without commas" ^ Position.here pos)
         else ());
     val citations' = space_implode "," (map #1 citations);

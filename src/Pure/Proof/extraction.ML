@@ -288,7 +288,7 @@ val add_typeof_eqns_i = gen_add_typeof_eqns (K I);
 val add_typeof_eqns = gen_add_typeof_eqns read_condeq;
 
 fun thaw (T as TFree (a, S)) =
-      if member_string a ":" then TVar (unpack_ixn a, S) else T
+      if String.member_str a ":" then TVar (unpack_ixn a, S) else T
   | thaw (Type (a, Ts)) = Type (a, map thaw Ts)
   | thaw T = T;
 
