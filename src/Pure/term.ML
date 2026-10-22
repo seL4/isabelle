@@ -521,8 +521,10 @@ fun map_type_tfree f = map_atyps (fn TFree x => f x | _ => raise Same.SAME);
 
 (* fold types and terms *)
 
-fun fold_atyps f (Type (_, Ts)) acc = acc |> fold (fold_atyps f) Ts
-  | fold_atyps f T acc = acc |> f T;
+fun fold_atyps f (Type (_, Ts)) acc = fold_fold_atyps f Ts acc
+  | fold_atyps f T acc = f T acc
+and fold_fold_atyps _ [] acc = acc
+  | fold_fold_atyps f (T :: Ts) acc = fold_fold_atyps f Ts (fold_atyps f T acc);
 
 fun fold_atyps_sorts f =
   fold_atyps (fn T as TFree (_, S) => f (T, S) | T as TVar (_, S) => f (T, S));

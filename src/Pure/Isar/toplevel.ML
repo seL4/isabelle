@@ -54,7 +54,7 @@ sig
   val timing: Time.time -> transition -> transition
   val is_theory_begin: transition -> bool
   val prepare_init: transition -> transition
-  type init = unit -> {skipped: bool, theory: theory}
+  type init = unit -> {skip_theory: bool, theory: theory}
   val provide_init: init -> transition -> transition
   val present: presentation -> transition -> transition
   val keep: (state -> unit) -> transition -> transition
@@ -110,7 +110,7 @@ exception UNDEF = Runtime.UNDEF;
 (* datatype node *)
 
 type thy = {skipped: bool, level: int, gthy: generic_theory};
-  (*skipped mode, target context level, global or local theory target*)
+  (*skipped theory mode, target context level, global or local theory target*)
 
 fun inherit_thy ({skipped, level, ...}: thy) =
   fn gthy' => {skipped = skipped, level = level, gthy = gthy'};
@@ -301,7 +301,7 @@ val _ = ML_system_pp (fn _ => fn _ => Pretty.to_ML o pretty_abstract);
 
 type presentation = state -> Latex.text;
 
-type init = unit -> {skipped: bool, theory: theory};
+type init = unit -> {skip_theory: bool, theory: theory};
 
 datatype trans =
   (*init theory*)
@@ -350,8 +350,8 @@ fun apply_tr trans state =
     (Init f, Toplevel) =>
       Runtime.controlled_execution NONE (fn () =>
         let
-          val {skipped, theory} = f ();
-          val node = Theory {skipped = skipped, level = 0, gthy = Context.Theory theory};
+          val {skip_theory, theory} = f ();
+          val node = Theory {skipped = skip_theory, level = 0, gthy = Context.Theory theory};
         in make_state_node node end) ()
   | (Exit, Theory {level = 0, gthy = Context.Theory thy, ...}) =>
       let

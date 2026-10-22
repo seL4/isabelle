@@ -158,17 +158,6 @@ object Java_Launcher {
 </plist>
 """
 
-  private val exe_manifest =
-  """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" >
- <asmv3:application>
-   <asmv3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">
-    <dpiAware>true</dpiAware>
-   </asmv3:windowsSettings>
- </asmv3:application>
-</assembly>
-"""
-
   def setup(
     platform: Platform_Family,
     app_root: Path,
@@ -213,10 +202,6 @@ object Java_Launcher {
         Isabelle_System.new_directory(app_root + Path.explode("Contents/runtime/Contents"))
       File.write(runtime_contents + Path.explode("Info.plist"), runtime_info)
       Isabelle_System.copy_dir(java_root + Path.explode("Contents/MacOS"), runtime_contents)
-    }
-
-    if (platform.any_windows) {
-      File.write(app_root + Path.basic(app_name + ".exe.manifest"), exe_manifest)
     }
 
     val rootdir = "$ROOTDIR" + if_proper(launcher.resources, "/" + launcher.resources)

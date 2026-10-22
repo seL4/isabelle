@@ -105,7 +105,7 @@ object Debugger {
     private def debugger_state(msg: Prover.Protocol_Output): Boolean = {
       msg.properties match {
         case Markup.Debugger_State(thread_name) =>
-          val msg_body = Symbol.decode_yxml_failsafe(msg.text)
+          val msg_body = Symbol.decode_yxml(msg.chunk, failsafe = true)
           val debug_states = {
             import XML.Decode._
             list(pair(properties, string))(msg_body).map({
@@ -121,7 +121,7 @@ object Debugger {
     private def debugger_output(msg: Prover.Protocol_Output): Boolean = {
       msg.properties match {
         case Markup.Debugger_Output(thread_name) =>
-          Symbol.decode_yxml_failsafe(msg.text) match {
+          Symbol.decode_yxml(msg.chunk, failsafe = true) match {
             case List(XML.Elem(Markup(name, props @ Markup.Serial(i)), body)) =>
               val message = Protocol.make_message(body, name, props = props)
               debugger.add_output(thread_name, i -> session.cache.elem(message))

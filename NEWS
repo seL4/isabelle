@@ -42,6 +42,12 @@ tool setup, later theories may work uniformly on either variant.
     'services' in etc/build.props and suitable instances of the service
     class isabelle.Thy_Conditions.Predicates).
 
+* The system option "condition_proofs" is analogous to "condition", but
+skips proof checking only. Thus [condition_proofs = false] is like the
+historical option [skip_proofs = true], but "condition_proofs" may
+depend on the process environment, session options, Isabelle/Scala
+predicates.
+
 * The Isabelle application bundle has been split into "macos"
 (x86_64-darwin, Intel) and "macos_arm" (arm64-darwin, Apple Silicon).
 The correct version needs to be used for the actual system platform:
@@ -219,9 +225,6 @@ checked in the past. INCOMPATIBILITY.
 *** HOL ***
 
 * Sledgehammer:
-  - The Sledgehammer panel now uses the same default provers as the
-    "sledgehammer" command, including those set via "sledgehammer_params"
-    (system option "sledgehammer_provers" is empty by default).
   - Update of bundled provers:
       . spass-3.8ds -- include arm64-darwin
       . zipperposition-2.1 -- include arm64-darwin
@@ -235,9 +238,33 @@ checked in the past. INCOMPATIBILITY.
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
 
+* try0:
+  - Changed the ML types Try0.facts and Try0_Util.facts_config: facts
+    are grouped into named classes (e.g. "simp", "intro"), and each proof
+    method declares the argument syntax it accepts (no arguments, plain
+    fact arguments, or class-specific sections such as "simp:").
+    Minor INCOMPATIBILITY.
+  - Facts are passed to a proof method in its own syntax where possible
+    (e.g. "simp:" for "auto", plain arguments for "metis") and via
+    "using" otherwise. In particular, the Sledgehammer tactic provers
+    "auto", "force", and "fastforce" no longer fail when given facts from
+    the background theory, and "argo" now takes facts as plain arguments.
+  - Added optional fact classifiers, which assign facts to classes before
+    the proof methods are tried. They are registered with the ML function
+    Try0.register_fact_classifier and selected with the system option
+    "try0_fact_classifier".
+  - Proof methods are registered in theory data, i.e. they are only
+    available in theories importing the registering theory. The ML
+    functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
+    Try0.get_all_proof_method_names take a Proof.context.
+    Minor INCOMPATIBILITY.
+  - Added the fact classes "split", "iff", and "cong".
+  - Facts in parentheses are passed without class, as in the command
+    "sledgehammer"; they are subject to the fact classifier.
+
 * Metis: Updated the Metis prover underlying the "metis" proof method to
-version 2.4 (release 20260920). The new version allocates less memory and
-fixes one implementation defect. Minor INCOMPATIBILITY.
+version 2.4 (release 20260920). The new version allocates less memory
+and fixes one implementation defect. Minor INCOMPATIBILITY.
 
 * SMT:
   - Added option "smt_unique_dest_file" to add some pseudo-unique suffix
@@ -263,8 +290,16 @@ fixes one implementation defect. Minor INCOMPATIBILITY.
   - Removed option "cvc_extensions"; use "smt_native_datatypes" and
     "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
-* Mirabelle: Added option -c to "isabelle mirabelle" to log the source
-text of each command acted upon, e.g. "source: by (metis foo bar)".
+* Mirabelle:
+  - Added option -c to "isabelle mirabelle" to log the source text of
+    each command acted upon, e.g. "source: by (metis foo bar)".
+  - Added argument "log_classifications" to the action "sledgehammer" to
+    write the fact classifications, timings, and outcomes of the tactic
+    provers to files in the output directory.
+  - Added option -e to "isabelle mirabelle" to evaluate ML files before
+    initializing the actions, e.g. to register custom actions or fact
+    classifiers. Context-dependent registrations, such as fact classifiers,
+    must be wrapped in Mirabelle.add_goal_setup to reach each goal.
 
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a
@@ -276,9 +311,9 @@ INCOMPATIBILITY.
 parameters any longer in generated code but implemented using their
 counterparts on finite sets. Minor INCOMPATIBILITY.
 
-* Set difference may now be written using the symbol "\<setminus>" (which is not a
-backlash), although the former symbol "-" still works. Minor
-INCOMPATIBILITY.
+* Set difference may now be written using the Isabelle symbol "\<setminus>" (which
+is not a backlash). The generic minus operation "-" is still available
+as before, and used by default.
 
 * New relation "has_log_derivative", which simplifies talking about
 logarithmic derivatives.
@@ -318,7 +353,8 @@ and arch_pow. Minor INCOMPATIBILITY.
 
 * Theory "HOL-Library.Multiset":
   - Removed lemmas. Minor INCOMPATIBILITY.
-      add_mset_add_single (use add_single_right_eq_add_mset[symmetric] instead)
+      add_mset_add_single (use add_single_right_eq_add_mset[symmetric]
+      instead)
   - Added lemmas.
       add_single_left_eq_add_mset
       add_single_right_eq_add_mset
@@ -352,7 +388,7 @@ Rectifiable_Paths and Absolute_Continuity. Change_Of_Vars has been
 generalised to Euclidean spaces. Stronger versions of the FTC, now for
 countable rather than finite sets. Minor INCOMPATIBILITY
 
-* Session "HOL-Analysis": Theory "Determinant_Linear_Function" provides
+* Session "HOL-Analysis": theory "Determinant_Linear_Function" provides
 "finite_dimensional_vector_space.det", i.e. the notion of the
 determinant of a linear function from a finite-dimensional vector space
 into itself, generalising (but not replacing) the earlier

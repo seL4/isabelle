@@ -132,6 +132,11 @@ text \<open>
   official jEdit documentation does not know about the Isabelle plugin with
   its support for continuous checking of formal source text: jEdit is a plain
   text editor, but Isabelle/jEdit is a Prover IDE.
+
+  The \<^emph>\<open>Documentation\<close> panel can be navigated quickly using the keyboard:
+  arrow keys to move the selected entry, \<^verbatim>\<open>ENTER\<close> to open an entry, and
+  \<^verbatim>\<open>ESCAPE\<close> or \<^verbatim>\<open>S+F1\<close> to focus to the main text area --- which then allows
+  \<^verbatim>\<open>F1\<close> to reactivate \<^emph>\<open>Documentation\<close>.
 \<close>
 
 
@@ -316,7 +321,7 @@ text \<open>
 
   The \<^verbatim>\<open>-n\<close> option reports the server name, and the \<^verbatim>\<open>-s\<close> option provides a
   different server name. The default server name is the official distribution
-  name (e.g.\ \<^verbatim>\<open>Isabelle2025-2\<close>). Thus @{tool jedit_client} can connect to the
+  name (e.g.\ \<^verbatim>\<open>Isabelle2026\<close>). Thus @{tool jedit_client} can connect to the
   Isabelle desktop application without further options.
 
   The \<^verbatim>\<open>-p\<close> option allows to override the implicit default of the system
@@ -502,8 +507,8 @@ text \<open>Technically, the Unicode interpretation of Isabelle symbols is an
   in the text force jEdit to fall back on a different encoding like
   \<^verbatim>\<open>ISO-8859-15\<close>. In that case, verbatim ``\<^verbatim>\<open>\<alpha>\<close>'' will be shown in the text
   buffer instead of its Unicode rendering ``\<open>\<alpha>\<close>''. The jEdit menu operation
-  \<^emph>\<open>File~/ Reload Unicode Symbols\<close> helps to resolve such problems (after
-  repairing malformed parts of the text).
+  \<^emph>\<open>File~/ Reload as Plain Text\<close> (\<^verbatim>\<open>F9\<close>) and \<^emph>\<open>File~/ Reload as Unicode
+  Symbols\<close> (\<^verbatim>\<open>S+F9\<close>) help to sort out the underlying text encoding.
 
   If the loaded text already contains Unicode sequences that are in conflict
   with the Isabelle symbol encoding, the fallback-encoding UTF-8 is used and
@@ -1085,13 +1090,14 @@ text \<open>
   actions (see \secref{sec:auto-tools} and \secref{sec:sledgehammer}).
 
   \<^medskip>
-  Alternatively, the subsequent actions (with keyboard shortcuts) allow to
-  show tooltip messages or navigate error positions:
+  It is also possible to show tooltip messages or navigate error positions via
+  the subsequent actions (with keyboard shortcuts):
 
   \<^medskip>
   \begin{tabular}[t]{l}
   @{action_ref "isabelle.tooltip"} (\<^verbatim>\<open>CS+b\<close>) \\
   @{action_ref "isabelle.message"} (\<^verbatim>\<open>CS+m\<close>) \\
+  @{action_ref "isabelle.line-status"} (\<^verbatim>\<open>CS+l\<close>) \\
   \end{tabular}\quad
   \begin{tabular}[t]{l}
   @{action_ref "isabelle.first-error"} (\<^verbatim>\<open>CS+a\<close>) \\
@@ -1100,6 +1106,20 @@ text \<open>
   @{action_ref "isabelle.prev-error"} (\<^verbatim>\<open>CS+p\<close>) \\
   \end{tabular}
   \<^medskip>
+
+  The jEdit action @{action "isabelle.line-status"} displays the same per-line
+  information as the gutter area, but avoids visual GUI interaction. The
+  headline accounts for errors and warnings; the body text lists all messages
+  in the order priorities. See also \figref{fig:output-line-status}
+
+  \begin{figure}[!htb]
+  \begin{center}
+  \includegraphics[scale=0.333]{output2} \\
+  \includegraphics[scale=0.333]{output3} \\
+  \end{center}
+  \caption{Line status output via keyboard shortcut \<^verbatim>\<open>CS+l\<close>}
+  \label{fig:output-line-status}
+  \end{figure}
 \<close>
 
 

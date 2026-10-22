@@ -149,6 +149,9 @@ option context : string = "" for content
 option condition : string = "" for content
   -- "pre-conditions to evaluate theory body (separated by commas)"
 
+option condition_proofs : string = "" for content
+  -- "pre-conditions to check proofs within theory body (separated by commas)"
+
 option timeout : real = 0 for build
   -- "timeout for session build job (seconds > 0)"
 
@@ -215,7 +218,7 @@ option build_debug : bool = false
 option build_thorough : bool = false
   -- "observe dependencies on options with tag 'content' or 'document'"
 
-option build_everything : bool = false for build build_sync
+public option build_everything : bool = false for build build_sync
   -- "build everything, including guarded benchmark theories"
 
 option build_hostname : string = ""

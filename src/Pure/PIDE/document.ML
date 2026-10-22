@@ -642,8 +642,8 @@ fun init_theory deps node span =
         ignore (Completion.check_option_value ctxt spec default));
 
     val _ = Output.status [YXML.output_markup_only Markup.initialized];
-    val skipped = Resources.skipping_theory warning thy;
-  in {skipped = skipped, theory = theory} end;
+    val _ = Resources.skipping_theory warning thy;
+  in {skip_theory = Resources.skip_theory thy, theory = theory} end;
 
 fun get_special_parent node =
   let

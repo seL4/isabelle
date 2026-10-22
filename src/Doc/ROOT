@@ -224,6 +224,8 @@ session JEdit (doc) in "JEdit" = HOL +
     "output-and-state.png"
     "output-including-state.png"
     "output.png"
+    "output2.png"
+    "output3.png"
     "popup1.png"
     "popup2.png"
     "popup3.png"

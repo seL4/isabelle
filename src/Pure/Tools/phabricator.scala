@@ -46,7 +46,7 @@ object Phabricator {
     val release = Linux.Release()
     if (release.is_ubuntu_22_04) packages_ubuntu_22_04
     else if (release.is_ubuntu_24_04) packages_ubuntu_24_04
-    else error("Bad Linux version: expected Ubuntu 20.04 or 22.04 or 24.04 LTS")
+    else error("Bad Linux version: expected Ubuntu 22.04 or 24.04 LTS")
   }
 
 

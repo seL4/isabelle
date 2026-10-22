@@ -23,12 +23,14 @@ val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
 val exhaustive_preplayK = "exhaustive_preplay" (*=BOOL: show exhaustive preplay data*)
 val keep_probsK = "keep_probs" (*=BOOL: keep temporary problem files created by sledgehammer*)
 val keep_proofsK = "keep_proofs" (*=BOOL: keep temporary proof files created by ATPs*)
+val log_classificationsK = "log_classifications" (*=BOOL: log tactic provers' fact classifications*)
 
 (*defaults used in this Mirabelle action*)
 val check_trivial_default = false
 val exhaustive_preplay_default = false
 val keep_probs_default = false
 val keep_proofs_default = false
+val log_classifications_default = false
 
 datatype sh_data = ShData of {
   calls: int,
@@ -130,18 +132,23 @@ local
 fun run_sh params keep pos state =
   \<^try>\<open>
     let
-      fun set_file_name (SOME (dir, keep_probs, keep_proofs)) =
+      fun set_file_name (SOME (dir, keep_probs, keep_proofs, log_classifications)) =
           let
-            val filename = "prob_" ^
+            val goal_position =
               StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
               StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
-            fun mk_smt_file () = dir ^ "/" ^ filename ^ "__" ^ serial_string ()
+            val prob_prefix = "prob_" ^ goal_position
+            val fact_prefix = "fact_classification_" ^ goal_position
+            fun mk_smt_file () = dir ^ "/" ^ prob_prefix ^ "__" ^ serial_string ()
           in
-            Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (filename ^ "__")
+            Config.put Sledgehammer_Prover_ATP.atp_problem_prefix (prob_prefix ^ "__")
+            #> Config.put Sledgehammer_Prover_Tactic.fact_classification_prefix fact_prefix
             #> (keep_probs ? Config.put Sledgehammer_Prover_ATP.atp_problem_dest_dir dir)
             #> (keep_proofs ? Config.put Sledgehammer_Prover_ATP.atp_proof_dest_dir dir)
             #> (keep_probs ? Config.put SMT_Config.problem_dest_file (mk_smt_file ()))
             #> (keep_proofs ? Config.put SMT_Config.proof_dest_file (mk_smt_file ()))
+            #> (log_classifications ?
+              Config.put Sledgehammer_Prover_Tactic.fact_classification_dest_dir dir)
           end
         | set_file_name NONE = I
       val state' = state
@@ -159,12 +166,12 @@ fun run_sh params keep pos state =
 
 in
 
-fun run_sledgehammer params output_dir keep_probs keep_proofs
+fun run_sledgehammer params output_dir keep_probs keep_proofs log_classifications
     exhaustive_preplay thy_index trivial pos st =
   let
     val triv_str = if trivial then "[T] " else ""
     val keep =
-      if keep_probs orelse keep_proofs then
+      if keep_probs orelse keep_proofs orelse log_classifications then
         let
           val thy_long_name = Context.theory_long_name (Proof.theory_of st)
           val session_name = Long_Name.qualifier thy_long_name
@@ -174,7 +181,7 @@ fun run_sledgehammer params output_dir keep_probs keep_proofs
           Path.append (Path.append output_dir (Path.basic session_name)) (Path.basic subdir)
           |> Isabelle_System.make_directory
           |> Path.implode
-          |> (fn dir => SOME (dir, keep_probs, keep_proofs))
+          |> (fn dir => SOME (dir, keep_probs, keep_proofs, log_classifications))
         end
       else
         NONE
@@ -227,6 +234,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       Mirabelle.get_bool_argument arguments (check_trivialK, check_trivial_default)
     val keep_probs = Mirabelle.get_bool_argument arguments (keep_probsK, keep_probs_default)
     val keep_proofs = Mirabelle.get_bool_argument arguments (keep_proofsK, keep_proofs_default)
+    val log_classifications =
+      Mirabelle.get_bool_argument arguments (log_classificationsK, log_classifications_default)
     val exhaustive_preplay =
       Mirabelle.get_bool_argument arguments (exhaustive_preplayK, exhaustive_preplay_default)
 
@@ -244,8 +253,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           let
             val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log, change_data) =
-              run_sledgehammer params output_dir keep_probs keep_proofs exhaustive_preplay
-                theory_index trivial pos pre
+              run_sledgehammer params output_dir keep_probs keep_proofs log_classifications
+                exhaustive_preplay theory_index trivial pos pre
             val () = Synchronized.change data
               (change_data #> inc_sh_calls #> not trivial ? inc_sh_nontriv_calls)
           in

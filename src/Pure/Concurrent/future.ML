@@ -427,7 +427,8 @@ fun assign_result group result res =
           (case Single_Assignment.peek result of
             SOME (Exn.Exn e) => Exn.reraise (if Exn.is_interrupt_proper e then e else exn)
           | _ => Exn.reraise exn)
-      | _ => ());
+      | Exn.Exn exn => Exn.reraise exn
+      | Exn.Res () => ());
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn =>

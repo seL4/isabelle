@@ -3,8 +3,8 @@
 *)
 theory Alethe_Rare_Interface
   imports "Alethe_Boolean_Rewrites" "Alethe_Builtin_Rewrites" "Alethe_Arith_Rewrites" "Alethe_UF_Rewrites" "Alethe_cvc5_Rewrites"
-  keywords
-    "cvc5_rare" :: thy_decl
+  keywords "cvc5_rare" :: thy_decl
+  abbrevs "cvc5_rare" = ""
 begin
 
 
