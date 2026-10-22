@@ -403,7 +403,7 @@ fun text_of tok =
     val s = unparse tok;
   in
     if s = "" then (k, "")
-    else if size s < 40 andalso not (exists_string (fn c => c = "\n") s)
+    else if size s < 40 andalso not (String.exists_str (fn c => c = "\n") s)
     then (k ^ " " ^ Markup.markups ms s, "")
     else (k, Markup.markups ms s)
   end;

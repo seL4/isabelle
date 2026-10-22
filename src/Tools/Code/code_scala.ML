@@ -39,7 +39,7 @@ val print_scala_string =
           then error "non-ASCII byte in Scala string literal"
           else c
         end
-  in quote o translate_string char end;
+  in quote o String.translate_str char end;
 
 datatype scala_stmt = Fun of typscheme * ((iterm list * iterm) * (thm option * bool)) list
   | Datatype of vname list * ((string * vname list) * itype list) list

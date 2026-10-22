@@ -1354,10 +1354,9 @@ text %mlref \<open>
   \<^descr> Type \<^ML_type>\<open>Symbol.symbol\<close> represents individual Isabelle symbols.
 
   \<^descr> \<^ML>\<open>Symbol.explode\<close>~\<open>str\<close> produces a symbol list from the packed form.
-  This function supersedes \<^ML>\<open>String.explode\<close> for virtually all purposes
-  of manipulating text in Isabelle!\<^footnote>\<open>The runtime overhead for exploded strings
-  is mainly that of the list structure: individual symbols that happen to be a
-  singleton string do not require extra memory in Poly/ML.\<close>
+  This function supersedes \<^ML>\<open>String.explode\<close> and
+  \<^ML>\<open>String.explode_str\<close> for virtually all purposes of manipulating text
+  in Isabelle!
 
   \<^descr> \<^ML>\<open>Symbol.is_letter\<close>, \<^ML>\<open>Symbol.is_digit\<close>,
   \<^ML>\<open>Symbol.is_quasi\<close>, \<^ML>\<open>Symbol.is_blank\<close> classify standard symbols
@@ -1376,7 +1375,7 @@ paragraph \<open>Historical note.\<close>
 text \<open>
   In the original SML90 standard the primitive ML type \<^ML_type>\<open>char\<close> did not
   exists, and \<^ML_text>\<open>explode: string -> string list\<close> produced a list of
-  singleton strings like \<^ML>\<open>raw_explode: string -> string list\<close> in
+  singleton strings like \<^ML>\<open>String.explode_str: string -> string list\<close> in
   Isabelle/ML today. When SML97 came out, Isabelle did not adopt its somewhat
   anachronistic 8-bit or 16-bit characters, but the idea of exploding a string
   into a list of small strings was extended to ``symbols'' as explained above.

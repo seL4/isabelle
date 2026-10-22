@@ -187,7 +187,7 @@ fun this ys xs =
           if (y: string) = x then drop_prefix ys xs else raise FAIL NONE;
   in (ys, drop_prefix ys xs) end;
 
-fun this_string s = this (raw_explode s) >> K s;  (*primitive string -- no symbols here!*)
+fun this_string s = this (String.explode_str s) >> K s;  (*primitive string -- no symbols here!*)
 
 fun many _ [] = raise MORE ()
   | many pred (lst as x :: xs) =

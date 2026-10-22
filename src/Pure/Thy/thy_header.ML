@@ -136,7 +136,7 @@ val ml_roots = ["ML_Root0", "ML_Root"];
 val bootstrap_thys = ["Bootstrap_Pure", "Bootstrap_ML_Bootstrap"];
 
 fun is_base_name s =
-  s <> "" andalso not (exists_string (member (op =) ["/", "\\", ":"]) s)
+  s <> "" andalso not (String.exists_str (member (op =) ["/", "\\", ":"]) s)
 
 fun import_name s =
   if String.isSuffix ".thy" s then

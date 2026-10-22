@@ -166,7 +166,7 @@ fun alphanumerate c =
     else c
   end
 fun alphanumerated_name prefix name =
-  prefix ^ (raw_explode #> map alphanumerate #> implode) name
+  implode (prefix :: map alphanumerate (String.explode_str name))
 
 fun mk_binding (config : config) ident =
   let
