@@ -80,6 +80,8 @@ fun enclose_name bg en = enclose bg en o output_name;
 
 (* output verbatim ASCII *)
 
+val specials = Symset.make (String.explode_str "\"#$%&',-<>\\^_`{}~");
+
 val output_ascii =
   translate_string
     (fn " " => "\\ "
@@ -87,7 +89,7 @@ val output_ascii =
       | "\n" => "\\isanewline\n"
       | s =>
           s
-          |> String.member_str "\"#$%&',-<>\\^_`{}~" s ? enclose "{\\char`\\" "}"
+          |> Symset.member specials s ? enclose "{\\char`\\" "}"
           |> suffix "{\\kern0pt}");
 
 fun output_ascii_breakable sep =

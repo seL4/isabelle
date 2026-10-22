@@ -132,7 +132,8 @@ fun raw_symbolic s =
 fun is_symbolic s =
   s <> open_ andalso s <> close andalso raw_symbolic s;
 
-val is_symbolic_char = member (op =) (String.explode_str "!#$%&*+-/<=>?@^_|~");
+val symbolic_chars = Symset.make (String.explode_str "!#$%&*+-/<=>?@^_|~")
+val is_symbolic_char = Symset.member symbolic_chars;
 
 fun is_printable s =
   if is_char s then 32 <= ord s andalso ord s <= Char.ord #"~"
