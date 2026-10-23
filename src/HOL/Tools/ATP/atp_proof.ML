@@ -459,8 +459,8 @@ fun add_bound [] [] bound = bound
   | add_bound _ _ _ = raise ListPair.UnequalLengths
 
 fun same_formula comm bound (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
-    q1 = q2 andalso length_ord (xs1, xs2) = EQUAL andalso
-    same_formula comm (add_bound xs1 xs2 bound) phi1 phi2
+    (q1 = q2 andalso same_formula comm (add_bound xs1 xs2 bound) phi1 phi2
+     handle ListPair.UnequalLengths => false)
   | same_formula comm bound (AConn (c1, phis1)) (AConn (c2, phis2)) =
     c1 = c2 andalso forall2 (same_formula comm bound) phis1 phis2
   | same_formula comm bound (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
@@ -515,6 +515,7 @@ val () =
 
     (* Quantifier renaming preserves scope, including nested abstractions. *)
     \<^assert> (eq_fm false (all "X" (pred (var "X"))) (all "A" (pred (var "A"))));
+    \<^assert> (neq_fm false (all "X" (pred (var "X"))) (AQuant (AForall, [], pred (var "X"))));
     \<^assert> (neq_fm false (all "X" (all "Y" (pred (var "X")))) (all "A" (all "A" (pred (var "A")))));
     \<^assert> (neq_fm false (all "X" (pred (abs "Y" (var "X")))) (all "A" (pred (abs "A" (var "A")))));
 
