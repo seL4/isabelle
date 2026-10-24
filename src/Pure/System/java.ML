@@ -35,7 +35,7 @@ val print_str =
 in
 
 fun print_string str =
-  quote (translate_string print_str str)
+  quote (String.translate_str print_str str)
     handle Fail _ => error ("Cannot print non-ASCII Java/Scala string literal: " ^ quote str);
 
 end;

@@ -40,30 +40,21 @@ fun check_mode "" = ()
 
 (* profile *)
 
-fun print_entry count name =
-  let
-    val c = string_of_int count;
-    val prefix = Symbol.spaces (Int.max (0, 12 - size c));
-  in prefix ^ c ^ " " ^ name end;
-
 fun profile "" f x = f x
   | profile kind f x =
       let
         val mode = get_mode kind;
         fun output entries =
-          (case fold (curry (op +) o fst) entries 0 of
-            0 => ()
-          | total =>
-              let
-                val body = entries
-                  |> sort (int_ord o apply2 fst)
-                  |> map (fn (count, name) =>
-                      let val markup = Markup.ML_profiling_entry {name = name, count = count}
-                      in XML.Elem (markup, [XML.Text (print_entry count name ^ "\n")]) end);
-                val head = XML.Text ("profile_" ^ kind ^ ":\n");
-                val foot = XML.Text (print_entry total "TOTAL");
-                val msg = XML.Elem (Markup.ML_profiling kind, head :: body @ [foot]);
-              in tracing (YXML.string_of msg) end);
+          let
+            val body = entries
+              |> sort (int_ord o apply2 fst)
+              |> map_filter (fn (n, name) =>
+                  if n = 0 then NONE
+                  else SOME (XML.Elem (Markup.ML_profiling_entry {name = name, count = n}, [])));
+          in
+            if null body then ()
+            else tracing (YXML.string_of (XML.Elem (Markup.ML_profiling kind, body)))
+          end;
       in PolyML.Profiling.profileStream output mode f x end;
 
 fun profile_time f = profile "time" f;

@@ -856,7 +856,7 @@ and scan_term xs =
 
 val parse_term = fst o Scan.finite Symbol.stopper
     (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed")) scan_term)
-  o raw_explode
+  o String.explode_str
 
 fun parse_solutions sol =
   let

@@ -526,7 +526,7 @@ fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
 
 fun inline_comment "" = ""
   | inline_comment comment =
-    " /* " ^ translate_string (fn "\n" => " " | "*" => "* " | s => s) comment ^
+    " /* " ^ String.translate_str (fn "\n" => " " | "*" => "* " | s => s) comment ^
     " */"
 
 fun block_comment "" = ""
@@ -894,7 +894,7 @@ val extract_instance =
                                 raise SYNTAX (\<^unchecked_name>\<open>Kodkod.extract_instance\<close>,
                                               "ill-formed Kodkodi output"))
                             parse_instance))
-  o strip_blanks o raw_explode
+  o strip_blanks o String.explode_str
 
 val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"

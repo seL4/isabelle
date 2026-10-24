@@ -137,7 +137,7 @@ abstract class Editor {
         case Some(command) =>
           if (thy_command.isDefined || restriction.isEmpty || restriction.get.contains(command)) {
             val results = snapshot.command_results(command)
-            val messages = {
+            val messages0 = {
               val (states, other) = {
                 List.from(
                   for ((_, msg) <- results.iterator if !Protocol.is_result(msg) && filter(msg))
@@ -146,6 +146,12 @@ abstract class Editor {
               val (urgent, regular) = other.partition(Protocol.is_urgent)
               urgent ::: (if (output_state()) states else Nil) ::: regular
             }
+            val messages =
+              messages0.map {
+                case Protocol.ML_Profiling(markup, report) =>
+                  XML.Elem(markup, XML.string(report.print))
+                case msg => msg
+              }
             Editor.Output(snapshot = snapshot, results = results, messages = messages)
           }
           else Editor.Output.none

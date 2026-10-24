@@ -37,7 +37,7 @@ fun unsynchronized_init cache_path =
           fun err () = error ("Cache IO: corrupted cache file: " ^ Path.print cache_path)
 
           fun int_of_string s =
-            (case read_int (raw_explode s) of
+            (case read_int (String.explode_str s) of
               (i, []) => i
             | _ => err ())
 

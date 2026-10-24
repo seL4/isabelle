@@ -16,6 +16,7 @@ sig
      pre: Proof.state, post: Toplevel.state}
   type action = {run: command -> string, finalize: unit -> string}
   val register_action: string -> (action_context -> string * action) -> unit
+  val add_goal_setup: (Proof.context -> Proof.context) -> unit
 
   (*utility functions*)
   val print_exn: exn -> string
@@ -84,6 +85,22 @@ fun register_action name make_action =
      (fn f => (warning ("Redefining Mirabelle action: " ^ quote name); f))));
 
 fun get_action name = Symtab.lookup (Synchronized.value actions) name;
+
+end
+
+
+(* goal setups *)
+
+local
+  val goal_setups = Synchronized.var \<^unchecked_name>\<open>Mirabelle.goal_setups\<close>
+    ([] : (Proof.context -> Proof.context) list);
+in
+
+fun add_goal_setup setup = Synchronized.change goal_setups (fn setups => setups @ [setup]);
+
+fun setup_goal ({theory_index, name, pos, source, pre, post} : command) =
+  {theory_index = theory_index, name = name, pos = pos, source = source,
+   pre = Proof.map_context (fold I (Synchronized.value goal_setups)) pre, post = post};
 
 end
 
@@ -203,6 +220,7 @@ fun run_actions actions qualifier loaded_theories =
     val considered_subgoals = space_explode "," mirabelle_subgoals;
     val mirabelle_print_command =
       Options.default_bool \<^system_option>\<open>mirabelle_print_command\<close>;
+    val mirabelle_ml_files = Options.default_string \<^system_option>\<open>mirabelle_ml_files\<close>;
 
     fun parallel_app (f : 'a -> unit) (xs : 'a list) : unit =
       chop_groups mirabelle_parallel_group_size xs
@@ -222,7 +240,7 @@ fun run_actions actions qualifier loaded_theories =
         |> fold add (Command_Span.content span)
         |> snd
         |> Buffer.content
-        |> String.translate (fn #"\n" => " " | c => String.str c)
+        |> String.translate_str (fn "\n" => " " | s => s)
       end;
 
     fun make_commands (thy_index, (thy, segments)) =
@@ -247,6 +265,13 @@ fun run_actions actions qualifier loaded_theories =
         else
           []
       end;
+
+    (* evaluate ML files *)
+    val _ =
+      Context.Proof (Proof_Context.init_global
+        (Build.get_theory (Context.theory_long_name \<^theory>)))
+      |> fold (fn path => ML_Context.exec (fn () => ML_Context.eval_file ML_Compiler.flags path))
+          (Path.split mirabelle_ml_files);
 
     (* initialize actions *)
     val contexts = actions |> map_index (fn (n, (label, name, args)) =>
@@ -285,7 +310,7 @@ fun run_actions actions qualifier loaded_theories =
         maps (fn (n, command) =>
         let val (m, k) = Integer.div_mod (n + 1) stride in
           if k = 0 andalso (mirabelle_max_calls <= 0 orelse m <= mirabelle_max_calls) then
-            map (fn context => (context, command)) contexts
+            map (rpair (setup_goal command)) contexts
           else
             []
         end) indexed_commands

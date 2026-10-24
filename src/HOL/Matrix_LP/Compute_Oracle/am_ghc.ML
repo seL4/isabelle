@@ -71,7 +71,7 @@ fun adjust_rules rules =
 fun print_term arity_of n =
 let
     fun str x = string_of_int x
-    fun protect_blank s = if exists_string Symbol.is_ascii_blank s then "(" ^ s ^")" else s
+    fun protect_blank s = if String.exists_str Symbol.is_ascii_blank s then "(" ^ s ^")" else s
                                                                                           
     fun print_apps d f [] = f
       | print_apps d f (a::args) = print_apps d ("app "^(protect_blank f)^" "^(protect_blank (print_term d a))) args

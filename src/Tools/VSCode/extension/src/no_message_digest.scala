@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/no_message_digest.scala
+/*  Title:      Tools/VSCode/extension/src/no_message_digest.scala
     Author:     Fabian Huch
 
 No message digest builder on browser platform.

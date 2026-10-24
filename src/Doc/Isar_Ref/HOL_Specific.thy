@@ -1652,7 +1652,10 @@ text \<open>
     @@{command (HOL) try}
     ;
 
-    @@{command (HOL) try0} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thms} ) + ) ?
+    @@{command (HOL) try0}
+      ( '(' @{syntax thms} ')' |
+        ( ( 'simp' | 'intro' | 'elim' | 'dest' | 'split' | 'iff' | 'cong' ) ':'
+          @{syntax thms} ) + ) ?
     ;
 
     @@{command (HOL) sledgehammer} ( '[' args ']' )? facts? @{syntax nat}?
@@ -1671,8 +1674,12 @@ text \<open>
 
   \<^descr> @{command (HOL) "try0"} attempts to prove a subgoal using a combination of
   standard proof methods (@{method auto}, @{method simp}, @{method blast},
-  etc.). Additional facts supplied via \<open>simp:\<close>, \<open>intro:\<close>, \<open>elim:\<close>, and \<open>dest:\<close>
-  are passed to the appropriate proof methods.
+  etc.). Additional facts supplied via \<open>simp:\<close>, \<open>intro:\<close>, \<open>elim:\<close>, \<open>dest:\<close>,
+  \<open>split:\<close>, \<open>iff:\<close>, and \<open>cong:\<close> are passed to the appropriate proof methods.
+  Proof methods that do not accept a kind of fact receive it via \<^theory_text>\<open>using\<close>.
+  Alternatively, facts in parentheses are passed without a kind; the fact classifier
+  selected by the configuration option \<open>try0_fact_classifier\<close> may assign kinds to
+  them.
 
   \<^descr> @{command (HOL) "try"} attempts to prove or disprove a subgoal using a
   combination of provers and disprovers (@{command (HOL) "solve_direct"},

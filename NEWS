@@ -4,6 +4,63 @@ Isabelle NEWS -- history of user-relevant changes
 (Note: Isabelle/jEdit shows a tree-view of the NEWS file in Sidekick.)
 
 
+New in this Isabelle version
+----------------------------
+
+*** HOL ***
+
+* try0:
+  - Changed the ML types Try0.facts and Try0_Util.facts_config: facts
+    are grouped into named classes (e.g. "simp", "intro"), and each proof
+    method declares the argument syntax it accepts (no arguments, plain
+    fact arguments, or class-specific sections such as "simp:").
+    Minor INCOMPATIBILITY.
+  - Facts are passed to a proof method in its own syntax where possible
+    (e.g. "simp:" for "auto", plain arguments for "metis") and via
+    "using" otherwise. In particular, the Sledgehammer tactic provers
+    "auto", "force", and "fastforce" no longer fail when given facts from
+    the background theory, and "argo" now takes facts as plain arguments.
+  - Added optional fact classifiers, which assign facts to classes before
+    the proof methods are tried. They are registered with the ML function
+    Try0.register_fact_classifier and selected with the system option
+    "try0_fact_classifier".
+  - Proof methods are registered in theory data, i.e. they are only
+    available in theories importing the registering theory. The ML
+    functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
+    Try0.get_all_proof_method_names take a Proof.context.
+    Minor INCOMPATIBILITY.
+  - Added the fact classes "split", "iff", and "cong".
+  - Facts in parentheses are passed without class, as in the command
+    "sledgehammer"; they are subject to the fact classifier.
+
+* Mirabelle:
+  - Added argument "log_classifications" to the action "sledgehammer" to
+    write the fact classifications, timings, and outcomes of the tactic
+    provers to files in the output directory.
+  - Added option -e to "isabelle mirabelle" to evaluate ML files before
+    initializing the actions, e.g. to register custom actions or fact
+    classifiers. Context-dependent registrations, such as fact classifiers,
+    must be wrapped in Mirabelle.add_goal_setup to reach each goal.
+
+
+*** ML ***
+
+* Various low-level string operations have been renamed as follows.
+INCOMPATIBILITY.
+
+  nth_string           ~>  String.nth_str
+  fold_string          ~>  String.fold_str
+  fold_rev_string      ~>  String.fold_rev_str
+  exists_string        ~>  String.exists_str
+  forall_string        ~>  String.forall_str
+  member_string        ~>  String.member_str
+  raw_explode          ~>  String.explode_str
+  translate_string     ~>  String.translate_str
+  Bytes.exists_string  ~>  Bytes.exists_str
+  Bytes.forall_string  ~>  Bytes.forall_str
+
+
+
 New in Isabelle2026 (October 2026)
 ----------------------------------
 

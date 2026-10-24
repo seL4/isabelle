@@ -57,7 +57,7 @@ object Protocol {
             case a :: bs => (a, bs)
             case _ => throw new XML.XML_Body(body)
           }
-        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(text)))
+        Some(triple(long, list(string), list(decode_upd))(Symbol.decode_yxml(YXML.Source(text))))
       }
       catch {
         case ERROR(_) => None
@@ -70,7 +70,7 @@ object Protocol {
     def unapply(text: String): Option[List[Document_ID.Version]] =
       try {
         import XML.Decode._
-        Some(list(long)(Symbol.decode_yxml(text)))
+        Some(list(long)(Symbol.decode_yxml(YXML.Source(text))))
       }
       catch {
         case ERROR(_) => None
@@ -210,10 +210,10 @@ object Protocol {
   /* ML profiling */
 
   object ML_Profiling {
-    def unapply(msg: XML.Tree): Option[isabelle.ML_Profiling.Report] =
+    def unapply(msg: XML.Tree): Option[(Markup, isabelle.ML_Profiling.Report)] =
       msg match {
-        case XML.Elem(_, List(tree)) if is_tracing(msg) =>
-          Markup.ML_Profiling.unapply_report(tree)
+        case XML.Elem(markup, List(tree)) if is_tracing(msg) =>
+          Markup.ML_Profiling.unapply_report(tree).map((markup, _))
         case _ => None
       }
   }

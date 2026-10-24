@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/pretty_text_area.scala
+/*  Title:      Tools/VSCode/extension/src/pretty_text_area.scala
     Author:     Fabian Huch
 
 GUI component for pretty-printed text with markup within Isabelle/VSCode.
@@ -13,6 +13,8 @@ import isabelle.vscode._
 
 
 object Pretty_Text_Area {
+  /* entities and active markup */
+
   private val vscode = Webview_Api.acquire
   private val elements =
     Browser_Info.extra_elements.copy(entity = Markup.Elements.full,
@@ -51,27 +53,30 @@ object Pretty_Text_Area {
 }
 
 class Pretty_Text_Area(
-  on_update: XML.Body => Unit,
+  handle_output: XML.Body => Unit,
   container: dom.HTMLElement = dom.document.body
 ) {
   /* gui state */
 
+  private var current_content: XML.Body = Nil
   private var current_output: XML.Body = Nil
   private var current_metric: DOM_Metric = DOM_Metric()
   private var current_margin: Double = current_metric.content(container)
   private var resize_timeout: Option[Int] = None
   private var window_loaded = false
 
+  def html: XML.Body = current_output
+
 
   /* update */
 
-  def on_resize(): Unit =
+  def handle_resize(): Unit =
     if (window_loaded) {
       resize_timeout.foreach(dom.window.clearTimeout)
-      resize_timeout = Some(dom.window.setTimeout(() => handle_resize(), 50.0))
+      resize_timeout = Some(dom.window.setTimeout(() => resize(), 50.0))
     }
 
-  def on_load(): Unit = {
+  def handle_load(): Unit = {
     current_metric = DOM_Metric()
     current_margin = current_metric.content(container)
     window_loaded = true
@@ -81,20 +86,21 @@ class Pretty_Text_Area(
   private def update(): Unit = {
     if (window_loaded) {
       val formatted =
-        Pretty.formatted(Pretty.separate(current_output), margin = current_margin,
+        Pretty.formatted(Pretty.separate(current_content), margin = current_margin,
           metric = current_metric)
-      on_update(List(HTML.source(Pretty_Text_Area.make_html(formatted))))
+      current_output = List(HTML.source(Pretty_Text_Area.make_html(formatted)))
+      handle_output(current_output)
     }
   }
 
-  def handle_update(output: XML.Body): Unit = {
-    if (current_output != output) {
-      current_output = output
+  def handle_update(content: XML.Body): Unit = {
+    if (current_content != content) {
+      current_content = content
       update()
     }
   }
 
-  def handle_resize(): Unit = {
+  private def resize(): Unit = {
     val margin = current_metric.content(container)
 
     if (margin != current_margin) {
@@ -104,8 +110,10 @@ class Pretty_Text_Area(
   }
 
 
-  /* handlers */
+  /* main */
 
-  Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => on_resize())
-  Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => on_load())
+  def init(): Unit = {
+    Scalajs.DOM.onresize += Scalajs.DOM.Handler(_ => handle_resize())
+    Scalajs.DOM.onload += Scalajs.DOM.Handler(_ => handle_load())
+  }
 }

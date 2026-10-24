@@ -83,7 +83,7 @@ fun filter pred = map_filter (fn x => if pred x then SOME x else NONE);
 
 fun of_list xs = make_source [] xs (fn xs => (xs, []));
 
-val of_string = of_list o raw_explode;
+val of_string = of_list o String.explode_str;
 
 fun exhausted src = of_list (exhaust src);
 

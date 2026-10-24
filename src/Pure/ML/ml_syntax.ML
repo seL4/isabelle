@@ -83,7 +83,7 @@ fun print_symbol_char s =
 
 fun print_symbol s =
   if Symbol.is_char s then print_symbol_char s
-  else if Symbol.is_utf8 s then translate_string print_symbol_char s
+  else if Symbol.is_utf8 s then String.translate_str print_symbol_char s
   else s;
 
 val print_string = quote o implode o map print_symbol o Symbol.explode;

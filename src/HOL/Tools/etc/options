@@ -35,6 +35,9 @@ public option sledgehammer_timeout : int = 30
 public option sledgehammer_persistent_data_dir : string = ""
   -- "Directory where the automatic provers called by Sledgehammer will save persistent data"
 
+public option try0_fact_classifier : string = ""
+  -- "fact classifier used by try0 (empty for none)"
+
 public option SystemOnTPTP : string = "https://tptp.org/cgi-bin/SystemOnTPTPFormReply"
   -- "URL for SystemOnTPTP service"
 
@@ -82,3 +85,6 @@ option mirabelle_subgoals : string = "apply,by,proof,unfolding,using"
 
 option mirabelle_print_command : bool = false
   -- "print the source text of each command acted upon"
+
+option mirabelle_ml_files : string = ""
+  -- "colon-separated list of ML files to evaluate before initializing the actions"

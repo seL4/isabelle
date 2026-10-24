@@ -441,14 +441,8 @@ fun fact_of_lazy_fact ((name, stature), th) = ((name (), stature), th)
 
 fun fact_count facts = Facts.fold_static (K (Integer.add 1)) facts 0
 
-fun is_useful_unnamed_local_fact ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val global_facts = Global_Theory.facts_of thy
-    val local_facts = Proof_Context.facts_of ctxt
-    val named_locals = Facts.dest_static true [global_facts] local_facts
-      |> maps (map (normalize_eq o Thm.prop_of) o snd)
-  in
+fun is_useful_unnamed_local_fact named_locals =
+  let val named_locals = maps (map (normalize_eq o Thm.prop_of) o snd) named_locals in
     fn th =>
       not (Thm.has_name_hint th) andalso
       not (member (op aconv) named_locals (normalize_eq (Thm.prop_of th)))
@@ -474,7 +468,7 @@ fun all_facts ctxt generous keywords add_ths chained css =
     val named_locals = Facts.dest_static true [global_facts] local_facts
     val unnamed_locals =
       chained @ map #1 (Facts.props local_facts)
-      |> filter (is_useful_unnamed_local_fact ctxt)
+      |> filter (is_useful_unnamed_local_fact named_locals)
       |> map (pair "" o single)
 
     val full_space = Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)

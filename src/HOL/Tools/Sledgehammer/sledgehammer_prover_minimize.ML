@@ -47,7 +47,7 @@ open Sledgehammer_Prover_SMT
 open Sledgehammer_Prover_Tactic
 
 fun is_prover_supported ctxt =
-  is_atp orf is_smt_solver ctxt orf is_tactic_prover
+  is_atp orf is_smt_solver ctxt orf is_tactic_prover ctxt
 
 fun is_prover_installed ctxt prover_name =
   if is_atp prover_name then
@@ -62,7 +62,7 @@ fun is_prover_installed ctxt prover_name =
 fun get_prover ctxt mode name =
   if is_atp name then run_atp mode name
   else if is_smt_solver ctxt name then run_smt_solver mode name
-  else if is_tactic_prover name then run_tactic_prover mode name
+  else if is_tactic_prover ctxt name then run_tactic_prover mode name
   else error ("No such prover: " ^ name)
 
 fun get_slices ctxt name =
@@ -71,7 +71,7 @@ fun get_slices ctxt name =
       map (apsnd ATP_Slice) (#good_slices (get_atp thy name ()) ctxt)
     else if is_smt_solver ctxt name then
       map (apsnd SMT_Slice) (SMT_Solver.good_slices ctxt name)
-    else if is_tactic_prover name then
+    else if is_tactic_prover ctxt name then
       map (rpair No_Slice) (good_slices_of_tactic_prover name)
     else
       error ("No such prover: " ^ name)
@@ -236,7 +236,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice 
       end
   in
     (print silent (fn () => "Sledgehammer minimizer: " ^ prover_name);
-     if is_tactic_prover prover_name then
+     if is_tactic_prover ctxt prover_name then
        minimize (map fst facts) result
      else
        (case test timeout non_chained of

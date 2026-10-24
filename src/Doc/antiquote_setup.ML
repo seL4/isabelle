@@ -133,7 +133,7 @@ val _ =
       let
         val symbol_name =
           unprefix "\\newcommand{\\isasym"
-          #> raw_explode
+          #> String.explode_str
           #> take_prefix Symbol.is_ascii_letter
           #> implode;
 

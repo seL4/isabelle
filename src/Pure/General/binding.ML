@@ -224,7 +224,7 @@ fun name_spec scopes path binding : name_spec =
     val spec2 = if name = "" then [] else [(name, true)];
     val spec = spec1 @ spec2;
     val _ =
-      exists (fn (a, _) => member (op =) bad_specs a orelse member_string a "\"") spec
+      exists (fn (a, _) => member (op =) bad_specs a orelse String.member_str a "\"") spec
       andalso error (bad binding);
 
     val spec' = if null spec2 then [] else spec;

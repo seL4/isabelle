@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/dom_metric.scala
+/*  Title:      Tools/VSCode/extension/src/dom_metric.scala
     Author:     Fabian Huch
 
 Pretty-printing metric based on DOM rendering of symbol codepoints.
@@ -14,6 +14,7 @@ import isabelle._
 object DOM_Metric {
   private def string_bounds(s: String): dom.DOMRect = {
     val span = dom.document.createElement("span")
+    span.setAttribute("class", "source")
     span.setAttribute("style", "white-space: pre-wrap;")
     span.textContent = s
 
