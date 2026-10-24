@@ -227,7 +227,7 @@ and match_all ctxt pats args table =
           end
       | match_all' _ _ _ _ _ = raise Match
   in
-    if length pats = length args then
+    if length_ord (pats, args) = EQUAL then
       match_all' pats args [] Conv.all_conv table
     else
       (NONE, args, Conv.all_conv)

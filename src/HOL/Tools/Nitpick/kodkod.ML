@@ -1071,7 +1071,7 @@ fun solve_any_problem kodkod_scala debug overlord deadline max_threads max_solut
       do_solve ()
     else
       case AList.lookup (fn ((max1, ps1), (max2, ps2)) =>
-                            max1 = max2 andalso length ps1 = length ps2 andalso
+                            max1 = max2 andalso length_ord (ps1, ps2) = EQUAL andalso
                             forall problems_equivalent (ps1 ~~ ps2))
                         (the_list (Synchronized.value cached_outcome))
                         (max_solutions, problems) of

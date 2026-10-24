@@ -815,7 +815,7 @@ fun is_apparently_pat_complete ctxt props =
       [] => false
     | pats as Prim_Pattern T_name :: _ =>
       forall (can (fn Prim_Pattern _ => ())) pats andalso
-      length pats = length (#ctrs (the (Ctr_Sugar.ctr_sugar_of ctxt T_name)))
+      length_ord (pats, #ctrs (the (Ctr_Sugar.ctr_sugar_of ctxt T_name))) = EQUAL
     | pats => forall (curry (op =) Only_Vars) pats)
   end;
 

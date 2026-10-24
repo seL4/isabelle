@@ -220,7 +220,7 @@ fun check_matches_type ctxt predname T ms =
         false
     val _ =
       map (fn mode =>
-        if length (strip_fun_mode mode) = length (binder_types T)
+        if length_ord (strip_fun_mode mode, binder_types T) = EQUAL
           andalso (forall (uncurry check) (strip_fun_mode mode ~~ binder_types T)) then ()
         else
           error (string_of_mode mode ^ " is not a valid mode for " ^
@@ -1290,7 +1290,7 @@ fun check_format_of_intro_rule thy intro =
     val params = fst (chop (nparams_of thy (dest_Const_name p)) args)
     fun check_arg arg = case HOLogic.strip_tupleT (fastype_of arg) of
       (Ts as _ :: _ :: _) =>
-        if length (HOLogic.strip_tuple arg) = length Ts then
+        if length_ord (HOLogic.strip_tuple arg, Ts) = EQUAL then
           true
         else
           error ("Format of introduction rule is invalid: tuples must be expanded:"

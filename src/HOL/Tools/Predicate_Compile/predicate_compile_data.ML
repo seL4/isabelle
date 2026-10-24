@@ -86,7 +86,7 @@ val is_introlike = is_introlike_term o Thm.prop_of
 fun check_equation_format_term (t as (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ u $ _)) =
       (case strip_comb u of
         (Const (_, T), args) =>
-          if (length (binder_types T) = length args) then
+          if length_ord (binder_types T, args) = EQUAL then
             true
           else
             raise TERM ("check_equation_format_term failed: Number of arguments mismatch", [t])
