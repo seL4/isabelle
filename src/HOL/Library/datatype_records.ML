@@ -257,7 +257,7 @@ fun record_fields_tr ctxt t =
         NONE => error ("BNF_Record.record_fields_tr: missing field " ^ name)
       | SOME t => t
   in
-    if length assns = length sels then
+    if length_ord (assns, sels) = EQUAL then
       list_comb (ctr_dummy, map (mk_arg o dest_Const_name) sels)
     else
       error ("BNF_Record.record_fields_tr: expected " ^ Value.print_int (length sels) ^ " field(s)")

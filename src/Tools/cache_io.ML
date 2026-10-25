@@ -96,21 +96,38 @@ fun run_bytes cmd input =
     else result
   end
 
+local
+
+fun output_line stream line =
+  (File_Stream.output stream line; BinIO.output1 (stream, Byte.charToByte #"\n"))
+
+in
+
 fun run_and_cache_bytes (Cache {path = cache_path, table}) key cmd input =
   let
     val result = run_bytes cmd input
     val out_lines = Process_Result.out_lines result
-    val err_lines = Process_Result.err_lines result
-    val (l1, l2) = apply2 length (out_lines, err_lines)
+    and err_lines = Process_Result.err_lines result
+    val l1 = length out_lines
+    and l2 = length err_lines
     val header = Message_Digest.rep key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
-    val lines = map (suffix "\n") (header :: out_lines @ err_lines)
 
-    val _ = Synchronized.change table (fn (p, tab) =>
-      if Message_Digest.Table.defined tab key then (p, tab)
+    fun output_entry stream =
+      let val write_line = output_line stream in
+        write_line header;
+        List.app write_line out_lines;
+        List.app write_line err_lines
+      end
+
+    val () = Synchronized.change table (fn (p, tab) =>
+      if Message_Digest.Table.defined tab key then
+        (p, tab)
       else
-        let val _ = File.append_list cache_path lines
-        in (p+l1+l2+1, Message_Digest.Table.update (key, (p+1, l1, l2)) tab) end)
+        (File_Stream.open_append output_entry cache_path;
+         (p+l1+l2+1, Message_Digest.Table.update (key, (p+1, l1, l2)) tab)))
   in result end
+
+end
 
 fun run_cached_bytes cache cmd input =
   (case lookup_bytes cache input of

@@ -754,7 +754,7 @@ fun TERMPRED
       val conc_results =
         TERMFUN (snd (*discard hypotheses*)
                  #> conc_pred_over_terms) i_opt st
-      val _ = \<^assert> (length hyp_results = length conc_results)
+      val _ = \<^assert> (length_ord (hyp_results, conc_results) = EQUAL)
     in
       if null hyp_results then true
       else

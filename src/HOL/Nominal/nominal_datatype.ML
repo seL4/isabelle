@@ -268,7 +268,7 @@ fun gen_nominal_datatype prep_specs (config: Old_Datatype_Aux.config) dts thy =
     val perm_fun_def = Simpdata.mk_eq @{thm perm_fun_def};
 
     val unfolded_perm_eq_thms =
-      if length descr = length new_type_names then []
+      if length_ord (descr, new_type_names) = EQUAL then []
       else map Drule.export_without_context (List.drop (Old_Datatype_Aux.split_conj_thm
         (Goal.prove_global_future thy2 [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj

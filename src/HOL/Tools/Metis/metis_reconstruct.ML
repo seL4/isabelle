@@ -463,7 +463,7 @@ fun resynchronize ctxt fol_th th =
           rewrite_goals_tac ctxt' meta_not_not THEN
           ALLGOALS (assume_tac ctxt')
       in
-        if length prems = length prems0 then
+        if length_ord (prems, prems0) = EQUAL then
           raise METIS_RECONSTRUCT ("resynchronize", "Out of sync")
         else
           Goal.prove ctxt' [] [] goal (K tac)

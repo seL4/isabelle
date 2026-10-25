@@ -493,7 +493,7 @@ fun dest_case ctxt d used t =
       in
         (case get_info cname of
           SOME (_, constructors) =>
-            if length fs = length constructors then
+            if length_ord (fs, constructors) = EQUAL then
               let
                 val R = fastype_of x;
                 val cases = map (fn (Const (s, U), t) =>
@@ -515,14 +515,14 @@ fun dest_case ctxt d used t =
                   map mk_case
                     (case find_first (is_undefined o fst) cases' of
                       SOME (_, cs) =>
-                        if length cs = length constructors then [hd cases]
+                        if length_ord (cs, constructors) = EQUAL then [hd cases]
                         else filter_out (fn (_, (_, body), _) => is_undefined body) cases
                     | NONE =>
                         (case cases' of
                           [] => cases
                         | (default, cs) :: _ =>
                             if length cs = 1 then cases
-                            else if length cs = length constructors then
+                            else if length_ord (cs, constructors) = EQUAL then
                               [hd cases, (dummy, ([], default), false)]
                             else
                               filter_out (fn (c, _, _) => member op aconv cs c) cases @
