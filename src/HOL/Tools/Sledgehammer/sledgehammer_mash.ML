@@ -709,6 +709,9 @@ fun str_of_entry (kind, name, parents, feats, deps) =
   str_of_proof_kind kind ^ " " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
   encode_strs feats ^ "; " ^ encode_strs deps ^ "\n"
 
+fun append_map (path : Path.T) (f : 'a -> string) (xs : 'a list) : unit =
+  File_Stream.open_append (fn stream => List.app (File_Stream.output stream o f) xs) path;
+
 fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
   | save_state ctxt (memory_time, {access_G, xtabs, ffds, freqs, dirty_facts}) =
     let
@@ -724,9 +727,11 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
         (case dirty_facts' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
+      fun write_banner (SOME s) = File.write path s
+        | write_banner NONE = ()
+      val write_entries = append_map path str_of_entry
     in
-      (case banner of SOME s => File.write path s | NONE => ();
-       entries |> chunk_list 500 |> List.app (File.append path o implode o map str_of_entry))
+      (write_banner banner; write_entries entries)
       handle IO.Io _ => ();
       trace_msg ctxt (fn () =>
         "Saved fact graph (" ^ graph_info access_G ^
