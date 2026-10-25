@@ -649,6 +649,7 @@ fun recompute_ffds_freqs_from_access_G access_G (xtabs as (fact_xtab, _)) =
 local
 
 val version = "*** MaSh version 20190121 ***"
+val SOME_version_banner = SOME (version ^ "\n")
 
 exception FILE_VERSION_TOO_NEW of unit
 
@@ -726,7 +727,7 @@ fun save_state _ (time_state as (_, {dirty_facts = SOME [], ...})) = time_state
       val (banner, entries) =
         (case dirty_facts' of
           SOME names => (NONE, fold (append_entry o Graph.get_entry access_G) names [])
-        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G []))
+        | NONE => (SOME_version_banner, Graph.fold append_entry access_G []))
       fun write_banner (SOME s) = File.write path s
         | write_banner NONE = ()
       val write_entries = append_map path str_of_entry
