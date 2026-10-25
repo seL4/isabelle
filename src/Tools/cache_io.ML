@@ -107,8 +107,9 @@ fun run_and_cache_bytes (Cache {path = cache_path, table}) key cmd input =
   let
     val result = run_bytes cmd input
     val out_lines = Process_Result.out_lines result
-    val err_lines = Process_Result.err_lines result
-    val (l1, l2) = apply2 length (out_lines, err_lines)
+    and err_lines = Process_Result.err_lines result
+    val l1 = length out_lines
+    and l2 = length err_lines
     val header = Message_Digest.rep key ^ " " ^ string_of_int l1 ^ " " ^ string_of_int l2
 
     fun output_entry stream =
