@@ -71,17 +71,19 @@ datatype data = Data of
   inst_params:
     (string * thm) Symtab.table Symtab.table *
       (*class parameter name ~> type constructor ~> (constant name, equation)*)
-    (string * string) Symtab.table (*constant name ~> (class parameter name, type constructor)*)};
+    (string * string) Symtab.table (*constant name ~> (class parameter name, type constructor)*),
+  rewriting: simpset * simpset};
 
 fun rep_data (Data args) = args;
 
-fun make_data (axclasses, params, inst_params) =
-  Data {axclasses = axclasses, params = params, inst_params = inst_params};
+fun make_data (axclasses, params, inst_params, rewriting) =
+  Data {axclasses = axclasses, params = params, inst_params = inst_params, rewriting = rewriting};
 
 structure Data = Theory_Data'
 (
   type T = data;
-  val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty));
+  val empty = make_data (Symtab.empty, [], (Symtab.empty, Symtab.empty),
+    (Raw_Simplifier.empty_ss, Raw_Simplifier.empty_ss));
   fun merge args =
     let
       val ctxt0 = Syntax.init_pretty_global (#1 (hd args));
@@ -96,33 +98,43 @@ structure Data = Theory_Data'
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
           Symtab.merge (K true) (#2 inst_params1, #2 inst_params2));
 
+     fun merge_rewriting (rewriting1, rewriting2) =
+        (Raw_Simplifier.merge_ss (#1 rewriting1, #1 rewriting2),
+          Raw_Simplifier.merge_ss (#2 rewriting1, #2 rewriting2));
+
       val axclasses' = Library.foldl1 (Symtab.merge (K true)) (map (#axclasses o rep_data o #2) args);
       val params' = Library.foldl1 merge_params (map (#params o rep_data o #2) args);
       val inst_params' = Library.foldl1 merge_inst_params (map (#inst_params o rep_data o #2) args);
-    in make_data (axclasses', params', inst_params') end;
+      val rewriting' = Library.foldl1 merge_rewriting (map (#rewriting o rep_data o #2) args);
+    in make_data (axclasses', params', inst_params', rewriting') end;
 );
 
 fun map_data f =
-  Data.map (fn Data {axclasses, params, inst_params} =>
-    make_data (f (axclasses, params, inst_params)));
+  Data.map (fn Data {axclasses, params, inst_params, rewriting} =>
+    make_data (f (axclasses, params, inst_params, rewriting)));
 
 fun map_axclasses f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (f axclasses, params, inst_params));
+  map_data (fn (axclasses, params, inst_params, rewriting) =>
+    (f axclasses, params, inst_params, rewriting));
 
 fun map_params f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (axclasses, f params, inst_params));
+  map_data (fn (axclasses, params, inst_params, rewriting) =>
+    (axclasses, f params, inst_params, rewriting));
 
 fun map_inst_params f =
-  map_data (fn (axclasses, params, inst_params) =>
-    (axclasses, params, f inst_params));
+  map_data (fn (axclasses, params, inst_params, rewriting) =>
+    (axclasses, params, f inst_params, rewriting));
+
+fun map_rewriting f thy =
+  map_data (fn (axclasses, params, inst_params, rewriting) =>
+    (axclasses, params, inst_params, f (Proof_Context.init_global thy) rewriting)) thy;
 
 val rep_theory_data = Data.get #> rep_data;
 
 val axclasses_of = #axclasses o rep_theory_data;
 val params_of = #params o rep_theory_data;
 val inst_params_of = #inst_params o rep_theory_data;
+val rewriting_of = #rewriting o rep_theory_data;
 
 
 (* axclasses with parameters *)
@@ -151,25 +163,26 @@ fun get_inst_param thy (c, tyco) =
   | NONE => error ("No instance parameter for constant " ^ quote c ^ " on type " ^ quote tyco));
 
 fun add_inst_param (c, tyco) (a, th) =
-  (map_inst_params o apfst o Symtab.map_default (c, Symtab.empty))
-    (Symtab.update_new (tyco, (a, Thm.trim_context th)))
-  #> (map_inst_params o apsnd) (Symtab.update_new (a, (c, tyco)));
+  let
+    val th' = Thm.trim_context th
+  in
+    (map_inst_params o apfst o Symtab.map_default (c, Symtab.empty))
+      (Symtab.update_new (tyco, (a, th')))
+    #> (map_inst_params o apsnd) (Symtab.update_new (a, (c, tyco)))
+    #> map_rewriting (fn ctxt => apfst (Raw_Simplifier.simpset_map ctxt (Raw_Simplifier.add_simp th')))
+    #> map_rewriting (fn ctxt => apsnd (Raw_Simplifier.simpset_map ctxt (Raw_Simplifier.add_simp (Thm.symmetric th'))))
+  end;
 
 val inst_of_param = Symtab.lookup o #2 o inst_params_of;
 val param_of_inst = #1 oo get_inst_param;
 
-fun inst_thms ctxt =
-  Symtab.fold
-    (Symtab.fold (cons o #2 o #2) o #2) (#1 (inst_params_of (Proof_Context.theory_of ctxt))) []
-  |> map (Thm.transfer' ctxt);
-
 fun get_inst_tyco consts = try (dest_Type_name o the_single o Consts.typargs consts);
 
 fun unoverload_simpset ctxt =
-  ctxt |> Raw_Simplifier.init_simpset (inst_thms ctxt);
+  ctxt |> Raw_Simplifier.put_simpset ((#1 o rewriting_of o Proof_Context.theory_of) ctxt)
 
 fun overload_simpset ctxt =
-  ctxt |> Raw_Simplifier.init_simpset (inst_thms ctxt |> map Thm.symmetric);
+  ctxt |> Raw_Simplifier.put_simpset ((#2 o rewriting_of o Proof_Context.theory_of) ctxt)
 
 fun unoverload_conv ctxt = Raw_Simplifier.rewrite0 (unoverload_simpset ctxt) true;
 fun overload_conv ctxt = Raw_Simplifier.rewrite0 (overload_simpset ctxt) true;
