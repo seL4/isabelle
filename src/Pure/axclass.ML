@@ -68,7 +68,6 @@ fun add_param ctxt ((x, c): param) params =
 datatype data = Data of
  {axclasses: info Symtab.table,
   params: param list,
-    (*arity theorems with theory name*)
   inst_params:
     (string * thm) Symtab.table Symtab.table *
       (*constant name ~> type constructor ~> (constant name, equation)*)
