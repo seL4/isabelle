@@ -166,11 +166,17 @@ fun inst_thms ctxt =
 
 fun get_inst_tyco consts = try (dest_Type_name o the_single o Consts.typargs consts);
 
-fun unoverload ctxt = rewrite_rule ctxt (inst_thms ctxt);
-fun overload ctxt = rewrite_rule ctxt (map Thm.symmetric (inst_thms ctxt));
+fun unoverload_simpset ctxt =
+  ctxt |> Raw_Simplifier.init_simpset (inst_thms ctxt);
 
-fun unoverload_conv ctxt = Raw_Simplifier.rewrite_wrt ctxt true (inst_thms ctxt);
-fun overload_conv ctxt = Raw_Simplifier.rewrite_wrt ctxt true (map Thm.symmetric (inst_thms ctxt));
+fun overload_simpset ctxt =
+  ctxt |> Raw_Simplifier.init_simpset (inst_thms ctxt |> map Thm.symmetric);
+
+fun unoverload_conv ctxt = Raw_Simplifier.rewrite0 (unoverload_simpset ctxt) true;
+fun overload_conv ctxt = Raw_Simplifier.rewrite0 (overload_simpset ctxt) true;
+
+fun unoverload ctxt = Raw_Simplifier.rewrite0_rule (unoverload_simpset ctxt);
+fun overload ctxt = Raw_Simplifier.rewrite0_rule (overload_simpset ctxt);
 
 fun lookup_inst_param consts params (c, T) =
   (case get_inst_tyco consts (c, T) of
