@@ -70,8 +70,8 @@ datatype data = Data of
   params: param list,
   inst_params:
     (string * thm) Symtab.table Symtab.table *
-      (*constant name ~> type constructor ~> (constant name, equation)*)
-    (string * string) Symtab.table (*constant name ~> (constant name, type constructor)*)};
+      (*class parameter name ~> type constructor ~> (constant name, equation)*)
+    (string * string) Symtab.table (*constant name ~> (class parameter name, type constructor)*)};
 
 fun rep_data (Data args) = args;
 
@@ -218,7 +218,7 @@ fun read_classrel thy raw_rel =
     handle TYPE (msg, _, _) => error msg;
 
 
-(* declaration and definition of instances of overloaded constants *)
+(* declaration and definition of instances of overloaded class parameters *)
 
 fun inst_tyco_of thy (c, T) =
   get_inst_tyco (Sign.consts_of thy) (c, T)
