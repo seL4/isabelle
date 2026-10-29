@@ -16,10 +16,14 @@ object ML_Profiling {
 
     def account: Long = if (name == "GARBAGE COLLECTION (total)") 0 else count
 
-    def print(total_account: Long): String = {
-      val p = Profiling.percentage(count, total_account).permille / 1000.0
-      Library.format("%12d %.3f %s", Value.Long.obj(count), Value.Double.obj(p), name)
-    }
+    def percentage(total_account: Long): Profiling.Percentage =
+      Profiling.percentage(count, total_account)
+
+    def print_percentage(total_account: Long): String =
+      Library.format("%.3f", Value.Double.obj(percentage(total_account).permille / 1000.0))
+
+    def print(total_account: Long): String =
+      Library.format("%12d %s %s", Value.Long.obj(count), print_percentage(total_account), name)
   }
 
   sealed case class Report(kind: String, entries: List[Entry]) {
