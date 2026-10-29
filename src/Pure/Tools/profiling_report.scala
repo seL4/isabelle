@@ -13,6 +13,7 @@ object Profiling_Report {
     session: String,
     theories: List[String] = Nil,
     clean_name: Boolean = false,
+    relevant: Profiling.Percentage = Profiling.permille(0),
     progress: Progress = new Progress
   ): Unit = {
     val store = Store(options)
@@ -33,7 +34,9 @@ object Profiling_Report {
               case (Protocol.ML_Profiling(_, report), _) <- snapshot.messages.iterator
             } yield if (clean_name) report.clean_name else report).toList
 
-          for (report <- ML_Profiling.account(reports)) progress.echo(report.print)
+          for (report <- ML_Profiling.account(reports)) {
+            progress.echo(report.print(relevant = relevant))
+          }
       }
     }
   }
@@ -48,6 +51,7 @@ object Profiling_Report {
         var theories: List[String] = Nil
         var clean_name = false
         var options = Options.init()
+        var relevant = Profiling.permille(0)
 
         val getopts = Getopts("""
 Usage: isabelle profiling_report [OPTIONS] SESSION
@@ -56,13 +60,15 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
     -T NAME      restrict to given theories (multiple options possible)
     -c           clean function names
     -o OPTION    override Isabelle system OPTION (via NAME=VAL or NAME)
+    -r PERMILLE  lower bound for relevant entries (in permille)
 
   Report Poly/ML profiling from the sebuild database of the given session
   (without up-to-date check of sources).
 """,
           "T:" -> (arg => theories = theories ::: List(arg)),
           "c" -> (_ => clean_name = true),
-          "o:" -> (arg => options = options + arg))
+          "o:" -> (arg => options = options + arg),
+          "r:" -> (arg => relevant = Profiling.permille(Value.Int.parse(arg))))
 
         val more_args = getopts(args)
         val session_name =
@@ -74,6 +80,6 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
         val progress = new Console_Progress()
 
         profiling_report(options, session_name, theories = theories,
-          clean_name = clean_name, progress = progress)
+          clean_name = clean_name, relevant = relevant, progress = progress)
       })
 }

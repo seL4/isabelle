@@ -32,8 +32,12 @@ object ML_Profiling {
     lazy val total_account: Long = entries.iterator.map(_.account).sum
     def total: Entry = Entry("TOTAL", total_account)
 
-    def print: String =
-      ("profile_" + kind + ":\n") + cat_lines((entries ::: List(total)).map(_.print(total_account)))
+    def print(relevant: Profiling.Percentage = Profiling.permille(0)): String = {
+      val relevant_entries =
+        entries.filter(entry => entry.percentage(total_account).permille >= relevant.permille)
+      ("profile_" + kind + ":\n") +
+      cat_lines((relevant_entries ::: List(total)).map(_.print(total_account)))
+    }
   }
 
   def account(reports: List[Report]): List[Report] = {

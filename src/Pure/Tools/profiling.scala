@@ -10,6 +10,8 @@ package isabelle
 object Profiling {
   /* percentage: precision in permille */
 
+  def permille(permille: Int): Percentage = new Percentage(permille)
+
   def percentage(a: Long, b: Long): Percentage =
     new Percentage(if (b == 0L) 0 else ((a.toDouble / b.toDouble) * 1000.0).round.toInt)
 
