@@ -105,7 +105,7 @@ fun take_time timeout tac arg =
   in
     (case result of
       Exn.Res res => res
-    | Exn.Exn (Timeout.TIMEOUT _) => Play_Timed_Out timeout
+    | Exn.Exn (Timeout.TIMEOUT time) => Play_Timed_Out time
     | Exn.Exn exn => if Exn.is_interrupt_breakdown exn then Play_Failed else Exn.reraise exn)
   end
 
