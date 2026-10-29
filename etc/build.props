@@ -248,7 +248,6 @@ sources = \
   src/Pure/Tools/prismjs.scala \
   src/Pure/Tools/process_theories.scala \
   src/Pure/Tools/profiling.scala \
-  src/Pure/Tools/profiling_report.scala \
   src/Pure/Tools/scala_build.scala \
   src/Pure/Tools/scala_project.scala \
   src/Pure/Tools/server.scala \
