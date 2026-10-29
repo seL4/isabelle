@@ -45,6 +45,10 @@ New in this Isabelle version
 
 *** ML ***
 
+* Exceptions General.Overflow and General.Size need to be used in
+qualified form: to make it harder to use them casually. Minor
+INCOMPATIBILITY.
+
 * Various low-level string operations have been renamed as follows.
 INCOMPATIBILITY.
 

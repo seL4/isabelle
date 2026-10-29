@@ -8,7 +8,8 @@ val seconds = Time.fromReal;
 
 val _ =
   List.app ML_Name_Space.forget_val
-    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat", "Interrupt"];
+    ["isSome", "getOpt", "valOf", "foldl", "foldr", "print", "explode", "concat",
+      "Interrupt", "Overflow", "Size"];
 
 val ord = SML90.ord;
 val chr = SML90.chr;
