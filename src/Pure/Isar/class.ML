@@ -12,17 +12,17 @@ sig
   val base_sort: theory -> class -> sort
   val rules: theory -> class -> thm option * thm
   val these_defs: theory -> sort -> thm list
-  val these_operations: theory -> sort -> (string * (class * ((typ * term) * bool))) list
+  val these_constraints: theory -> {base_sort: sort} -> sort -> (string * typ) list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
-  val begin: class list -> sort -> Proof.context -> Proof.context
+  val begin: {base_sort: sort} -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list ->
     local_theory -> local_theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
-  val register: class -> class list -> ((string * typ) * (string * typ)) list ->
+  val register: class -> sort -> ((string * typ) * (string * typ)) list ->
     sort -> morphism -> morphism -> thm option -> thm option -> thm -> theory -> theory
 
   (*instances*)
@@ -77,7 +77,7 @@ datatype class_data = Class_Data of {
 
   (* dynamic part *)
   defs: thm Item_Net.T,
-  operations: (string * (class * ((typ * term) * bool))) list
+  operations: (string * {ty: typ, rhs: term, class: class, input_only: bool}) list
 
   (* n.b.
     params = logical parameters of class
@@ -152,6 +152,7 @@ fun all_assm_intros thy =
     (the_list assm_intro)) (Class_Data.get thy) [];
 
 fun these_defs thy = maps (Item_Net.content o #defs o the_class_data thy) o ancestry thy;
+
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
 val base_morphism = #base_morph oo the_class_data;
@@ -221,7 +222,7 @@ fun register class sups params base_sort base_morph export_morph
     some_axiom some_assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
-      (c, (class, ((ty, Free v_ty), false)))) params;
+      (c, {ty = ty, rhs = Free v_ty, class = class, input_only = false})) params;
     val add_class = Graph.new_node (class,
         make_class_data (((map o apply2) fst params, base_sort,
           Morphism.reset_context base_morph,
@@ -243,19 +244,19 @@ fun activate_defs context class thms thy =
           export = export_morphism thy' cls} thy') (heritage thy [class]) thy
   | NONE => thy);
 
-fun register_operation class (c, t) input_only thy =
+fun register_operation class (c, rhs) input_only thy =
   let
     val base_sort = base_sort thy class;
     val prep_types =
       (Same.commit o Term.map_types_same o Term.map_atyps_same)
         (fn TFree (v, S) => if Name.aT = v then TFree (v, base_sort) else TVar ((v, 0), S)
           | _ => raise Same.SAME);
-    val t' = prep_types t;
-    val ty' = Term.fastype_of t';
+    val rhs' = prep_types rhs;
+    val ty' = Term.fastype_of rhs';
   in
     thy
     |> (Class_Data.map o Graph.map_node class o map_class_data o apsnd o apsnd)
-        (cons (c, (class, ((ty', t'), input_only))))
+        (cons (c, {ty = ty', rhs = rhs', class = class, input_only = input_only}))
   end;
 
 fun register_def class def_thm thy =
@@ -273,37 +274,46 @@ fun register_def class def_thm thy =
 
 (* class context syntax *)
 
-fun make_rewrite t c_ty =
+fun constraints_of_operations' base_sort_for_class =
+  (map o apsnd) (fn {ty, rhs = _, class, input_only = _} =>
+    map_type_tfree (K (TVar ((Name.aT, 0), base_sort_for_class class))) ty)
+
+fun constraints_of_operations base_sort = constraints_of_operations' (K base_sort);
+
+val global_constraints_of_operations = constraints_of_operations' single;
+
+fun these_constraints thy {base_sort} =
+  these_operations thy #> constraints_of_operations base_sort;
+
+fun rewrite_wrt thy rewrites =
+  perhaps (try (Pattern.rewrite_term_yoyo thy rewrites []));
+
+fun make_rewrite (lhs, rhs) =
   let
-    val vs = strip_abs_vars t;
+    val vs = strip_abs_vars lhs;
     val vts = map snd vs
       |> Name.invent_names_global Name.uu
       |> map (fn (v, T) => Var ((v, 0), T));
-  in (betapplys (t, vts), betapplys (Const c_ty, vts)) end;
+  in (betapplys (lhs, vts), betapplys (rhs, vts)) end;
 
-fun these_unchecks thy =
-  these_operations thy
-  #> map_filter (fn (c, (_, ((ty, t), input_only))) =>
-    if input_only then NONE else SOME (make_rewrite t (c, ty)));
+val rewrites_of_operations =
+  map_filter (fn (c, {ty, rhs, class = _, input_only}) =>
+    if input_only then NONE else SOME (make_rewrite (rhs, Const (c, ty))));
 
-fun these_unchecks_reversed thy =
-  these_operations thy
-  #> map (fn (c, (_, ((ty, t), _))) => (Const (c, ty), t));
+val reversed_rewrites_of_operations =
+  map (fn (c, {ty, rhs, class = _, input_only = _}) => (Const (c, ty), rhs));
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
   in Sign.intern_const thy b = c ? Variable.declare_const (b, c) end;
 
-fun synchronize_class_syntax sort base_sort ctxt =
+fun synchronize_class_syntax {base_sort} sort ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val operations = these_operations thy sort;
-    fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
-    val primary_constraints =
-      (map o apsnd) (subst_class_typ base_sort o fst o fst o snd) operations;
-    val secondary_constraints =
-      (map o apsnd) (fn (class, ((ty, _), _)) => subst_class_typ [class] ty) operations;
+    val primary_constraints = constraints_of_operations base_sort operations;
+    val secondary_constraints = global_constraints_of_operations operations;
     fun improve (c, ty) =
       (case AList.lookup (op =) primary_constraints c of
         SOME ty' =>
@@ -317,35 +327,35 @@ fun synchronize_class_syntax sort base_sort ctxt =
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE);
-    fun subst (c, _) = Option.map (fst o snd) (AList.lookup (op =) operations c);
-    val unchecks = these_unchecks thy sort;
+    fun subst (c, _) = Option.map (fn {ty, rhs, ...} => (ty, rhs)) (AList.lookup (op =) operations c);
+    val uncheck_rewrites = rewrites_of_operations operations;
   in
     ctxt
     |> fold (redeclare_const thy o fst) primary_constraints
     |> Overloading.map_improvable_syntax (K {primary_constraints = primary_constraints,
       secondary_constraints = secondary_constraints, improve = improve, subst = subst,
-      no_subst_in_abbrev_mode = true, unchecks = unchecks})
+      no_subst_in_abbrev_mode = true, unchecks = uncheck_rewrites})
     |> Overloading.set_primary_constraints
   end;
 
 fun synchronize_class_syntax_target class lthy =
   lthy
   |> Local_Theory.map_contexts
-      (K (synchronize_class_syntax [class] (base_sort (Proof_Context.theory_of lthy) class)));
+      (K (synchronize_class_syntax {base_sort = base_sort (Proof_Context.theory_of lthy) class} [class]));
 
 fun redeclare_operations thy sort =
   fold (redeclare_const thy o fst) (these_operations thy sort);
 
-fun begin sort base_sort ctxt =
+fun begin {base_sort} sort ctxt =
   ctxt
   |> Variable.declare_term (Logic.mk_type (Term.aT base_sort))
-  |> synchronize_class_syntax sort base_sort
+  |> synchronize_class_syntax {base_sort = base_sort} sort
   |> Overloading.activate_improvable_syntax;
 
 fun init class thy =
   thy
   |> Locale.init class
-  |> begin [class] (base_sort thy class);
+  |> begin {base_sort = base_sort thy class} [class];
 
 
 (* class target *)
@@ -449,7 +459,7 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
 fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val preprocess = perhaps (try (Pattern.rewrite_term_yoyo thy (these_unchecks thy [class]) []));
+    val preprocess = rewrite_wrt thy (rewrites_of_operations (these_operations thy [class]));
     val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -470,8 +480,7 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism lthy class;
-    val rhs_generic =
-      perhaps (try (Pattern.rewrite_term_yoyo thy (these_unchecks_reversed thy [class]) [])) rhs;
+    val rhs_generic = rewrite_wrt thy (reversed_rewrites_of_operations (these_operations thy [class])) rhs;
   in
     lthy
     |> canonical_abbrev_target class phi prmode ((b, mx), rhs)

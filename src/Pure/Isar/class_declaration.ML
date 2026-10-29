@@ -124,9 +124,7 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
       if null sups then Sign.defaultS thy
       else fold inter_sort (map (Class.base_sort thy) sups) [];
     val is_param = member (op =) (map fst (Class.these_params thy sups));
-    val base_constraints = (map o apsnd)
-      (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o fst o snd)
-        (Class.these_operations thy sups);
+    val base_constraints = Class.these_constraints thy {base_sort = proto_base_sort} sups;
     val singleton_fixate = burrow_types (fn Ts =>
       let
         val tfrees = fold Term.add_tfreesT Ts [];
@@ -239,7 +237,7 @@ fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = Class.begin sups base_sort includes_ctxt;
+    val class_ctxt = includes_ctxt |> Class.begin {base_sort = base_sort} sups;
     val ((_, _, syntax_elems, _), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
