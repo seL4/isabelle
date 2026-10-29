@@ -19,6 +19,7 @@ sig
   val declare_names: term -> Proof.context -> Proof.context
   val variant_names: Proof.context -> (string * 'a) list -> (string * 'a) list
   val declare_constraints: term -> Proof.context -> Proof.context
+  val restore_constraints: Proof.context -> Proof.context -> Proof.context
   val declare_internal: term -> Proof.context -> Proof.context
   val declare_term: term -> Proof.context -> Proof.context
   val declare_typ: typ -> Proof.context -> Proof.context
@@ -256,6 +257,9 @@ fun declare_constraints t = map_constraints (fn (types, sorts) =>
   in (types', sorts') end)
   #> declare_type_occsT t
   #> declare_type_names t;
+
+fun restore_constraints ctxt =
+  map_constraints (K (constraints_of ctxt));
 
 
 (* common declarations *)

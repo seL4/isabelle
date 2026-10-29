@@ -167,7 +167,8 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
     val raw_supexpr =
       (map (fn sup => (sup, (("", false), (Expression.Positional [], [])))) sups, []);
     val init_class_body =
-      fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
+      Variable.restore_constraints ctxt
+      #> fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =

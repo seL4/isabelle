@@ -296,12 +296,16 @@ fun make_rewrite (lhs, rhs) =
       |> map (fn (v, T) => Var ((v, 0), T));
   in (betapplys (lhs, vts), betapplys (rhs, vts)) end;
 
-val rewrites_of_operations =
-  map_filter (fn (c, {ty, rhs, class = _, input_only}) =>
-    if input_only then NONE else SOME (make_rewrite (rhs, Const (c, ty))));
+fun constrain base_sort = map_type_tfree (K (Term.aT base_sort));
 
-val reversed_rewrites_of_operations =
-  map (fn (c, {ty, rhs, class = _, input_only = _}) => (Const (c, ty), rhs));
+fun rewrites_of_operations base_sort =
+  map_filter (fn (c, {ty, rhs, class = _, input_only}) =>
+    if input_only then NONE else
+      SOME (make_rewrite (map_types (constrain base_sort) rhs, Const (c, constrain base_sort ty))));
+
+fun reversed_rewrites_of_operations base_sort =
+  map (fn (c, {ty, rhs, class = _, input_only = _}) =>
+    (Const (c, constrain base_sort ty), map_types (constrain base_sort) rhs));
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -328,7 +332,7 @@ fun synchronize_class_syntax {base_sort} sort ctxt =
           | NONE => NONE)
       | NONE => NONE);
     fun subst (c, _) = Option.map (fn {ty, rhs, ...} => (ty, rhs)) (AList.lookup (op =) operations c);
-    val uncheck_rewrites = rewrites_of_operations operations;
+    val uncheck_rewrites = rewrites_of_operations base_sort operations;
   in
     ctxt
     |> fold (redeclare_const thy o fst) primary_constraints
@@ -459,7 +463,8 @@ fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
 fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
-    val preprocess = rewrite_wrt thy (rewrites_of_operations (these_operations thy [class]));
+    val preprocess = rewrite_wrt thy
+      (rewrites_of_operations (base_sort thy class) (these_operations thy [class]));
     val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -480,7 +485,8 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism lthy class;
-    val rhs_generic = rewrite_wrt thy (reversed_rewrites_of_operations (these_operations thy [class])) rhs;
+    val rhs_generic = rewrite_wrt thy
+      (reversed_rewrites_of_operations (base_sort thy class) (these_operations thy [class])) rhs;
   in
     lthy
     |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
