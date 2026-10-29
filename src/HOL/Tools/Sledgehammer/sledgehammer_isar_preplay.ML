@@ -101,7 +101,8 @@ fun take_time timeout tac arg =
   let
     val timing = Timing.start ()
     val result =
-      Exn.capture (fn () => (Timeout.apply timeout tac arg; Played (#cpu (Timing.result timing)))) ()
+      Exn.capture_body (fn () =>
+        (Timeout.apply timeout tac arg; Played (#cpu (Timing.result timing))))
   in
     (case result of
       Exn.Res res => res
