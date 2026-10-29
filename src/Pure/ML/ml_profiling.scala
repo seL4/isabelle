@@ -16,8 +16,7 @@ object ML_Profiling {
 
     def account: Long = if (name == "GARBAGE COLLECTION (total)") 0 else count
 
-    def percentage(total_account: Long): Profiling.Percentage =
-      Profiling.percentage(count, total_account)
+    def percentage(total_account: Long): Percentage = Percentage(count, total_account)
 
     def print_percentage(total_account: Long): String =
       Library.format("%.3f", Value.Double.obj(percentage(total_account).permille / 1000.0))
@@ -32,7 +31,7 @@ object ML_Profiling {
     lazy val total_account: Long = entries.iterator.map(_.account).sum
     def total: Entry = Entry("TOTAL", total_account)
 
-    def print(relevant: Profiling.Percentage = Profiling.permille(0)): String = {
+    def print(relevant: Percentage = Percentage.zero): String = {
       val relevant_entries =
         entries.filter(entry => entry.percentage(total_account).permille >= relevant.permille)
       ("profile_" + kind + ":\n") +
@@ -62,7 +61,7 @@ object ML_Profiling {
     session: String,
     theories: List[String] = Nil,
     clean_name: Boolean = false,
-    relevant: Profiling.Percentage = Profiling.permille(0),
+    relevant: Percentage = Percentage.zero,
     progress: Progress = new Progress
   ): Unit = {
     val store = Store(options)
@@ -100,7 +99,7 @@ object ML_Profiling {
         var theories: List[String] = Nil
         var clean_name = false
         var options = Options.init()
-        var relevant = Profiling.permille(0)
+        var relevant = Percentage.zero
 
         val getopts = Getopts("""
 Usage: isabelle profiling_report [OPTIONS] SESSION
@@ -117,7 +116,7 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
           "T:" -> (arg => theories = theories ::: List(arg)),
           "c" -> (_ => clean_name = true),
           "o:" -> (arg => options = options + arg),
-          "r:" -> (arg => relevant = Profiling.permille(Value.Int.parse(arg))))
+          "r:" -> (arg => relevant = Percentage.permille(Value.Int.parse(arg))))
 
         val more_args = getopts(args)
         val session_name =
