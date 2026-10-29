@@ -59,7 +59,7 @@ object ML_Profiling {
   def profiling_report(
     options: Options,
     sessions: Set[String],
-    theories: List[String] = Nil,
+    theories: Set[String] = Set.empty,
     clean_name: Boolean = false,
     relevant: Percentage = Percentage.zero,
     progress: Progress = new Progress
@@ -74,13 +74,13 @@ object ML_Profiling {
           session_context.session_db().map(db => store.read_theories(db, session)) match {
             case None => store.error_database(session)
             case Some(used_theories) =>
-              theories.filterNot(used_theories.toSet) match {
+              theories.toList.filterNot(used_theories.toSet) match {
                 case Nil =>
-                case bad => error("Unknown theories " + commas_quote(bad))
+                case bad => error("Unknown theories " + commas_quote(bad.sorted))
               }
               (for {
                 thy <- used_theories.iterator
-                if theories.isEmpty || theories.contains(thy)
+                if theories.isEmpty || theories(thy)
                 snapshot <- Build.read_theory(session_context.theory(thy)).iterator
                 case (Protocol.ML_Profiling(_, report), _) <- snapshot.messages.iterator
               } yield if (clean_name) report.clean_name else report).toList
@@ -100,7 +100,7 @@ object ML_Profiling {
     Isabelle_Tool("profiling_report", "report Poly/ML profiling information from log files",
       Scala_Project.here,
       { args =>
-        var theories: List[String] = Nil
+        var theories = Set.empty[String]
         var clean_name = false
         var options = Options.init()
         var relevant = Percentage.zero
@@ -117,7 +117,7 @@ Usage: isabelle profiling_report [OPTIONS] SESSION...
   Report Poly/ML profiling from the sebuild database of the given session
   (without up-to-date check of sources).
 """,
-          "T:" -> (arg => theories = theories ::: List(arg)),
+          "T:" -> (arg => theories = theories + arg),
           "c" -> (_ => clean_name = true),
           "o:" -> (arg => options = options + arg),
           "r:" -> (arg => relevant = Percentage.permille(Value.Int.parse(arg))))
