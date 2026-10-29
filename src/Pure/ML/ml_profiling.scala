@@ -58,7 +58,7 @@ object ML_Profiling {
 
   def profiling_report(
     options: Options,
-    session: String,
+    sessions: Set[String],
     theories: List[String] = Nil,
     clean_name: Boolean = false,
     relevant: Percentage = Percentage.zero,
@@ -66,26 +66,30 @@ object ML_Profiling {
   ): Unit = {
     val store = Store(options)
 
-    using(Export.open_session_context0(store, session)) { session_context =>
-      session_context.session_db().map(db => store.read_theories(db, session)) match {
-        case None => store.error_database(session)
-        case Some(used_theories) =>
-          theories.filterNot(used_theories.toSet) match {
-            case Nil =>
-            case bad => error("Unknown theories " + commas_quote(bad))
-          }
-          val reports =
-            (for {
-              thy <- used_theories.iterator
-              if theories.isEmpty || theories.contains(thy)
-              snapshot <- Build.read_theory(session_context.theory(thy)).iterator
-              case (Protocol.ML_Profiling(_, report), _) <- snapshot.messages.iterator
-            } yield if (clean_name) report.clean_name else report).toList
+    sessions.foreach(session => using(Export.open_session_context0(store, session))(_ => ()))
 
-          for (report <- account(reports)) {
-            progress.echo(report.print(relevant = relevant))
+    val reports =
+      sessions.toList.flatMap(session =>
+        using(Export.open_session_context0(store, session)) { session_context =>
+          session_context.session_db().map(db => store.read_theories(db, session)) match {
+            case None => store.error_database(session)
+            case Some(used_theories) =>
+              theories.filterNot(used_theories.toSet) match {
+                case Nil =>
+                case bad => error("Unknown theories " + commas_quote(bad))
+              }
+              (for {
+                thy <- used_theories.iterator
+                if theories.isEmpty || theories.contains(thy)
+                snapshot <- Build.read_theory(session_context.theory(thy)).iterator
+                case (Protocol.ML_Profiling(_, report), _) <- snapshot.messages.iterator
+              } yield if (clean_name) report.clean_name else report).toList
           }
-      }
+        }
+      )
+
+    for (report <- account(reports)) {
+      progress.echo(report.print(relevant = relevant))
     }
   }
 
@@ -102,7 +106,7 @@ object ML_Profiling {
         var relevant = Percentage.zero
 
         val getopts = Getopts("""
-Usage: isabelle profiling_report [OPTIONS] SESSION
+Usage: isabelle profiling_report [OPTIONS] SESSION...
 
   Options are:
     -T NAME      restrict to given theories (multiple options possible)
@@ -119,15 +123,11 @@ Usage: isabelle profiling_report [OPTIONS] SESSION
           "r:" -> (arg => relevant = Percentage.permille(Value.Int.parse(arg))))
 
         val more_args = getopts(args)
-        val session_name =
-          more_args match {
-            case List(session_name) => session_name
-            case _ => getopts.usage()
-          }
+        val sessions = if (more_args.isEmpty) getopts.usage() else more_args
 
         val progress = new Console_Progress()
 
-        profiling_report(options, session_name, theories = theories,
+        profiling_report(options, sessions.toSet, theories = theories,
           clean_name = clean_name, relevant = relevant, progress = progress)
       })
 }
