@@ -49,6 +49,14 @@ New in this Isabelle version
 qualified form: to make it harder to use them casually. Minor
 INCOMPATIBILITY.
 
+* Predicate Exn.is_interrupt_breakdown now covers General.Size and
+General.Overflow as well, in addition to Exn.Interrupt_Breakdown before.
+In particular, these exceptions are no longer handled by the "can" or
+"try" combinators, or \<^try>\<open>... catch ...\<close> expressions.
+INCOMPATIBILITY: subtle change of semantics of program exceptions; need
+to use Exn.capture if the Isabelle/ML evaluation should be checked under
+program control.
+
 * Various low-level string operations have been renamed as follows.
 INCOMPATIBILITY.
 
