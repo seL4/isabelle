@@ -149,7 +149,7 @@ abstract class Editor {
             val messages =
               messages0.map {
                 case Protocol.ML_Profiling(markup, report) =>
-                  XML.Elem(markup, XML.string(report.print))
+                  XML.Elem(markup, XML.string(report.print()))
                 case msg => msg
               }
             Editor.Output(snapshot = snapshot, results = results, messages = messages)

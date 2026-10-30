@@ -337,7 +337,7 @@ local
   fun float_of_rat x =
     let val (a,b) = Rat.dest x
     in Real.fromInt a / Real.fromInt b end;
-  fun int_of_float x = (trunc x handle Overflow => 0 | Domain => 0)
+  fun int_of_float x = (trunc x handle General.Overflow => 0 | General.Domain => 0)
 in
 
 fun tri_scale_then solver (obj:vector) mats =

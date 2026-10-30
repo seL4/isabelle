@@ -98,10 +98,16 @@ fun preplay_trace ctxt assmsp concl outcome =
   end
 
 fun take_time timeout tac arg =
-  let val timing = Timing.start () in
-    (Timeout.apply timeout tac arg; Played (#cpu (Timing.result timing)))
-    handle Timeout.TIMEOUT _ => Play_Timed_Out timeout
-         | Exn.Interrupt_Breakdown => Play_Failed
+  let
+    val timing = Timing.start ()
+    val result =
+      Exn.capture_body (fn () =>
+        (Timeout.apply timeout tac arg; Played (#cpu (Timing.result timing))))
+  in
+    (case result of
+      Exn.Res res => res
+    | Exn.Exn (Timeout.TIMEOUT time) => Play_Timed_Out time
+    | Exn.Exn exn => if Exn.is_interrupt_breakdown exn then Play_Failed else Exn.reraise exn)
   end
 
 fun resolve_fact_names ctxt names =

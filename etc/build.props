@@ -134,6 +134,7 @@ sources = \
   src/Pure/General/name_space.scala \
   src/Pure/General/output.scala \
   src/Pure/General/path.scala \
+  src/Pure/General/percentage.scala \
   src/Pure/General/position.scala \
   src/Pure/General/pretty.scala \
   src/Pure/General/properties.scala \
@@ -248,7 +249,6 @@ sources = \
   src/Pure/Tools/prismjs.scala \
   src/Pure/Tools/process_theories.scala \
   src/Pure/Tools/profiling.scala \
-  src/Pure/Tools/profiling_report.scala \
   src/Pure/Tools/scala_build.scala \
   src/Pure/Tools/scala_project.scala \
   src/Pure/Tools/server.scala \

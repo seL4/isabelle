@@ -8,22 +8,6 @@ package isabelle
 
 
 object Profiling {
-  /* percentage: precision in permille */
-
-  def percentage(a: Long, b: Long): Percentage =
-    new Percentage(if (b == 0L) 0 else ((a.toDouble / b.toDouble) * 1000.0).round.toInt)
-
-  def percentage(a: Int, b: Int): Percentage = percentage(a.toLong, b.toLong)
-
-  def percentage_space(a: Space, b: Space): Percentage = percentage(a.bytes, b.bytes)
-
-  final class Percentage private[Profiling](val permille: Int) extends AnyVal {
-    def percent: Double = permille.toDouble / 10
-
-    override def toString: String = (permille / 10).toString + "." + (permille % 10).toString + "%"
-  }
-
-
   /* session statistics */
 
   sealed case class Session_Statistics(
@@ -146,10 +130,10 @@ object Profiling {
       }
 
     private def size_percentage(space: Space): Percentage =
-      percentage_space(space, heap_size)
+      Percentage.space(space, heap_size)
 
     private def thms_percentage(thms: Int): Percentage =
-      percentage(thms, locale_thms + global_thms)
+      Percentage(thms, locale_thms + global_thms)
 
     val fields0: List[Any] =
       List(
