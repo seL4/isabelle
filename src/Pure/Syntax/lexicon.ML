@@ -392,12 +392,15 @@ fun read_indexname s =
 
 fun read_var str =
   let
-    val scan =
-      $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
-        >> Syntax.var ||
-      Scan.many (Symbol.not_eof o Symbol_Pos.symbol)
-        >> (Syntax.free o implode o map Symbol_Pos.symbol);
-  in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode0 str)) end;
+    val scan_var =
+      $$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof) >> Syntax.var;
+  in
+    if String.isPrefix "?" str then
+      (case Scan.read Symbol_Pos.stopper scan_var (Symbol_Pos.explode0 str) of
+        SOME t => t
+      | NONE => Syntax.free str)
+    else Syntax.free str
+  end;
 
 
 (* read_variable *)
