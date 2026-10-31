@@ -16,7 +16,8 @@ sig
   val kind_time: string
   val kind_time_thread: string
   val kind_allocations: string
-  val tracing: {kind: string} -> {name: string, count: int} list -> unit
+  val message: {kind: string} -> {name: string, count: int} list -> unit
+  val message1: {kind: string, name: string} -> unit
   val check_mode: string -> unit
   val profile: string -> ('a -> 'b) -> 'a -> 'b
   include BASIC_ML_PROFILING
@@ -32,20 +33,26 @@ val kind_time_thread = "time_thread";
 val kind_allocations = "allocations";
 
 
-(* XML markup *)
+(* messages *)
+
+local
 
 fun markup_entry entry =
   if #count entry = 0 then NONE
   else SOME (XML.Elem (Markup.ML_profiling_entry entry, []));
 
-fun markup_body kind body =
-  if null body then []
-  else [XML.Elem (Markup.ML_profiling kind, body)];
+fun markup_body kind body = XML.Elem (Markup.ML_profiling kind, body);
 
-fun tracing {kind} entries =
+in
+
+fun message {kind} entries =
   (case map_filter markup_entry entries of
     [] => ()
-  | body => Output.tracings (Bytes.contents (YXML.bytes_of_body (markup_body kind body))));
+  | body => Output.tracings (Bytes.contents (YXML.bytes_of (markup_body kind body))));
+
+fun message1 {kind, name} = message {kind = kind} [{name = name, count = 1}];
+
+end;
 
 
 (* Poly/ML mode *)
@@ -74,7 +81,7 @@ fun profile "" f x = f x
         val output =
           sort (int_ord o apply2 fst)
           #> map (fn (count, name) => {name = name, count = count})
-          #> tracing {kind = kind};
+          #> message {kind = kind};
       in PolyML.Profiling.profileStream output mode f x end;
 
 fun profile_time f = profile kind_time f;
