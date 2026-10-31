@@ -25,6 +25,7 @@ sig
   val writelns: string list -> unit
   val writelns_urgent: string list -> unit
   val writeln_urgent: string -> unit
+  val tracings: string list -> unit
   val state: string list -> unit
   val information: string -> unit
   val error_message': serial * string -> unit
@@ -119,7 +120,8 @@ fun writelns_urgent ss = ! writeln_urgent_fn ss;
 fun writeln_urgent s = writelns_urgent [s];
 fun state ss = ! state_fn ss;
 fun information s = ! information_fn [s];
-fun tracing s = ! tracing_fn [s];
+fun tracings ss = ! tracing_fn ss;
+fun tracing s = tracings [s];
 fun warning s = ! warning_fn [s];
 fun legacy_feature s = ! legacy_fn [("Legacy feature! " ^ s)];
 fun error_message' (i, s) = ! error_message_fn (i, [s]);

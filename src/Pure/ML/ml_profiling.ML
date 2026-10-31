@@ -72,7 +72,7 @@ fun profile "" f x = f x
               |> map_filter (fn (count, name) => markup_entry {name = name, count = count});
           in
             if null body then ()
-            else tracing (YXML.string_of_body (markup_body kind body))
+            else Output.tracings (Bytes.contents (YXML.bytes_of_body (markup_body kind body)))
           end;
       in PolyML.Profiling.profileStream output mode f x end;
 
