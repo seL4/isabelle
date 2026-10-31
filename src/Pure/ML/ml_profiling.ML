@@ -13,10 +13,10 @@ end;
 
 signature ML_PROFILING =
 sig
-  val tracing: {kind: string} -> {name: string, count: int} list -> unit
   val kind_time: string
   val kind_time_thread: string
   val kind_allocations: string
+  val tracing: {kind: string} -> {name: string, count: int} list -> unit
   val check_mode: string -> unit
   val profile: string -> ('a -> 'b) -> 'a -> 'b
   include BASIC_ML_PROFILING
@@ -24,6 +24,13 @@ end;
 
 structure ML_Profiling: ML_PROFILING =
 struct
+
+(* kinds *)
+
+val kind_time = "time";
+val kind_time_thread = "time_thread";
+val kind_allocations = "allocations";
+
 
 (* XML markup *)
 
@@ -39,13 +46,6 @@ fun tracing {kind} entries =
   (case map_filter markup_entry entries of
     [] => ()
   | body => Output.tracings (Bytes.contents (YXML.bytes_of_body (markup_body kind body))));
-
-
-(* kinds *)
-
-val kind_time = "time";
-val kind_time_thread = "time_thread";
-val kind_allocations = "allocations";
 
 
 (* Poly/ML mode *)
