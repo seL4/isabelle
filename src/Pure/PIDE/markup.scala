@@ -635,14 +635,16 @@ object Markup {
 
   /* ML profiling */
 
-  val COUNT = "count"
+  val Count = new Properties.Long("count")
   val ML_PROFILING_ENTRY = "ML_profiling_entry"
   val ML_PROFILING = "ML_profiling"
 
   object ML_Profiling {
     def unapply_entry(tree: XML.Tree): Option[isabelle.ML_Profiling.Entry] =
       tree match {
-        case XML.Elem(Markup(ML_PROFILING_ENTRY, List((NAME, name), (COUNT, Value.Long(count)))), _) =>
+        case XML.Elem(Markup(ML_PROFILING_ENTRY, props), _) =>
+          val name = Name.unapply(props).getOrElse("UNKNOWN")
+          val count = Count.unapply(props).getOrElse(1L)
           Some(isabelle.ML_Profiling.Entry(name, count))
         case _ => None
       }
