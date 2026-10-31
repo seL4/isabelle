@@ -13,6 +13,7 @@ end;
 
 signature ML_PROFILING =
 sig
+  val tracing: {kind: string} -> {name: string, count: int} list -> unit
   val kind_time: string
   val kind_time_thread: string
   val kind_allocations: string
@@ -33,6 +34,11 @@ fun markup_entry entry =
 fun markup_body kind body =
   if null body then []
   else [XML.Elem (Markup.ML_profiling kind, body)];
+
+fun tracing {kind} entries =
+  (case map_filter markup_entry entries of
+    [] => ()
+  | body => Output.tracings (Bytes.contents (YXML.bytes_of_body (markup_body kind body))));
 
 
 (* kinds *)
@@ -65,15 +71,10 @@ fun profile "" f x = f x
   | profile kind f x =
       let
         val mode = get_mode kind;
-        fun output entries =
-          let
-            val body = entries
-              |> sort (int_ord o apply2 fst)
-              |> map_filter (fn (count, name) => markup_entry {name = name, count = count});
-          in
-            if null body then ()
-            else Output.tracings (Bytes.contents (YXML.bytes_of_body (markup_body kind body)))
-          end;
+        val output =
+          sort (int_ord o apply2 fst)
+          #> map (fn (count, name) => {name = name, count = count})
+          #> tracing {kind = kind};
       in PolyML.Profiling.profileStream output mode f x end;
 
 fun profile_time f = profile kind_time f;
