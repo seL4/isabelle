@@ -13,6 +13,9 @@ end;
 
 signature ML_PROFILING =
 sig
+  val kind_time: string
+  val kind_time_thread: string
+  val kind_allocations: string
   val check_mode: string -> unit
   val profile: string -> ('a -> 'b) -> 'a -> 'b
   include BASIC_ML_PROFILING
@@ -21,13 +24,20 @@ end;
 structure ML_Profiling: ML_PROFILING =
 struct
 
-(* mode *)
+(* kinds *)
+
+val kind_time = "time";
+val kind_time_thread = "time_thread";
+val kind_allocations = "allocations";
+
+
+(* Poly/ML mode *)
 
 val modes =
   Symtab.make
-    [("time", PolyML.Profiling.ProfileTime),
-     ("time_thread", PolyML.Profiling.ProfileTimeThisThread),
-     ("allocations", PolyML.Profiling.ProfileAllocations)];
+    [(kind_time, PolyML.Profiling.ProfileTime),
+     (kind_time_thread, PolyML.Profiling.ProfileTimeThisThread),
+     (kind_allocations, PolyML.Profiling.ProfileAllocations)];
 
 fun get_mode kind =
   (case Symtab.lookup modes kind of
@@ -57,9 +67,9 @@ fun profile "" f x = f x
           end;
       in PolyML.Profiling.profileStream output mode f x end;
 
-fun profile_time f = profile "time" f;
-fun profile_time_thread f = profile "time_thread" f;
-fun profile_allocations f = profile "allocations" f;
+fun profile_time f = profile kind_time f;
+fun profile_time_thread f = profile kind_time_thread f;
+fun profile_allocations f = profile kind_allocations f;
 
 end;
 
