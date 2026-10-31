@@ -24,6 +24,17 @@ end;
 structure ML_Profiling: ML_PROFILING =
 struct
 
+(* XML markup *)
+
+fun markup_entry entry =
+  if #count entry = 0 then NONE
+  else SOME (XML.Elem (Markup.ML_profiling_entry entry, []));
+
+fun markup_body kind body =
+  if null body then []
+  else [XML.Elem (Markup.ML_profiling kind, body)];
+
+
 (* kinds *)
 
 val kind_time = "time";
@@ -58,12 +69,10 @@ fun profile "" f x = f x
           let
             val body = entries
               |> sort (int_ord o apply2 fst)
-              |> map_filter (fn (n, name) =>
-                  if n = 0 then NONE
-                  else SOME (XML.Elem (Markup.ML_profiling_entry {name = name, count = n}, [])));
+              |> map_filter (fn (count, name) => markup_entry {name = name, count = count});
           in
             if null body then ()
-            else tracing (YXML.string_of (XML.Elem (Markup.ML_profiling kind, body)))
+            else tracing (YXML.string_of_body (markup_body kind body))
           end;
       in PolyML.Profiling.profileStream output mode f x end;
 
