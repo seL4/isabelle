@@ -9,6 +9,7 @@ package isabelle
 
 
 import scala.collection.immutable.SortedMap
+import scala.collection.mutable
 
 
 object Thy_Conditions {
@@ -34,6 +35,76 @@ object Thy_Conditions {
 
   def the_predicate(name: String): Predicate =
     predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
+
+
+
+  /** concrete syntax for conditions **/
+
+  object Token {
+    object Kind extends Enumeration {
+      val SPACE = Value("white space")
+      val KEYWORD = Value("keyword")
+      val IDENT = Value("identifier")
+      val VARIABLE = Value("environment variable")
+      val STRING = Value("string")
+      val CARTOUCHE = Value("text cartouche")
+      val BAD = Value("bad input")
+    }
+
+    private object Scanners extends Scan.Parsers {
+      val space = many1(character(Symbol.is_ascii_blank)) ^^ (x => Token(Kind.SPACE, x))
+
+      val keyword = one(character(Set('(', ',', ')'))) ^^ (x => Token(Kind.KEYWORD, x))
+
+      val id =
+        one(character(Symbol.is_ascii_letter)) ~
+        many(character(c => Symbol.is_ascii_letter(c) || Symbol.is_ascii_digit(c) || c == '_')) ^^
+          { case x ~ y => x + y }
+      val ident = id ^^ (x => Token(Kind.IDENT, x))
+      val variable = one(character(Set('$'))) ~ id ^^ { case x ~ y => Token(Kind.VARIABLE, x + y) }
+
+      val delimited =
+        quoted("\"") ^^ (x => Token(Kind.STRING, x)) |
+        cartouche ^^ (x => Token(Kind.CARTOUCHE, x))
+      val bad =
+        (recover_quoted("\"") | recover_cartouche | one(_ => true)) ^^ (x => Token(Kind.BAD, x))
+
+      def token: Parser[Token] =
+        space | (keyword | (ident | (variable | (delimited | bad))))
+    }
+
+    def explode(inp: CharSequence, whitespace: Boolean = false): List[Text.Info[Token]] = {
+      val toks =
+        Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(inp)) match {
+          case Scanners.Success(tokens, _) => tokens
+          case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
+        }
+
+      val result = new mutable.ListBuffer[Text.Info[Token]]
+      var offset = 0
+      for (tok <- toks) {
+        val end_offset = offset + tok.source.length
+        if (!tok.is_space || whitespace) {
+          result += Text.Info(Text.Range(offset, end_offset), tok)
+        }
+        offset = end_offset
+      }
+      result.toList
+    }
+  }
+
+  sealed case class Token(kind: Token.Kind.Value, source: String) {
+    def is_space: Boolean = kind == Token.Kind.SPACE
+    def is_keyword: Boolean = kind == Token.Kind.KEYWORD
+    def is_keyword(name: String): Boolean = is_keyword && source == name
+    def is_bad: Boolean = kind == Token.Kind.BAD
+
+    def content: String =
+      if (kind == Token.Kind.VARIABLE) Library.perhaps_unprefix("$", source)
+      else if (kind == Token.Kind.STRING) Scan.Parsers.perhaps_quoted_content("\"", source)
+      else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.perhaps_cartouche_content(source)
+      else source
+  }
 
 
 
