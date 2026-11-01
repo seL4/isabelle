@@ -15,16 +15,28 @@ import scala.collection.mutable
 object Thy_Conditions {
   /** predicates via Isabelle/Scala services **/
 
-  abstract class Predicate(val name: String) {
+  abstract class Predicate_Args(val name: String) {
     override def toString: String = name
+    def apply(conditions: Thy_Conditions, args: List[String]): Boolean
+  }
+
+  abstract class Predicate(name: String) extends Predicate_Args(name) {
+    override def toString: String = name
+    override def apply(conditions: Thy_Conditions, args: List[String]): Boolean =
+      if (args.isEmpty) apply(conditions) else error("empty arguments required")
     def apply(conditions: Thy_Conditions): Boolean
   }
 
-  class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
+  object Getenv extends Predicate_Args("getenv") {
+    def test(a: String): Boolean = Isabelle_System.getenv(a).nonEmpty
+    def apply(conditions: Thy_Conditions, args: List[String]): Boolean = args.forall(test)
+  }
 
-  lazy val predicates: Map[String, Predicate] = {
+  class Predicates(val predicates: Predicate_Args*) extends Isabelle_System.Service
+
+  lazy val predicates: Map[String, Predicate_Args] = {
     Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
-      .foldLeft(Map.empty[String, Predicate])(
+      .foldLeft(Map.empty[String, Predicate_Args])(
         { case (map, pred) =>
             if (map.isDefinedAt(pred.name)) {
               error("Duplicate theory condition predicate: " + quote(pred.name))
@@ -33,7 +45,7 @@ object Thy_Conditions {
         })
   }
 
-  def the_predicate(name: String): Predicate =
+  def the_predicate(name: String): Predicate_Args =
     predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
 
 
@@ -111,7 +123,7 @@ object Thy_Conditions {
       if (name.startsWith("$")) Cond(name)
       else {
         Library.try_unsuffix("()", name) match {
-          case Some(a) => Thy_Conditions.Cond(a, args = true)
+          case Some(a) => Thy_Conditions.Cond(a, args = Some(Nil))
           case None => Thy_Conditions.Cond(name)
         }
       }
@@ -120,12 +132,18 @@ object Thy_Conditions {
     }
   }
 
-  sealed case class Cond(name: String, args: Boolean = false) {
+  sealed case class Cond(name: String, args: Option[List[String]] = None) {
     override def toString: String = string
-    val string: String = name + if_proper(args, "()")
+    val string: String =
+      args match {
+        case None => name
+        case Some(as) => name + as.map(Outer_Syntax.quote_string).mkString("(", ", ", ")")
+      }
 
     def evaluate(conditions: Thy_Conditions): String =
-      if (args) { if (Thy_Conditions.the_predicate(name)(conditions)) "" else "false" }
+      if (args.isDefined) {
+        if (Thy_Conditions.the_predicate(name)(conditions, args.get)) "" else "false"
+      }
       else {
         Library.try_unprefix("$", name) match {
           case Some(a) => if (Isabelle_System.getenv(a).nonEmpty) "" else "empty/unset"
@@ -290,3 +308,5 @@ final class Thy_Conditions private(
     List(a, b, c).filterNot(_.isEmpty).mkString("Thy_Conditions(", ", ", ")")
   }
 }
+
+class Predicates extends Thy_Conditions.Predicates(Thy_Conditions.Getenv)
