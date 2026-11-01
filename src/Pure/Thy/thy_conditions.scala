@@ -1,7 +1,8 @@
 /*  Title:      Pure/Thy/thy_conditions.scala
     Author:     Makarius
 
-Side-conditions on processing the body of a theory file.
+Side-conditions on processing theory body commands, or proofs within the
+theory.
 */
 
 package isabelle
@@ -11,10 +12,34 @@ import scala.collection.immutable.SortedMap
 
 
 object Thy_Conditions {
-  object Condition extends Shasum.Special_Entry("condition")
+  /** predicates via Isabelle/Scala services **/
 
-  def init(background: Sessions.Background, options: Options): Thy_Conditions =
-    new Thy_Conditions(background, options, SortedMap.empty)
+  abstract class Predicate(val name: String) {
+    override def toString: String = name
+    def apply(conditions: Thy_Conditions): Boolean
+  }
+
+  class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
+
+  lazy val predicates: Map[String, Predicate] = {
+    Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
+      .foldLeft(Map.empty[String, Predicate])(
+        { case (map, pred) =>
+            if (map.isDefinedAt(pred.name)) {
+              error("Duplicate theory condition predicate: " + quote(pred.name))
+            }
+            else map + (pred.name -> pred)
+        })
+  }
+
+  def the_predicate(name: String): Predicate =
+    predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
+
+
+
+  /** system options **/
+
+  object Condition extends Shasum.Special_Entry("condition")
 
   private val any_option: List[String] = List("condition", "condition_proofs")
 
@@ -26,7 +51,8 @@ object Thy_Conditions {
   val filter_proofs_option: Set[String] = Set(any_option(1))
 
 
-  /* context with mutable state (or cache) */
+
+  /** context: mutable state (or cache) **/
 
   object Context {
     def apply(background: Sessions.Background, options: Options): Context = {
@@ -68,28 +94,11 @@ object Thy_Conditions {
   }
 
 
-  /* predicates */
 
-  abstract class Predicate(val name: String) {
-    override def toString: String = name
-    def apply(conditions: Thy_Conditions): Boolean
-  }
+  /** immutable value **/
 
-  class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
-
-  lazy val predicates: Map[String, Predicate] = {
-    Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
-      .foldLeft(Map.empty[String, Predicate])(
-        { case (map, pred) =>
-            if (map.isDefinedAt(pred.name)) {
-              error("Duplicate theory condition predicate: " + quote(pred.name))
-            }
-            else map + (pred.name -> pred)
-        })
-  }
-
-  def the_predicate(name: String): Predicate =
-    predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
+  def init(background: Sessions.Background, options: Options): Thy_Conditions =
+    new Thy_Conditions(background, options, SortedMap.empty)
 }
 
 final class Thy_Conditions private(
