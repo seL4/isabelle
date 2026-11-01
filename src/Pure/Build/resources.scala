@@ -112,7 +112,7 @@ object Resources {
         copy(errors = errors.map(msg1 => Exn.cat_message(msg1, msg2)))
       }
 
-    def eval_conditions(session_conditions: Thy_Conditions.Context): Thy =
+    def eval_conditions(session_conditions: Thy_Conditions.State): Thy =
       if (conditions.isDefined) this
       else {
         Exn.result { session_conditions.eval_restrict(options) } match {
@@ -375,7 +375,7 @@ class Resources(
   /* theory and file dependencies */
 
   def dependencies(
-    session_conditions: Thy_Conditions.Context,
+    session_conditions: Thy_Conditions.State,
     theories: List[(Document.Node.Name, Position.T)],
     options: Options.Update = Nil,
     progress: Progress = new Progress
@@ -413,7 +413,7 @@ class Resources(
       theories: List[(Document.Node.Name, Position.T)],
       options: Options.Update = Nil,
       progress: Progress = new Progress,
-      session_conditions: Option[Thy_Conditions.Context] = None
+      session_conditions: Option[Thy_Conditions.State] = None
     ): Dependencies = {
       def require_thy(
         dependencies: Dependencies,
@@ -565,7 +565,7 @@ class Resources(
   /* resolve implicit theory dependencies */
 
   def resolve_dependencies(
-    session_conditions: Thy_Conditions.Context,
+    session_conditions: Thy_Conditions.State,
     models: Iterable[Document.Model],
     theories: List[Document.Node.Name]
   ): List[Document.Node.Name] = {

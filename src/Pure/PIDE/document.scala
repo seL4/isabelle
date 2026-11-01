@@ -865,7 +865,7 @@ object Document {
     def session_options: Options
     def resources: Resources
     def store: Store
-    def conditions: Thy_Conditions.Context
+    def conditions: Thy_Conditions.State
   }
 
   trait Model {

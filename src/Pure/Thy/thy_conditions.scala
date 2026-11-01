@@ -52,17 +52,17 @@ object Thy_Conditions {
 
 
 
-  /** context: mutable state (or cache) **/
+  /** mutable state (or cache) **/
 
-  object Context {
-    def apply(background: Sessions.Background, options: Options): Context = {
-      val context = new Context
-      context.init(background, options)
-      context
+  object State {
+    def apply(background: Sessions.Background, options: Options): State = {
+      val state = new State
+      state.init(background, options)
+      state
     }
   }
 
-  final class Context private {
+  final class State private {
     private var immutable: Boolean = false
     private var conditions: Thy_Conditions =
       Thy_Conditions.init(Sessions.background0(""), Options.defaults)

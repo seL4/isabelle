@@ -29,7 +29,7 @@ object Build_Job {
   def start_session(
     build_context: Build.Context,
     session_context: Session_Context,
-    session_conditions: Thy_Conditions.Context,
+    session_conditions: Thy_Conditions.State,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -190,7 +190,7 @@ object Build_Job {
   class Session_Job private[Build_Job](
     build_context: Build.Context,
     session_context: Session_Context,
-    session_conditions: Thy_Conditions.Context,
+    session_conditions: Thy_Conditions.State,
     progress: Progress,
     log: Logger,
     server: SSH.Server,
@@ -273,7 +273,7 @@ object Build_Job {
 
               override val store: Store = build_context.store
 
-              override lazy val conditions: Thy_Conditions.Context = session_conditions
+              override lazy val conditions: Thy_Conditions.State = session_conditions
 
               override val resources: Resources =
                 new Resources(

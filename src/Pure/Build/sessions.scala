@@ -494,10 +494,10 @@ object Sessions {
     def parent_background(session: String): Background =
       background(sessions_structure(session).parent getOrElse "")
 
-    def eval_conditions(name: String): Thy_Conditions.Context = {
+    def eval_conditions(name: String): Thy_Conditions.State = {
       val session_info = sessions_structure(name)
       val session_base = apply(name)
-      val session_conditions = Thy_Conditions.Context(parent_background(name), session_info.options)
+      val session_conditions = Thy_Conditions.State(parent_background(name), session_info.options)
       for (thy <- session_base.used_theories) session_conditions.eval_restrict(thy.options)
       session_conditions
     }
