@@ -81,7 +81,7 @@ object Scan {
     /* character */
 
     def character(pred: Char => Boolean): Symbol.Symbol => Boolean =
-      (s: Symbol. Symbol) => s.length == 1 && pred(s.charAt(0))
+      (s: Symbol.Symbol) => s.length == 1 && pred(s.charAt(0))
 
 
     /* quoted strings */
