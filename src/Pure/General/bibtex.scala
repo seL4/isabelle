@@ -362,7 +362,7 @@ object Bibtex {
       kind == Token.Kind.KEYWORD && (source == "{" || source == "(")
   }
 
-  case class Chunk(kind: String, tokens: List[Token]) {
+  sealed case class Chunk(kind: String, tokens: List[Token]) {
     val source: String = tokens.map(_.source).mkString
 
     private val content: Option[List[Token]] =
@@ -406,11 +406,11 @@ object Bibtex {
   abstract class Line_Context
   case object Ignored extends Line_Context
   case object At extends Line_Context
-  case class Item_Start(kind: String) extends Line_Context
-  case class Item_Open(kind: String, end: String) extends Line_Context
-  case class Item(kind: String, end: String, delim: Delimited) extends Line_Context
+  sealed case class Item_Start(kind: String) extends Line_Context
+  sealed case class Item_Open(kind: String, end: String) extends Line_Context
+  sealed case class Item(kind: String, end: String, delim: Delimited) extends Line_Context
 
-  case class Delimited(quoted: Boolean, depth: Int)
+  sealed case class Delimited(quoted: Boolean, depth: Int)
   val Closed: Delimited = Delimited(false, 0)
 
   private def token(kind: Token.Kind.Value)(source: String): Token = Token(kind, source)
