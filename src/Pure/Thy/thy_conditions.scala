@@ -86,7 +86,7 @@ object Thy_Conditions {
       val domain = conditions.domain(opts, filter = filter)
       val conditions1 = conditions.evaluate(domain)
       if (immutable && conditions.changed(conditions1)) {
-        error("Cannot change immutable conditions context")
+        error("Cannot change immutable theory conditions")
       }
       if (!immutable) { conditions = conditions1 }
       conditions1.restrict(domain)
