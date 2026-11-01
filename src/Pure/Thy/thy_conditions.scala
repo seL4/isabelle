@@ -43,9 +43,6 @@ object Thy_Conditions {
 
   private val any_option: List[String] = List("condition", "condition_proofs")
 
-  def domain(options: Options): List[String] =
-    any_option.flatMap(name => space_explode(',', options.string(name)))
-
   val filter_any_option: Set[String] = any_option.toSet
   val filter_theory_option: Set[String] = Set(any_option(0))
   val filter_proofs_option: Set[String] = Set(any_option(1))
@@ -138,7 +135,10 @@ final class Thy_Conditions private(
   def domain(
     opts: Options.Update,
     filter: Set[String] = Thy_Conditions.filter_any_option
-  ): List[String] = Thy_Conditions.domain(options ++ opts.filter(p => filter(p._1)))
+  ): List[String] = {
+    val options1 = options ++ opts.filter(p => filter(p._1))
+    Thy_Conditions.any_option.flatMap(name => space_explode(',', options1.string(name)))
+  }
 
   def restrict(domain: List[String]): Thy_Conditions = {
     val domain_set = domain.toSet
