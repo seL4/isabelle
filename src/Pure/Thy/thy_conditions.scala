@@ -199,7 +199,7 @@ final class Thy_Conditions private(
     val bads =
       List.from(
         for (case (a, Exn.Res(b)) <- rep.iterator if b.nonEmpty)
-          yield "condition " + quote(a) + " is " + b)
+          yield "condition " + a + " is " + b)
     if (bads.isEmpty) "" else bads.mkString("(", ", ", ")")
   }
 
