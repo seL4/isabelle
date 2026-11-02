@@ -136,7 +136,7 @@ object Token {
     inp: CharSequence,
     context: Scan.Line_Context
   ) : (List[Token], Scan.Line_Context) = {
-    var in: input.Reader[Char] = Scan.char_reader(inp)
+    var in = Scan.char_reader(inp)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {

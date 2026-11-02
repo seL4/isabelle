@@ -18,7 +18,7 @@ import java.awt.event.{InputEvent, KeyEvent, KeyListener}
 import java.awt.font.FontRenderContext
 import javax.swing.{ImageIcon, JScrollBar, JWindow}
 
-import scala.util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 import scala.jdk.CollectionConverters._
 import scala.annotation.tailrec
@@ -89,7 +89,7 @@ object JEdit_Lib {
   def buffer_text(buffer: JEditBuffer): String =
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
-  def buffer_reader(buffer: JEditBuffer): CharSequenceReader =
+  def buffer_reader(buffer: JEditBuffer): Reader[Char] =
     Scan.char_reader(buffer.getSegment(0, buffer.getLength))
 
   def buffer_mode(buffer: JEditBuffer): String = {

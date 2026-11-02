@@ -8,7 +8,7 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.Reader
 
 
 object Command_Span {
@@ -105,7 +105,7 @@ object Command_Span {
     def is_begin: Boolean = content.exists(_.is_begin)
     def is_end: Boolean = content.exists(_.is_end)
 
-    def content_reader: CharSequenceReader = Scan.char_reader(Token.implode(content))
+    def content_reader: Reader[Char] = Scan.char_reader(Token.implode(content))
 
     def length: Int = content.foldLeft(0)(_ + _.source.length)
     def symbol_length: Symbol.Offset = content.foldLeft(0)(_ + _.symbol_length)

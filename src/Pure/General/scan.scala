@@ -456,6 +456,6 @@ object Scan {
 
   /* plain text reader */
 
-  def char_reader(text: CharSequence): CharSequenceReader =
+  def char_reader(text: CharSequence): Reader[Char] =
     new CharSequenceReader(text)
 }

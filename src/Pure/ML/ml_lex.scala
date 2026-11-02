@@ -8,7 +8,6 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.parsing.input.Reader
 
 
 object ML_Lex {
@@ -277,7 +276,7 @@ object ML_Lex {
     input: CharSequence,
     context: Scan.Line_Context
   ) : (List[Token], Scan.Line_Context) = {
-    var in: Reader[Char] = Scan.char_reader(input)
+    var in = Scan.char_reader(input)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
