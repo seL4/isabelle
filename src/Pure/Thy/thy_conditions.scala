@@ -85,10 +85,10 @@ object Thy_Conditions {
         space | (keyword | (ident | (variable | (delimited | bad))))
     }
 
-    def explode(inp: CharSequence): List[Token] =
-      Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(inp)) match {
+    def explode(str: String): List[Token] =
+      Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(str)) match {
         case Scanners.Success(tokens, _) => tokens
-        case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
+        case _ => error("Unexpected failure of tokenizing input:\n" + str)
       }
   }
 
