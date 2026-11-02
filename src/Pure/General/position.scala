@@ -185,11 +185,11 @@ object Position {
   }
 
   final class P private[Position](
-      val line: Int,
-      val offset: Symbol.Offset,
-      val file: String,
-      val id: String)
-  extends input.Position {
+    val line: Int,
+    val offset: Symbol.Offset,
+    val file: String,
+    val id: String
+  ) extends input.Position {
     def column = 0
     def lineContents = ""
 
