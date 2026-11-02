@@ -192,10 +192,55 @@ object Token {
       case List(tok) => tok.source
       case _ => toks.map(_.source).mkString
     }
+
+
+  /* combinator parsers */
+
+  trait Parsers extends Position.Parsers {
+    type Elem = Token
+
+    def command(name: String): Parser[String] = atom("command " + quote(name), _.is_command(name))
+    def $$$(name: String): Parser[String] = atom("keyword " + quote(name), _.is_keyword(name))
+    def string: Parser[String] = atom("string", _.is_string)
+    def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ Value.Nat.parse
+    def name: Parser[String] = atom("name", _.is_name)
+    def embedded: Parser[String] = atom("embedded content", _.is_embedded)
+    def text: Parser[String] = atom("text", _.is_embedded)
+    def ML_source: Parser[String] = atom("ML source", _.is_embedded)
+    def document_source: Parser[String] = atom("document source", _.is_embedded)
+
+    def opt_keyword(s: String): Parser[Boolean] =
+      ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ (_ => true) | success(false)
+
+    def path: Parser[String] =
+      atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
+
+    def in_path(default: String): Parser[String] =
+      $$$("in") ~! path ^^ { case _ ~ x => x } | success(default)
+
+    def in_path_parens(default: String): Parser[String] =
+      $$$("(") ~! ($$$("in") ~ path ~ $$$(")")) ^^ { case _ ~ (_ ~ x ~ _) => x } | success(default)
+
+    def chapter_name: Parser[String] = atom("chapter name", _.is_system_name)
+    def session_name: Parser[String] = atom("session name", _.is_system_name)
+    def theory_name: Parser[String] = atom("theory name", _.is_system_name)
+
+    private def tag_name: Parser[String] =
+      atom("tag name", tok =>
+          tok.kind == Token.Kind.IDENT ||
+          tok.kind == Token.Kind.STRING)
+
+    def tag: Parser[String] = $$$("%") ~> tag_name
+    def tags: Parser[List[String]] = rep(tag)
+
+    def marker: Parser[String] = element("marker", _.is_marker) ^^ (_.content)
+
+    def annotation: Parser[Unit] = rep(tag | marker) ^^ (_ => ())
+  }
 }
 
 
-sealed case class Token(kind: Token.Kind.Value, source: String) extends Position.S {
+sealed case class Token(kind: Token.Kind.Value, source: String) extends Position.E {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command(name: String): Boolean = kind == Token.Kind.COMMAND && source == name
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD

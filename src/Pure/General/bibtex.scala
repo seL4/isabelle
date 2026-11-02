@@ -754,7 +754,7 @@ object Bibtex {
         }
     }
 
-    object Parsers extends Parse.Parsers {
+    object Parsers extends isabelle.Token.Parsers {
       val keywords: Keyword.Keywords = Thy_Header.bootstrap_keywords + "in" + "using"
 
       val location: Parser[String] = embedded ~ $$$("in") ^^ { case x ~ _ => x } | success("")

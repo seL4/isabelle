@@ -24,9 +24,9 @@ object Check_Keywords {
           { case (keywords, input, start) =>
             progress.expose_interrupt()
 
-            object Parsers extends Parse.Parsers {
-              private val conflict = position(token("token", tok => check(tok.source)))
-              private val other = token("token", _ => true)
+            object Parsers extends Token.Parsers {
+              private val conflict = position(element("token", tok => check(tok.source)))
+              private val other = element("token", _ => true)
               private val item = conflict ^^ (x => Some(x)) | other ^^ (_ => None)
 
               val result: List[(Token, Position.T)] =

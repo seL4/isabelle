@@ -161,7 +161,6 @@ sources = \
   src/Pure/Isar/keyword.scala \
   src/Pure/Isar/line_structure.scala \
   src/Pure/Isar/outer_syntax.scala \
-  src/Pure/Isar/parse.scala \
   src/Pure/Isar/token.scala \
   src/Pure/ML/ml_console.scala \
   src/Pure/ML/ml_heap.scala \

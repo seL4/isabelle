@@ -7,7 +7,8 @@ Position properties.
 package isabelle
 
 
-import scala.util.parsing.input
+import scala.annotation.tailrec
+import scala.util.parsing.{input, combinator}
 
 
 object Position {
@@ -170,6 +171,7 @@ object Position {
 
   trait S {
     def source: String
+    def content: String
   }
 
   object P {
@@ -224,4 +226,66 @@ object Position {
 
   def reader[Elem <: S](inp: List[Elem], start: P): Reader[Elem] =
     new Reader[Elem](inp, start)
+
+
+  /* combinator parsers */
+
+  trait E extends S {
+    def kind: Any
+    def is_proper: Boolean
+  }
+
+  trait Parsers extends combinator.Parsers {
+    type Elem <: E
+
+    def filter_proper: Boolean = true
+
+    @tailrec private def proper(in: Input): Input =
+      if (!filter_proper || in.atEnd || in.first.is_proper) in
+      else proper(in.rest)
+
+    private def proper_position: Parser[T] =
+      new Parser[T] {
+        def apply(raw_input: Input) = {
+          val in = proper(raw_input)
+          val pos =
+            in.pos match {
+              case pos: P => pos
+              case _ => P.none
+            }
+          Success(if (in.atEnd) pos.position() else pos.position(in.first.source), in)
+        }
+      }
+
+    def position[A](parser: Parser[A]): Parser[(A, T)] =
+      proper_position ~ parser ^^ { case x ~ y => (y, x) }
+
+    def element(s: String, pred: Elem => Boolean): Parser[Elem] =
+      new Parser[Elem] {
+        def apply(raw_input: Input) = {
+          val in = proper(raw_input)
+          if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
+          else {
+            val elem = in.first
+            if (pred(elem)) Success(elem, proper(in.rest))
+            else Failure(s + " expected,\nbut " + elem.kind + " was found:\n" + elem.source, in)
+          }
+        }
+      }
+
+    def atom(s: String, pred: Elem => Boolean): Parser[String] =
+      element(s, pred) ^^ (_.content)
+
+
+    /* wrappers */
+
+    def parse[T](p: Parser[T], in: Reader[Elem]): ParseResult[T] = p(in)
+
+    def parse_all[T](p: Parser[T], in: Reader[Elem]): ParseResult[T] = {
+      val result = parse(p, in)
+      val rest = proper(result.next)
+      if (result.successful && !rest.atEnd) Error("bad input", rest)
+      else result
+    }
+  }
 }

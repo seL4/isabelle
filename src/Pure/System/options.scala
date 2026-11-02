@@ -197,11 +197,11 @@ object Options {
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
-  trait Parsers extends Parse.Parsers {
+  trait Parsers extends Token.Parsers {
     val option_name: Parser[String] = atom("option name", _.is_name)
     val option_type: Parser[String] = atom("option type", _.is_name)
     val option_value: Parser[String] =
-      opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
+      opt(element("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
       atom("option value", tok => tok.is_name || tok.is_float)
     val option_standard: Parser[Option[String]] =
