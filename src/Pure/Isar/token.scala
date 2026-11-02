@@ -239,16 +239,14 @@ object Token {
     override def toString: String = Position.here(position(), delimited = false)
   }
 
-  abstract class Reader extends input.Reader[Token]
-
-  private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader {
+  class Reader private[Token](tokens: List[Token], val pos: Pos) extends input.Reader[Token] {
     def first: Token = tokens.head
-    def rest: Token_Reader = new Token_Reader(tokens.tail, pos.advance(first))
+    def rest: Reader = new Reader(tokens.tail, pos.advance(first))
     def atEnd: Boolean = tokens.isEmpty
   }
 
   def reader(tokens: List[Token], start: Token.Pos): Reader =
-    new Token_Reader(tokens, start)
+    new Reader(tokens, start)
 }
 
 
