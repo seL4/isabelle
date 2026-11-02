@@ -203,7 +203,7 @@ object Options {
     val option_value: Parser[String] =
       opt(element("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
-      atom("option value", tok => tok.is_name || tok.is_float)
+      atom("option value", tok => tok.is_name || tok.is_float || tok.is_cartouche)
     val option_standard: Parser[Option[String]] =
       $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
     val option_tag: Parser[String] = atom("option tag", _.is_name)

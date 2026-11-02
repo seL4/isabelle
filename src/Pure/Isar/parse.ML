@@ -484,7 +484,8 @@ val thms1 = Scan.repeat1 thm;
 (* options *)
 
 val option_name = group (fn () => "option name") name_position;
-val option_value = group (fn () => "option value") ((token real || token name) >> Token.content_of);
+val option_value = group (fn () => "option value")
+  ((token name || token real || token cartouche) >> Token.content_of);
 
 val option = option_name -- Scan.option ($$$ "=" |-- !!! (position option_value));
 val options = $$$ "[" |-- list1 option --| $$$ "]";

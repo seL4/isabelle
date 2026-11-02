@@ -15,6 +15,9 @@ environment variables (settings). The $A syntax is still supported as
 before, but now expands to getenv("A"); the latter form needs to be
 used, if A is not an identifier.
 
+* The syntax for system option values now allows cartouches as well, to
+facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
+
 
 *** HOL ***
 

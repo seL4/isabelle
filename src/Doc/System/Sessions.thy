@@ -73,7 +73,7 @@ text \<open>
     ;
     opts: '[' ( (@{syntax name} '=' value | @{syntax name}) + ',' ) ']'
     ;
-    value: @{syntax name} | @{syntax real}
+    value: @{syntax name} | @{syntax real} | @{syntax cartouche}
     ;
     sessions: @'sessions' (@{syntax system_name}+)
     ;
