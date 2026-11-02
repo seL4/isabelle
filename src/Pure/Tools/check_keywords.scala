@@ -25,8 +25,8 @@ object Check_Keywords {
             progress.expose_interrupt()
 
             object Parsers extends Token.Parsers {
-              private val conflict = position(element("token", tok => check(tok.source)))
-              private val other = element("token", _ => true)
+              private val conflict = position(proper_elem("token", tok => check(tok.source)))
+              private val other = proper_elem("token", _ => true)
               private val item = conflict ^^ (x => Some(x)) | other ^^ (_ => None)
 
               val result: List[(Token, Position.T)] =

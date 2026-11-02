@@ -233,7 +233,7 @@ object Token {
     def tag: Parser[String] = $$$("%") ~> tag_name
     def tags: Parser[List[String]] = rep(tag)
 
-    def marker: Parser[String] = element("marker", _.is_marker) ^^ (_.content)
+    def marker: Parser[String] = proper_elem("marker", _.is_marker) ^^ (_.content)
 
     def annotation: Parser[Unit] = rep(tag | marker) ^^ (_ => ())
   }

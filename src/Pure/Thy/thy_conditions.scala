@@ -120,16 +120,16 @@ object Thy_Conditions {
     private object Parsers extends Position.Parsers {
       type Elem = Token
 
-      def $$$(name: String): Parser[Token] = element(name, _.is_keyword(name))
+      def $$$(name: String): Parser[Token] = proper_elem(name, _.is_keyword(name))
 
       val arg: Parser[String] = atom("string or cartouche", _.is_arg)
       val args: Parser[List[String]] =
         $$$("(") ~! (repsep(arg, $$$(",")) ~ $$$(")")) ^^ { case _ ~ (a ~ _) => a }
 
       val cond: Parser[Cond] =
-        element(Token.Kind.VARIABLE.toString, _.is_variable) ^^
+        proper_elem(Token.Kind.VARIABLE.toString, _.is_variable) ^^
           { a => Cond(Getenv.name, args = Some(List(a.content))) } |
-        element(Token.Kind.IDENT.toString, _.is_ident) ~ opt(args) ^^
+        proper_elem(Token.Kind.IDENT.toString, _.is_ident) ~ opt(args) ^^
           { case a ~ b => Cond(a.content, args = b) }
 
       val conds: Parser[List[Cond]] = repsep(cond, $$$(","))

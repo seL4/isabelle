@@ -254,7 +254,7 @@ object Position {
     def position[A](parser: Parser[A]): Parser[(A, T)] =
       proper_position ~ parser ^^ { case x ~ y => (y, x) }
 
-    def element(what: String, pred: Elem => Boolean): Parser[Elem] = { (raw_input: Input) =>
+    def proper_elem(what: String, pred: Elem => Boolean): Parser[Elem] = { (raw_input: Input) =>
       val in = proper(raw_input)
       if (in.atEnd) Failure(what + " expected,\nbut end-of-input was found", in)
       else {
@@ -265,7 +265,7 @@ object Position {
     }
 
     def atom(what: String, pred: Elem => Boolean): Parser[String] =
-      element(what, pred) ^^ (_.content)
+      proper_elem(what, pred) ^^ (_.content)
 
 
     /* wrappers */
