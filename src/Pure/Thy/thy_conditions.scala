@@ -85,24 +85,11 @@ object Thy_Conditions {
         space | (keyword | (ident | (variable | (delimited | bad))))
     }
 
-    def explode(inp: CharSequence, whitespace: Boolean = false): List[Text.Info[Token]] = {
-      val toks =
-        Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(inp)) match {
-          case Scanners.Success(tokens, _) => tokens
-          case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
-        }
-
-      val result = new mutable.ListBuffer[Text.Info[Token]]
-      var offset = 0
-      for (tok <- toks) {
-        val end_offset = offset + tok.source.length
-        if (!tok.is_space || whitespace) {
-          result += Text.Info(Text.Range(offset, end_offset), tok)
-        }
-        offset = end_offset
+    def explode(inp: CharSequence): List[Token] =
+      Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(inp)) match {
+        case Scanners.Success(tokens, _) => tokens
+        case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
       }
-      result.toList
-    }
   }
 
   sealed case class Token(kind: Token.Kind.Value, source: String) {
