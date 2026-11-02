@@ -15,28 +15,37 @@ import scala.collection.mutable
 object Thy_Conditions {
   /** predicates via Isabelle/Scala services **/
 
-  abstract class Predicate_Args(val name: String) {
+  abstract class Predicate(val name: String) {
     override def toString: String = name
     def apply(conditions: Thy_Conditions, args: List[String]): Boolean
   }
 
-  abstract class Predicate(name: String) extends Predicate_Args(name) {
-    override def toString: String = name
+  abstract class Predicate0(name: String) extends Predicate(name) {
     override def apply(conditions: Thy_Conditions, args: List[String]): Boolean =
-      if (args.isEmpty) apply(conditions) else error("empty arguments required")
+      if (args.isEmpty) apply(conditions)
+      else error("empty arguments required")
     def apply(conditions: Thy_Conditions): Boolean
   }
 
-  object Getenv extends Predicate_Args("getenv") {
+  abstract class Predicate1(name: String) extends Predicate(name) {
+    override def apply(conditions: Thy_Conditions, args: List[String]): Boolean =
+      args match {
+        case List(arg) => apply(conditions, arg)
+        case _ => error("single argument required")
+      }
+    def apply(conditions: Thy_Conditions, arg: String): Boolean
+  }
+
+  object Getenv extends Predicate("getenv") {
     def test(a: String): Boolean = Isabelle_System.getenv(a).nonEmpty
     def apply(conditions: Thy_Conditions, args: List[String]): Boolean = args.forall(test)
   }
 
-  class Predicates(val predicates: Predicate_Args*) extends Isabelle_System.Service
+  class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
 
-  lazy val predicates: Map[String, Predicate_Args] = {
+  lazy val predicates: Map[String, Predicate] = {
     Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
-      .foldLeft(Map.empty[String, Predicate_Args])(
+      .foldLeft(Map.empty[String, Predicate])(
         { case (map, pred) =>
             if (map.isDefinedAt(pred.name)) {
               error("Duplicate theory condition predicate: " + quote(pred.name))
@@ -45,7 +54,7 @@ object Thy_Conditions {
         })
   }
 
-  def the_predicate(name: String): Predicate_Args =
+  def the_predicate(name: String): Predicate =
     predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
 
 
