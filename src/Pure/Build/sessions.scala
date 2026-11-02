@@ -744,7 +744,7 @@ object Sessions {
         if File.is_bib(file)
       } yield {
         val path = dir + document_dir + file
-        Bibtex.Entries.parse(File.read(path), start = Token.Pos.file(File.standard_path(path)))
+        Bibtex.Entries.parse(File.read(path), start = Position.P.file(File.standard_path(path)))
       }).foldRight(Bibtex.Entries.empty)(_ ::: _)
 
     def record_proofs: Boolean = options.int("record_proofs") >= 2
@@ -1191,17 +1191,17 @@ object Sessions {
 
     def parse_root(path: Path): List[Entry] = {
       val toks = Token.explode(root_syntax.keywords, File.read(path))
-      val start = Token.Pos.file(path.implode)
+      val start = Position.P.file(path.implode)
       val parser: Parser[Entry] = chapter_def | chapter_entry | session_entry
-      parse_all(rep(parser), Token.reader(toks, start)) match {
+      parse_all(rep(parser), Position.reader(toks, start)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
     }
 
-    def parse_exports(str: String, start: Token.Pos): (String, Int, List[String]) = {
+    def parse_exports(str: String, start: Position.P): (String, Int, List[String]) = {
       val toks = Token.explode(root_syntax.keywords, str)
-      parse_all(export_files_args, Token.reader(toks, start)) match {
+      parse_all(export_files_args, Position.reader(toks, start)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -1220,7 +1220,7 @@ object Sessions {
     } yield line
   }
 
-  def parse_exports(str: String, start: Token.Pos = Token.Pos.none): (String, Int, List[String]) =
+  def parse_exports(str: String, start: Position.P = Position.P.none): (String, Int, List[String]) =
     Parsers.parse_exports(str, start)
 
 

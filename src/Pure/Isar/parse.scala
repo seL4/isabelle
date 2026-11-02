@@ -16,6 +16,7 @@ object Parse {
 
   trait Parsers extends combinator.Parsers {
     type Elem = Token
+    type Reader = Position.Reader[Elem]
 
     def filter_proper: Boolean = true
 
@@ -29,8 +30,8 @@ object Parse {
           val in = proper(raw_input)
           val pos =
             in.pos match {
-              case pos: Token.Pos => pos
-              case _ => Token.Pos.none
+              case pos: Position.P => pos
+              case _ => Position.P.none
             }
           Success(if (in.atEnd) pos.position() else pos.position(in.first), in)
         }
@@ -96,9 +97,9 @@ object Parse {
 
     /* wrappers */
 
-    def parse[T](p: Parser[T], in: Token.Reader): ParseResult[T] = p(in)
+    def parse[T](p: Parser[T], in: Reader): ParseResult[T] = p(in)
 
-    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] = {
+    def parse_all[T](p: Parser[T], in: Reader): ParseResult[T] = {
       val result = parse(p, in)
       val rest = proper(result.next)
       if (result.successful && !rest.atEnd) Error("bad input", rest)

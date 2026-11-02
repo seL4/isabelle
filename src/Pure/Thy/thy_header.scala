@@ -191,8 +191,8 @@ object Thy_Header {
   }
 
   private object Parsers extends Parsers {
-    def parse_header(tokens: List[Token], pos: Token.Pos): Thy_Header =
-      parse(commit(header), Token.reader(tokens, pos)) match {
+    def parse_header(tokens: List[Token], pos: Position.P): Thy_Header =
+      parse(commit(header), Position.reader(tokens, pos)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -206,8 +206,8 @@ object Thy_Header {
     val text = Scan.reader_decode_utf8(reader, Token.implode(read_tokens(reader, true)._2))
     val (skip_tokens, tokens) = read_tokens(Scan.char_reader(text), strict)
     val start =
-      if (command) Token.Pos.command
-      else skip_tokens.foldLeft(Token.Pos.file(node_name.node))(_ advance _)
+      if (command) Position.P.command
+      else skip_tokens.foldLeft(Position.P.file(node_name.node))(_ advance _)
     Parsers.parse_header(tokens, start).output(unicode_symbols).check(node_name)
   }
 }

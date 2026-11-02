@@ -192,65 +192,10 @@ object Token {
       case List(tok) => tok.source
       case _ => toks.map(_.source).mkString
     }
-
-
-  /* token reader */
-
-  object Pos {
-    val none: Pos = new Pos(0, 0, "", "")
-    val start: Pos = new Pos(1, 1, "", "")
-    def file(file: String): Pos = new Pos(1, 1, file, "")
-    def id(id: String): Pos = new Pos(0, 1, "", id)
-    val command: Pos = id(Markup.COMMAND)
-  }
-
-  final class Pos private[Token](
-      val line: Int,
-      val offset: Symbol.Offset,
-      val file: String,
-      val id: String)
-  extends input.Position {
-    def column = 0
-    def lineContents = ""
-
-    def advance(token: Token): Pos = advance(token.source)
-    def advance(source: String): Pos = {
-      var line1 = line
-      var offset1 = offset
-      for (s <- Symbol.iterator(source)) {
-        if (line1 > 0 && Symbol.is_newline(s)) line1 += 1
-        if (offset1 > 0) offset1 += 1
-      }
-      if (line1 == line && offset1 == offset) this
-      else new Pos(line1, offset1, file, id)
-    }
-
-    def position(end_offset: Symbol.Offset): Position.T =
-      (if (line > 0) Position.Line(line) else Nil) :::
-      (if (offset > 0) Position.Offset(offset) else Nil) :::
-      (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
-      (if (file.nonEmpty) Position.File(file) else Nil) :::
-      (if (id.nonEmpty) Position.Id_String(id) else Nil)
-
-    def position(): Position.T = position(0)
-    def position(token: Token): Position.T = position(advance(token).offset)
-    def position(source: String): Position.T = position(advance(source).offset)
-
-    override def toString: String = Position.here(position(), delimited = false)
-  }
-
-  class Reader private[Token](tokens: List[Token], val pos: Pos) extends input.Reader[Token] {
-    def first: Token = tokens.head
-    def rest: Reader = new Reader(tokens.tail, pos.advance(first))
-    def atEnd: Boolean = tokens.isEmpty
-  }
-
-  def reader(tokens: List[Token], start: Token.Pos): Reader =
-    new Reader(tokens, start)
 }
 
 
-sealed case class Token(kind: Token.Kind.Value, source: String) {
+sealed case class Token(kind: Token.Kind.Value, source: String) extends Position.S {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command(name: String): Boolean = kind == Token.Kind.COMMAND && source == name
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD

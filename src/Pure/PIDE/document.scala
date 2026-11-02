@@ -218,8 +218,8 @@ object Document {
 
       def starts_pos(
         commands: Iterator[Command],
-        pos: Token.Pos = Token.Pos.start
-      ) : Iterator[(Command, Token.Pos)] = {
+        pos: Position.P = Position.P.start
+      ) : Iterator[(Command, Position.P)] = {
         var p = pos
         for (command <- commands) yield {
           val start = p
@@ -702,7 +702,7 @@ object Document {
     lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
         (command, start) <-
-          Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
+          Node.Commands.starts_pos(node.commands.iterator, Position.P.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, elem) <- state.command_results(version, command).iterator
        } yield (elem, pos)).toList

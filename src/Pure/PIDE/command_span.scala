@@ -89,7 +89,7 @@ object Command_Span {
     def position: Position.T =
       kind match { case k: Command_Span => k.pos case _ => Position.none }
 
-    def keyword_pos(start: Token.Pos): Token.Pos =
+    def keyword_pos(start: Position.P): Position.P =
       kind match {
         case _: Command_Span =>
           content.iterator.takeWhile(tok => !tok.is_command).foldLeft(start)(_.advance(_))

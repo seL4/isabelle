@@ -12,8 +12,6 @@ import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
-import isabelle.{Token => Isar_Token}
-
 
 object Bibtex {
   /** file format **/
@@ -23,7 +21,7 @@ object Bibtex {
     val file_ext: String = "bib"
 
     override def parse_data(name: String, text: String): Bibtex.Entries =
-      Bibtex.Entries.parse(text, Isar_Token.Pos.file(name))
+      Bibtex.Entries.parse(text, Position.P.file(name))
 
     override def theory_suffix: String = "bibtex_file"
     override def theory_content(name: String): String =
@@ -169,7 +167,7 @@ object Bibtex {
     def apply(entries: List[Entry], errors: List[String] = Nil): Entries =
       new Entries(entries, errors)
 
-    def parse(text: String, start: Isar_Token.Pos = Isar_Token.Pos.start): Entries = {
+    def parse(text: String, start: Position.P = Position.P.start): Entries = {
       val entries = new mutable.ListBuffer[Entry]
       var pos = start
       var err_line = 0
@@ -734,12 +732,12 @@ object Bibtex {
       override def toString: String = citations
     }
 
-    sealed case class Outer(kind: String, body: String, start: Isar_Token.Pos) {
+    sealed case class Outer(kind: String, body: String, start: Position.P) {
       def pos: Position.T = start.position()
 
       def parse: Option[Inner] = {
-        val tokens = Isar_Token.explode(Parsers.keywords, body)
-        Parsers.parse_all(Parsers.inner(pos), Isar_Token.reader(tokens, start)) match {
+        val tokens = isabelle.Token.explode(Parsers.keywords, body)
+        Parsers.parse_all(Parsers.inner(pos), Position.reader(tokens, start)) match {
           case Parsers.Success(res, _) => Some(res)
           case _ => None
         }
@@ -771,7 +769,7 @@ object Bibtex {
     def parse(
       cite_commands: List[String],
       text: String,
-      start: Isar_Token.Pos = Isar_Token.Pos.start
+      start: Position.P = Position.P.start
     ): List[Outer] = {
       val controls = cite_commands.map(s => Symbol.control_prefix + s + Symbol.control_suffix)
       val special = (controls ::: controls.map(Symbol.decode)).toSet

@@ -20,7 +20,7 @@ object Check_Keywords {
       val deps = Sessions.deps(Sessions.load_structure(options, dirs = dirs), progress = progress)
 
       val bad =
-        Par_List.maps[(Keyword.Keywords, String, Token.Pos), (Token, Position.T)](
+        Par_List.maps[(Keyword.Keywords, String, Position.P), (Token, Position.T)](
           { case (keywords, input, start) =>
             progress.expose_interrupt()
 
@@ -30,7 +30,7 @@ object Check_Keywords {
               private val item = conflict ^^ (x => Some(x)) | other ^^ (_ => None)
 
               val result: List[(Token, Position.T)] =
-                parse_all(rep(item), Token.reader(Token.explode(keywords, input), start)) match {
+                parse_all(rep(item), Position.reader(Token.explode(keywords, input), start)) match {
                   case Success(res, _) => for (case Some(x) <- res) yield x
                   case bad => error(bad.toString)
                 }
@@ -45,7 +45,7 @@ object Check_Keywords {
             } yield {
               val path = node_name.path
               val input = File.read(path)
-              val start = Token.Pos.file(File.standard_path(path))
+              val start = Position.P.file(File.standard_path(path))
               (base.overall_syntax.keywords, input, start)
             })
         )
