@@ -92,8 +92,8 @@ object Thy_Conditions {
       }
   }
 
-  sealed case class Token(kind: Token.Kind.Value, source: String) {
-    def is_space: Boolean = kind == Token.Kind.SPACE
+  sealed case class Token(kind: Token.Kind.Value, source: String) extends Position.E {
+    def is_proper: Boolean = kind != Token.Kind.SPACE
     def is_keyword: Boolean = kind == Token.Kind.KEYWORD
     def is_keyword(name: String): Boolean = is_keyword && source == name
     def is_bad: Boolean = kind == Token.Kind.BAD

@@ -167,9 +167,11 @@ object Position {
   }
 
 
-  /* reader with position */
+  /* position for abstract elements  */
 
-  trait S {
+  trait E {
+    def kind: Any
+    def is_proper: Boolean
     def source: String
     def content: String
   }
@@ -191,7 +193,7 @@ object Position {
     def column = 0
     def lineContents = ""
 
-    def advance(s: S): P = advance(s.source)
+    def advance(elem: E): P = advance(elem.source)
     def advance(source: String): P = {
       var line1 = line
       var offset1 = offset
@@ -211,29 +213,24 @@ object Position {
       (if (id.nonEmpty) Id_String(id) else Nil)
 
     def position(): T = position(0)
-    def position(s: S): T = position(advance(s).offset)
+    def position(elem: E): T = position(advance(elem).offset)
     def position(source: String): T = position(advance(source).offset)
 
     override def toString: String = here(position(), delimited = false)
   }
 
-  class Reader[Elem <: S] private[Position](inp: List[Elem], val pos: P)
+
+  /* combinator parsers */
+
+  class Reader[Elem <: E] private[Position](inp: List[Elem], val pos: P)
   extends input.Reader[Elem] {
     def first: Elem = inp.head
     def rest: Reader[Elem] = new Reader[Elem](inp.tail, pos.advance(first))
     def atEnd: Boolean = inp.isEmpty
   }
 
-  def reader[Elem <: S](inp: List[Elem], start: P): Reader[Elem] =
+  def reader[Elem <: E](inp: List[Elem], start: P): Reader[Elem] =
     new Reader[Elem](inp, start)
-
-
-  /* combinator parsers */
-
-  trait E extends S {
-    def kind: Any
-    def is_proper: Boolean
-  }
 
   trait Parsers extends combinator.Parsers {
     type Elem <: E
