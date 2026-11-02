@@ -252,6 +252,8 @@ object TOML {
 
   /* parser */
 
+  object Parsers extends Parsers
+
   trait Parsers extends combinator.Parsers {
     type Elem = Token
 
@@ -376,8 +378,6 @@ object TOML {
     private def content: Parser[List[(Keys, V)]] =
       rep((key <~! $$$("=")) ~! toml_value <~! line_sep ^^ { case ks ~ v => ks -> v })
   }
-
-  object Parsers extends Parsers
 
 
   /* Keys for nested tables */

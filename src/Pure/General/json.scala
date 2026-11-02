@@ -125,6 +125,8 @@ object JSON {
 
   /* parser */
 
+  object Parsers extends Parsers
+
   trait Parsers extends combinator.Parsers {
     type Elem = Token
 
@@ -153,8 +155,6 @@ object JSON {
       }
     }
   }
-
-  object Parsers extends Parsers
 
 
   /* standard format */
