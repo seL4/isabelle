@@ -31,9 +31,9 @@ object Scan {
 
   /** parser combinators **/
 
-  object Parsers extends Parsers
+  object Scanners extends Scanners
 
-  trait Parsers extends RegexParsers {
+  trait Scanners extends RegexParsers {
     override val whiteSpace: Regex = "".r
 
 

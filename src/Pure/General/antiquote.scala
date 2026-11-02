@@ -16,9 +16,9 @@ object Antiquote {
 
   /* parsers */
 
-  object Parsers extends Parsers
+  object Scanners extends Scanners
 
-  trait Parsers extends Scan.Parsers {
+  trait Scanners extends Scan.Scanners {
     private val txt: Parser[String] =
       rep1(many1(s => !Symbol.is_control(s) && !Symbol.is_open(s) && s != "@") |
         "@" <~ guard(opt_term(one(s => s != "{")))) ^^ (x => x.mkString)
@@ -49,10 +49,10 @@ object Antiquote {
   /* read */
 
   def read(input: CharSequence): List[Antiquote] = {
-    val result = Parsers.parseAll(Parsers.rep(Parsers.antiquote), Scan.char_reader(input))
+    val result = Scanners.parseAll(Scanners.rep(Scanners.antiquote), Scan.char_reader(input))
     (result : @unchecked) match {
-      case Parsers.Success(xs, _) => xs
-      case Parsers.NoSuccess(_, next) =>
+      case Scanners.Success(xs, _) => xs
+      case Scanners.NoSuccess(_, next) =>
         error("Malformed quotation/antiquotation source" +
           Position.here(Position.Line(next.pos.line)))
     }

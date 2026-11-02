@@ -75,7 +75,7 @@ object ML_Lex {
   case object ML_String extends Scan.Line_Context
   case class Antiq(ctxt: Scan.Line_Context) extends Scan.Line_Context
 
-  private object Parsers extends Scan.Parsers with Antiquote.Parsers with Comment.Parsers {
+  private object Scanners extends Scan.Scanners with Antiquote.Scanners with Comment.Scanners {
     /* string material */
 
     private val blanks = many(character(Symbol.is_ascii_blank))
@@ -267,8 +267,8 @@ object ML_Lex {
   /* tokenize */
 
   def tokenize(input: CharSequence): List[Token] =
-    Parsers.parseAll(Parsers.rep(Parsers.token), Scan.char_reader(input)) match {
-      case Parsers.Success(tokens, _) => tokens
+    Scanners.parseAll(Scanners.rep(Scanners.token), Scan.char_reader(input)) match {
+      case Scanners.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.toString)
     }
 
@@ -281,10 +281,10 @@ object ML_Lex {
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      val result = Parsers.parse(Parsers.token_line(SML, ctxt), in)
+      val result = Scanners.parse(Scanners.token_line(SML, ctxt), in)
       (result : @unchecked) match {
-        case Parsers.Success((x, c), rest) => toks += x; ctxt = c; in = rest
-        case Parsers.NoSuccess(_, rest) =>
+        case Scanners.Success((x, c), rest) => toks += x; ctxt = c; in = rest
+        case Scanners.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }

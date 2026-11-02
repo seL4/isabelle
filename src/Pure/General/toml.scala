@@ -168,7 +168,7 @@ object TOML {
     def is_line_sep: Bool = kind == Kind.LINE_SEP
   }
 
-  object Lexer extends Scanners with Scan.Parsers {
+  object Lexer extends Scanners with Scan.Scanners {
     override type Elem = Char
     type Token = TOML.Token
 

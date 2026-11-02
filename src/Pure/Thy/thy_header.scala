@@ -171,10 +171,10 @@ object Thy_Header {
   /* read -- lazy scanning */
 
   private def read_tokens(reader: Reader[Char], strict: Boolean): (List[Token], List[Token]) = {
-    val token = Token.Parsers.token(bootstrap_keywords)
+    val token = Token.Scanners.token(bootstrap_keywords)
     def make_tokens(in: Reader[Char]): LazyList[Token] =
       token(in) match {
-        case Token.Parsers.Success(tok, rest) => tok #:: make_tokens(rest)
+        case Token.Scanners.Success(tok, rest) => tok #:: make_tokens(rest)
         case _ => LazyList.empty
       }
 

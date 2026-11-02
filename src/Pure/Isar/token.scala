@@ -42,9 +42,9 @@ object Token {
 
   /* parsers */
 
-  object Parsers extends Parsers
+  trait Scanners extends Scan.Scanners with Comment.Scanners
 
-  trait Parsers extends Scan.Parsers with Comment.Parsers {
+  object Scanners extends Scanners {
     private def delimited_token: Parser[Token] = {
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
@@ -126,8 +126,8 @@ object Token {
   /* explode */
 
   def explode(keywords: Keyword.Keywords, inp: CharSequence): List[Token] =
-    Parsers.parseAll(Parsers.rep(Parsers.token(keywords)), Scan.char_reader(inp)) match {
-      case Parsers.Success(tokens, _) => tokens
+    Scanners.parseAll(Scanners.rep(Scanners.token(keywords)), Scan.char_reader(inp)) match {
+      case Scanners.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
     }
 
@@ -140,10 +140,10 @@ object Token {
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      val result = Parsers.parse(Parsers.token_line(keywords, ctxt), in)
+      val result = Scanners.parse(Scanners.token_line(keywords, ctxt), in)
       (result : @unchecked) match {
-        case Parsers.Success((x, c), rest) => toks += x; ctxt = c; in = rest
-        case Parsers.NoSuccess(_, rest) =>
+        case Scanners.Success((x, c), rest) => toks += x; ctxt = c; in = rest
+        case Scanners.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
@@ -248,10 +248,10 @@ sealed case class Token(kind: Token.Kind.Value, source: String) extends Position
   def symbol_length: Symbol.Offset = Symbol.iterator(source).length
 
   def content: String =
-    if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
-    else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)
-    else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.cartouche_content(source)
-    else if (kind == Token.Kind.INFORMAL_COMMENT) Scan.Parsers.comment_content(source)
+    if (kind == Token.Kind.STRING) Scan.Scanners.quoted_content("\"", source)
+    else if (kind == Token.Kind.ALT_STRING) Scan.Scanners.quoted_content("`", source)
+    else if (kind == Token.Kind.CARTOUCHE) Scan.Scanners.cartouche_content(source)
+    else if (kind == Token.Kind.INFORMAL_COMMENT) Scan.Scanners.comment_content(source)
     else if (kind == Token.Kind.FORMAL_COMMENT) Comment.content(source)
     else source
 

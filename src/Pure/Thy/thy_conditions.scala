@@ -63,7 +63,7 @@ object Thy_Conditions {
       val BAD = Value("bad input")
     }
 
-    private object Scanners extends Scan.Parsers {
+    private object Scanners extends Scan.Scanners {
       val space = many1(character(Symbol.is_ascii_blank)) ^^ (x => Token(Kind.SPACE, x))
 
       val keyword = one(character(Set('(', ',', ')'))) ^^ (x => Token(Kind.KEYWORD, x))
@@ -100,8 +100,8 @@ object Thy_Conditions {
 
     def content: String =
       if (kind == Token.Kind.VARIABLE) Library.perhaps_unprefix("$", source)
-      else if (kind == Token.Kind.STRING) Scan.Parsers.perhaps_quoted_content("\"", source)
-      else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.perhaps_cartouche_content(source)
+      else if (kind == Token.Kind.STRING) Scan.Scanners.perhaps_quoted_content("\"", source)
+      else if (kind == Token.Kind.CARTOUCHE) Scan.Scanners.perhaps_cartouche_content(source)
       else source
   }
 

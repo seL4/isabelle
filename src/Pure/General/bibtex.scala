@@ -774,9 +774,9 @@ object Bibtex {
       val controls = cite_commands.map(s => Symbol.control_prefix + s + Symbol.control_suffix)
       val special = (controls ::: controls.map(Symbol.decode)).toSet
 
-      val Parsers = Antiquote.Parsers
-      Parsers.parseAll(Parsers.rep(Parsers.antiquote_special(special)), text) match {
-        case Parsers.Success(ants, _) =>
+      val Scanners = Antiquote.Scanners
+      Scanners.parseAll(Scanners.rep(Scanners.antiquote_special(special)), text) match {
+        case Scanners.Success(ants, _) =>
           var pos = start
           val result = new mutable.ListBuffer[Outer]
           for (ant <- ants) {
@@ -789,7 +789,7 @@ object Bibtex {
                   val rest = source.drop(head.length)
                   val (body, pos1) =
                     if (rest.isEmpty) (rest, pos)
-                    else (Scan.Parsers.cartouche_content(rest), pos.advance(Symbol.open))
+                    else (Scan.Scanners.cartouche_content(rest), pos.advance(Symbol.open))
                   result += Outer(kind, body, pos1)
                 }
               case _ =>

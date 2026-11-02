@@ -408,8 +408,8 @@ final class Completion private(
 
     val abbrevs_result = {
       val reverse_in = new Library.Reverse(text.subSequence(0, caret).nn)
-      Scan.Parsers.parse(Scan.Parsers.literal(abbrevs_lex), reverse_in) match {
-        case Scan.Parsers.Success(reverse_abbr, _) =>
+      Scan.Scanners.parse(Scan.Scanners.literal(abbrevs_lex), reverse_in) match {
+        case Scan.Scanners.Success(reverse_abbr, _) =>
           val abbrevs = abbrevs_map.get_list(reverse_abbr)
           abbrevs match {
             case Nil => None
