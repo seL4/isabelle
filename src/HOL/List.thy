@@ -2930,6 +2930,9 @@ lemma in_set_zip:
   \<and> n < length xs \<and> n < length ys)"
   by (cases p) (auto simp add: set_zip)
 
+lemma zip_iff_nth: "(\<forall>(x, y) \<in> set (zip xs ys). x = y) \<longleftrightarrow> (\<forall>n<min (length xs) (length ys). xs!n = ys!n)"
+using in_set_zip by fastforce
+
 lemma in_set_impl_in_set_zip1:
   assumes "length xs = length ys"
   assumes "x \<in> set xs"
@@ -3474,6 +3477,11 @@ lemma foldr_inject:
     "\<And>x y. f x y \<noteq> b"
   shows "foldr f xs a = foldr f ys b \<longleftrightarrow> xs = ys \<and> a = b"
 by (induction xs ys rule: list_induct2') (use assms(2,3,1) in auto)
+
+lemma foldr_assoc:
+  assumes "\<And>x y z. b (b x y) z = b x (b y z)"
+  shows "foldr b xs (b y z) = b (foldr b xs y) z"
+  using assms by (induction xs) simp_all
 
 
 subsubsection \<open>\<^const>\<open>upt\<close>\<close>
