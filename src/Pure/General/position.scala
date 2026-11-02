@@ -244,34 +244,28 @@ object Position {
       if (!filter_proper || in.atEnd || in.first.is_proper) in
       else proper(in.rest)
 
-    private def proper_position: Parser[T] =
-      new Parser[T] {
-        def apply(raw_input: Input) = {
-          val in = proper(raw_input)
-          val pos =
-            in.pos match {
-              case pos: P => pos
-              case _ => P.none
-            }
-          Success(if (in.atEnd) pos.position() else pos.position(in.first.source), in)
+    private def proper_position: Parser[T] = { (raw_input: Input) =>
+      val in = proper(raw_input)
+      val pos =
+        in.pos match {
+          case pos: P => pos
+          case _ => P.none
         }
-      }
+      Success(if (in.atEnd) pos.position() else pos.position(in.first.source), in)
+    }
 
     def position[A](parser: Parser[A]): Parser[(A, T)] =
       proper_position ~ parser ^^ { case x ~ y => (y, x) }
 
-    def element(s: String, pred: Elem => Boolean): Parser[Elem] =
-      new Parser[Elem] {
-        def apply(raw_input: Input) = {
-          val in = proper(raw_input)
-          if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
-          else {
-            val elem = in.first
-            if (pred(elem)) Success(elem, proper(in.rest))
-            else Failure(s + " expected,\nbut " + elem.kind + " was found:\n" + elem.source, in)
-          }
-        }
+    def element(s: String, pred: Elem => Boolean): Parser[Elem] = { (raw_input: Input) =>
+      val in = proper(raw_input)
+      if (in.atEnd) Failure(s + " expected,\nbut end-of-input was found", in)
+      else {
+        val elem = in.first
+        if (pred(elem)) Success(elem, proper(in.rest))
+        else Failure(s + " expected,\nbut " + elem.kind + " was found:\n" + elem.source, in)
       }
+    }
 
     def atom(s: String, pred: Elem => Boolean): Parser[String] =
       element(s, pred) ^^ (_.content)
