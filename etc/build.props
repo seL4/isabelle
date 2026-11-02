@@ -383,6 +383,7 @@ services = \
   isabelle.Go_Setup \
   isabelle.ML_Statistics$Handler \
   isabelle.OCaml_Setup \
+  isabelle.Predicates \
   isabelle.Print_Operation$Handler \
   isabelle.Scala$Handler \
   isabelle.Scala_Functions \

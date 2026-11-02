@@ -7,6 +7,15 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Theory conditions allow for predicates with arguments: as literal
+strings or cartouches. For example, getenv("A","B","C") to check process
+environment variables (settings). The $A syntax is still supported as
+before, but now expands to getenv("A"); the latter form needs to be
+used, if A is not an identifier.
+
+
 *** HOL ***
 
 * try0:

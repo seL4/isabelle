@@ -96,6 +96,9 @@ object Thy_Conditions {
     def is_proper: Boolean = kind != Token.Kind.SPACE
     def is_keyword: Boolean = kind == Token.Kind.KEYWORD
     def is_keyword(name: String): Boolean = is_keyword && source == name
+    def is_ident: Boolean = kind == Token.Kind.IDENT
+    def is_variable: Boolean = kind == Token.Kind.VARIABLE
+    def is_arg: Boolean = kind == Token.Kind.STRING || kind == Token.Kind.CARTOUCHE
     def is_bad: Boolean = kind == Token.Kind.BAD
 
     def content: String =
@@ -106,14 +109,30 @@ object Thy_Conditions {
   }
 
   object Cond {
-    def make(name: String): Cond =
-      if (name.startsWith("$")) Cond(name)
-      else {
-        Library.try_unsuffix("()", name) match {
-          case Some(a) => Thy_Conditions.Cond(a, args = Some(Nil))
-          case None => Thy_Conditions.Cond(name)
-        }
+    private object Parsers extends Position.Parsers {
+      type Elem = Token
+
+      def $$$(name: String): Parser[Token] = element(name, _.is_keyword(name))
+
+      val arg: Parser[String] = atom("string or cartouche", _.is_arg)
+      val args: Parser[List[String]] =
+        $$$("(") ~! (repsep(arg, $$$(",")) ~ $$$(")")) ^^ { case _ ~ (a ~ _) => a }
+
+      val cond: Parser[Cond] =
+        element(Token.Kind.VARIABLE.toString, _.is_variable) ^^
+          { a => Cond("getenv", args = Some(List(a.content))) } |
+        element(Token.Kind.IDENT.toString, _.is_ident) ~ opt(args) ^^
+          { case a ~ b => Cond(a.content, args = b) }
+
+      val conds: Parser[List[Cond]] = repsep(cond, $$$(","))
+    }
+
+    def parse(str: String, start: Position.P = Position.P.none): List[Cond] =
+      Parsers.parse_all(Parsers.conds, Position.reader(Token.explode(str), start)) match {
+        case Parsers.Success(result, _) => result
+        case bad => error(bad.toString)
       }
+
     object Ordering extends scala.math.Ordering[Cond] {
       override def compare(a: Cond, b: Cond): Int = a.string compare b.string
     }
@@ -132,33 +151,29 @@ object Thy_Conditions {
         if (Thy_Conditions.the_predicate(name)(conditions, args.get)) "" else "false"
       }
       else {
-        Library.try_unprefix("$", name) match {
-          case Some(a) => if (Isabelle_System.getenv(a).nonEmpty) "" else "empty/unset"
+        val options = conditions.options
+        Value.Boolean.unapply(name) match {
+          case Some(b) => if (b) "" else "false"
           case None =>
-            val options = conditions.options
-            Value.Boolean.unapply(name) match {
-              case Some(b) => if (b) "" else "false"
-              case None =>
-                options.get(name).map(_.typ) match {
-                  case Some(Options.Bool) => if (options.bool(name)) "" else "false"
-                  case Some(Options.Int) =>
-                    options.int(name) match {
-                      case x if x > 0 => ""
-                      case x if x < 0 => "< 0"
-                      case 0 => "0"
-                    }
-                  case Some(Options.Real) =>
-                    options.real(name) compare 0.0 match {
-                      case x if x > 0.0 && java.lang.Double.isFinite(x) => ""
-                      case x if x < 0.0 && java.lang.Double.isFinite(x) => "< 0"
-                      case 0.0 => "0"
-                      case x => "ill-defined"
-                    }
-                  case Some(Options.String) => if (options.string(name).nonEmpty) "" else "empty"
-                  case _ =>
-                    error("Condition " + quote(name) + " cannot be evaluated as system option" +
-                      "\n(environment variables need to be given as \"$NAME\")")
+            options.get(name).map(_.typ) match {
+              case Some(Options.Bool) => if (options.bool(name)) "" else "false"
+              case Some(Options.Int) =>
+                options.int(name) match {
+                  case x if x > 0 => ""
+                  case x if x < 0 => "< 0"
+                  case 0 => "0"
                 }
+              case Some(Options.Real) =>
+                options.real(name) compare 0.0 match {
+                  case x if x > 0.0 && java.lang.Double.isFinite(x) => ""
+                  case x if x < 0.0 && java.lang.Double.isFinite(x) => "< 0"
+                  case 0.0 => "0"
+                  case x => "ill-defined"
+                }
+              case Some(Options.String) => if (options.string(name).nonEmpty) "" else "empty"
+              case _ =>
+                error("Condition " + quote(name) + " cannot be evaluated as system option" +
+                  "\n(environment variables need to be given as \"$NAME\")")
             }
         }
       }
@@ -269,8 +284,7 @@ final class Thy_Conditions private(
     filter: Set[String] = Thy_Conditions.filter_any_option
   ): List[Thy_Conditions.Cond] = {
     val options1 = options ++ opts.filter(p => filter(p._1))
-    Thy_Conditions.any_option.flatMap(name => space_explode(',', options1.string(name)))
-      .map(Thy_Conditions.Cond.make)
+    Thy_Conditions.any_option.flatMap(name => Thy_Conditions.Cond.parse(options1.string(name)))
   }
 
   def restrict(domain: List[Thy_Conditions.Cond]): Thy_Conditions = {
