@@ -128,7 +128,7 @@ object Thy_Conditions {
 
       val cond: Parser[Cond] =
         element(Token.Kind.VARIABLE.toString, _.is_variable) ^^
-          { a => Cond("getenv", args = Some(List(a.content))) } |
+          { a => Cond(Getenv.name, args = Some(List(a.content))) } |
         element(Token.Kind.IDENT.toString, _.is_ident) ~ opt(args) ^^
           { case a ~ b => Cond(a.content, args = b) }
 
