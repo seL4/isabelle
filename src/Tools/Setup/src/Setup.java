@@ -48,7 +48,7 @@ class Setup
                     break;
                 case "classpath":
                     check_args(n == 1);
-                    echo(Environment.join_standard_paths(Build.classpath()));
+                    echo(File.join_standard_paths(Build.classpath()));
                     break;
                 case "cygwin_init":
                     check_args(n == 3);

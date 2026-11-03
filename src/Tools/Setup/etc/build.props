@@ -4,7 +4,9 @@ sources = \
   src/Build.java \
   src/Environment.java \
   src/Exn.java \
+  src/File.java \
   src/GUI_Setup.java \
   src/GUI_Test.java \
   src/Library.java \
+  src/Process.java \
   src/Setup.java

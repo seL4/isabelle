@@ -7,9 +7,7 @@ optional init operation.
 
 package isabelle.setup;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -83,8 +81,8 @@ public class Environment
         void separator()
         {
             int n = _result.length();
-            if (n > 0 && _result.charAt(n - 1) != File.separatorChar) {
-                add(File.separatorChar);
+            if (n > 0 && _result.charAt(n - 1) != java.io.File.separatorChar) {
+                add(java.io.File.separatorChar);
             }
         }
 
@@ -106,14 +104,14 @@ public class Environment
                     clear();
                     add(drive);
                     add(':');
-                    add(File.separatorChar);
+                    add(java.io.File.separatorChar);
                 }
                 else if (named_root_matcher.matches()) {
                     String root = named_root_matcher.group(1);
                     rest = named_root_matcher.group(2);
                     clear();
-                    add(File.separatorChar);
-                    add(File.separatorChar);
+                    add(java.io.File.separatorChar);
+                    add(java.io.File.separatorChar);
                     add(root);
                 }
                 else if (is_root) {
@@ -123,7 +121,7 @@ public class Environment
             }
             else if (is_root) {
                 clear();
-                add(File.separatorChar);
+                add(java.io.File.separatorChar);
             }
             return rest;
         }
@@ -164,103 +162,6 @@ public class Environment
         return expand.result();
     }
 
-    public static String join_platform_paths(List<Path> paths)
-    {
-        List<String> strs = new LinkedList<String>();
-        for (Path p : paths) { strs.add(p.toString()); }
-        return String.join(File.pathSeparator, strs);
-    }
-
-    public static String join_standard_paths(List<Path> paths)
-        throws IOException, InterruptedException
-    {
-        List<String> strs = new LinkedList<String>();
-        for (Path p : paths) { strs.add(standard_path(p.toString())); }
-        return String.join(":", strs);
-    }
-
-
-    /* raw process */
-
-    private static String read_file(Path path) throws IOException
-    {
-        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-    }
-
-    public static ProcessBuilder process_builder(
-        List<String> cmd, File cwd, Map<String,String> env, boolean redirect)
-    {
-        ProcessBuilder builder = new ProcessBuilder();
-
-        // fragile on Windows:
-        // see https://docs.microsoft.com/en-us/cpp/cpp/main-function-command-line-args?view=msvc-160
-        builder.command(cmd);
-
-        if (cwd != null) builder.directory(cwd);
-        if (env != null) {
-            builder.environment().clear();
-            builder.environment().putAll(env);
-        }
-        builder.redirectErrorStream(redirect);
-
-        return builder;
-    }
-
-    public static class Exec_Result
-    {
-        private final int _rc;
-        private final String _out;
-        private final String _err;
-
-        Exec_Result(int rc, String out, String err)
-        {
-            _rc = rc;
-            _out = Library.trim_line(out);
-            _err = Library.trim_line(err);
-        }
-
-        public int rc() { return _rc; }
-        public boolean ok() { return _rc == 0; }
-        public String out() { return _out; }
-        public String err() { return _err; }
-    }
-
-    public static Exec_Result exec_process(
-        List<String> command_line,
-        File cwd,
-        Map<String,String> env,
-        boolean redirect) throws IOException, InterruptedException
-    {
-        Path out_file = Files.createTempFile(null, null);
-        Path err_file = Files.createTempFile(null, null);
-        Exec_Result res;
-        try {
-            ProcessBuilder builder = process_builder(command_line, cwd, env, redirect);
-            builder.redirectOutput(out_file.toFile());
-            builder.redirectError(err_file.toFile());
-
-            Process proc = builder.start();
-            proc.getOutputStream().close();
-            try { proc.waitFor(); }
-            finally {
-                proc.getInputStream().close();
-                proc.getErrorStream().close();
-                proc.destroy();
-                Thread.interrupted();
-            }
-
-            int rc = proc.exitValue();
-            String out = read_file(out_file);
-            String err = read_file(err_file);
-            res = new Exec_Result(rc, out, err);
-        }
-        finally {
-            Files.deleteIfExists(out_file);
-            Files.deleteIfExists(err_file);
-        }
-        return res;
-    }
-
 
     /* init (e.g. after extraction via 7zip) */
 
@@ -277,7 +178,7 @@ public class Environment
         else if (c != null && !c.isEmpty()) { dir = c; }
         else { throw new RuntimeException("Unknown " + description + " directory"); }
 
-        if ((new File(dir)).isDirectory()) { return dir; }
+        if ((new java.io.File(dir)).isDirectory()) { return dir; }
         else {
             throw new RuntimeException("Bad " + description + " directory " + Library.quote(dir));
         }
@@ -286,29 +187,22 @@ public class Environment
     private static void cygwin_exec(String isabelle_root, List<String> cmd)
         throws IOException, InterruptedException
     {
-        File cwd = new File(isabelle_root);
+        java.io.File cwd = new java.io.File(isabelle_root);
         Map<String,String> env = new HashMap<String,String>(System.getenv());
         env.put("CYGWIN", "nodosfilewarning");
-        Exec_Result res = exec_process(cmd, cwd, env, true);
+        Process.Exec_Result res = Process.exec(cmd, cwd, env, true);
         if (!res.ok()) throw new RuntimeException(res.out());
-    }
-
-    public static void cygwin_link(String content, File target) throws IOException
-    {
-        Path target_path = target.toPath();
-        Files.writeString(target_path, "!<symlink>" + content + "\u0000");
-        Files.setAttribute(target_path, "dos:system", true);
     }
 
     public static void cygwin_init(String isabelle_root, String cygwin_root)
         throws IOException, InterruptedException
     {
         if (is_windows()) {
-            File uninitialized_file = new File(cygwin_root, "isabelle\\uninitialized");
+            java.io.File uninitialized_file = new java.io.File(cygwin_root, "isabelle\\uninitialized");
             boolean uninitialized = uninitialized_file.isFile() && uninitialized_file.delete();
 
             if (uninitialized) {
-                Path symlinks_path = (new File(cygwin_root + "\\isabelle\\symlinks")).toPath();
+                Path symlinks_path = (new java.io.File(cygwin_root + "\\isabelle\\symlinks")).toPath();
                 String[] symlinks = Files.readAllLines(symlinks_path).toArray(new String[0]);
 
                 // recover symlinks
@@ -319,7 +213,7 @@ public class Environment
                     if (i + 1 < n) {
                         String target = symlinks[i];
                         String content = symlinks[i + 1];
-                        cygwin_link(content, new File(isabelle_root, target));
+                        File.cygwin_link(content, new java.io.File(isabelle_root, target));
                         i += 2;
                     } else { throw new RuntimeException("Unbalanced symlinks list"); }
                 }
@@ -389,10 +283,10 @@ public class Environment
                 cmd.add("-d");
                 cmd.add(settings_file.toString());
 
-                Exec_Result res = exec_process(cmd, null, env, true);
+                Process.Exec_Result res = Process.exec(cmd, null, env, true);
                 if (!res.ok()) throw new RuntimeException(res.out());
 
-                for (String s : read_file(settings_file).split("\u0000", -1)) {
+                for (String s : File.read(settings_file).split("\u0000", -1)) {
                     int i = s.indexOf('=');
                     if (i > 0) { settings.put(s.substring(0, i), s.substring(i + 1)); }
                     else if (i < 0 && !s.isEmpty()) { settings.put(s, ""); }
@@ -434,24 +328,5 @@ public class Environment
         throws IOException, InterruptedException
     {
         return expand_platform_path(null, cygwin_root(), standard_path);
-    }
-
-
-    /* kill process (via bash) */
-
-    static public boolean kill_process(String group_pid, String signal)
-        throws IOException, InterruptedException
-    {
-        List<String> cmd = new LinkedList<String>();
-        if (is_windows()) {
-            cmd.add(cygwin_root() + "\\bin\\bash.exe");
-        }
-        else {
-            cmd.add("/usr/bin/env");
-            cmd.add("bash");
-        }
-        cmd.add("-c");
-        cmd.add("kill -" + signal + " -" + group_pid);
-        return exec_process(cmd, null, null, false).ok();
     }
 }

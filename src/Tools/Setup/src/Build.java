@@ -9,7 +9,6 @@ package isabelle.setup;
 
 import java.io.BufferedOutputStream;
 import java.io.CharArrayWriter;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.math.BigInteger;
@@ -261,7 +260,7 @@ public class Build
         args.add("-d");
         args.add(target_dir.toString());
         args.add("-bootclasspath");
-        args.add(Environment.join_platform_paths(deps));
+        args.add(File.join_platform_paths(deps));
         args.add("--");
 
         boolean scala_sources = false;
@@ -300,7 +299,7 @@ public class Build
         options.add("-d");
         options.add(target_dir.toString());
         options.add("-classpath");
-        options.add(Environment.join_platform_paths(deps));
+        options.add(File.join_platform_paths(deps));
 
         List<JavaFileObject> java_sources = new LinkedList<JavaFileObject>();
         for (Path p : sources) {
@@ -546,7 +545,7 @@ public class Build
                         try (Stream<Path> walk = Files.walk(build_dir)) {
                             walk.sorted(Comparator.reverseOrder())
                                 .map(Path::toFile)
-                                .forEach(File::delete);
+                                .forEach(java.io.File::delete);
                         }
                     }
                 }
