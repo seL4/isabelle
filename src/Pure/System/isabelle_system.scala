@@ -274,7 +274,7 @@ object Isabelle_System {
         error("Failed to create native symlink on Windows: " + quote(src_file.toString) +
           "\n(but it could work as Administrator)")
       }
-      else isabelle.setup.Environment.cygwin_link(File.standard_path(src), target)
+      else isabelle.setup.File.cygwin_link(File.standard_path(src), target)
     }
 
     try { Files.createSymbolicLink(target.java_path, src_file.java_path) }

@@ -561,7 +561,7 @@ object SSH {
     def write(path: Path, text: String): Unit = File.write(path, text)
 
     def kill_process(group_pid: String, signal: String): Boolean =
-      isabelle.setup.Environment.kill_process(Bash.string(group_pid), Bash.string(signal))
+      isabelle.setup.Process.kill(Bash.string(group_pid), Bash.string(signal))
 
     def bash_process(script: String,
         description: String = "",

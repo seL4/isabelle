@@ -47,7 +47,7 @@ class MinGW private(val root: Option[Path], ssh: SSH.System) {
         val cmd = msys_root + Path.explode("usr/bin/cygpath")
         if (ssh.is_local) {
           val command_line = java.util.List.of(ssh.platform_path(cmd), opt, str).nn
-          val res = isabelle.setup.Environment.exec_process(command_line, null, null, false).nn
+          val res = isabelle.setup.Process.exec(command_line, null, null, false).nn
           if (res.ok) Some(Library.trim_line(res.out.nn))
           else error("Error: " + quote(Library.trim_line(res.err.nn)))
         }

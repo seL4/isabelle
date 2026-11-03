@@ -155,7 +155,7 @@ object Bash {
       }
 
     private val proc =
-      isabelle.setup.Environment.process_builder(
+      isabelle.setup.Process.builder(
         proc_command,
         if (!ssh.is_local || cwd.is_current) null else cwd.file,
         env,
