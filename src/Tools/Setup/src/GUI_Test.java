@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/src/GUI_Test.scala
+/*  Title:      Tools/Setup/src/GUI_Test.java
     Author:     Makarius
 
 Minimal GUI test as main application entry-point.

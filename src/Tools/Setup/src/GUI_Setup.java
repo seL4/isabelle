@@ -1,4 +1,4 @@
-/*  Title:      Tools/Setup/src/GUI_Setup.scala
+/*  Title:      Tools/Setup/src/GUI_Setup.java
     Author:     Makarius
 
 Platform-specific setup for Java/Swing GUI applications.
