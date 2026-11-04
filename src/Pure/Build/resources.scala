@@ -38,18 +38,20 @@ object Resources {
       val options = thy_options ::: skip_proofs
 
       import XML.Encode._
-      pair(encode_node_name,
-        pair(properties,
-          pair(list(pair(encode_node_name, properties)),
-            pair(list(pair(string, option(string))),
-              pair(list(pair(string, pair(string, list(string)))),
-                pair(pair(bool, string), pair(list(string), list(encode_node_name))))))))(
-        (thy.name, (thy.pos, (thy.imports, (options, (keywords,
-          (condition_bad, (errors, thy.initiators))))))))
+      pair(string,
+        pair(encode_node_name,
+          pair(properties,
+            pair(list(pair(encode_node_name, properties)),
+              pair(list(pair(string, option(string))),
+                pair(list(pair(string, pair(string, list(string)))),
+                  pair(pair(bool, string), pair(list(string), list(encode_node_name)))))))))(
+        (thy.session, (thy.name, (thy.pos, (thy.imports, (options, (keywords,
+          (condition_bad, (errors, thy.initiators)))))))))
     }
   }
 
   sealed case class Thy(
+    session: String = "",
     name: Document.Node.Name = Document.Node.Name.empty,
     pos: Position.T = Position.none,
     imports: List[(Document.Node.Name, Position.T)] = Nil,
@@ -324,6 +326,7 @@ class Resources(
     command: Boolean = true,
     strict: Boolean = true
   ): Resources.Thy = {
+    val session = sessions_structure.theory_qualifier(node_name)
     if (node_name.is_theory && reader.source.length > 0) {
       try {
         val header = Thy_Header.read(node_name, reader, command = command, strict = strict)
@@ -337,6 +340,7 @@ class Resources(
           })
 
         Resources.Thy(
+          session = session,
           name = node_name,
           pos = header.pos,
           imports = imports,
@@ -345,19 +349,23 @@ class Resources(
           abbrevs = header.abbrevs,
           initiators = initiators)
       }
-      catch { case e: Throwable => Resources.Thy(name = node_name, errors = List(Exn.message(e))) }
+      catch {
+        case e: Throwable =>
+          Resources.Thy(session = session, name = node_name, errors = List(Exn.message(e)))
+      }
     }
     else Resources.Thy.empty
   }
 
   def special_thy(name: Document.Node.Name): Option[Resources.Thy] = {
+    val session = sessions_structure.theory_qualifier(name)
     val imports =
-      if (name.theory == Sessions.root_name) List(import_name(name, Sessions.theory_import))
-      else if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
-      else if (Thy_Header.is_bootstrap(name.theory)) List(import_name(name, Sessions.Pure))
-      else Nil
+      (if (name.theory == Sessions.root_name) List(import_name(name, Sessions.theory_import))
+       else if (Thy_Header.is_ml_root(name.theory)) List(import_name(name, Thy_Header.ML_BOOTSTRAP))
+       else if (Thy_Header.is_bootstrap(name.theory)) List(import_name(name, Sessions.Pure))
+       else Nil).map((_, Position.none))
     if (imports.isEmpty) None
-    else Some(Resources.Thy(name = name, imports = imports.map((_, Position.none))))
+    else Some(Resources.Thy(session = session, name = name, imports = imports))
   }
 
 
@@ -455,7 +463,8 @@ class Resources(
             }
             catch {
               case e: Throwable =>
-                val thy = Resources.Thy(name = name, options = options,
+                val session = sessions_structure.theory_qualifier(name)
+                val thy = Resources.Thy(session = session, name = name, options = options,
                   errors = List(Exn.message(e)), initiators = initiators)
                 dependencies1.cons(thy)
             }

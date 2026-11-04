@@ -61,7 +61,7 @@ object Profiling {
       val session_stats =
         Isabelle_System.with_tmp_dir("profiling") { dir =>
           File.write(dir + Path.explode("args.yxml"),
-            YXML.string_of_body(encode_args(session_base.used_theories.map(p => p._1.theory))))
+            YXML.string_of_body(encode_args(session_base.used_theories.map(_.name.theory))))
           val ml_options = store.options + Options.Spec("profiling_dir", Some(dir.implode))
           Process_Theories.process_theories(ml_options, session_name,
             dirs = dirs, files = List(Path.explode("~~/src/Tools/Profiling.thy"))).check

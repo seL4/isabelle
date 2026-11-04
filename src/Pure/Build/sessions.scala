@@ -278,8 +278,8 @@ object Sessions {
         val dependencies = deps_resources.build_dependencies(info)
 
         val proper_session_theories =
-          dependencies.theories.filter(name =>
-            sessions_structure.theory_qualifier(name) == info.name)
+          for (thy <- dependencies.entries if thy.session == info.name)
+            yield thy.name
 
         val theory_files = dependencies.theories.map(_.path)
 
@@ -345,15 +345,15 @@ object Sessions {
             }
 
           dependencies.entries.foldLeft(graph0) {
-            case (g, entry) =>
-              val a = node(entry.name)
-              val bs = entry.imports_no_pos.map(node).filterNot(_ == a)
+            case (g, thy) =>
+              val a = node(thy.name)
+              val bs = thy.imports_no_pos.map(node).filterNot(_ == a)
               bs.foldLeft((a :: bs).foldLeft(g)(_.default_node(_, Nil)))(_.add_edge(_, a))
           }
         }
 
         val known_theories =
-          dependencies.entries.iterator.map(entry => entry.name.theory -> entry).
+          dependencies.entries.iterator.map(thy => thy.name.theory -> thy).
             foldLeft(deps_base.known_theories)(_ + _)
 
         val known_loaded_files = deps_base.known_loaded_files ++ loaded_files

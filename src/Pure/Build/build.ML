@@ -59,17 +59,17 @@ fun lookup_thy name = lookup (get_thys ()) name;
 fun get thys name =
   (case lookup thys name of
     SOME thy => thy
-  | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
+  | NONE => error ("Build database: nothing known about theory " ^ quote name));
 
 fun check_new thys name =
   if String_Graph.defined thys name
-  then error ("Theory loader: cannot change loaded theory " ^ quote name)
+  then error ("Build database: cannot change loaded theory " ^ quote name)
   else ();
 
 fun check_old thys (name, thy) =
   let val (thy', _) = get thys name in
     if Context.eq_thy (thy, thy') then ()
-    else error ("Theory loader: incoherent theory " ^ quote name)
+    else error ("Build database: incoherent theory " ^ quote name)
   end;
 
 
@@ -82,7 +82,7 @@ val defined_theory = is_some o lookup_theory;
 fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
-  | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
+  | _ => error ("Build database: undefined entry for theory " ^ quote name));
 
 fun get_theory_segments name =
   let
@@ -92,7 +92,7 @@ fun get_theory_segments name =
       | _ => []);
   in
     if null segments then
-      error ("Theory loader: no theory segments for theory " ^ quote name ^
+      error ("Build database: no theory segments for theory " ^ quote name ^
         "\n Need to build with option " ^ quote \<^system_option>\<open>record_theories\<close>)
     else segments
   end;

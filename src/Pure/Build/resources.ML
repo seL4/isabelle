@@ -31,7 +31,8 @@ sig
   val empty_node_name: node_name
   val decode_node_name: node_name XML.Decode.T
   type thy =
-   {name: node_name,
+   {session: string,
+    name: node_name,
     pos: Position.T,
     imports: (node_name * Position.T) list,
     options: Options.update_pos,
@@ -250,7 +251,8 @@ val decode_node_name: node_name XML.Decode.T =
 
 
 type thy =
- {name: node_name,
+ {session: string,
+  name: node_name,
   pos: Position.T,
   imports: (node_name * Position.T) list,
   options: Options.update_pos,
@@ -260,7 +262,7 @@ type thy =
   initiators: node_name list};
 
 val no_thy: thy =
- {name = empty_node_name, pos = Position.none, imports = [], options = [],
+ {session = "", name = empty_node_name, pos = Position.none, imports = [], options = [],
    keywords = [], condition_bad = (false, ""), errors = [], initiators = []};
 
 val decode_thy: thy XML.Decode.T =
@@ -270,27 +272,28 @@ val decode_thy: thy XML.Decode.T =
     val string_none = rpair Position.none o string;
     val keyword = pair string_none (Keyword.command_spec o pair string (list string));
   in
-    pair decode_node_name
-      (pair position
-        (pair (list (pair decode_node_name position))
-          (pair (list (pair string_none (option string_none)))
-            (pair (list keyword) (pair (pair bool YXML.string_of_body)
-              ((pair (list YXML.string_of_body) (list decode_node_name))))))))
+    pair string
+      (pair decode_node_name
+        (pair position
+          (pair (list (pair decode_node_name position))
+            (pair (list (pair string_none (option string_none)))
+              (pair (list keyword) (pair (pair bool YXML.string_of_body)
+                ((pair (list YXML.string_of_body) (list decode_node_name)))))))))
   end
-  #> (fn (name, (pos, (imports, (options, (keywords, (condition_bad, (errors, initiators))))))) =>
-      {name = name, pos = pos, imports = imports, options = options, keywords = keywords,
-        condition_bad = condition_bad, errors = errors, initiators = initiators});
+  #> (fn (session, (name, (pos, (imports, (options, (keywords, (condition_bad, (errors, initiators)))))))) =>
+      {session = session, name = name, pos = pos, imports = imports, options = options,
+        keywords = keywords, condition_bad = condition_bad, errors = errors, initiators = initiators});
 
 fun map_thy_pos f
-  ({name, pos, imports, options, keywords, condition_bad, errors, initiators}: thy) : thy =
-   {name = name, pos = f pos, imports = map (apsnd f) imports,
+  ({session, name, pos, imports, options, keywords, condition_bad, errors, initiators}: thy) : thy =
+   {session = session, name = name, pos = f pos, imports = map (apsnd f) imports,
     options = map (fn (a, b) => (apsnd f a, Option.map (apsnd f) b)) options,
     keywords = keywords, condition_bad = condition_bad, errors = errors, initiators = initiators};
 
 fun map_thy_errors f
-  ({name, pos, imports, options, keywords, condition_bad, errors, initiators}: thy) : thy =
-   {name = name, pos = pos, imports = imports, options = options, keywords = keywords,
-    condition_bad = condition_bad, errors = f errors, initiators = initiators};
+  ({session, name, pos, imports, options, keywords, condition_bad, errors, initiators}: thy) : thy =
+   {session = session, name = name, pos = pos, imports = imports, options = options,
+    keywords = keywords, condition_bad = condition_bad, errors = f errors, initiators = initiators};
 
 fun check_thy_errors (thy: thy) =
   (case #errors thy of
