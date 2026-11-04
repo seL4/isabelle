@@ -122,7 +122,8 @@ fun read_thy node span : Resources.thy =
       |> Options.update_no_pos
       |> Options.update_pos_none;
   in
-   {name = #name thy,
+   {session = #session thy,
+    name = #name thy,
     pos = #2 (#name header),
     imports =
       (map #1 (#imports thy) ~~ map #2 (#imports header))
