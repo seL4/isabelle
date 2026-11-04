@@ -63,6 +63,10 @@ object LSP {
 
   object Id {
     def empty: Id = Id("")
+
+    def unapply(json: JSON.T): Option[Id] =
+      for (i <- JSON.long(json, "id") orElse JSON.double(json, "id") orElse JSON.string(json, "id"))
+      yield Id(i)
   }
 
   sealed case class Id(id: Any) {
@@ -79,23 +83,33 @@ object LSP {
     def apply(id: Id, method: String, params: JSON.T): JSON.T =
       Message.empty + ("id" -> id.id) + ("method" -> method) + ("params" -> params)
 
-    def unapply(json: JSON.T): Option[(Id, String, Option[JSON.T])] =
-      for {
-        id <- JSON.long(json, "id") orElse JSON.double(json, "id") orElse JSON.string(json, "id")
-        method <- JSON.string(json, "method")
-        params = JSON.value(json, "params")
-      } yield (Id(id), method, params)
-  }
-
-  class Request0(name: String) {
-    def unapply(json: JSON.T): Option[Id] =
+    def unapply(json: JSON.T): Option[(Id, String, JSON.T)] =
       json match {
-        case RequestMessage(id, method, _) if method == name => Some(id)
+        case Id(id) =>
+          for {
+            method <- JSON.string(json, "method")
+            params <- JSON.value(json, "params")
+          } yield (id, method, params)
         case _ => None
       }
   }
 
-  class RequestTextDocumentPosition(name: String) {
+  class Request(val name: String)
+
+  object RequestMessage0 {
+    def unapply(json: JSON.T): Option[(Id, String)] =
+      json match {
+        case Id(id) => for (method <- JSON.string(json, "method")) yield (id, method)
+        case _ => None
+      }
+  }
+
+  class Request0(val name: String) {
+    def unapply(json: JSON.T): Option[Id] =
+      RequestMessage0.unapply(json).filter(_._2 == name).map(_._1)
+  }
+
+  class RequestTextDocumentPosition(name: String) extends Request(name) {
     def unapply(json: JSON.T): Option[(Id, Line.Node_Position)] =
       json match {
         case RequestMessage(id, method, Some(TextDocumentPosition(node_pos))) if method == name =>
@@ -364,11 +378,9 @@ object LSP {
       JSON.Object("documentChanges" -> edits.map(_.json))
   }
 
-  object ApplyWorkspaceEdit {
+  object ApplyWorkspaceEdit extends Request("workspace/applyEdit") {
     def apply(edits: List[TextDocumentEdit]): JSON.T =
-      RequestMessage(Id.empty, "workspace/applyEdit",
-        JSON.Object("edit" -> WorkspaceEdit(edits))
-      )
+      RequestMessage(Id.empty, name, JSON.Object("edit" -> WorkspaceEdit(edits)))
   }
 
 
@@ -576,10 +588,10 @@ object LSP {
       JSON.Object("title" -> title, "edit" -> WorkspaceEdit(edits))
   }
 
-  object CodeActionRequest {
+  object CodeActionRequest extends Request("textDocument/codeAction") {
     def unapply(json: JSON.T): Option[(Id, String, Line.Range)] =
       json match {
-        case RequestMessage(id, "textDocument/codeAction", Some(params)) =>
+        case RequestMessage(id, method, params) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
