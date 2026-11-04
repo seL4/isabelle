@@ -2904,6 +2904,18 @@ lemma powr_int:
 lemma power_of_nat_log_ge: "b > 1 \<Longrightarrow> b ^ nat \<lceil>log b x\<rceil> \<ge> x"
   by (smt (verit) less_log_of_power of_nat_ceiling)
 
+text \<open>Simplifies proofs of this trivial fact for w = 2, 3, etc.\<close>
+lemma numeral_power_ge:
+  fixes x::real
+  assumes "w \<noteq> Num.One"
+  obtains N where "Num.numeral w ^ N \<ge> x"
+proof -
+  have "Num.numeral w > (1::real)"
+    using assms order_le_less by fastforce
+  then show thesis
+    using that power_of_nat_log_ge by blast
+qed
+
 lemma power_of_nat_log_le:
   assumes "b > 1" "x\<ge>1"
   shows "b ^ nat \<lfloor>log b x\<rfloor> \<le> x"
