@@ -44,14 +44,18 @@ object LSP {
       } yield (method, params)
   }
 
-  class Notification0(name: String) {
-    def apply(): JSON.T = Message.empty + ("method" -> name)
+  class Notification(val name: String)
 
-    def unapply(json: JSON.T): Boolean =
-      json match {
-        case Notification(method, _) => method == name
-        case _ => false
-      }
+  object Notification0 {
+    def apply(method: String): JSON.T = Message.empty + ("method" -> method)
+
+    def unapply(json: JSON.T): Option[String] = JSON.string(json, "method")
+  }
+
+  class Notification0(val name: String) {
+    def apply(): JSON.T = Notification0(name)
+
+    def unapply(json: JSON.T): Boolean = Notification0.unapply(json).contains(name)
   }
 
 
@@ -254,14 +258,14 @@ object LSP {
     val Log = 4
   }
 
-  object ShowMessage {
+  object ShowMessage extends Notification("window/showMessage") {
     def apply(message_type: Int, message: String): JSON.T =
-      Notification("window/showMessage", JSON.Object("type" -> message_type, "message" -> message))
+      Notification(name, JSON.Object("type" -> message_type, "message" -> message))
   }
 
-  object LogMessage {
+  object LogMessage extends Notification("window/logMessage") {
     def apply(message_type: Int, message: String): JSON.T =
-      Notification("window/logMessage", JSON.Object("type" -> message_type, "message" -> message))
+      Notification(name, JSON.Object("type" -> message_type, "message" -> message))
   }
 
 
@@ -275,10 +279,10 @@ object LSP {
 
   /* document edits */
 
-  object DidOpenTextDocument {
+  object DidOpenTextDocument extends Notification("textDocument/didOpen") {
     def unapply(json: JSON.T): Option[(String, String, Long, String)] =
       json match {
-        case Notification("textDocument/didOpen", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
@@ -293,14 +297,14 @@ object LSP {
 
   sealed case class TextDocumentChange(range: Option[Line.Range], text: String)
 
-  object DidChangeTextDocument {
+  object DidChangeTextDocument extends Notification("textDocument/didChange") {
     def unapply_change(json: JSON.T): Option[TextDocumentChange] =
       for (text <- JSON.string(json, "text"))
       yield TextDocumentChange(JSON.value(json, "range", Range.unapply), text)
 
     def unapply(json: JSON.T): Option[(String, Long, List[TextDocumentChange])] =
       json match {
-        case Notification("textDocument/didChange", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
@@ -311,7 +315,7 @@ object LSP {
       }
   }
 
-  class TextDocumentNotification(name: String) {
+  class TextDocumentNotification(name: String) extends Notification(name) {
     def unapply(json: JSON.T): Option[String] =
       json match {
         case Notification(method, Some(params)) if method == name =>
@@ -333,9 +337,9 @@ object LSP {
     def json: JSON.T = JSON.Object("range" -> Range(range), "newText" -> new_text)
   }
 
-  object Document_Edit {
+  object Document_Edit extends Notification("PIDE/document_edit") {
     def apply(uri: String, version: Option[Long], edit: TextEdit, end_pos: Line.Position): JSON.T =
-      Notification("PIDE/document_edit",
+      Notification(name,
         JSON.Object(
           "uri" -> uri,
           "edit" -> edit.json,
@@ -473,24 +477,23 @@ object LSP {
       ResponseMessage(id, Some(result.map(Location.apply)))
   }
 
-  object Goto_File {
-    def apply(name: String): JSON.T = Notification("PIDE/goto_file", JSON.Object("name" -> name))
+  object Goto_File extends Notification("PIDE/goto_file") {
+    def apply(name: String): JSON.T = Notification(name, JSON.Object("name" -> name))
 
     def unapply(json: JSON.T): Option[String] =
       json match {
-        case Notification("PIDE/goto_file", Some(params)) => JSON.string(params, "name")
+        case Notification(method, Some(params)) if method == name => JSON.string(params, "name")
         case _ => None
       }
   }
 
-  object Goto_Source_File {
+  object Goto_Source_File extends Notification("PIDE/goto_source_file") {
     def apply(name: String, line: Int, offset: Symbol.Offset): JSON.T =
-      Notification("PIDE/goto_source_file",
-        JSON.Object("name" -> name, "line" -> line, "offset" -> offset))
+      Notification(name, JSON.Object("name" -> name, "line" -> line, "offset" -> offset))
 
     def unapply(json: JSON.T): Option[(String, Int, Symbol.Offset)] =
       json match {
-        case Notification("PIDE/goto_source_file", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             name <- JSON.string(params, "name")
             line <- JSON.int(params, "line")
@@ -500,13 +503,13 @@ object LSP {
       }
   }
 
-  object Goto_Command {
+  object Goto_Command extends Notification("PIDE/goto_command") {
     def apply(id: Long, offset: Symbol.Offset): JSON.T =
-      Notification("PIDE/goto_command", JSON.Object("id" -> id, "offset" -> offset))
+      Notification(name, JSON.Object("id" -> id, "offset" -> offset))
 
     def unapply(json: JSON.T): Option[(Long, Symbol.Offset)] =
       json match {
-        case Notification("PIDE/goto_command", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             id <- JSON.long(params, "id")
             offset <- JSON.int(params, "offset")
@@ -560,10 +563,9 @@ object LSP {
     val Hint = 4
   }
 
-  object PublishDiagnostics {
+  object PublishDiagnostics extends Notification("textDocument/publishDiagnostics") {
     def apply(uri: String, diagnostics: List[Diagnostic]): JSON.T =
-      Notification("textDocument/publishDiagnostics",
-        JSON.Object("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
+      Notification(name, JSON.Object("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
   }
 
 
@@ -590,14 +592,13 @@ object LSP {
       ResponseMessage(id, Some(actions.map(_.json)))
   }
 
-  object Markup_Action {
+  object Markup_Action extends Notification("PIDE/markup_action") {
     def apply(active: XML.Elem, text: String): JSON.T =
-      Notification("PIDE/markup_action",
-        JSON.Object("active" -> YXML.string_of_tree(active), "text" -> text))
+      Notification(name, JSON.Object("active" -> YXML.string_of_tree(active), "text" -> text))
 
     def unapply(json: JSON.T): Option[(XML.Elem, String)] =
       json match {
-        case Notification("PIDE/markup_action", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             active <- JSON.string(params, "active")
             text <- JSON.string(params, "text")
@@ -631,10 +632,10 @@ object LSP {
         JSON.Object("uri" -> uri, "entries" -> json_entries))
   }
 
-  object Decoration_Request {
+  object Decoration_Request extends Notification("PIDE/decoration_request") {
     def unapply(json: JSON.T): Option[String] =
       json match {
-        case Notification("PIDE/decoration_request", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for (uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)) yield uri
         case _ => None
       }
@@ -643,9 +644,9 @@ object LSP {
 
   /* caret update: bidirectional */
 
-  object Caret_Update {
+  object Caret_Update extends Notification("PIDE/caret_update") {
     def apply(node_pos: Line.Node_Position, focus: Boolean): JSON.T =
-      Notification("PIDE/caret_update",
+      Notification(name,
         JSON.Object(
           "uri" -> Url.print_file_name(node_pos.name),
           "line" -> node_pos.pos.line,
@@ -654,7 +655,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[Option[(String, Line.Position)]] =
       json match {
-        case Notification("PIDE/caret_update", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           val caret =
             for {
               uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
@@ -668,17 +669,17 @@ object LSP {
 
   /* dynamic output */
 
-  object Dynamic_Output {
+  object Dynamic_Output extends Notification("PIDE/dynamic_output") {
     def apply(content: String, decorations: Option[Decoration] = None): JSON.T =
-      Notification("PIDE/dynamic_output",
+      Notification(name,
         JSON.Object("content" -> content) ++
         JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
-  object Output_Set_Margin {
+  object Output_Set_Margin extends Notification("PIDE/output_set_margin") {
     def unapply(json: JSON.T): Option[Double] =
       json match {
-        case Notification("PIDE/output_set_margin", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           JSON.double(params, "margin")
         case _ => None
       }
@@ -687,19 +688,19 @@ object LSP {
 
   /* state output */
 
-  object State_Output {
+  object State_Output extends Notification("PIDE/state_output") {
     def apply(
        id: Counter.ID,
        content: String,
        auto_update: Boolean,
        decorations: Option[Decoration] = None
     ): JSON.T =
-      Notification("PIDE/state_output",
+      Notification(name,
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
         JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
-  class State_Id_Notification(name: String) {
+  class State_Id_Notification(name: String) extends Notification(name) {
     def unapply(json: JSON.T): Option[Counter.ID] =
       json match {
         case Notification(method, Some(params)) if method == name => JSON.long(params, "id")
@@ -716,10 +717,10 @@ object LSP {
   object State_Locate extends State_Id_Notification("PIDE/state_locate")
   object State_Update extends State_Id_Notification("PIDE/state_update")
 
-  object State_Auto_Update {
+  object State_Auto_Update extends Notification("PIDE/state_auto_update") {
     def unapply(json: JSON.T): Option[(Counter.ID, Boolean)] =
       json match {
-        case Notification("PIDE/state_auto_update", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             id <- JSON.long(params, "id")
             enabled <- JSON.bool(params, "enabled")
@@ -728,10 +729,10 @@ object LSP {
       }
   }
 
-  object State_Set_Margin {
+  object State_Set_Margin extends Notification("PIDE/state_set_margin") {
     def unapply(json: JSON.T): Option[(Counter.ID, Double)] =
       json match {
-        case Notification("PIDE/state_set_margin", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             id <- JSON.long(params, "id")
             margin <- JSON.double(params, "margin")
@@ -743,10 +744,10 @@ object LSP {
 
   /* preview */
 
-  object Preview_Request {
+  object Preview_Request extends Notification("PIDE/preview_request") {
     def unapply(json: JSON.T): Option[(String, Int)] =
       json match {
-        case Notification("PIDE/preview_request", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
             column <- JSON.int(params, "column")
@@ -794,10 +795,9 @@ object LSP {
         "entries" -> section.entries.map(Doc_Entry.apply))
   }
 
-  object Documentation_Response {
+  object Documentation_Response extends Notification("PIDE/documentation_response") {
     def apply(doc_contents: Doc.Contents): JSON.T =
-      Notification("PIDE/documentation_response",
-        JSON.Object("sections" -> doc_contents.sections.map(Doc_Section.apply)))
+      Notification(name, JSON.Object("sections" -> doc_contents.sections.map(Doc_Section.apply)))
   }
 
 
@@ -806,19 +806,17 @@ object LSP {
   object Sledgehammer_Provers_Request
     extends Notification0("PIDE/sledgehammer_provers_request")
 
-  object Sledgehammer_Provers_Response {
-    def apply(provers: String): JSON.T =
-      Notification("PIDE/sledgehammer_provers_response", JSON.Object("provers" -> provers))
+  object Sledgehammer_Provers_Response extends Notification("PIDE/sledgehammer_provers_response") {
+    def apply(provers: String): JSON.T = Notification(name, JSON.Object("provers" -> provers))
   }
 
-  object Sledgehammer_Request {
+  object Sledgehammer_Request extends Notification("PIDE/sledgehammer_request") {
     def apply(provers: String, isar: Boolean, try0: Boolean): JSON.T =
-      Notification("PIDE/sledgehammer_request",
-        JSON.Object("provers" -> provers, "isar" -> isar, "try0" -> try0))
+      Notification(name, JSON.Object("provers" -> provers, "isar" -> isar, "try0" -> try0))
 
     def unapply(json: JSON.T): Option[List[String]] =
       json match {
-        case Notification("PIDE/sledgehammer_request", Some(params)) =>
+        case Notification(method, Some(params)) if method == name =>
           for {
             provers <- JSON.string(params, "provers")
             isar <- JSON.bool(params, "isar")
@@ -828,14 +826,12 @@ object LSP {
       }
   }
 
-  object Sledgehammer_Status {
-    def apply(message: String): JSON.T =
-      Notification("PIDE/sledgehammer_status", JSON.Object("message" -> message))
+  object Sledgehammer_Status extends Notification("PIDE/sledgehammer_status") {
+    def apply(message: String): JSON.T = Notification(name, JSON.Object("message" -> message))
   }
 
-  object Sledgehammer_Output {
-    def apply(content: String): JSON.T =
-      Notification("PIDE/sledgehammer_output", JSON.Object("content" -> content))
+  object Sledgehammer_Output extends Notification("PIDE/sledgehammer_output") {
+    def apply(content: String): JSON.T = Notification(name, JSON.Object("content" -> content))
   }
 
   object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")
