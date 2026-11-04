@@ -37,10 +37,10 @@ object LSP {
     def apply(method: String, params: JSON.T): JSON.T =
       Message.empty + ("method" -> method) + ("params" -> params)
 
-    def unapply(json: JSON.T): Option[(String, Option[JSON.T])] =
+    def unapply(json: JSON.T): Option[(String, JSON.T)] =
       for {
         method <- JSON.string(json, "method")
-        params = JSON.value(json, "params")
+        params <- JSON.value(json, "params")
       } yield (method, params)
   }
 
@@ -282,7 +282,7 @@ object LSP {
   object DidOpenTextDocument extends Notification("textDocument/didOpen") {
     def unapply(json: JSON.T): Option[(String, String, Long, String)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
@@ -304,7 +304,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[(String, Long, List[TextDocumentChange])] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
@@ -318,7 +318,7 @@ object LSP {
   class TextDocumentNotification(name: String) extends Notification(name) {
     def unapply(json: JSON.T): Option[String] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
@@ -482,7 +482,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[String] =
       json match {
-        case Notification(method, Some(params)) if method == name => JSON.string(params, "name")
+        case Notification(method, params) if method == name => JSON.string(params, "name")
         case _ => None
       }
   }
@@ -493,7 +493,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[(String, Int, Symbol.Offset)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             name <- JSON.string(params, "name")
             line <- JSON.int(params, "line")
@@ -509,7 +509,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[(Long, Symbol.Offset)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             id <- JSON.long(params, "id")
             offset <- JSON.int(params, "offset")
@@ -598,7 +598,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[(XML.Elem, String)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             active <- JSON.string(params, "active")
             text <- JSON.string(params, "text")
@@ -635,7 +635,7 @@ object LSP {
   object Decoration_Request extends Notification("PIDE/decoration_request") {
     def unapply(json: JSON.T): Option[String] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for (uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)) yield uri
         case _ => None
       }
@@ -655,7 +655,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[Option[(String, Line.Position)]] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           val caret =
             for {
               uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
@@ -679,7 +679,7 @@ object LSP {
   object Output_Set_Margin extends Notification("PIDE/output_set_margin") {
     def unapply(json: JSON.T): Option[Double] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           JSON.double(params, "margin")
         case _ => None
       }
@@ -703,7 +703,7 @@ object LSP {
   class State_Id_Notification(name: String) extends Notification(name) {
     def unapply(json: JSON.T): Option[Counter.ID] =
       json match {
-        case Notification(method, Some(params)) if method == name => JSON.long(params, "id")
+        case Notification(method, params) if method == name => JSON.long(params, "id")
         case _ => None
       }
   }
@@ -720,7 +720,7 @@ object LSP {
   object State_Auto_Update extends Notification("PIDE/state_auto_update") {
     def unapply(json: JSON.T): Option[(Counter.ID, Boolean)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             id <- JSON.long(params, "id")
             enabled <- JSON.bool(params, "enabled")
@@ -732,7 +732,7 @@ object LSP {
   object State_Set_Margin extends Notification("PIDE/state_set_margin") {
     def unapply(json: JSON.T): Option[(Counter.ID, Double)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             id <- JSON.long(params, "id")
             margin <- JSON.double(params, "margin")
@@ -747,7 +747,7 @@ object LSP {
   object Preview_Request extends Notification("PIDE/preview_request") {
     def unapply(json: JSON.T): Option[(String, Int)] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
             column <- JSON.int(params, "column")
@@ -816,7 +816,7 @@ object LSP {
 
     def unapply(json: JSON.T): Option[List[String]] =
       json match {
-        case Notification(method, Some(params)) if method == name =>
+        case Notification(method, params) if method == name =>
           for {
             provers <- JSON.string(params, "provers")
             isar <- JSON.bool(params, "isar")
