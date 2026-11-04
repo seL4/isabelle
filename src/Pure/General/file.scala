@@ -430,7 +430,7 @@ object File {
 
   /* permissions */
 
-  private val restrict_perms: List[PosixFilePermission] =
+  private lazy val restrict_perms: List[PosixFilePermission] =
     List(
       PosixFilePermission.GROUP_READ,
       PosixFilePermission.GROUP_WRITE,
