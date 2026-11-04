@@ -278,8 +278,8 @@ object Sessions {
         val dependencies = deps_resources.build_dependencies(info)
 
         val proper_session_theories =
-          dependencies.theories.filter(name =>
-            sessions_structure.theory_qualifier(name) == info.name)
+          for (thy <- dependencies.entries if thy.session == info.name)
+            yield thy.name
 
         val theory_files = dependencies.theories.map(_.path)
 
