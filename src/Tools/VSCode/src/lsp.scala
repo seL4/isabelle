@@ -254,10 +254,14 @@ object LSP {
     val Log = 4
   }
 
-  object DisplayMessage {
-    def apply(message_type: Int, message: String, show: Boolean): JSON.T =
-      Notification(if (show) "window/showMessage" else "window/logMessage",
-        JSON.Object("type" -> message_type, "message" -> message))
+  object ShowMessage {
+    def apply(message_type: Int, message: String): JSON.T =
+      Notification("window/showMessage", JSON.Object("type" -> message_type, "message" -> message))
+  }
+
+  object LogMessage {
+    def apply(message_type: Int, message: String): JSON.T =
+      Notification("window/logMessage", JSON.Object("type" -> message_type, "message" -> message))
   }
 
 
