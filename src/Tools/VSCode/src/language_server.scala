@@ -239,7 +239,8 @@ class Language_Server(
       if (invoke_load) delay_load.invoke()
     }
 
-  private def close_document(file: JFile): Unit = {
+  private def close_document(uri: String): Unit = {
+    val file = Url.absolute_file(uri)
     if (resources.close_model(file)) {
       file_watcher.register_parent(file)
       sync_documents(Set(file))
@@ -255,10 +256,11 @@ class Language_Server(
   }
 
   private def change_document(
-    file: JFile,
+    uri: String,
     version: Long,
     changes: List[LSP.TextDocumentChange]
   ): Unit = {
+    val file = Url.absolute_file(uri)
     changes.foreach(change =>
       resources.change_model(session, editor, file, version, change.text, change.range))
 
@@ -274,8 +276,8 @@ class Language_Server(
       session.caret_focus.post(Session.Caret_Focus)
     }
 
-  private def update_caret(caret: Option[(JFile, Line.Position)]): Unit = {
-    resources.update_caret(caret)
+  private def update_caret(caret: Option[(String, Line.Position)]): Unit = {
+    resources.update_caret(caret.map((uri, pos) => (Url.absolute_file(uri), pos)))
     delay_caret_update.invoke()
     editor.invoke()
   }
@@ -290,8 +292,8 @@ class Language_Server(
       if (preview_panel.flush(channel)) delay_preview.invoke()
     }
 
-  private def preview_request(file: JFile, column: Int): Unit = {
-    preview_panel.request(file, column)
+  private def preview_request(uri: String, column: Int): Unit = {
+    preview_panel.request(Url.absolute_file(uri), column)
     delay_preview.invoke()
   }
 
@@ -327,8 +329,8 @@ class Language_Server(
 
   /* decoration request */
 
-  private def decoration_request(file: JFile): Unit =
-    resources.force_decorations(channel, file)
+  private def decoration_request(uri: String): Unit =
+    resources.force_decorations(channel, Url.absolute_file(uri))
 
 
   /* init and exit */
@@ -548,7 +550,8 @@ class Language_Server(
     }
   }
 
-  def code_action_request(id: LSP.Id, file: JFile, range: Line.Range): Unit =
+  def code_action_request(id: LSP.Id, uri: String, range: Line.Range): Unit = {
+    val file = Url.absolute_file(uri)
     for {
       model <- resources.get_model(file)
       version <- model.version
@@ -563,10 +566,12 @@ class Language_Server(
           for {
             (snippet, props) <- Protocol.sendback_snippets(results).iterator
             text_edit <- text_edit(props, snippet, model)
-            document_edit = LSP.TextDocumentEdit(file, Some(version), List(text_edit))
+            document_edit =
+              LSP.TextDocumentEdit(Url.print_file(file), Some(version), List(text_edit))
           } yield LSP.CodeAction(snippet, List(document_edit)))
       channel.write(LSP.CodeActionRequest.reply(id, actions))
     }
+  }
 
   def markup_action(active: XML.Elem, text: String): Unit =
     active match {
@@ -579,7 +584,7 @@ class Language_Server(
           text_edit <- text_edit(props, text, model)
           file = resources.node_file(node_name)
           end_pos = text_edit.range.start.advance(text_edit.new_text)
-        } channel.write(LSP.Document_Edit(file, model.version, text_edit, end_pos))
+        } channel.write(LSP.Document_Edit(Url.print_file(file), model.version, text_edit, end_pos))
 
       case Protocol.Dialog(id, serial, result) =>
         session.dialog_result(id, serial, result)
@@ -612,12 +617,12 @@ class Language_Server(
           case LSP.Initialized() =>
           case LSP.Shutdown(id) => shutdown(id)
           case LSP.Exit() => exit()
-          case LSP.DidOpenTextDocument(file, _, version, text) =>
-            change_document(file, version, List(LSP.TextDocumentChange(None, text)))
+          case LSP.DidOpenTextDocument(uri, _, version, text) =>
+            change_document(uri, version, List(LSP.TextDocumentChange(None, text)))
             delay_load.invoke()
-          case LSP.DidChangeTextDocument(file, version, changes) =>
-            change_document(file, version, changes)
-          case LSP.DidCloseTextDocument(file) => close_document(file)
+          case LSP.DidChangeTextDocument(uri, version, changes) =>
+            change_document(uri, version, changes)
+          case LSP.DidCloseTextDocument(uri) => close_document(uri)
           case LSP.Completion(id, node_pos) => completion(id, node_pos)
           case LSP.Include_Word() => update_dictionary(true, false)
           case LSP.Include_Word_Permanently() => update_dictionary(true, true)
@@ -630,9 +635,9 @@ class Language_Server(
           case LSP.Goto_Source_File(name, line, offset) => goto_source_file(name, line, offset)
           case LSP.Goto_Command(id, offset) => goto_command(id, offset)
           case LSP.DocumentHighlights(id, node_pos) => document_highlights(id, node_pos)
-          case LSP.CodeActionRequest(id, file, range) => code_action_request(id, file, range)
+          case LSP.CodeActionRequest(id, uri, range) => code_action_request(id, uri, range)
           case LSP.Markup_Action(active, text) => markup_action(active, text)
-          case LSP.Decoration_Request(file) => decoration_request(file)
+          case LSP.Decoration_Request(uri) => decoration_request(uri)
           case LSP.Caret_Update(caret) => update_caret(caret)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)
           case LSP.State_Init(id) => State_Panel.init(id, server)
@@ -642,7 +647,7 @@ class Language_Server(
           case LSP.State_Auto_Update(state_id, enabled) =>
             State_Panel.auto_update(state_id, enabled)
           case LSP.State_Set_Margin(state_id, margin) => State_Panel.set_margin(state_id, margin)
-          case LSP.Preview_Request(file, column) => preview_request(file, column)
+          case LSP.Preview_Request(uri, column) => preview_request(uri, column)
           case LSP.Abbrevs_Request() => abbrevs_request()
           case LSP.Documentation_Request() => documentation_request()
           case LSP.Sledgehammer_Provers_Request() => sledgehammer.provers()

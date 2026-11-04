@@ -12,8 +12,6 @@ package isabelle.vscode
 
 import isabelle._
 
-import java.io.{File => JFile}
-
 
 object LSP {
   /* abstract message */
@@ -274,7 +272,7 @@ object LSP {
   /* document edits */
 
   object DidOpenTextDocument {
-    def unapply(json: JSON.T): Option[(JFile, String, Long, String)] =
+    def unapply(json: JSON.T): Option[(String, String, Long, String)] =
       json match {
         case Notification("textDocument/didOpen", Some(params)) =>
           for {
@@ -283,7 +281,7 @@ object LSP {
             lang <- JSON.string(doc, "languageId")
             version <- JSON.long(doc, "version")
             text <- JSON.string(doc, "text")
-          } yield (Url.absolute_file(uri), lang, version, text)
+          } yield (uri, lang, version, text)
         case _ => None
       }
   }
@@ -296,7 +294,7 @@ object LSP {
       for (text <- JSON.string(json, "text"))
       yield TextDocumentChange(JSON.value(json, "range", Range.unapply), text)
 
-    def unapply(json: JSON.T): Option[(JFile, Long, List[TextDocumentChange])] =
+    def unapply(json: JSON.T): Option[(String, Long, List[TextDocumentChange])] =
       json match {
         case Notification("textDocument/didChange", Some(params)) =>
           for {
@@ -304,19 +302,19 @@ object LSP {
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
             version <- JSON.long(doc, "version")
             changes <- JSON.list(params, "contentChanges", unapply_change)
-          } yield (Url.absolute_file(uri), version, changes)
+          } yield (uri, version, changes)
         case _ => None
       }
   }
 
   class TextDocumentNotification(name: String) {
-    def unapply(json: JSON.T): Option[JFile] =
+    def unapply(json: JSON.T): Option[String] =
       json match {
         case Notification(method, Some(params)) if method == name =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
-          } yield Url.absolute_file(uri)
+          } yield uri
         case _ => None
       }
   }
@@ -332,21 +330,21 @@ object LSP {
   }
 
   object Document_Edit {
-    def apply(file: JFile, version: Option[Long], edit: TextEdit, end_pos: Line.Position): JSON.T =
+    def apply(uri: String, version: Option[Long], edit: TextEdit, end_pos: Line.Position): JSON.T =
       Notification("PIDE/document_edit",
         JSON.Object(
-          "uri" -> Url.print_file(file),
+          "uri" -> uri,
           "edit" -> edit.json,
           "line" -> end_pos.line,
           "character" -> end_pos.column) ++
         JSON.optional("version" -> version))
   }
 
-  sealed case class TextDocumentEdit(file: JFile, version: Option[Long], edits: List[TextEdit]) {
+  sealed case class TextDocumentEdit(uri: String, version: Option[Long], edits: List[TextEdit]) {
     def json: JSON.T =
       JSON.Object(
         "textDocument" -> (
-          JSON.Object("uri" -> Url.print_file(file)) ++
+          JSON.Object("uri" -> uri) ++
           JSON.optional("version" -> version)
         ),
         "edits" -> edits.map(_.json)
@@ -559,9 +557,9 @@ object LSP {
   }
 
   object PublishDiagnostics {
-    def apply(file: JFile, diagnostics: List[Diagnostic]): JSON.T =
+    def apply(uri: String, diagnostics: List[Diagnostic]): JSON.T =
       Notification("textDocument/publishDiagnostics",
-        JSON.Object("uri" -> Url.print_file(file), "diagnostics" -> diagnostics.map(_.json)))
+        JSON.Object("uri" -> uri, "diagnostics" -> diagnostics.map(_.json)))
   }
 
 
@@ -573,14 +571,14 @@ object LSP {
   }
 
   object CodeActionRequest {
-    def unapply(json: JSON.T): Option[(Id, JFile, Line.Range)] =
+    def unapply(json: JSON.T): Option[(Id, String, Line.Range)] =
       json match {
         case RequestMessage(id, "textDocument/codeAction", Some(params)) =>
           for {
             doc <- JSON.value(params, "textDocument")
             uri <- JSON.string(doc, "uri") if Url.is_wellformed_file(uri)
             case Range(range) <- JSON.value(params, "range")
-          } yield (id, Url.absolute_file(uri), range)
+          } yield (id, uri, range)
         case _ => None
       }
 
@@ -624,17 +622,16 @@ object LSP {
 
   sealed case class Decoration(entries: List[Decoration_Entry]) {
     def json_entries: JSON.T = entries.map(_.json)
-    def notification(file: JFile): JSON.T =
+    def notification(uri: String): JSON.T =
       Notification("PIDE/decoration",
-        JSON.Object("uri" -> Url.print_file(file), "entries" -> json_entries))
+        JSON.Object("uri" -> uri, "entries" -> json_entries))
   }
 
   object Decoration_Request {
-    def unapply(json: JSON.T): Option[JFile] =
+    def unapply(json: JSON.T): Option[String] =
       json match {
         case Notification("PIDE/decoration_request", Some(params)) =>
-          for (uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri))
-            yield Url.absolute_file(uri)
+          for (uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)) yield uri
         case _ => None
       }
   }
@@ -651,14 +648,14 @@ object LSP {
           "character" -> node_pos.pos.column,
           "focus" -> focus))
 
-    def unapply(json: JSON.T): Option[Option[(JFile, Line.Position)]] =
+    def unapply(json: JSON.T): Option[Option[(String, Line.Position)]] =
       json match {
         case Notification("PIDE/caret_update", Some(params)) =>
           val caret =
             for {
               uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
               pos <- Position.unapply(params)
-            } yield (Url.absolute_file(uri), pos)
+            } yield (uri, pos)
           Some(caret)
         case _ => None
       }
@@ -743,20 +740,20 @@ object LSP {
   /* preview */
 
   object Preview_Request {
-    def unapply(json: JSON.T): Option[(JFile, Int)] =
+    def unapply(json: JSON.T): Option[(String, Int)] =
       json match {
         case Notification("PIDE/preview_request", Some(params)) =>
           for {
             uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
             column <- JSON.int(params, "column")
-          } yield (Url.absolute_file(uri), column)
+          } yield (uri, column)
         case _ => None
       }
 
-    def reply(file: JFile, column: Int, label: String, content: String): JSON.T =
+    def reply(uri: String, column: Int, label: String, content: String): JSON.T =
       Notification("PIDE/preview_response",
         JSON.Object(
-          "uri" -> Url.print_file(file),
+          "uri" -> uri,
           "column" -> column,
           "label" -> label,
           "content" -> content))

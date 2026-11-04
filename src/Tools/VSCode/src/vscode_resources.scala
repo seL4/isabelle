@@ -313,11 +313,12 @@ extends Resources(session_background, session_background, log = log_file) {
           if changed_diags.isDefined || changed_decos.isDefined
         }
         yield {
+          val uri = Url.print_file(file)
           for (diags <- changed_diags)
-            channel.write(LSP.PublishDiagnostics(file, rendering.diagnostics_output(diags)))
+            channel.write(LSP.PublishDiagnostics(uri, rendering.diagnostics_output(diags)))
           if (pide_extensions) {
             for (decos <- changed_decos)
-              channel.write(rendering.decoration_output(decos).notification(file))
+              channel.write(rendering.decoration_output(decos).notification(uri))
           }
           (file, model1)
         }
@@ -370,7 +371,7 @@ extends Resources(session_background, session_background, log = log_file) {
     val rendering1 = rendering(model)
     val (_, decos, model1) = model.publish_full(rendering1)
     if (pide_extensions) {
-      channel.write(rendering1.decoration_output(decos).notification(file))
+      channel.write(rendering1.decoration_output(decos).notification(Url.print_file(file)))
     }
   }
 
