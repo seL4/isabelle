@@ -597,7 +597,7 @@ class Language_Server(
 
   def abbrevs_request(): Unit = {
     val syntax = session.resources.current_background.base.overall_syntax
-    channel.write(LSP.Abbrevs_Request.reply(syntax.abbrevs))
+    channel.write(LSP.Abbrevs_Response(syntax.abbrevs))
   }
 
 

@@ -754,9 +754,11 @@ object LSP {
           } yield (uri, column)
         case _ => None
       }
+  }
 
-    def reply(uri: String, column: Int, label: String, content: String): JSON.T =
-      Notification("PIDE/preview_response",
+  object Preview_Response extends Notification("PIDE/preview_response") {
+    def apply(uri: String, column: Int, label: String, content: String): JSON.T =
+      Notification(name,
         JSON.Object(
           "uri" -> uri,
           "column" -> column,
@@ -767,10 +769,11 @@ object LSP {
 
   /* abbrevs */
 
-  object Abbrevs_Request extends Notification0("PIDE/abbrevs_request") {
-    def reply(abbrevs: List[(String, String)]): JSON.T =
-      Notification("PIDE/abbrevs_response",
-        JSON.Object("abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
+  object Abbrevs_Request extends Notification0("PIDE/abbrevs_request")
+
+  object Abbrevs_Response extends Notification("PIDE/abbrevs_response") {
+    def apply(abbrevs: List[(String, String)]): JSON.T =
+      Notification(name, JSON.Object("abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
   }
 
 
