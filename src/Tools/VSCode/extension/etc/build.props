@@ -7,6 +7,7 @@ sources = \
   $ISABELLE_HOME/src/Pure/General/codepoint.scala \
   $ISABELLE_HOME/src/Pure/General/completion.scala \
   $ISABELLE_HOME/src/Pure/General/exn.scala \
+  $ISABELLE_HOME/src/Pure/General/file.scala \
   $ISABELLE_HOME/src/Pure/General/html.scala \
   $ISABELLE_HOME/src/Pure/General/js.scala \
   $ISABELLE_HOME/src/Pure/General/json.scala \
@@ -26,6 +27,7 @@ sources = \
   $ISABELLE_HOME/src/Pure/General/value.scala \
   $ISABELLE_HOME/src/Pure/General/word.scala \
   $ISABELLE_HOME/src/Pure/PIDE/document_status.scala \
+  $ISABELLE_HOME/src/Pure/PIDE/line.scala \
   $ISABELLE_HOME/src/Pure/PIDE/markup.scala \
   $ISABELLE_HOME/src/Pure/PIDE/protocol_message.scala \
   $ISABELLE_HOME/src/Pure/PIDE/rendering.scala \
@@ -50,5 +52,6 @@ sources = \
   src/sledgehammer_view.scala \
   src/state_panel.scala \
   src/symbols_view.scala \
+  src/vscode.scala \
   src/vscode_elements.scala \
   src/webview_api.scala
