@@ -476,8 +476,7 @@ session "HOL-New_Algebra-ex" (timing) in "New_Algebra/ex" = "HOL-New_Algebra" +
     Consistency checks on the matrix-shaped constructions: the Zassenhaus butterfly
     and the two-index Schreier refinement."
   theories
-    Zassenhaus_Sanity
-    Schreier_Sanity
+    Group_Sanity
 
 session "HOL-Auth" (timing) in Auth = HOL +
   description "
