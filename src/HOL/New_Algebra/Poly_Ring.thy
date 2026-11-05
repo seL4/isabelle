@@ -1782,6 +1782,81 @@ proof -
     using step1 step2 a' b bnz pmod_shift poly_mult_closed q q' r r' by metis
 qed
 
+lemma pmod_const_mult:
+  assumes c: "c \<in> R" and q: "q \<in> poly_carrier"
+    and p: "p \<in> poly_carrier" and pnz: "p \<noteq> \<zero>\<^sub>P"
+    and pos: "0 < degree p"
+  shows "pmod (poly_const c \<otimes>\<^sub>P q) p =
+    poly_const c \<otimes>\<^sub>P pmod q p"
+proof -
+  have pc: "poly_const c \<in> poly_carrier"
+    by (rule poly_const_closed [OF c])
+  have rc: "pmod q p \<in> poly_carrier"
+    by (rule pmod_closed [OF q p pnz])
+  have rlow: "pmod q p \<in> low_poly (degree p)"
+    by (rule pmod_low_poly [OF q p pnz])
+  have sclow: "poly_const c \<otimes>\<^sub>P pmod q p \<in> low_poly (degree p)"
+  proof (rule low_polyI)
+    show "poly_const c \<otimes>\<^sub>P pmod q p \<in> poly_carrier"
+      by (rule poly_mult_closed [OF pc rc])
+    fix i assume i: "degree p \<le> i"
+    have "pmod q p i = \<zero>"
+      by (rule low_poly_coeff [OF rlow i])
+    then show "(poly_const c \<otimes>\<^sub>P pmod q p) i = \<zero>"
+      using coeff_monom_mult [OF c rc, of 0 i] c
+      by (simp add: monom_0_eq_const)
+  qed
+  have pcm: "pmod (poly_const c) p = poly_const c"
+    by (rule pmod_small [OF p pnz pc])
+      (use degree_const_le [of c] pos in auto)
+  have scm: "pmod (poly_const c \<otimes>\<^sub>P pmod q p) p =
+    poly_const c \<otimes>\<^sub>P pmod q p"
+    by (rule pmod_small [OF p pnz poly_mult_closed [OF pc rc]])
+      (use low_poly_iff_degree [OF poly_mult_closed [OF pc rc]] sclow in blast)
+  show ?thesis
+    using pmod_mult [OF pc q p pnz] pcm scm by simp
+qed
+
+lemma pmod_fincomp:
+  assumes fin: "finite I" and f: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> poly_carrier"
+    and p: "p \<in> poly_carrier" and pnz: "p \<noteq> \<zero>\<^sub>P"
+  shows "commutative_monoid.fincomp poly_carrier poly_add poly_zero
+      (\<lambda>i. pmod (f i) p) I =
+    pmod (commutative_monoid.fincomp poly_carrier poly_add poly_zero f I) p"
+proof -
+  interpret P: commutative_monoid poly_carrier poly_add poly_zero
+    by (rule poly_add_cmonoid)
+  show ?thesis using fin f
+  proof (induction I rule: finite_induct)
+    case empty
+    then show ?case
+      by (simp add: pmod_small [OF p pnz poly_zero_closed])
+  next
+    case (insert i I)
+    have fi: "f i \<in> poly_carrier"
+      and fI: "\<And>j. j \<in> I \<Longrightarrow> f j \<in> poly_carrier"
+      using insert.prems by auto
+    have fIc: "P.fincomp f I \<in> poly_carrier"
+      by (rule P.fincomp_closed) (use fI in auto)
+    have ri: "pmod (f i) p \<in> poly_carrier"
+      by (rule pmod_closed [OF fi p pnz])
+    have rI: "\<And>j. j \<in> I \<Longrightarrow> pmod (f j) p \<in> poly_carrier"
+      using fI by (auto intro: pmod_closed [OF _ p pnz])
+    have fIf: "f \<in> I \<rightarrow> poly_carrier" using fI by auto
+    have rIf: "(\<lambda>j. pmod (f j) p) \<in> I \<rightarrow> poly_carrier"
+      using rI by auto
+    have left: "P.fincomp (\<lambda>j. pmod (f j) p) (insert i I) =
+      poly_add (pmod (f i) p) (P.fincomp (\<lambda>j. pmod (f j) p) I)"
+      by (rule P.fincomp_insert [OF insert.hyps(1,2) rIf ri])
+    have right: "P.fincomp f (insert i I) =
+      poly_add (f i) (P.fincomp f I)"
+      by (rule P.fincomp_insert [OF insert.hyps(1,2) fIf fi])
+    show ?case
+      using insert.IH [OF fI] pmod_add [OF fi fIc p pnz]
+      by (simp add: left right)
+  qed
+qed
+
 subsection \<open>The factor theorem\<close>
 
 text \<open>The root factor @{term "root_factor a"} has degree exactly @{text 1}: its degree-1
@@ -2025,6 +2100,53 @@ lemma splitsE:
   obtains c as where "c \<in> R" "set as \<subseteq> R"
     and "p = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor as)"
   using assms unfolding splits_def by blast
+
+lemma eval_poly_prod_root:
+  assumes as: "set as \<subseteq> R" and a: "a \<in> set as"
+  shows "eval a (poly_prod (List.map root_factor as)) = \<zero>"
+  using as a
+proof (induct as)
+  case Nil
+  then show ?case by simp
+next
+  case (Cons b bs)
+  have b: "b \<in> R" and bs: "set bs \<subseteq> R" and ar: "a \<in> R"
+    using Cons.prems by auto
+  have rf: "root_factor b \<in> poly_carrier"
+    by (rule root_factor_closed [OF b])
+  have prod: "poly_prod (List.map root_factor bs) \<in> poly_carrier"
+    using bs by (intro poly_prod_closed) (auto intro: root_factor_closed)
+  have ev: "eval a (poly_prod (List.map root_factor (b # bs))) =
+    eval a (root_factor b) \<cdot> eval a (poly_prod (List.map root_factor bs))"
+    by (simp add: eval_mult [OF rf prod ar])
+  show ?case
+  proof (cases "a = b")
+    case True
+    have "eval a (root_factor b) = \<zero>" using True b by simp
+    then show ?thesis using ev ar prod by simp
+  next
+    case False
+    then have "a \<in> set bs" using Cons.prems by simp
+    then have "eval a (poly_prod (List.map root_factor bs)) = \<zero>"
+      by (rule Cons.hyps [OF bs])
+    then show ?thesis using ev ar rf by simp
+  qed
+qed
+
+lemma splits_factor_root:
+  assumes c: "c \<in> R" and as: "set as \<subseteq> R"
+    and eq: "p = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor as)"
+    and a: "a \<in> set as"
+  shows "eval a p = \<zero>"
+proof -
+  have ar: "a \<in> R" using as a by auto
+  have q: "poly_prod (List.map root_factor as) \<in> poly_carrier"
+    using as by (intro poly_prod_closed) (auto intro: root_factor_closed)
+  have z: "eval a (poly_prod (List.map root_factor as)) = \<zero>"
+    by (rule eval_poly_prod_root [OF as a])
+  show ?thesis
+    using eq c ar q z by (simp add: eval_mult poly_const_closed)
+qed
 
 lemma splits_closed: "splits p \<Longrightarrow> p \<in> poly_carrier"
 proof (elim splitsE)
