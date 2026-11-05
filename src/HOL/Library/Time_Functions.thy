@@ -93,6 +93,9 @@ lemma T_filter_bound:
   "\<forall>x \<in> set xs. T_P x \<le> k \<Longrightarrow> T_filter T_P xs \<le> k * length xs + length xs + 1"
 by (metis T_filter_eq_T_map T_map_bound)
 
+lemma T_filter_map: "T_filter g (map f xs) = T_filter (\<lambda>x. g (f x)) xs"
+by (simp add: T_filter comp_def)
+
 time_fun nth
 
 lemma T_nth: "n < length xs \<Longrightarrow> T_nth xs n = n + 1"
@@ -116,8 +119,8 @@ lemma T_zip: "length xs = length ys \<Longrightarrow> T_zip xs ys = length ys + 
 
 time_fun rev
 
-lemma T_rev: "T_rev xs \<le> (length xs + 1)^2"
-by(induction xs) (auto simp: T_append power2_eq_square)
+lemma T_rev_bound: "T_rev xs \<le> (length xs)^2 + length xs + 1"
+by (induction xs) (auto simp: power2_eq_square)
 
 fun itrev :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "itrev [] ys = ys" |
