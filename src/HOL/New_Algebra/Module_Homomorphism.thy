@@ -1,7 +1,7 @@
 section \<open>Module homomorphisms\<close>
 
 theory Module_Homomorphism
-  imports Module_Basics
+  imports Free_Module
 begin
 
 text \<open>A \<^emph>\<open>module homomorphism\<close> (over a fixed ring @{term R}) is a map @{term \<eta>} between @{term R}-modules
@@ -56,6 +56,35 @@ proof -
     unfolding n_def using hom_closed[OF v] by (simp add: target.scale_neg_scalar target.scale_one)
   show ?thesis
     by (simp add: hom_scale n_def sneg tneg v)
+qed
+
+lemma hom_span:
+  assumes SM: "S \<subseteq> M"
+  shows "\<eta> ` source.span S \<subseteq> target.span (\<eta> ` S)"
+proof -
+  let ?N = "{v \<in> M. \<eta> v \<in> target.span (\<eta> ` S)}"
+  have image: "\<eta> ` S \<subseteq> M'"
+    using SM hom_closed by blast
+  have sub: "source.submodule ?N"
+  proof (rule source.submoduleI)
+    show "?N \<subseteq> M" by blast
+    show "\<zero>\<^sub>M \<in> ?N"
+      using hom_zero target.span_zero by simp
+    fix u v assume u: "u \<in> ?N" and v: "v \<in> ?N"
+    then show "u \<oplus> v \<in> ?N"
+      using hom_add [of u v] source.madd_closed [of u v]
+        target.span_madd_closed [OF image] by auto
+  next
+    fix a v assume a: "a \<in> R" and v: "v \<in> ?N"
+    then show "a \<odot> v \<in> ?N"
+      using hom_scale [of a v] source.scale_closed [of a v]
+        target.span_scale_closed [OF image] by auto
+  qed
+  have SN: "S \<subseteq> ?N"
+    using SM target.span_incl [OF image] by blast
+  have "source.span S \<subseteq> ?N"
+    by (rule source.span_minimal [OF sub SN])
+  then show ?thesis by blast
 qed
 
 text \<open>A module homomorphism commutes with finite linear combinations.  The target sum remains
