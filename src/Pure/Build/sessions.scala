@@ -99,10 +99,10 @@ object Sessions {
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
-    proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
     used_theories: List[Resources.Thy] = Nil,  // new imports
+    used_theories_proper: List[Resources.Thy] = Nil,  // new imports from this session
     theory_load_commands: Map[String, List[(Command_Span.Span, Symbol.Offset)]] = Map.empty,
     known_theories: Map[String, Resources.Thy] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
@@ -123,7 +123,7 @@ object Sessions {
     def all_sources: List[(Path, Message_Digest.T)] = imported_sources ::: session_sources
 
     def all_document_theories: List[Document.Node.Name] =
-      proper_session_theories ::: document_theories
+      used_theories_proper.map(_.name) ::: document_theories
 
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
@@ -277,9 +277,8 @@ object Sessions {
 
         val dependencies = deps_resources.build_dependencies(info)
 
-        val proper_session_theories =
-          for (thy <- dependencies.entries if thy.session == info.name)
-            yield thy.name
+        val used_theories = dependencies.entries
+        val used_theories_proper = used_theories.filter(thy => thy.session == info.name)
 
         val theory_files = dependencies.theories.map(_.path)
 
@@ -344,7 +343,7 @@ object Sessions {
                 bs.foldLeft((a :: bs).foldLeft(g)(_.default_node(_, Nil)))(_.add_edge(_, a))
             }
 
-          dependencies.entries.foldLeft(graph0) {
+          used_theories.foldLeft(graph0) {
             case (g, thy) =>
               val a = node(thy.name)
               val bs = thy.imports_no_pos.map(node).filterNot(_ == a)
@@ -353,7 +352,7 @@ object Sessions {
         }
 
         val known_theories =
-          dependencies.entries.iterator.map(thy => thy.name.theory -> thy).
+          used_theories.iterator.map(thy => thy.name.theory -> thy).
             foldLeft(deps_base.known_theories)(_ + _)
 
         val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
@@ -386,7 +385,7 @@ object Sessions {
                 case None => err("Unknown document theory")
                 case Some(name) =>
                   val qualifier = sessions_structure.theory_qualifier(name)
-                  if (proper_session_theories.contains(name)) {
+                  if (used_theories_proper.exists(thy => thy.name == name)) {
                     err("Redundant document theory from this session:")
                   }
                   else if (
@@ -405,11 +404,11 @@ object Sessions {
           val ok = info.dirs.map(_.canonical_file).toSet
           val bad =
             (for {
-              name <- proper_session_theories.iterator
-              path = Path.explode(name.master_dir)
+              thy <- used_theories_proper.iterator
+              path = Path.explode(thy.name.master_dir)
               if !ok(path.canonical_file)
               path1 = File.perhaps_relative_path(info.dir.canonical, path)
-            } yield (path1, name)).toList
+            } yield (path1, thy.name)).toList
           val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).distinct.sorted
 
           val errs1 =
@@ -421,11 +420,11 @@ object Sessions {
           val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
           val errs4 =
             (for {
-              name <- proper_session_theories.iterator
-              name1 <- deps_resources.find_theory_node(name.theory)
-              if name.node != name1.node
+              thy <- used_theories_proper.iterator
+              name1 <- deps_resources.find_theory_node(thy.name.theory)
+              if thy.name.node != name1.node
             } yield {
-              "Incoherent theory file import:\n  " + quote(name.node) +
+              "Incoherent theory file import:\n  " + quote(thy.name.node) +
                 " vs. \n  " + quote(name1.node)
             }).toList
 
@@ -444,10 +443,10 @@ object Sessions {
         Base(
           session_name = info.name,
           session_pos = info.pos,
-          proper_session_theories = proper_session_theories,
           document_theories = document_theories,
           loaded_theories = dependencies.loaded_theories,
-          used_theories = dependencies.entries,
+          used_theories = used_theories,
+          used_theories_proper = used_theories_proper,
           theory_load_commands = theory_load_commands,
           known_theories = known_theories,
           known_loaded_files = known_loaded_files,

@@ -213,7 +213,7 @@ object Document_Build {
 
     def documents: List[Document_Variant] = info.documents
 
-    def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
+    def session_document_theories: List[Document.Node.Name] = base.used_theories_proper.map(_.name)
     def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
     lazy val isabelle_logo: Option[File.Content] = {
