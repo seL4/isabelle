@@ -281,8 +281,6 @@ object Sessions {
         val used_theories = dependencies.theories
         val used_theories_proper = used_theories.filter(thy => thy.session == info.name)
 
-        val theory_files = used_theories.map(_.name.path)
-
         val (load_commands, load_commands_errors) =
           try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
           catch { case ERROR(msg) => (Nil, List(msg)) }
@@ -296,12 +294,14 @@ object Sessions {
             name.theory -> files.map(file => Path.explode(file.node))
           }
 
-        val document_files =
-          for ((path1, path2) <- info.document_files)
-            yield info.dir + path1 + path2
-
-        val session_files =
-          (theory_files ::: loaded_files.flatMap(_._2) ::: document_files).map(_.expand)
+        val session_files = {
+          val theory_files = used_theories.map(_.name.path)
+          val used_files = loaded_files.flatMap(_._2)
+          val document_files =
+            for ((path1, path2) <- info.document_files)
+              yield info.dir + path1 + path2
+          (theory_files ::: used_files ::: document_files).map(_.expand)
+        }
 
         val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
