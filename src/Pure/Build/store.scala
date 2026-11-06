@@ -177,7 +177,7 @@ object Store {
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
     def apply(name: String): Source_File =
-      rep.getOrElse(name, error("Missing session sources entry " + quote(name)))
+      rep.getOrElse(name, error("No session source file " + quote(name)))
   }
 
 
