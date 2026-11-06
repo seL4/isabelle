@@ -14,6 +14,14 @@ import scala.collection.immutable.SortedMap
 object Command {
   /* blobs */
 
+  object Blob {
+    type Entry = (Blob, Document.Blobs.Item)
+    def entry(name: Document.Node.Name, src_path: Path, blob: Document.Blobs.Item): Entry = {
+      val content = (blob.bytes.sha1_digest, blob.chunk)
+      Blob(blob.command_offset, name, src_path, Some(content)) -> blob
+    }
+  }
+
   sealed case class Blob(
     command_offset: Symbol.Offset,
     name: Document.Node.Name,

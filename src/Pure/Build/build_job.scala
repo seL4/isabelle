@@ -247,14 +247,9 @@ object Build_Job {
                 } yield {
                     val src_path = Path.explode(file)
                     val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
-
                     val bytes = session_sources(blob_name.node).bytes
-                    val text = bytes.text
-                    val chunk = Symbol.Text_Chunk(text)
-                    val content = Some((SHA1.digest(bytes), chunk))
-
-                    Command.Blob(command_offset, blob_name, src_path, content) ->
-                      Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
+                    Command.Blob.entry(blob_name, src_path,
+                      Document.Blobs.Item(bytes, command_offset = command_offset))
                   }
             }
 

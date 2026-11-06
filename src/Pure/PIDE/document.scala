@@ -44,8 +44,8 @@ object Document {
   object Blobs {
     sealed case class Item(
       bytes: Bytes,
-      source: String,
-      chunk: Symbol.Text_Chunk,
+      other_source: Option[String] = None,
+      other_chunk: Option[Symbol.Text_Chunk] = None,
       command_offset: Symbol.Offset = 0,
       changed: Boolean = false
     ) {
@@ -54,6 +54,8 @@ object Document {
           if_proper(command_offset > 0, ", command_offset = " + command_offset) +
           if_proper(changed, ", changed = true") + ")"
 
+      val source: String = other_source.getOrElse(bytes.text)
+      val chunk: Symbol.Text_Chunk = other_chunk.getOrElse(Symbol.Text_Chunk(source))
       def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = if (changed) copy(changed = false) else this
     }

@@ -41,9 +41,9 @@ object Check_Keywords {
             for {
               session <- deps.sessions_structure.imports_topological_order.iterator
               base = deps(session)
-              node_name <- base.proper_session_theories
+              thy <- base.used_theories_proper
             } yield {
-              val path = node_name.path
+              val path = thy.name.path
               val input = File.read(path)
               val start = Position.P.file(File.standard_path(path))
               (base.overall_syntax.keywords, input, start)

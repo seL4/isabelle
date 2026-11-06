@@ -99,10 +99,10 @@ object Sessions {
   sealed case class Base(
     session_name: String = "",
     session_pos: Position.T = Position.none,
-    proper_session_theories: List[Document.Node.Name] = Nil,
     document_theories: List[Document.Node.Name] = Nil,
     loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
     used_theories: List[Resources.Thy] = Nil,  // new imports
+    used_theories_proper: List[Resources.Thy] = Nil,  // new imports from this session
     theory_load_commands: Map[String, List[(Command_Span.Span, Symbol.Offset)]] = Map.empty,
     known_theories: Map[String, Resources.Thy] = Map.empty,
     known_loaded_files: Map[String, List[Path]] = Map.empty,
@@ -123,7 +123,7 @@ object Sessions {
     def all_sources: List[(Path, Message_Digest.T)] = imported_sources ::: session_sources
 
     def all_document_theories: List[Document.Node.Name] =
-      proper_session_theories ::: document_theories
+      used_theories_proper.map(_.name) ::: document_theories
 
     def loaded_theory(name: String): Boolean = loaded_theories.defined(name)
     def loaded_theory(name: Document.Node.Name): Boolean = loaded_theory(name.theory)
@@ -178,10 +178,10 @@ object Sessions {
 
           val required_theories =
             for {
-              thy <- base.loaded_theories.keys
-              if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
+              theory <- base.loaded_theories.keys
+              if !ancestor_loaded(theory) && selected_sessions.theory_qualifier(theory) != session
             }
-            yield thy
+            yield theory
 
           if (required_theories.isEmpty) (ancestor.get, Nil)
           else {
@@ -196,7 +196,8 @@ object Sessions {
                 parent = ancestor,
                 description = "Required theory imports from other sessions",
                 imports = info.deps,
-                theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))))
+                theories =
+                  List((Nil, required_theories.map(theory => ((theory, Position.none), false)))))
 
             val session_info =
               Info.make(session_entry,
@@ -277,11 +278,8 @@ object Sessions {
 
         val dependencies = deps_resources.build_dependencies(info)
 
-        val proper_session_theories =
-          for (thy <- dependencies.entries if thy.session == info.name)
-            yield thy.name
-
-        val theory_files = dependencies.theories.map(_.path)
+        val used_theories = dependencies.theories
+        val used_theories_proper = used_theories.filter(thy => thy.session == info.name)
 
         val (load_commands, load_commands_errors) =
           try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
@@ -296,12 +294,14 @@ object Sessions {
             name.theory -> files.map(file => Path.explode(file.node))
           }
 
-        val document_files =
-          for ((path1, path2) <- info.document_files)
-            yield info.dir + path1 + path2
-
-        val session_files =
-          (theory_files ::: loaded_files.flatMap(_._2) ::: document_files).map(_.expand)
+        val session_files = {
+          val theory_files = used_theories.map(_.name.path)
+          val used_files = loaded_files.flatMap(_._2)
+          val document_files =
+            for ((path1, path2) <- info.document_files)
+              yield info.dir + path1 + path2
+          (theory_files ::: used_files ::: document_files).map(_.expand)
+        }
 
         val imported_files = if (inlined_files) dependencies.imported_files else Nil
 
@@ -324,7 +324,7 @@ object Sessions {
           val required_sessions =
             Set.from(
               for {
-                theory <- dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
+                theory <- dependencies.loaded_theories.all_preds(used_theories.map(_.name.theory))
                 qualifier = sessions_structure.theory_qualifier(theory)
                 if qualifier != info.name && sessions_structure.defined(qualifier)
               } yield qualifier)
@@ -344,7 +344,7 @@ object Sessions {
                 bs.foldLeft((a :: bs).foldLeft(g)(_.default_node(_, Nil)))(_.add_edge(_, a))
             }
 
-          dependencies.entries.foldLeft(graph0) {
+          used_theories.foldLeft(graph0) {
             case (g, thy) =>
               val a = node(thy.name)
               val bs = thy.imports_no_pos.map(node).filterNot(_ == a)
@@ -353,7 +353,7 @@ object Sessions {
         }
 
         val known_theories =
-          dependencies.entries.iterator.map(thy => thy.name.theory -> thy).
+          used_theories.iterator.map(thy => thy.name.theory -> thy).
             foldLeft(deps_base.known_theories)(_ + _)
 
         val known_loaded_files = deps_base.known_loaded_files ++ loaded_files
@@ -361,18 +361,17 @@ object Sessions {
         val import_errors = {
           val known_sessions =
             sessions_structure.imports_requirements(List(info.name)).toSet
-          for {
-            name <- dependencies.theories
-            qualifier = sessions_structure.theory_qualifier(name)
-            if !known_sessions(qualifier)
-          } yield "Bad import of theory " + quote(name.toString) +
-            ": need to include sessions " + quote(qualifier) + " in ROOT"
+          for (thy <- used_theories if !known_sessions(thy.session))
+            yield {
+              "Bad import of theory " + quote(thy.name.theory) +
+                ": need to include sessions " + quote(thy.session) + " in ROOT"
+            }
         }
 
         val document_errors =
           info.document_theories.flatMap(
           {
-            case (thy, pos) =>
+            case (theory, pos) =>
               val build_hierarchy =
                 if (sessions_structure.build_graph.defined(info.name)) {
                   sessions_structure.build_hierarchy(info.name)
@@ -380,18 +379,17 @@ object Sessions {
                 else Nil
 
               def err(msg: String): Option[String] =
-                Some(msg + " " + quote(thy) + Position.here(pos))
+                Some(msg + " " + quote(theory) + Position.here(pos))
 
-              known_theories.get(thy).map(_.name) match {
+              known_theories.get(theory) match {
                 case None => err("Unknown document theory")
-                case Some(name) =>
-                  val qualifier = sessions_structure.theory_qualifier(name)
-                  if (proper_session_theories.contains(name)) {
+                case Some(thy) =>
+                  if (used_theories_proper.exists(thy1 => thy1.name == thy.name)) {
                     err("Redundant document theory from this session:")
                   }
                   else if (
-                    !build_hierarchy.contains(qualifier) &&
-                    !dependencies.theories.contains(name)
+                    !build_hierarchy.contains(thy.session) &&
+                    !used_theories.exists(thy1 => thy1.name == thy.name)
                   ) {
                     err("Document theory from other session not imported properly:")
                   }
@@ -399,17 +397,17 @@ object Sessions {
               }
           })
         val document_theories =
-          info.document_theories.map({ case (thy, _) => known_theories(thy).name })
+          info.document_theories.map({ case (theory, _) => known_theories(theory).name })
 
         val dir_errors = {
           val ok = info.dirs.map(_.canonical_file).toSet
           val bad =
             (for {
-              name <- proper_session_theories.iterator
-              path = Path.explode(name.master_dir)
+              thy <- used_theories_proper.iterator
+              path = Path.explode(thy.name.master_dir)
               if !ok(path.canonical_file)
               path1 = File.perhaps_relative_path(info.dir.canonical, path)
-            } yield (path1, name)).toList
+            } yield (path1, thy.name)).toList
           val bad_dirs = (for { (path1, _) <- bad } yield path1.toString).distinct.sorted
 
           val errs1 =
@@ -421,11 +419,11 @@ object Sessions {
           val errs3 = for (p <- info.dirs if !p.is_dir) yield "No such directory: " + p
           val errs4 =
             (for {
-              name <- proper_session_theories.iterator
-              name1 <- deps_resources.find_theory_node(name.theory)
-              if name.node != name1.node
+              thy <- used_theories_proper.iterator
+              name1 <- deps_resources.find_theory_node(thy.name.theory)
+              if thy.name.node != name1.node
             } yield {
-              "Incoherent theory file import:\n  " + quote(name.node) +
+              "Incoherent theory file import:\n  " + quote(thy.name.node) +
                 " vs. \n  " + quote(name1.node)
             }).toList
 
@@ -444,10 +442,10 @@ object Sessions {
         Base(
           session_name = info.name,
           session_pos = info.pos,
-          proper_session_theories = proper_session_theories,
           document_theories = document_theories,
           loaded_theories = dependencies.loaded_theories,
-          used_theories = dependencies.entries,
+          used_theories = used_theories,
+          used_theories_proper = used_theories_proper,
           theory_load_commands = theory_load_commands,
           known_theories = known_theories,
           known_loaded_files = known_loaded_files,
@@ -885,15 +883,15 @@ object Sessions {
         (for {
           session <- imports_graph.topological_order.iterator
           info = info_graph.get_node(session)
-          thy <- info.global_theories.iterator }
-          yield (info, thy)
+          theory <- info.global_theories.iterator }
+          yield (info, theory)
         ).foldLeft(Thy_Header.bootstrap_global_theories.toMap) {
-            case (global, (info, thy)) =>
+            case (global, (info, theory)) =>
               val qualifier = info.name
-              global.get(thy) match {
+              global.get(theory) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
-                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
-                case _ => global + (thy -> qualifier)
+                  error("Duplicate global theory " + quote(theory) + Position.here(info.pos))
+                case _ => global + (theory -> qualifier)
               }
           }
 
@@ -944,8 +942,8 @@ object Sessions {
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
 
-    def theory_qualifier(name: String): String =
-      global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(theory: String): String =
+      global_theories.getOrElse(theory, Long_Name.qualifier(theory))
     def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def check_sessions(names: List[String]): Unit = {

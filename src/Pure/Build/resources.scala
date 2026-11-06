@@ -168,7 +168,7 @@ class Resources(
      (sessions_structure.session_positions,
      (sessions_structure.dest_session_directories,
      (command_timings,
-     (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
+     (Command_Span.list_load_commands.map(cmd => (cmd.name, cmd.position)),
      (Scala.functions.map((fun: Scala.Fun) => (fun.name, (fun.single, fun.bytes, fun.position))),
      (sessions_structure.global_theories.toList,
       current_background.base.loaded_theories.keys)))))))
@@ -382,16 +382,6 @@ class Resources(
 
   /* theory and file dependencies */
 
-  def dependencies(
-    session_conditions: Thy_Conditions.State,
-    theories: List[(Document.Node.Name, Position.T)],
-    options: Options.Update = Nil,
-    progress: Progress = new Progress
-  ): Dependencies = {
-    Dependencies.require_thys(Dependencies.empty, theories,
-      options = options, progress = progress, session_conditions = Some(session_conditions))
-  }
-
   def build_dependencies(
     info: Sessions.Info,
     progress: Progress = new Progress
@@ -402,6 +392,38 @@ class Resources(
           for { (s, pos) <- theories } yield (import_name(info, s), pos),
           options = options, progress = progress)
     }
+  }
+
+  def dependencies(
+    session_conditions: Thy_Conditions.State,
+    theories: List[(Document.Node.Name, Position.T)],
+    options: Options.Update = Nil,
+    progress: Progress = new Progress
+  ): Dependencies = {
+    Dependencies.require_thys(Dependencies.empty, theories,
+      options = options, progress = progress, session_conditions = Some(session_conditions))
+  }
+
+  def resolve_dependencies(
+    session_conditions: Thy_Conditions.State,
+    models: Iterable[Document.Model],
+    theories: List[Document.Node.Name]
+  ): List[Document.Node.Name] = {
+    val model_theories =
+      (for (model <- models.iterator if model.is_theory)
+        yield (model.node_name, Position.none)).toList
+
+    val thy_files1 =
+      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none)))
+        .theories.map(_.name)
+
+    val thy_files2 =
+      (for {
+        model <- models.iterator if !model.is_theory
+        thy_name <- make_theory_name(model.node_name)
+      } yield thy_name).toList
+
+    thy_files1 ::: thy_files2
   }
 
   object Dependencies {
@@ -477,19 +499,20 @@ class Resources(
   }
 
   final class Dependencies private(
-    protected val rev_entries: List[Resources.Thy],
+    protected val rev_theories: List[Resources.Thy],
     protected val visited: Set[Document.Node.Name]
   ) {
     private def cons(thy: Resources.Thy): Dependencies =
-      new Dependencies(thy :: rev_entries, visited)
+      new Dependencies(thy :: rev_theories, visited)
 
     private def visit(name: Document.Node.Name): Dependencies =
-      new Dependencies(rev_entries, visited + name)
+      new Dependencies(rev_theories, visited + name)
 
-    def entries: List[Resources.Thy] = rev_entries.reverse
-    def theories: List[Document.Node.Name] = entries.map(_.name)
+    lazy val theories: List[Resources.Thy] = rev_theories.reverse
+    lazy val theories_defined: Set[Document.Node.Name] =
+      rev_theories.foldLeft(Set.empty)({ case (set, thy) => set + thy.name })
 
-    def errors: List[String] = entries.flatMap(_.errors)
+    def errors: List[String] = theories.flatMap(_.errors)
 
     def check_errors: Dependencies =
       errors match {
@@ -498,36 +521,35 @@ class Resources(
       }
 
     lazy val theory_graph: Document.Node.Name.Graph[Unit] = {
-      val regular = theories.toSet
       val irregular =
         (for {
-          thy <- entries.iterator
+          thy <- theories.iterator
           name <- thy.imports_no_pos
-          if !regular(name)
+          if !theories_defined(name)
         } yield name).toSet
 
       Document.Node.Name.make_graph(
         irregular.toList.map(name => ((name, ()), Nil)) :::
-        entries.map(thy => ((thy.name, ()), thy.imports_no_pos)))
+        theories.map(thy => ((thy.name, ()), thy.imports_no_pos)))
     }
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
-      entries.foldLeft(current_background.base.loaded_theories) {
-        case (graph, entry) =>
-          val name = entry.name.theory
-          val imports = entry.imports_no_pos.map(_.theory)
+      theories.foldLeft(current_background.base.loaded_theories) {
+        case (graph, thy) =>
+          val theory = thy.name.theory
+          val imports = thy.imports_no_pos.map(_.theory)
 
-          val graph1 = (name :: imports).foldLeft(graph)(_.default_node(_, Outer_Syntax.empty))
-          val graph2 = imports.foldLeft(graph1)(_.add_edge(_, name))
+          val graph1 = (theory :: imports).foldLeft(graph)(_.default_node(_, Outer_Syntax.empty))
+          val graph2 = imports.foldLeft(graph1)(_.add_edge(_, theory))
 
-          val syntax0 = if (Sessions.is_Pure(name)) List(Thy_Header.bootstrap_syntax) else Nil
-          val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node)
+          val syntax0 = if (Sessions.is_Pure(theory)) List(Thy_Header.bootstrap_syntax) else Nil
+          val syntax1 = (theory :: graph2.imm_preds(theory).toList).map(graph2.get_node)
           val syntax =
             Outer_Syntax.merge(syntax0 ::: syntax1)
-              .add_keywords(entry.keywords)
-              .add_abbrevs(entry.abbrevs)
+              .add_keywords(thy.keywords)
+              .add_abbrevs(thy.abbrevs)
 
-          graph2.map_node(name, _ => syntax)
+          graph2.map_node(theory, _ => syntax)
       }
 
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
@@ -536,8 +558,8 @@ class Resources(
     lazy val load_commands: List[(Document.Node.Name, List[(Command_Span.Span, Symbol.Offset)])] =
       theories.zip(
         Par_List.map((e: () => List[(Command_Span.Span, Symbol.Offset)]) => e(),
-          theories.map(name => resources.load_commands(get_syntax(name), name))))
-      .filter(p => p._2.nonEmpty)
+          theories.map(thy => resources.load_commands(get_syntax(thy.name), thy.name))))
+      .flatMap({ case (thy, cmds) => if (cmds.isEmpty) None else Some(thy.name -> cmds) })
 
     def loaded_files(
       name: Document.Node.Name,
@@ -557,7 +579,7 @@ class Resources(
 
     def imported_files: List[Path] = {
       val base_theories =
-        loaded_theories.all_preds(theories.map(_.theory)).
+        loaded_theories.all_preds(theories.map(_.name.theory)).
           filter(current_background.base.loaded_theories.defined)
 
       base_theories.map(theory => current_background.base.known_theories(theory).name.path) :::
@@ -567,30 +589,6 @@ class Resources(
     lazy val overall_syntax: Outer_Syntax =
       Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node))
 
-    override def toString: String = entries.toString
-  }
-
-
-  /* resolve implicit theory dependencies */
-
-  def resolve_dependencies(
-    session_conditions: Thy_Conditions.State,
-    models: Iterable[Document.Model],
-    theories: List[Document.Node.Name]
-  ): List[Document.Node.Name] = {
-    val model_theories =
-      (for (model <- models.iterator if model.is_theory)
-        yield (model.node_name, Position.none)).toList
-
-    val thy_files1 =
-      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none))).theories
-
-    val thy_files2 =
-      (for {
-        model <- models.iterator if !model.is_theory
-        thy_name <- make_theory_name(model.node_name)
-      } yield thy_name).toList
-
-    thy_files1 ::: thy_files2
+    override def toString: String = theories.toString
   }
 }

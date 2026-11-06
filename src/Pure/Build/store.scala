@@ -176,9 +176,8 @@ object Store {
     override def toString: String = rep.values.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
-    def get(name: String): Option[Source_File] = rep.get(name)
     def apply(name: String): Source_File =
-      get(name).getOrElse(error("Missing session sources entry " + quote(name)))
+      rep.getOrElse(name, error("No session source file " + quote(name)))
   }
 
 
