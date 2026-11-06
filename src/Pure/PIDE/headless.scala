@@ -310,7 +310,6 @@ object Headless {
           options = options, progress = progress).check_errors
       }
       val dep_theories = dependencies.theories
-      val dep_theories_set = dep_theories.toSet
       val dep_files = dependencies.loaded_files
 
       val use_theories_state = {
@@ -375,7 +374,8 @@ object Headless {
           val state = session.get_state()
 
           def apply_changed(st: Use_Theories_State): Use_Theories_State =
-            st.changed(changed.nodes.iterator.filter(dep_theories_set), changed.assignment)
+            st.changed(changed.nodes.iterator.filter(dependencies.theories_defined),
+              changed.assignment)
 
           state.stable_tip_version match {
             case None => use_theories_state.change(apply_changed)
@@ -385,7 +385,7 @@ object Headless {
                   val changed_st = apply_changed(st)
 
                   val domain =
-                    if (st.nodes_status.is_empty) dep_theories_set
+                    if (st.nodes_status.is_empty) dependencies.theories_defined
                     else changed_st.changed_nodes
 
                   val (nodes_status_changed, st1) =

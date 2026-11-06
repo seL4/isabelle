@@ -271,7 +271,7 @@ object Document_Model {
             (open_nodes ::: touched_nodes ::: pending_nodes).map((_, Position.none))
           }
           val session_conditions = PIDE.session.conditions
-          val retain = PIDE.resources.dependencies(session_conditions, imports).theories.toSet
+          val retain = PIDE.resources.dependencies(session_conditions, imports).theories_defined
 
           for (case (node_name, Some(edits)) <- purged if !retain(node_name); edit <- edits)
             yield edit

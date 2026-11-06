@@ -488,6 +488,7 @@ class Resources(
 
     def entries: List[Resources.Thy] = rev_entries.reverse
     def theories: List[Document.Node.Name] = entries.map(_.name)
+    lazy val theories_defined: Set[Document.Node.Name] = Set.from(rev_entries.map(_.name))
 
     def errors: List[String] = entries.flatMap(_.errors)
 
@@ -498,12 +499,11 @@ class Resources(
       }
 
     lazy val theory_graph: Document.Node.Name.Graph[Unit] = {
-      val regular = theories.toSet
       val irregular =
         (for {
           thy <- entries.iterator
           name <- thy.imports_no_pos
-          if !regular(name)
+          if !theories_defined(name)
         } yield name).toSet
 
       Document.Node.Name.make_graph(
