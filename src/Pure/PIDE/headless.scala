@@ -309,8 +309,6 @@ object Headless {
         resources.dependencies(conditions, import_names,
           options = options, progress = progress).check_errors
       }
-      val dep_theories = dependencies.theories
-      val dep_files = dependencies.loaded_files
 
       val use_theories_state = {
         val dep_graph = dependencies.theory_graph
@@ -338,7 +336,10 @@ object Headless {
           version <- state.stable_tip_version
           load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
           if load_theories.nonEmpty
-        } resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
+        } {
+          resources.load_theories(session, id, load_theories, dependencies.loaded_files,
+            unicode_symbols, progress)
+        }
       }
 
       lazy val check_progress = {
@@ -429,7 +430,7 @@ object Headless {
       }
       finally {
         session.commands_changed -= consumer
-        resources.unload_theories(session, id, dep_theories)
+        resources.unload_theories(session, id, dependencies.theories)
       }
 
       Exn.release(use_theories_state.guarded_access(_.join_result))
