@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/src/sledgehammer_view.scala
+/*  Title:      Tools/VSCode/extension/src/sledgehammer_webview.scala
     Author:     Fabian Huch
 
 Sledgehammer view within Isabelle/VSCode extension.
@@ -12,8 +12,8 @@ import isabelle.vscode._
 import org.scalajs.dom
 
 
-object Sledgehammer_View {
-  private var instance: Option[Sledgehammer_View] = None
+object Sledgehammer_Webview {
+  private var instance: Option[Sledgehammer_Webview] = None
 
   object isar_proofs_clicked extends Scalajs.Fun[Boolean] {
     def apply(state: Boolean): Unit = instance.foreach(_.handle_isar_proofs(state))
@@ -58,13 +58,13 @@ object Sledgehammer_View {
   def main(): Unit = {
     val vscode = Webview_Api.acquire
     val state = (for { case State(state) <- vscode.get_state } yield state) getOrElse State()
-    val view = new Sledgehammer_View(vscode, state)
+    val view = new Sledgehammer_Webview(vscode, state)
     instance = Some(view)
     view.init()
   }
 }
 
-class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgehammer_View.State) {
+class Sledgehammer_Webview private(vscode: Webview_Api, private var state: Sledgehammer_Webview.State) {
   view =>
 
 
@@ -101,19 +101,19 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
     VSCode_Elements.checkbox("Isar proofs",
       tooltip = "Specify whether Isar proofs should be output in addition to \"by\" one-liner",
       selected = state.isar_proofs,
-      script = Sledgehammer_View.isar_proofs_clicked.function("this.checked"))
+      script = Sledgehammer_Webview.isar_proofs_clicked.function("this.checked"))
 
   def handle_try0(state: Boolean): Unit = update(view.state.copy(try0 = state))
   private def try0_checkbox =
     VSCode_Elements.checkbox("Try methods",
       tooltip = "Try standard proof methods like \"auto\" and \"blast\" as alternatives to \"metis\"",
-      selected = state.try0, script = Sledgehammer_View.try0_clicked.function("this.checked"))
+      selected = state.try0, script = Sledgehammer_Webview.try0_clicked.function("this.checked"))
 
   def handle_apply_query(): Unit = provers_text_field.submit()
   private def apply_query: XML.Elem = {
     VSCode_Elements.button("Apply",
       tooltip = "Search for first-order proof using automatic theorem provers",
-      script = Sledgehammer_View.apply_query_clicked.function())
+      script = Sledgehammer_Webview.apply_query_clicked.function())
   }
 
   private val cancel_query =
@@ -134,7 +134,7 @@ class Sledgehammer_View private(vscode: Webview_Api, private var state: Sledgeha
 
   /* main */
 
-  private def update(state: Sledgehammer_View.State): Unit = {
+  private def update(state: Sledgehammer_Webview.State): Unit = {
     if (view.state != state) {
       view.state = state
       vscode.set_state(Some(state.json))

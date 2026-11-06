@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/src/output_view.scala
+/*  Title:      Tools/VSCode/extension/src/output_webview.scala
     Author:     Fabian Huch
 
 Output view within Isabelle/VSCode extension.
@@ -11,13 +11,13 @@ import org.scalajs.dom
 import isabelle._
 
 
-object Output_View {
+object Output_Webview {
   /* component */
 
-  def main(): Unit = { new Output_View(Webview_Api.acquire).init() }
+  def main(): Unit = { new Output_Webview(Webview_Api.acquire).init() }
 }
 
-class Output_View private(vscode: Webview_Api) {
+class Output_Webview private(vscode: Webview_Api) {
   val pretty_text_area =
     new Pretty_Text_Area(output => Scalajs.DOM.update(HTML.control_markup(output, hidden = true)))
 

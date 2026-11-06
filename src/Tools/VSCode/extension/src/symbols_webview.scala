@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/src/symbols_view.scala
+/*  Title:      Tools/VSCode/extension/src/symbols_webview.scala
     Author:     Fabian Huch
 
 Isabelle symbols view within Isabelle/VSCode extension.
@@ -9,8 +9,8 @@ package isabelle.vscode.extension
 import isabelle._
 
 
-object Symbols_View {
-  private var instance: Option[Symbols_View] = None
+object Symbols_Webview {
+  private var instance: Option[Symbols_Webview] = None
 
   object search_changed extends Scalajs.Fun[String] {
     def apply(input: String): Unit = instance.foreach(_.handle_search(input))
@@ -33,13 +33,13 @@ object Symbols_View {
   def main(): Unit = {
     val vscode = Webview_Api.acquire
     val tab = (for { case State(tab) <- vscode.get_state } yield tab) getOrElse 0
-    val view = new Symbols_View(vscode, tab)
+    val view = new Symbols_Webview(vscode, tab)
     instance = Some(view)
     view.init()
   }
 }
 
-class Symbols_View private(vscode: Webview_Api, private var active_tab: Int) {
+class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) {
   private var abbrevs: Thy_Header.Abbrevs = Nil
   private var search_input: String = ""
 
@@ -94,7 +94,7 @@ class Symbols_View private(vscode: Webview_Api, private var active_tab: Int) {
   private def search_panel: List[XML.Elem] = {
     val search_field = 
       VSCode_Elements.text_field(text = search_input,
-        script = Symbols_View.search_changed.function("this.value")) + ("style" -> "width: 100%;")
+        script = Symbols_Webview.search_changed.function("this.value")) + ("style" -> "width: 100%;")
 
     val search_words = Word.explode(Word.lowercase(search_input))
     val search_limit = 50
@@ -118,7 +118,7 @@ class Symbols_View private(vscode: Webview_Api, private var active_tab: Int) {
 
   def handle_tab(tab: Int): Unit = {
     active_tab = tab
-    vscode.set_state(Some(Symbols_View.State(active_tab)))
+    vscode.set_state(Some(Symbols_Webview.State(active_tab)))
     update()
   }
 
@@ -127,7 +127,7 @@ class Symbols_View private(vscode: Webview_Api, private var active_tab: Int) {
 
     def button(index: Int): XML.Elem =
       VSCode_Elements.tab_header(title, selected = index == active_tab, tooltip = tooltip,
-        script = Symbols_View.tab_clicked.function(JS.value(index)))
+        script = Symbols_Webview.tab_clicked.function(JS.value(index)))
 
     def panel(index: Int): XML.Elem = {
       val content = HTML.Wrap_Panel(elems, alignment = HTML.Wrap_Panel.Alignment.center)

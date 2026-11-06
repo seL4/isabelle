@@ -47,11 +47,11 @@ sources = \
   src/dom_metric.scala \
   src/history_text_field.scala \
   src/no_message_digest.scala \
-  src/output_view.scala \
+  src/output_webview.scala \
   src/pretty_text_area.scala \
-  src/sledgehammer_view.scala \
-  src/state_panel.scala \
-  src/symbols_view.scala \
+  src/sledgehammer_webview.scala \
+  src/state_webview.scala \
+  src/symbols_webview.scala \
   src/vscode.scala \
   src/vscode_elements.scala \
   src/webview_api.scala

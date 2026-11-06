@@ -233,10 +233,10 @@ val symbol_provider = Symbol_Static
 
         val modules =
           List(
-            Scalajs.Module("output_view", "isabelle.vscode.extension.Output_View"),
-            Scalajs.Module("sledgehammer_view", "isabelle.vscode.extension.Sledgehammer_View"),
-            Scalajs.Module("state_panel", "isabelle.vscode.extension.State_Panel"),
-            Scalajs.Module("symbols_view", "isabelle.vscode.extension.Symbols_View"))
+            Scalajs.Module("output_webview", "isabelle.vscode.extension.Output_Webview"),
+            Scalajs.Module("sledgehammer_webview", "isabelle.vscode.extension.Sledgehammer_Webview"),
+            Scalajs.Module("state_webview", "isabelle.vscode.extension.State_Webview"),
+            Scalajs.Module("symbols_webview", "isabelle.vscode.extension.Symbols_Webview"))
 
         progress.echo("Compiling scalajs modules ...")
         val js_dir = Isabelle_System.make_directory(build_dir + Path.basic("js"))

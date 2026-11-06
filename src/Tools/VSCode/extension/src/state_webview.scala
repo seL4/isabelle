@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/src/state_panel.scala
+/*  Title:      Tools/VSCode/extension/src/state_webview.scala
     Author:     Fabian Huch
 
 State panel within Isabelle/VSCode extension.
@@ -11,8 +11,8 @@ import org.scalajs.dom
 import isabelle._
 
 
-object State_Panel {
-  private var instance: Option[State_Panel] = None
+object State_Webview {
+  private var instance: Option[State_Webview] = None
 
   object auto_update_clicked extends Scalajs.Fun[Boolean] {
     def apply(state: Boolean): Unit = instance.foreach(_.handle_auto_update(state))
@@ -28,13 +28,13 @@ object State_Panel {
   /* component */
 
   def main(): Unit = {
-    val panel = new State_Panel(Webview_Api.acquire)
+    val panel = new State_Webview(Webview_Api.acquire)
     instance = Some(panel)
     panel.init()
   }
 }
 
-class State_Panel(vscode: Webview_Api) {
+class State_Webview(vscode: Webview_Api) {
   /* gui state */
 
   private var auto_update_enabled = true
@@ -50,19 +50,19 @@ class State_Panel(vscode: Webview_Api) {
     VSCode_Elements.checkbox("Auto update",
       tooltip = "Indicate automatic update following cursor movement",
       selected = auto_update_enabled,
-      script = State_Panel.auto_update_clicked.function("this.checked"))
+      script = State_Webview.auto_update_clicked.function("this.checked"))
 
   def handle_update(): Unit = vscode.post(JSON.Object("command" -> "update"))
   private val update_button =
     VSCode_Elements.button("Update",
       tooltip = "Update display according to the command at cursor position",
-      script = State_Panel.update_clicked.function())
+      script = State_Webview.update_clicked.function())
 
   def handle_locate(): Unit = vscode.post(JSON.Object("command" -> "locate"))
   private val locate_button =
     VSCode_Elements.button("Locate", secondary = true,
       tooltip = "Update display according to the command at cursor position",
-      script = State_Panel.locate_clicked.function())
+      script = State_Webview.locate_clicked.function())
 
   private def controls = HTML.Wrap_Panel(List(auto_update_button, update_button, locate_button))
 
