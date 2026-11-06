@@ -361,12 +361,11 @@ object Sessions {
         val import_errors = {
           val known_sessions =
             sessions_structure.imports_requirements(List(info.name)).toSet
-          for {
-            name <- dependencies.theories
-            qualifier = sessions_structure.theory_qualifier(name)
-            if !known_sessions(qualifier)
-          } yield "Bad import of theory " + quote(name.toString) +
-            ": need to include sessions " + quote(qualifier) + " in ROOT"
+          for (thy <- used_theories if !known_sessions(thy.session))
+            yield {
+              "Bad import of theory " + quote(thy.name.theory) +
+                ": need to include sessions " + quote(thy.session) + " in ROOT"
+            }
         }
 
         val document_errors =
@@ -382,16 +381,15 @@ object Sessions {
               def err(msg: String): Option[String] =
                 Some(msg + " " + quote(theory) + Position.here(pos))
 
-              known_theories.get(theory).map(_.name) match {
+              known_theories.get(theory) match {
                 case None => err("Unknown document theory")
-                case Some(name) =>
-                  val qualifier = sessions_structure.theory_qualifier(name)
-                  if (used_theories_proper.exists(thy => thy.name == name)) {
+                case Some(thy) =>
+                  if (used_theories_proper.exists(thy1 => thy1.name == thy.name)) {
                     err("Redundant document theory from this session:")
                   }
                   else if (
-                    !build_hierarchy.contains(qualifier) &&
-                    !dependencies.theories.contains(name)
+                    !build_hierarchy.contains(thy.session) &&
+                    !used_theories.exists(thy1 => thy1.name == thy.name)
                   ) {
                     err("Document theory from other session not imported properly:")
                   }
