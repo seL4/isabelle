@@ -281,7 +281,7 @@ object Sessions {
         val used_theories = dependencies.entries
         val used_theories_proper = used_theories.filter(thy => thy.session == info.name)
 
-        val theory_files = dependencies.theories.map(_.path)
+        val theory_files = used_theories.map(_.name.path)
 
         val (load_commands, load_commands_errors) =
           try { if (inlined_files) (dependencies.load_commands, Nil) else (Nil, Nil) }
@@ -324,7 +324,7 @@ object Sessions {
           val required_sessions =
             Set.from(
               for {
-                theory <- dependencies.loaded_theories.all_preds(dependencies.theories.map(_.theory))
+                theory <- dependencies.loaded_theories.all_preds(used_theories.map(_.name.theory))
                 qualifier = sessions_structure.theory_qualifier(theory)
                 if qualifier != info.name && sessions_structure.defined(qualifier)
               } yield qualifier)
