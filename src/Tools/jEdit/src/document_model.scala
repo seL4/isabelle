@@ -305,6 +305,9 @@ object Document_Model {
     lazy val bytes: Bytes = Bytes(Symbol.encode(text))
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
+    def blob(changed: Boolean = false): Document.Blobs.Item =
+      Document.Blobs.Item(bytes,
+        other_source = Some(text), other_chunk = Some(chunk), changed = changed)
   }
 
 
@@ -447,10 +450,7 @@ case class File_Model(
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else {
-      val changed = pending_edits.nonEmpty
-      Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, changed = changed))
-    }
+    else Some(content.blob(changed = pending_edits.nonEmpty))
 
   def untyped_data: AnyRef = content.data
 
@@ -629,7 +629,8 @@ class Buffer_Model private(
             blob = Some(x)
             x
           }
-        Some(Document.Blobs.Item(bytes, text, chunk, changed = !is_stable))
+        Some(Document.Blobs.Item(bytes,
+          other_source = Some(text), other_chunk = Some(chunk), changed = !is_stable))
       }
     }
 

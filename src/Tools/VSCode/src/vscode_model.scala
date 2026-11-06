@@ -36,6 +36,10 @@ object VSCode_Model {
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
 
+    def blob(changed: Boolean = false): Document.Blobs.Item =
+      Document.Blobs.Item(bytes,
+        other_source = Some(text), other_chunk = Some(chunk), changed = changed)
+
     def recode_symbols: List[LSP.TextEdit] =
       (for {
         (line, l) <- doc.lines.iterator.zipWithIndex
@@ -144,10 +148,7 @@ sealed case class VSCode_Model(
 
   def get_blob: Option[Document.Blobs.Item] =
     if (is_theory) None
-    else {
-      val changed = pending_edits.nonEmpty
-      Some(Document.Blobs.Item(content.bytes, content.text, content.chunk, changed = changed))
-    }
+    else Some(content.blob(changed = pending_edits.nonEmpty))
 
 
   /* data */

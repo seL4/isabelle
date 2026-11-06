@@ -775,11 +775,12 @@ Usage: isabelle build_worker [OPTIONS]
           val file = read_source_file(name0)
           val bytes = file.bytes
           val text = recode(bytes.text)
-          val chunk = Symbol.Text_Chunk(text)
-          val content = Some((file.digest, chunk))
+          val blob =
+            Document.Blobs.Item(bytes,
+              other_source = Some(text), command_offset = command_offset)
+          val content = Some((file.digest, blob.chunk))
 
-          Command.Blob(command_offset, node_name, src_path, content) ->
-            Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
+          Command.Blob(command_offset, node_name, src_path, content) -> blob
         }
 
       val thy_source = recode(read_source_file(thy_file0).bytes.text)
