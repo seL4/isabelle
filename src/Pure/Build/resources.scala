@@ -168,7 +168,7 @@ class Resources(
      (sessions_structure.session_positions,
      (sessions_structure.dest_session_directories,
      (command_timings,
-     (Command_Span.load_commands.map(cmd => (cmd.name, cmd.position)),
+     (Command_Span.list_load_commands.map(cmd => (cmd.name, cmd.position)),
      (Scala.functions.map((fun: Scala.Fun) => (fun.name, (fun.single, fun.bytes, fun.position))),
      (sessions_structure.global_theories.toList,
       current_background.base.loaded_theories.keys)))))))
