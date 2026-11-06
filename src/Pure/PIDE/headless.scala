@@ -430,7 +430,7 @@ object Headless {
       }
       finally {
         session.commands_changed -= consumer
-        resources.unload_theories(session, id, dependencies.entries.map(_.name))
+        resources.unload_theories(session, id, dependencies.theories.map(_.name))
       }
 
       Exn.release(use_theories_state.guarded_access(_.join_result))

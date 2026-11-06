@@ -278,7 +278,7 @@ object Sessions {
 
         val dependencies = deps_resources.build_dependencies(info)
 
-        val used_theories = dependencies.entries
+        val used_theories = dependencies.theories
         val used_theories_proper = used_theories.filter(thy => thy.session == info.name)
 
         val theory_files = used_theories.map(_.name.path)
