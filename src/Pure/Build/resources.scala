@@ -513,21 +513,21 @@ class Resources(
 
     lazy val loaded_theories: Graph[String, Outer_Syntax] =
       entries.foldLeft(current_background.base.loaded_theories) {
-        case (graph, entry) =>
-          val name = entry.name.theory
-          val imports = entry.imports_no_pos.map(_.theory)
+        case (graph, thy) =>
+          val theory = thy.name.theory
+          val imports = thy.imports_no_pos.map(_.theory)
 
-          val graph1 = (name :: imports).foldLeft(graph)(_.default_node(_, Outer_Syntax.empty))
-          val graph2 = imports.foldLeft(graph1)(_.add_edge(_, name))
+          val graph1 = (theory :: imports).foldLeft(graph)(_.default_node(_, Outer_Syntax.empty))
+          val graph2 = imports.foldLeft(graph1)(_.add_edge(_, theory))
 
-          val syntax0 = if (Sessions.is_Pure(name)) List(Thy_Header.bootstrap_syntax) else Nil
-          val syntax1 = (name :: graph2.imm_preds(name).toList).map(graph2.get_node)
+          val syntax0 = if (Sessions.is_Pure(theory)) List(Thy_Header.bootstrap_syntax) else Nil
+          val syntax1 = (theory :: graph2.imm_preds(theory).toList).map(graph2.get_node)
           val syntax =
             Outer_Syntax.merge(syntax0 ::: syntax1)
-              .add_keywords(entry.keywords)
-              .add_abbrevs(entry.abbrevs)
+              .add_keywords(thy.keywords)
+              .add_abbrevs(thy.abbrevs)
 
-          graph2.map_node(name, _ => syntax)
+          graph2.map_node(theory, _ => syntax)
       }
 
     def get_syntax(name: Document.Node.Name): Outer_Syntax =
