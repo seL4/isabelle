@@ -42,7 +42,7 @@ object Thy_Conditions {
 
   class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
 
-  lazy val predicates: Map[String, Predicate] = {
+  lazy val predicates: Map[String, Predicate] =
     Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
       .foldLeft(Map.empty[String, Predicate])(
         { case (map, pred) =>
@@ -51,7 +51,6 @@ object Thy_Conditions {
             }
             else map + (pred.name -> pred)
         })
-  }
 
   def the_predicate(name: String): Predicate =
     predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
