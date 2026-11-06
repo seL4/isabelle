@@ -489,9 +489,6 @@ object Export {
         } yield file).nextOption()
       }
 
-    def source_file(name: String): Store.Source_File =
-      get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
-
     def get_theory_source(theory: String, unicode_symbols: Boolean = false): Option[String] = {
       def snapshot_source: Option[String] =
         for {

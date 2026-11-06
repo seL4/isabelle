@@ -757,7 +757,8 @@ Usage: isabelle build_worker [OPTIONS]
       YXML.parse_body(read(name).bytes, recode = recode, cache = theory_context.cache)
 
     def read_source_file(name: String): Store.Source_File =
-      theory_context.session_context.source_file(name)
+      theory_context.session_context.get_source_file(name)
+        .getOrElse(error("No session source file " + quote(name)))
 
     for {
       id <- theory_context.document_id()
