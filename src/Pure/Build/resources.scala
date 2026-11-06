@@ -382,16 +382,6 @@ class Resources(
 
   /* theory and file dependencies */
 
-  def dependencies(
-    session_conditions: Thy_Conditions.State,
-    theories: List[(Document.Node.Name, Position.T)],
-    options: Options.Update = Nil,
-    progress: Progress = new Progress
-  ): Dependencies = {
-    Dependencies.require_thys(Dependencies.empty, theories,
-      options = options, progress = progress, session_conditions = Some(session_conditions))
-  }
-
   def build_dependencies(
     info: Sessions.Info,
     progress: Progress = new Progress
@@ -402,6 +392,38 @@ class Resources(
           for { (s, pos) <- theories } yield (import_name(info, s), pos),
           options = options, progress = progress)
     }
+  }
+
+  def dependencies(
+    session_conditions: Thy_Conditions.State,
+    theories: List[(Document.Node.Name, Position.T)],
+    options: Options.Update = Nil,
+    progress: Progress = new Progress
+  ): Dependencies = {
+    Dependencies.require_thys(Dependencies.empty, theories,
+      options = options, progress = progress, session_conditions = Some(session_conditions))
+  }
+
+  def resolve_dependencies(
+    session_conditions: Thy_Conditions.State,
+    models: Iterable[Document.Model],
+    theories: List[Document.Node.Name]
+  ): List[Document.Node.Name] = {
+    val model_theories =
+      (for (model <- models.iterator if model.is_theory)
+        yield (model.node_name, Position.none)).toList
+
+    val thy_files1 =
+      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none)))
+        .theories.map(_.name)
+
+    val thy_files2 =
+      (for {
+        model <- models.iterator if !model.is_theory
+        thy_name <- make_theory_name(model.node_name)
+      } yield thy_name).toList
+
+    thy_files1 ::: thy_files2
   }
 
   object Dependencies {
@@ -568,30 +590,5 @@ class Resources(
       Outer_Syntax.merge(loaded_theories.maximals.map(loaded_theories.get_node))
 
     override def toString: String = theories.toString
-  }
-
-
-  /* resolve implicit theory dependencies */
-
-  def resolve_dependencies(
-    session_conditions: Thy_Conditions.State,
-    models: Iterable[Document.Model],
-    theories: List[Document.Node.Name]
-  ): List[Document.Node.Name] = {
-    val model_theories =
-      (for (model <- models.iterator if model.is_theory)
-        yield (model.node_name, Position.none)).toList
-
-    val thy_files1 =
-      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none)))
-        .theories.map(_.name)
-
-    val thy_files2 =
-      (for {
-        model <- models.iterator if !model.is_theory
-        thy_name <- make_theory_name(model.node_name)
-      } yield thy_name).toList
-
-    thy_files1 ::: thy_files2
   }
 }
