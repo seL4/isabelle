@@ -487,7 +487,6 @@ class Resources(
       new Dependencies(rev_entries, visited + name)
 
     def entries: List[Resources.Thy] = rev_entries.reverse
-    def theories: List[Document.Node.Name] = entries.map(_.name)
     lazy val theories_defined: Set[Document.Node.Name] = Set.from(rev_entries.map(_.name))
 
     def errors: List[String] = entries.flatMap(_.errors)
@@ -534,10 +533,10 @@ class Resources(
       loaded_theories.get_node(name.theory)
 
     lazy val load_commands: List[(Document.Node.Name, List[(Command_Span.Span, Symbol.Offset)])] =
-      theories.zip(
+      entries.zip(
         Par_List.map((e: () => List[(Command_Span.Span, Symbol.Offset)]) => e(),
-          theories.map(name => resources.load_commands(get_syntax(name), name))))
-      .filter(p => p._2.nonEmpty)
+          entries.map(thy => resources.load_commands(get_syntax(thy.name), thy.name))))
+      .flatMap({ case (thy, cmds) => if (cmds.isEmpty) None else Some(thy.name -> cmds) })
 
     def loaded_files(
       name: Document.Node.Name,
@@ -557,7 +556,7 @@ class Resources(
 
     def imported_files: List[Path] = {
       val base_theories =
-        loaded_theories.all_preds(theories.map(_.theory)).
+        loaded_theories.all_preds(entries.map(_.name.theory)).
           filter(current_background.base.loaded_theories.defined)
 
       base_theories.map(theory => current_background.base.known_theories(theory).name.path) :::
@@ -583,7 +582,8 @@ class Resources(
         yield (model.node_name, Position.none)).toList
 
     val thy_files1 =
-      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none))).theories
+      dependencies(session_conditions, model_theories ::: theories.map((_, Position.none)))
+        .entries.map(_.name)
 
     val thy_files2 =
       (for {
