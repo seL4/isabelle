@@ -479,13 +479,15 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
-    def get_source_file(name: String): Option[Store.Source_File] = {
-      val store = database_context.store
-      (for {
-        database <- db_hierarchy.iterator
-        file <- store.read_sources(database.db, database.session, name = name).iterator
-      } yield file).nextOption()
-    }
+    def get_source_file(name: String): Option[Store.Source_File] =
+      if (name.isEmpty) None
+      else {
+        val store = database_context.store
+        (for {
+          database <- db_hierarchy.iterator
+          file <- store.read_sources(database.db, database.session, name = name).iterator
+        } yield file).nextOption()
+      }
 
     def source_file(name: String): Store.Source_File =
       get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
