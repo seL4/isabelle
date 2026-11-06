@@ -235,7 +235,7 @@ object Build_Job {
             }
             else Nil
 
-          def session_blobs(node_name: Document.Node.Name): List[(Command.Blob, Document.Blobs.Item)] =
+          def session_blobs(node_name: Document.Node.Name): List[Command.Blob.Entry] =
             current_background.base.theory_load_commands.get(node_name.theory) match {
               case None => Nil
               case Some(load_commands) =>

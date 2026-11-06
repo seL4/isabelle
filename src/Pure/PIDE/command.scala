@@ -35,7 +35,7 @@ object Command {
   object Blobs_Info {
     val empty: Blobs_Info = Blobs_Info(Nil)
 
-    def make(blobs: List[(Blob, Document.Blobs.Item)]): Blobs_Info =
+    def make(blobs: List[Blob.Entry]): Blobs_Info =
       if (blobs.isEmpty) empty else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
 
     def errors(msgs: List[String]): Blobs_Info =
