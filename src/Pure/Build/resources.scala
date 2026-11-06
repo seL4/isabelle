@@ -486,8 +486,9 @@ class Resources(
     private def visit(name: Document.Node.Name): Dependencies =
       new Dependencies(rev_theories, visited + name)
 
-    def theories: List[Resources.Thy] = rev_theories.reverse
-    lazy val theories_defined: Set[Document.Node.Name] = Set.from(rev_theories.map(_.name))
+    lazy val theories: List[Resources.Thy] = rev_theories.reverse
+    lazy val theories_defined: Set[Document.Node.Name] =
+      rev_theories.foldLeft(Set.empty)({ case (set, thy) => set + thy.name })
 
     def errors: List[String] = theories.flatMap(_.errors)
 
