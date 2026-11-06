@@ -251,9 +251,7 @@ object Document_Build {
             YXML.parse_body(entry.bytes)
           }
           else {
-            val text =
-              proper_string(session_context.theory_source(name.theory)) getOrElse
-                File.read(name.path)
+            val text = session_context.get_theory_source(name.theory) getOrElse File.read(name.path)
             (for {
               outer <- Bibtex.Cite.parse(Bibtex.cite_commands(options), text)
               inner <- outer.parse
