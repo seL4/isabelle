@@ -178,10 +178,10 @@ object Sessions {
 
           val required_theories =
             for {
-              thy <- base.loaded_theories.keys
-              if !ancestor_loaded(thy) && selected_sessions.theory_qualifier(thy) != session
+              theory <- base.loaded_theories.keys
+              if !ancestor_loaded(theory) && selected_sessions.theory_qualifier(theory) != session
             }
-            yield thy
+            yield theory
 
           if (required_theories.isEmpty) (ancestor.get, Nil)
           else {
@@ -196,7 +196,8 @@ object Sessions {
                 parent = ancestor,
                 description = "Required theory imports from other sessions",
                 imports = info.deps,
-                theories = List((Nil, required_theories.map(thy => ((thy, Position.none), false)))))
+                theories =
+                  List((Nil, required_theories.map(theory => ((theory, Position.none), false)))))
 
             val session_info =
               Info.make(session_entry,
@@ -371,7 +372,7 @@ object Sessions {
         val document_errors =
           info.document_theories.flatMap(
           {
-            case (thy, pos) =>
+            case (theory, pos) =>
               val build_hierarchy =
                 if (sessions_structure.build_graph.defined(info.name)) {
                   sessions_structure.build_hierarchy(info.name)
@@ -379,9 +380,9 @@ object Sessions {
                 else Nil
 
               def err(msg: String): Option[String] =
-                Some(msg + " " + quote(thy) + Position.here(pos))
+                Some(msg + " " + quote(theory) + Position.here(pos))
 
-              known_theories.get(thy).map(_.name) match {
+              known_theories.get(theory).map(_.name) match {
                 case None => err("Unknown document theory")
                 case Some(name) =>
                   val qualifier = sessions_structure.theory_qualifier(name)
@@ -398,7 +399,7 @@ object Sessions {
               }
           })
         val document_theories =
-          info.document_theories.map({ case (thy, _) => known_theories(thy).name })
+          info.document_theories.map({ case (theory, _) => known_theories(theory).name })
 
         val dir_errors = {
           val ok = info.dirs.map(_.canonical_file).toSet
@@ -884,15 +885,15 @@ object Sessions {
         (for {
           session <- imports_graph.topological_order.iterator
           info = info_graph.get_node(session)
-          thy <- info.global_theories.iterator }
-          yield (info, thy)
+          theory <- info.global_theories.iterator }
+          yield (info, theory)
         ).foldLeft(Thy_Header.bootstrap_global_theories.toMap) {
-            case (global, (info, thy)) =>
+            case (global, (info, theory)) =>
               val qualifier = info.name
-              global.get(thy) match {
+              global.get(theory) match {
                 case Some(qualifier1) if qualifier != qualifier1 =>
-                  error("Duplicate global theory " + quote(thy) + Position.here(info.pos))
-                case _ => global + (thy -> qualifier)
+                  error("Duplicate global theory " + quote(theory) + Position.here(info.pos))
+                case _ => global + (theory -> qualifier)
               }
           }
 
@@ -943,8 +944,8 @@ object Sessions {
     def apply(name: String): Info = imports_graph.get_node(name)
     def get(name: String): Option[Info] = if (defined(name)) Some(apply(name)) else None
 
-    def theory_qualifier(name: String): String =
-      global_theories.getOrElse(name, Long_Name.qualifier(name))
+    def theory_qualifier(theory: String): String =
+      global_theories.getOrElse(theory, Long_Name.qualifier(theory))
     def theory_qualifier(name: Document.Node.Name): String = theory_qualifier(name.theory)
 
     def check_sessions(names: List[String]): Unit = {
