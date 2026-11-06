@@ -17,7 +17,7 @@ object Command {
   object Blob {
     type Entry = (Blob, Document.Blobs.Item)
     def entry(name: Document.Node.Name, src_path: Path, blob: Document.Blobs.Item): Entry = {
-      val content = (SHA1.digest(blob.bytes), blob.chunk)
+      val content = (blob.bytes.sha1_digest, blob.chunk)
       Blob(blob.command_offset, name, src_path, Some(content)) -> blob
     }
   }
