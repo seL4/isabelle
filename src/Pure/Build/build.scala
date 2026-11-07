@@ -771,9 +771,7 @@ Usage: isabelle build_worker [OPTIONS]
         blobs_files0.map { case (command_offset, name0) =>
           val node_name = Document.Node.Name(migrate_file(name0))
           val src_path = Path.explode(name0)
-
-          val file = read_source_file(name0)
-          val bytes = file.bytes
+          val bytes = read_source_file(name0).bytes
           Command.Blob.entry(node_name, src_path, bytes,
             source = Some(recode(bytes.text)), command_offset = command_offset)
         }
