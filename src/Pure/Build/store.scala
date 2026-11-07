@@ -144,7 +144,7 @@ object Store {
     body: Bytes,
     cache: Compress.Cache
   ) {
-    override def toString: String = name
+    override def toString: String = quote(name)
 
     def bytes: Bytes = if (compressed) body.uncompress(cache = cache) else body
   }
@@ -187,7 +187,9 @@ object Store {
   }
 
   class Sources private(rep: Map[String, Source_File]) extends Iterable[Source_File] {
-    override def toString: String = rep.values.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
+    override def toString: String =
+      if (rep.isEmpty) "Sources.empty"
+      else rep.valuesIterator.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
     def source_file(name: String): Source_File =
