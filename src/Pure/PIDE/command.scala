@@ -239,8 +239,6 @@ object Command {
     val document_status: Document_Status.Command_Status
   ) {
     override def toString: String = "Command.State(" + command + ")"
-    override def hashCode(): Int = ???
-    override def equals(obj: Any): Boolean = ???
 
     def initialized: Boolean = document_status.initialized
     def consolidating: Boolean = document_status.consolidating
