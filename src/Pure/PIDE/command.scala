@@ -16,7 +16,18 @@ object Command {
 
   object Blob {
     type Entry = (Blob, Document.Blobs.Item)
-    def entry(name: Document.Node.Name, src_path: Path, blob: Document.Blobs.Item): Entry = {
+    def entry(
+      name: Document.Node.Name,
+      src_path: Path,
+      bytes: Bytes,
+      source: Option[String] = None,
+      chunk: Option[Symbol.Text_Chunk] = None,
+      command_offset: Symbol.Offset = 0,
+      changed: Boolean = false
+    ): Entry = {
+      val blob =
+        Document.Blobs.Item.make(bytes,  source = source, chunk = chunk,
+          command_offset = command_offset, changed = changed)
       val content = (blob.bytes.sha1_digest, blob.chunk)
       Blob(blob.command_offset, name, src_path, Some(content)) -> blob
     }

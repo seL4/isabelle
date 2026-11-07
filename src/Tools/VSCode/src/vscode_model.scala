@@ -37,8 +37,7 @@ object VSCode_Model {
     lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
 
     def blob(changed: Boolean = false): Document.Blobs.Item =
-      Document.Blobs.Item(bytes,
-        other_source = Some(text), other_chunk = Some(chunk), changed = changed)
+      Document.Blobs.Item.make(bytes, source = Some(text), chunk = Some(chunk), changed = changed)
 
     def recode_symbols: List[LSP.TextEdit] =
       (for {

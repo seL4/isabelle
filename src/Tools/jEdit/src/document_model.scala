@@ -306,8 +306,7 @@ object Document_Model {
     lazy val chunk: Symbol.Text_Chunk = Symbol.Text_Chunk(text)
     lazy val data: AnyRef = File_Format.registry.parse_data(node_name, text)
     def blob(changed: Boolean = false): Document.Blobs.Item =
-      Document.Blobs.Item(bytes,
-        other_source = Some(text), other_chunk = Some(chunk), changed = changed)
+      Document.Blobs.Item.make(bytes, source = Some(text), chunk = Some(chunk), changed = changed)
   }
 
 
@@ -629,8 +628,8 @@ class Buffer_Model private(
             blob = Some(x)
             x
           }
-        Some(Document.Blobs.Item(bytes,
-          other_source = Some(text), other_chunk = Some(chunk), changed = !is_stable))
+        Some(Document.Blobs.Item.make(bytes,
+          source = Some(text), chunk = Some(chunk), changed = !is_stable))
       }
     }
 

@@ -42,20 +42,31 @@ object Document {
   /* document blobs: auxiliary files */
 
   object Blobs {
+    object Item {
+      def make(
+        bytes: Bytes,
+        source: Option[String] = None,
+        chunk: Option[Symbol.Text_Chunk] = None,
+        command_offset: Symbol.Offset = 0,
+        changed: Boolean = false
+      ): Item = {
+        val source1 = source.getOrElse(bytes.text)
+        val chunk1 = chunk.getOrElse(Symbol.Text_Chunk(source1))
+        Item(bytes, source1, chunk1, command_offset, changed)
+      }
+    }
     sealed case class Item(
       bytes: Bytes,
-      other_source: Option[String] = None,
-      other_chunk: Option[Symbol.Text_Chunk] = None,
-      command_offset: Symbol.Offset = 0,
-      changed: Boolean = false
+      source: String,
+      chunk: Symbol.Text_Chunk,
+      command_offset: Symbol.Offset,
+      changed: Boolean
     ) {
       override def toString: String =
         "Blobs.Item(bytes = " + bytes.size + ", source = " + source.length +
           if_proper(command_offset > 0, ", command_offset = " + command_offset) +
           if_proper(changed, ", changed = true") + ")"
 
-      val source: String = other_source.getOrElse(bytes.text)
-      val chunk: Symbol.Text_Chunk = other_chunk.getOrElse(Symbol.Text_Chunk(source))
       def source_wellformed: Boolean = bytes.wellformed_text.nonEmpty
       def unchanged: Item = if (changed) copy(changed = false) else this
     }

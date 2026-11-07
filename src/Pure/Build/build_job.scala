@@ -248,8 +248,7 @@ object Build_Job {
                     val src_path = Path.explode(file)
                     val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
                     val bytes = session_sources(blob_name.node).bytes
-                    Command.Blob.entry(blob_name, src_path,
-                      Document.Blobs.Item(bytes, command_offset = command_offset))
+                    Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
                   }
             }
 
