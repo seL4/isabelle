@@ -9,6 +9,8 @@ package isabelle
 
 import java.sql.SQLException
 
+import scala.collection.immutable.SortedMap
+
 
 object Store {
   def apply(
@@ -150,11 +152,11 @@ object Store {
   }
 
   object Sources {
-    val empty: Sources = new Sources(Map.empty)
+    val empty: Sources = new Sources(SortedMap.empty[String, Source_File])
 
     def load(session_base: Sessions.Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(
-        session_base.session_sources.foldLeft(Map.empty) {
+        session_base.session_sources.foldLeft(SortedMap.empty[String, Source_File]) {
           case (sources, (path, digest)) =>
             def err(): Nothing = error("Incoherent digest for source file: " + path.expand)
             val name = File.symbolic_path(path)
@@ -186,10 +188,9 @@ object Store {
     }
   }
 
-  class Sources private(rep: Map[String, Source_File]) extends Iterable[Source_File] {
+  class Sources private(rep: SortedMap[String, Source_File]) extends Iterable[Source_File] {
     override def toString: String =
-      if (rep.isEmpty) "Sources.empty"
-      else rep.valuesIterator.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
+      if (rep.isEmpty) "Sources.empty" else iterator.mkString("Sources(", ", ", ")")
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
     def source_file(name: String): Source_File =
