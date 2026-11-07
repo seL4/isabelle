@@ -386,5 +386,6 @@ class Scala_Functions extends Scala.Functions(
   Scala.Sleep,
   Scala.Toplevel,
   Scala_Build.Scala_Fun,
+  Store.Sources.Scala_Fun,
   isabelle.atp.SystemOnTPTP.List_Systems,
   isabelle.atp.SystemOnTPTP.Run_System)

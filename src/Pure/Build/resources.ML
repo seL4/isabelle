@@ -53,6 +53,7 @@ sig
   val find_theory_file: string -> Path.T option
   val import_name: string -> Path.T -> string ->
     {node_name: Path.T, master_dir: Path.T, theory_name: string}
+  val source_file: string -> {digest: Message_Digest.T, bytes: Bytes.T}
   val read_file_node: string -> Path.T -> Path.T * Position.T -> Token.file
   val read_file: Path.T -> Path.T * Position.T -> Token.file
   val parsed_files: (Path.T -> Path.T list) ->
@@ -376,6 +377,13 @@ fun import_name qualifier dir s =
           then loaded_theory_node theory
           else theory_node (File.full_path dir (Path.thy (Path.expand (Path.explode s)))))
   end;
+
+
+(* source_file *)
+
+fun source_file name =
+  let val [digest, bytes] = Scala.function_bytes "source_file" [Bytes.string name]
+  in {digest = Message_Digest.parse (Bytes.content digest), bytes = bytes} end;
 
 
 (* read_file *)

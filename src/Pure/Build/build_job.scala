@@ -260,11 +260,13 @@ object Build_Job {
                   command_timings =
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
+              override def sources: Store.Sources = session_sources
+
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
-                Command.Blobs_Info.make(session_sources.blobs(current_background.base, node_name))
+                Command.Blobs_Info.make(sources.blobs(current_background.base, node_name))
 
               override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
-                Document.Blobs.make(session_sources.blobs(current_background.base, node_name))
+                Document.Blobs.make(sources.blobs(current_background.base, node_name))
 
               override val nodes_status_domain: List[Document.Node.Name] =
                 session_theories.map(_.name.symbolic_path)
@@ -580,7 +582,7 @@ object Build_Job {
 
           // write database
           def write_info(db: SQL.Database): Unit =
-            store.write_session_info(db, session_name, session_sources,
+            store.write_session_info(db, session_name, session.sources,
               build_log =
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
               build =

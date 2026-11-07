@@ -150,6 +150,8 @@ object Store {
   }
 
   object Sources {
+    val empty: Sources = new Sources(Map.empty)
+
     def load(session_base: Sessions.Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(
         session_base.session_sources.foldLeft(Map.empty) {
@@ -170,6 +172,18 @@ object Store {
                 else err()
             }
         })
+
+    object Scala_Fun extends Scala.Fun("source_file") with Scala.Bytes_Fun {
+      val here = Scala_Project.here
+      def invoke(session: isabelle.Session, args: List[Bytes]): List[Bytes] =
+        args match {
+          case List(name) =>
+            val source_file = session.sources.source_file(name.text)
+            val digest = Bytes(source_file.digest.rep)
+            List(digest, source_file.bytes)
+          case _ => error("Bad arguments")
+        }
+    }
   }
 
   class Sources private(rep: Map[String, Source_File]) extends Iterable[Source_File] {
