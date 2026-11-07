@@ -176,8 +176,25 @@ object Store {
     override def toString: String = rep.values.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
-    def apply(name: String): Source_File =
+    def source_file(name: String): Source_File =
       rep.getOrElse(name, error("No session source file " + quote(name)))
+
+    def blobs(base: Sessions.Base, node_name: Document.Node.Name): List[Command.Blob.Entry] =
+      base.theory_load_commands.get(node_name.theory) match {
+        case None => Nil
+        case Some(load_commands) =>
+          val syntax = base.theory_syntax(node_name)
+          val master_dir = Path.explode(node_name.master_dir)
+          for {
+            (command_span, command_offset) <- load_commands
+            file <- command_span.loaded_files(syntax).files
+          } yield {
+            val src_path = Path.explode(file)
+            val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
+            val bytes = source_file(blob_name.node).bytes
+            Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
+          }
+      }
   }
 
 

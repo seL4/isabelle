@@ -235,23 +235,6 @@ object Build_Job {
             }
             else Nil
 
-          def session_blobs(node_name: Document.Node.Name): List[Command.Blob.Entry] =
-            current_background.base.theory_load_commands.get(node_name.theory) match {
-              case None => Nil
-              case Some(load_commands) =>
-                val syntax = current_background.base.theory_syntax(node_name)
-                val master_dir = Path.explode(node_name.master_dir)
-                for {
-                  (command_span, command_offset) <- load_commands
-                  file <- command_span.loaded_files(syntax).files
-                } yield {
-                    val src_path = Path.explode(file)
-                    val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
-                    val bytes = session_sources(blob_name.node).bytes
-                    Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
-                  }
-            }
-
           session_conditions.make_immutable()
 
           val session_theories =
@@ -278,10 +261,10 @@ object Build_Job {
                     Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
 
               override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
-                Command.Blobs_Info.make(session_blobs(node_name))
+                Command.Blobs_Info.make(session_sources.blobs(current_background.base, node_name))
 
               override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
-                Document.Blobs.make(session_blobs(node_name))
+                Document.Blobs.make(session_sources.blobs(current_background.base, node_name))
 
               override val nodes_status_domain: List[Document.Node.Name] =
                 session_theories.map(_.name.symbolic_path)
