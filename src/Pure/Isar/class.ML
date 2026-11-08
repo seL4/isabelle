@@ -405,7 +405,7 @@ fun global_def (b, eq) thy =
     val (_, thy'') = thy' |> Global_Theory.store_thm (b, def_thm');
   in (def_thm', thy'') end;
 
-fun canonical_const class phi dangling_params ((b, mx), rhs) thy =
+fun canonical_const class dangling_params ((b, mx), rhs) thy =
   let
     val b_def = Binding.suffix_name "_dict" b;
     val c = Sign.full_name thy b;
@@ -431,7 +431,7 @@ fun const class ((b, mx), lhs) params lthy =
   in
     lthy
     |> target_const class phi Syntax.mode_default (b, lhs)
-    |> Local_Theory.raw_theory (canonical_const class phi dangling_params
+    |> Local_Theory.raw_theory (canonical_const class dangling_params
          ((Morphism.binding phi b_canonical, if null dangling_params then mx else NoSyn), Morphism.term phi lhs))
     |> Generic_Target.standard_const (fn (this, other) => other <> 0 andalso this <> other)
          Syntax.mode_default ((b, if null dangling_params then NoSyn else mx), lhs)
@@ -442,7 +442,7 @@ end;
 
 local
 
-fun canonical_abbrev class phi prmode with_syntax ((b, mx), rhs) thy =
+fun canonical_abbrev class prmode with_syntax ((b, mx), rhs) thy =
   let
     val c = Sign.full_name thy b;
     val constrain =
@@ -470,7 +470,7 @@ fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
   in
     lthy
-    |> Local_Theory.raw_theory (canonical_abbrev class phi prmode (null term_params)
+    |> Local_Theory.raw_theory (canonical_abbrev class prmode (null term_params)
         ((Morphism.binding phi b, mx'), Logic.unvarify_types_global global_rhs))
   end;
 
