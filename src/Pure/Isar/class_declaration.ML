@@ -308,7 +308,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
       |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy =
       (case #axioms (Axclass.get_info thy class) of
-         [] => NONE
+        [] => NONE
       | [thm] => SOME thm);
   in
     thy
