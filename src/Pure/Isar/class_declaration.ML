@@ -118,25 +118,21 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
   let
     (* user space type system: only permits 'a type variable, improves towards 'a *)
     val thy = Proof_Context.theory_of ctxt;
-    val algebra = Sign.classes_of thy;
-    val inter_sort = curry (Sorts.inter_sort algebra);
-    val proto_base_sort =
-      if null sups then Sign.defaultS thy
-      else fold inter_sort (map (Class.base_sort thy) sups) [];
     val is_param = member (op =) (map fst (Class.these_params thy sups));
+    val proto_base_sort = Class.base_sort_for thy sups;
     val base_constraints = Class.these_constraints thy {base_sort = proto_base_sort} sups;
     val singleton_fixate = burrow_types (fn Ts =>
       let
         val tfrees = fold Term.add_tfreesT Ts [];
         val inferred_sort =
-          (fold o fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) Ts [];
+          (fold o fold_atyps) (fn TVar (_, S) => curry (Sign.inter_sort thy) S | _ => I) Ts [];
         val fixate_sort =
           (case tfrees of
             [] => inferred_sort
           | [(a, S)] =>
               if a <> Name.aT then
                 error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
-              else if Sorts.sort_le algebra (S, inferred_sort) then S
+              else if Sign.subsort thy (S, inferred_sort) then S
               else
                 error ("Type inference imposes additional sort constraint " ^
                   Syntax.string_of_sort_global thy inferred_sort ^
