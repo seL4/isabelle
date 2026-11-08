@@ -19,6 +19,10 @@ end;
 structure Class_Declaration: CLASS_DECLARATION =
 struct
 
+(** generic nonsense **)
+
+val class_prefix = Logic.const_of_class o Long_Name.base_name;
+
 (** class definitions **)
 
 local
@@ -72,7 +76,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* canonical interpretation *)
     val base_morph = inst_morph
-      $> Morphism.binding_morphism "class_binding" (Binding.prefix false (Class.class_prefix class))
+      $> Morphism.binding_morphism "class_binding" (Binding.prefix false (class_prefix class))
       $> Element.satisfy_morphism (the_list some_witn);
     val eq_morph =
       Element.eq_morphism thy_ctxt (Class.these_defs thy sups)
@@ -120,7 +124,6 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
     val thy = Proof_Context.theory_of ctxt;
     val is_param = member (op =) (map fst (Class.these_params thy sups));
     val proto_base_sort = Class.base_sort_for thy sups;
-    val base_constraints = Class.these_constraints thy {base_sort = proto_base_sort} sups;
     val singleton_fixate = burrow_types (fn Ts =>
       let
         val tfrees = fold Term.add_tfreesT Ts [];
@@ -164,8 +167,7 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
       (map (fn sup => (sup, (("", false), (Expression.Positional [], [])))) sups, []);
     val init_class_body =
       Variable.restore_constraints ctxt
-      #> fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
-      #> Class.redeclare_operations thy sups
+      #> Class.pre_begin {base_sort = proto_base_sort} sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
       ctxt
@@ -287,7 +289,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
       end;
   in
     thy
-    |> Sign.add_path (Class.class_prefix class)
+    |> Sign.add_path (class_prefix class)
     |> fold_map add_const raw_params
     ||> Sign.restore_naming thy
     |-> (fn params => pair (supconsts @ (map o apfst) fst params, params))

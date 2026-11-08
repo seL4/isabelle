@@ -12,16 +12,14 @@ sig
   val base_sort_for: theory -> sort -> sort
   val rules: theory -> class -> thm option * thm
   val these_defs: theory -> sort -> thm list
-  val these_constraints: theory -> {base_sort: sort} -> sort -> (string * typ) list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
+  val pre_begin: {base_sort: sort} -> sort -> Proof.context -> Proof.context
   val begin: {base_sort: sort} -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list ->
     local_theory -> local_theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
-  val class_prefix: string -> string
   val register: class -> sort -> ((string * typ) * (string * typ)) list ->
     sort -> morphism -> morphism -> thm option -> thm option -> thm -> theory -> theory
 
@@ -349,8 +347,14 @@ fun synchronize_class_syntax_target class lthy =
   |> Local_Theory.map_contexts
       (K (synchronize_class_syntax {base_sort = base_sort_for (Proof_Context.theory_of lthy) [class]} [class]));
 
-fun redeclare_operations thy sort =
-  fold (redeclare_const thy o fst) (these_operations thy sort);
+fun pre_begin {base_sort} sort ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+  in
+    ctxt
+    |> fold (Proof_Context.add_const_constraint o apsnd SOME) (these_constraints thy {base_sort = base_sort} sort)
+    |> fold (redeclare_const thy o fst) (these_operations thy sort)
+  end;
 
 fun begin {base_sort} sort ctxt =
   ctxt
@@ -365,8 +369,6 @@ fun init class thy =
 
 
 (* class target *)
-
-val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
 fun guess_morphism_identity (b, rhs) phi1 phi2 =
   let
