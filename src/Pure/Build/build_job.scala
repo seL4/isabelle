@@ -71,11 +71,11 @@ object Build_Job {
           default
         }
         try {
-          val command_timings = store.read_command_timings(db, name)
-          val elapsed = store.read_session_timing(db, name).ml_timing.elapsed
+          val old_command_timings_blob = store.read_command_timings(db, name)
+          val old_time = store.read_session_timing(db, name).ml_timing.elapsed
           new Session_Context(
             name, deps, ancestors, session_prefs, sources_shasum, timeout,
-            elapsed, command_timings, build_uuid)
+            old_time, old_command_timings_blob, build_uuid)
         }
         catch {
           case ERROR(msg) => ignore_error(msg)
