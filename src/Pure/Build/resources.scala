@@ -150,7 +150,7 @@ class Resources(
   def session_name: String = current_background.session_name
   def session_info: Sessions.Info = sessions_structure(session_name)
 
-  def loaded_theories: Graph[String, Outer_Syntax] = current_background.base.loaded_theories
+  def loaded_theories: Sessions.Loaded_Theories = current_background.base.loaded_theories
   def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
   def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
 
@@ -535,7 +535,7 @@ class Resources(
         theories.map(thy => ((thy.name, ()), thy.imports_no_pos)))
     }
 
-    lazy val loaded_theories: Graph[String, Outer_Syntax] =
+    lazy val loaded_theories: Sessions.Loaded_Theories =
       theories.foldLeft(resources.loaded_theories) {
         case (graph, thy) =>
           val theory = thy.name.theory

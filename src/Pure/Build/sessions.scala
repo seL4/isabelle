@@ -92,6 +92,8 @@ object Sessions {
 
   /* base info */
 
+  type Loaded_Theories = Graph[String, Outer_Syntax]
+
   object Base {
     val bootstrap: Base = Base(overall_syntax = Thy_Header.bootstrap_syntax)
   }
@@ -100,7 +102,7 @@ object Sessions {
     session_name: String = "",
     session_pos: Position.T = Position.none,
     document_theories: List[Document.Node.Name] = Nil,
-    loaded_theories: Graph[String, Outer_Syntax] = Graph.string,  // cumulative imports
+    loaded_theories: Loaded_Theories = Graph.string,  // cumulative imports
     used_theories: List[Resources.Thy] = Nil,  // new imports
     used_theories_proper: List[Resources.Thy] = Nil,  // new imports from this session
     theory_load_commands: Map[String, List[(Command_Span.Span, Symbol.Offset)]] = Map.empty,
