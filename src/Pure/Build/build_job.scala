@@ -202,8 +202,8 @@ object Build_Job {
     private val future_result: Future[Result] =
       Future.thread("build", uninterruptible = true) {
         val session_name = session_resources.session_name
-        val info = session_resources.session_info
-        val options = Host.node_options(info.options, node_info)
+        val session_info = session_resources.session_info
+        val options = Host.node_options(session_info.options, node_info)
         val store = build_context.store
 
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
@@ -218,7 +218,7 @@ object Build_Job {
               List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
 
           val session_heaps =
-            info.parent match {
+            session_info.parent match {
               case None => Nil
               case Some(logic) =>
                 store.session_heaps(session_resources.current_background, logic = logic)
@@ -228,7 +228,7 @@ object Build_Job {
 
           val eval_store =
             if (store_heap) {
-              (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
+              (if (session_info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
               List("ML_Heap.save_child " +
                 ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(session_name))))
             }
@@ -411,12 +411,12 @@ object Build_Job {
           val process =
             Isabelle_Process.start(options, session, session_resources.current_background,
               session_heaps, use_prelude = use_prelude, eval_main = eval_main,
-              cwd = info.dir, env = env)
+              cwd = session_info.dir, env = env)
 
           val timeout_request: Option[Event_Timer.Request] =
-            if (info.timeout_ignored) None
+            if (session_info.timeout_ignored) None
             else {
-              Some(Event_Timer.request(session_resources.log, Time.now() + info.timeout) {
+              Some(Event_Timer.request(session_resources.log, Time.now() + session_info.timeout) {
                 process.terminate()
               })
             }
@@ -475,15 +475,15 @@ object Build_Job {
 
           val (document_output, document_errors) =
             try {
-              if (Exn.is_res(build_errors) && result0.ok && info.documents.nonEmpty) {
+              if (Exn.is_res(build_errors) && result0.ok && session_info.documents.nonEmpty) {
                 using(Export.open_database_context(store, server = server)) { database_context =>
                   val documents =
                     using(database_context.open_session(session_resources.current_background)) {
                       session_context =>
                         Document_Build.build_documents(
                           Document_Build.context(session_context, progress = progress),
-                          output_sources = info.document_output,
-                          output_pdf = info.document_output)
+                          output_sources = session_info.document_output,
+                          output_pdf = session_info.document_output)
                     }
                   using(database_context.open_database(session_name, output = true))(
                     session_database =>
@@ -610,7 +610,7 @@ object Build_Job {
               session_name + " FAILED (see also \"isabelle build_log -H Error " +
               session_name + "\")")
             if (!process_result.interrupted) {
-              val tail = info.options.int("process_output_tail")
+              val tail = session_info.options.int("process_output_tail")
               val suffix =
                 if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
               val prefix =
