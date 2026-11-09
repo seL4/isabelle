@@ -319,8 +319,8 @@ class Prover(
     command_input match {
       case Some(thread) if thread.is_active() =>
         if (verbose) {
-          val payload = args.foldLeft(0L) { case (n, b) => n + b.size }
-          log("protocol_command " + name + ", args = " + args.length + ", payload = " + payload)
+          log("protocol_command " + name + ", args = " + args.length +
+            ", payload = " + Bytes.total_size(args))
         }
         thread.send(Bytes(name) :: args)
       case _ => error("Inactive prover input thread for command " + quote(name))
