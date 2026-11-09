@@ -213,18 +213,12 @@ object Build_Job {
             Store.Sources.load(session_resources.current_background.base,
               cache = store.cache.compress)
 
-          val env =
-            Isabelle_System.Settings.env(
-              List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
-
           val session_heaps =
             session_info.parent match {
               case None => Nil
               case Some(logic) =>
                 store.session_heaps(session_resources.current_background, logic = logic)
             }
-
-          val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
           val eval_store =
             if (store_heap) {
@@ -403,15 +397,17 @@ object Build_Job {
 
           build_context.session_setup(session_name, session)
 
-          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
-
 
           /* process */
 
           val process =
             Isabelle_Process.start(options, session, session_resources.current_background,
-              session_heaps, use_prelude = use_prelude, eval_main = eval_main,
-              cwd = session_info.dir, env = env)
+              session_heaps, cwd = session_info.dir,
+              use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil,
+              eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store),
+              env =
+                Isabelle_System.Settings.env(
+                  List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)))
 
           val timeout_request: Option[Event_Timer.Request] =
             if (session_info.timeout_ignored) None
