@@ -253,7 +253,7 @@ object Build_Job {
 
               override lazy val conditions: Thy_Conditions.State = session_conditions
 
-              override val resources: Resources = session_resources
+              override def resources: Resources = session_resources
 
               override def sources: Store.Sources = session_sources
 
@@ -580,7 +580,7 @@ object Build_Job {
 
           // write database
           def write_info(db: SQL.Database): Unit =
-            store.write_session_info(db, session_name, session.sources,
+            store.write_session_info(db, session_name, session_sources,
               build_log =
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
               build =
