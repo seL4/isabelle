@@ -196,22 +196,23 @@ object Store {
     def source_file(name: String): Source_File =
       rep.getOrElse(name, error("No session source file " + quote(name)))
 
-    def blobs(base: Sessions.Base, node_name: Document.Node.Name): List[Command.Blob.Entry] =
-      base.theory_load_commands.get(node_name.theory) match {
-        case None => Nil
-        case Some(load_commands) =>
-          val syntax = base.theory_syntax(node_name)
-          val master_dir = Path.explode(node_name.master_dir)
-          for {
-            (command_span, command_offset) <- load_commands
-            file <- command_span.loaded_files(syntax).files
-          } yield {
-            val src_path = Path.explode(file)
-            val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
-            val bytes = source_file(blob_name.node).bytes
-            Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
-          }
+    def blobs(base: Sessions.Base, node_name: Document.Node.Name): List[Command.Blob.Entry] = {
+      val load_commands = base.theory_load_commands.getOrElse(node_name.theory, Nil)
+      if (load_commands.isEmpty) Nil
+      else {
+        val syntax = base.theory_syntax(node_name)
+        val master_dir = Path.explode(node_name.master_dir)
+        for {
+          (command_span, command_offset) <- load_commands
+          file <- command_span.loaded_files(syntax).files
+        } yield {
+          val src_path = Path.explode(file)
+          val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
+          val bytes = source_file(blob_name.node).bytes
+          Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
+        }
       }
+    }
   }
 
 
