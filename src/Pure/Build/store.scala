@@ -198,7 +198,7 @@ object Store {
 
     def blobs(base: Sessions.Base, node_name: Document.Node.Name): List[Command.Blob.Entry] = {
       val load_commands = base.theory_load_commands.getOrElse(node_name.theory, Nil)
-      if (load_commands.isEmpty) Nil
+      if (load_commands.isEmpty || !rep.isDefinedAt(node_name.theory)) Nil
       else {
         val syntax = base.theory_syntax(node_name)
         val master_dir = Path.explode(node_name.master_dir)
