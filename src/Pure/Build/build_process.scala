@@ -1241,8 +1241,7 @@ extends AutoCloseable {
           parent_background = parent_background,
           current_background = current_background,
           log = log,
-          command_timings =
-            Properties.uncompress(session.old_command_timings_blob, cache = store.cache))
+          command_timings = session.old_command_timings(cache = store.cache))
 
       val build =
         Build_Job.start_session(build_context, session, session_conditions, session_resources,

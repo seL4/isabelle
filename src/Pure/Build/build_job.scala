@@ -98,7 +98,10 @@ object Build_Job {
     old_time: Time,
     old_command_timings_blob: Bytes,
     build_uuid: String
-  ) extends Name.T
+  ) extends Name.T {
+    def old_command_timings(cache: XML.Cache = XML.Cache.none): List[Properties.T] =
+      Properties.uncompress(old_command_timings_blob, cache = cache)
+  }
 
   abstract class Build_Session(progress: Progress) extends Session {
     session =>
