@@ -196,11 +196,11 @@ object Build_Job {
     node_info: Host.Node_Info,
     store_heap: Boolean
   ) extends Build_Job {
-    def session_name: String = session_resources.current_background.session_name
+    def session_name: String = session_resources.session_name
 
     private val future_result: Future[Result] =
       Future.thread("build", uninterruptible = true) {
-        val info = session_resources.sessions_structure(session_name)
+        val info = session_resources.session_info
         val options = Host.node_options(info.options, node_info)
         val store = build_context.store
 
