@@ -286,7 +286,13 @@ class Prover(
               val kind = k.text
               val props = rest.take(props_length).map(decode_prop)
               val chunks = rest.drop(props_length)
-              if (kind == Markup.PROTOCOL) protocol_message(props, chunks)
+              if (kind == Markup.PROTOCOL) {
+                if (verbose) {
+                  log("protocol_message " + Properties.print(props) +
+                    ", payload = " + Bytes.total_size(chunks))
+                }
+                protocol_message(props, chunks)
+              }
               else {
                 val body =
                   chunks.flatMap { chunk =>
