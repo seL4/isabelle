@@ -149,8 +149,11 @@ abstract class Session extends Document.Session {
 
   def sources: Store.Sources = Store.Sources.empty
 
-  def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
-  def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
+  def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
+    Command.Blobs_Info.make(sources.blobs(resources.current_background.base, node_name))
+
+  def build_blobs(node_name: Document.Node.Name): Document.Blobs =
+    Document.Blobs.make(sources.blobs(resources.current_background.base, node_name))
 
 
   /* diagnostics */

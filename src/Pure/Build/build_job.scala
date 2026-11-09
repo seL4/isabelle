@@ -257,12 +257,6 @@ object Build_Job {
 
               override def sources: Store.Sources = session_sources
 
-              override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
-                Command.Blobs_Info.make(sources.blobs(resources.current_background.base, node_name))
-
-              override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
-                Document.Blobs.make(sources.blobs(resources.current_background.base, node_name))
-
               override val nodes_status_domain: List[Document.Node.Name] =
                 session_theories.map(_.name.symbolic_path)
             }
