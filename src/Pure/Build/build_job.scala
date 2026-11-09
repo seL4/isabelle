@@ -162,11 +162,11 @@ object Build_Job {
     def nodes_status_progress(nodes_status: Session.Nodes_Status): Unit =
       progress.nodes_status(
         Progress.Nodes_Status(nodes_status.now, nodes_status_domain, nodes_status.new_status,
-          session = resources.current_background.session_name,
+          session = resources.session_name,
           old = Some(nodes_status.old_status)))
 
     def nodes_status_exit(): Unit =
-      progress.nodes_status(Progress.Nodes_Status.empty(resources.current_background.session_name))
+      progress.nodes_status(Progress.Nodes_Status.empty(resources.session_name))
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
       start_process_output()
