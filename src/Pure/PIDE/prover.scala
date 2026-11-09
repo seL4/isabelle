@@ -41,11 +41,8 @@ object Prover {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body, metric = Symbol.Metric)
-      if (properties.isEmpty)
-        kind + " [[" + res + "]]"
-      else
-        kind + " " +
-          (properties.map(Properties.Eq.apply)).mkString("{", ",", "}") + " [[" + res + "]]"
+      if (properties.isEmpty) kind + " [[" + res + "]]"
+      else kind + " " + Properties.print(properties) + " [[" + res + "]]"
     }
   }
 
