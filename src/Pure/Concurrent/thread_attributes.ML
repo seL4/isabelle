@@ -17,6 +17,7 @@ sig
   val sync_interrupts: attributes -> attributes
   val safe_interrupts: attributes -> attributes
   val with_attributes: attributes -> (attributes -> 'a) -> 'a
+  val restore_attributes: ((unit -> attributes) -> unit -> attributes) -> ('a -> 'b) -> 'a -> 'b
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
   val uninterruptible_body: ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
 end;
@@ -100,6 +101,9 @@ fun with_attributes new_atts e =
         val _ = set_attributes atts1;
       in Exn.release result end
   end;
+
+fun restore_attributes run f x =
+  with_attributes (run get_attributes ()) (fn _ => f) x;
 
 end;
 
