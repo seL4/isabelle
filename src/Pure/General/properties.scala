@@ -13,6 +13,8 @@ object Properties {
   type Entry = (java.lang.String, java.lang.String)
   type T = List[Entry]
 
+  def print(props: T): java.lang.String = props.map(Eq.apply).mkString("{", ",", "}")
+
   object Eq {
     def apply(a: java.lang.String, b: java.lang.String): java.lang.String = a + "=" + b
     def apply(entry: Entry): java.lang.String = apply(entry._1, entry._2)

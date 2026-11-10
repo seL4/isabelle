@@ -41,11 +41,8 @@ object Prover {
       val res =
         if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body, metric = Symbol.Metric)
-      if (properties.isEmpty)
-        kind + " [[" + res + "]]"
-      else
-        kind + " " +
-          (properties.map(Properties.Eq.apply)).mkString("{", ",", "}") + " [[" + res + "]]"
+      if (properties.isEmpty) kind + " [[" + res + "]]"
+      else kind + " " + Properties.print(properties) + " [[" + res + "]]"
     }
   }
 
@@ -289,7 +286,13 @@ class Prover(
               val kind = k.text
               val props = rest.take(props_length).map(decode_prop)
               val chunks = rest.drop(props_length)
-              if (kind == Markup.PROTOCOL) protocol_message(props, chunks)
+              if (kind == Markup.PROTOCOL) {
+                if (verbose) {
+                  log("protocol_message " + Properties.print(props) +
+                    ", payload = " + Bytes.total_size(chunks))
+                }
+                protocol_message(props, chunks)
+              }
               else {
                 val body =
                   chunks.flatMap { chunk =>
@@ -322,8 +325,8 @@ class Prover(
     command_input match {
       case Some(thread) if thread.is_active() =>
         if (verbose) {
-          val payload = args.foldLeft(0L) { case (n, b) => n + b.size }
-          log("protocol_command " + name + ", args = " + args.length + ", payload = " + payload)
+          log("protocol_command " + name + ", args = " + args.length +
+            ", payload = " + Bytes.total_size(args))
         }
         thread.send(Bytes(name) :: args)
       case _ => error("Inactive prover input thread for command " + quote(name))

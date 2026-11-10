@@ -30,19 +30,16 @@ object Build_Job {
     build_context: Build.Context,
     session_context: Session_Context,
     session_conditions: Thy_Conditions.State,
+    session_resources: Resources,
     progress: Progress,
-    log: Logger,
     server: SSH.Server,
-    parent_background: Sessions.Background,
-    current_background: Sessions.Background,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ): Session_Job = {
-    new Session_Job(build_context, session_context, session_conditions, progress, log, server,
-      parent_background = parent_background, current_background = current_background,
-      sources_shasum, input_shasum, node_info, store_heap)
+    new Session_Job(build_context, session_context, session_conditions, session_resources, progress,
+      server, sources_shasum, input_shasum, node_info, store_heap)
   }
 
   object Session_Context {
@@ -71,11 +68,11 @@ object Build_Job {
           default
         }
         try {
-          val command_timings = store.read_command_timings(db, name)
-          val elapsed = store.read_session_timing(db, name).ml_timing.elapsed
+          val old_command_timings_blob = store.read_command_timings(db, name)
+          val old_time = store.read_session_timing(db, name).ml_timing.elapsed
           new Session_Context(
             name, deps, ancestors, session_prefs, sources_shasum, timeout,
-            elapsed, command_timings, build_uuid)
+            old_time, old_command_timings_blob, build_uuid)
         }
         catch {
           case ERROR(msg) => ignore_error(msg)
@@ -101,7 +98,10 @@ object Build_Job {
     old_time: Time,
     old_command_timings_blob: Bytes,
     build_uuid: String
-  ) extends Name.T
+  ) extends Name.T {
+    def old_command_timings(cache: XML.Cache = XML.Cache.none): List[Properties.T] =
+      Properties.uncompress(old_command_timings_blob, cache = cache)
+  }
 
   abstract class Build_Session(progress: Progress) extends Session {
     session =>
@@ -162,11 +162,11 @@ object Build_Job {
     def nodes_status_progress(nodes_status: Session.Nodes_Status): Unit =
       progress.nodes_status(
         Progress.Nodes_Status(nodes_status.now, nodes_status_domain, nodes_status.new_status,
-          session = resources.current_background.session_name,
+          session = resources.session_name,
           old = Some(nodes_status.old_status)))
 
     def nodes_status_exit(): Unit =
-      progress.nodes_status(Progress.Nodes_Status.empty(resources.current_background.session_name))
+      progress.nodes_status(Progress.Nodes_Status.empty(resources.session_name))
 
     override def start(start_prover: Prover.Receiver => Prover): Unit = {
       start_process_output()
@@ -191,45 +191,38 @@ object Build_Job {
     build_context: Build.Context,
     session_context: Session_Context,
     session_conditions: Thy_Conditions.State,
+    session_resources: Resources,
     progress: Progress,
-    log: Logger,
     server: SSH.Server,
-    parent_background: Sessions.Background,
-    current_background: Sessions.Background,
     sources_shasum: Shasum,
     input_shasum: Shasum,
     node_info: Host.Node_Info,
     store_heap: Boolean
   ) extends Build_Job {
-    def session_name: String = current_background.session_name
-
     private val future_result: Future[Result] =
       Future.thread("build", uninterruptible = true) {
-        val info = current_background.sessions_structure(session_name)
-        val options = Host.node_options(info.options, node_info)
+        val session_name = session_resources.session_name
+        val session_info = session_resources.session_info
+        val options = Host.node_options(session_info.options, node_info)
         val store = build_context.store
 
         using_optional(store.maybe_open_database_server(server = server)) { database_server =>
           store.clean_output(database_server, session_name, session_init = true)
 
           val session_sources =
-            Store.Sources.load(current_background.base, cache = store.cache.compress)
-
-          val env =
-            Isabelle_System.Settings.env(
-              List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString))
+            Store.Sources.load(session_resources.current_background.base,
+              cache = store.cache.compress)
 
           val session_heaps =
-            info.parent match {
+            session_info.parent match {
               case None => Nil
-              case Some(logic) => store.session_heaps(current_background, logic = logic)
+              case Some(logic) =>
+                store.session_heaps(session_resources.current_background, logic = logic)
             }
-
-          val use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil
 
           val eval_store =
             if (store_heap) {
-              (if (info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
+              (if (session_info.theories.nonEmpty) List("ML_Heap.share_common_data ()") else Nil) :::
               List("ML_Heap.save_child " +
                 ML_Syntax.print_string_bytes(File.platform_path(store.output_heap(session_name))))
             }
@@ -238,7 +231,8 @@ object Build_Job {
           session_conditions.make_immutable()
 
           val session_theories =
-            current_background.base.used_theories.map(_.eval_conditions(session_conditions))
+            session_resources.current_background.base
+              .used_theories.map(_.eval_conditions(session_conditions))
 
 
           /* session */
@@ -252,21 +246,9 @@ object Build_Job {
 
               override lazy val conditions: Thy_Conditions.State = session_conditions
 
-              override val resources: Resources =
-                new Resources(
-                  parent_background = parent_background,
-                  current_background = current_background,
-                  log = log,
-                  command_timings =
-                    Properties.uncompress(session_context.old_command_timings_blob, cache = cache))
+              override def resources: Resources = session_resources
 
               override def sources: Store.Sources = session_sources
-
-              override def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
-                Command.Blobs_Info.make(sources.blobs(current_background.base, node_name))
-
-              override def build_blobs(node_name: Document.Node.Name): Document.Blobs =
-                Document.Blobs.make(sources.blobs(current_background.base, node_name))
 
               override val nodes_status_domain: List[Document.Node.Name] =
                 session_theories.map(_.name.symbolic_path)
@@ -398,7 +380,7 @@ object Build_Job {
           session.all_messages += Session.Consumer[Prover.Message]("build_session_output") {
             case msg: Prover.Output =>
               val message = msg.message
-              if (msg.is_system) session.resources.log(Protocol.message_text(message))
+              if (msg.is_system) session_resources.log(Protocol.message_text(message))
 
               if (msg.is_stdout) {
                 session.synchronized { stdout ++= Symbol.encode(XML.content(message)) }
@@ -415,19 +397,24 @@ object Build_Job {
 
           build_context.session_setup(session_name, session)
 
-          val eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store)
-
 
           /* process */
 
           val process =
-            Isabelle_Process.start(options, session, current_background, session_heaps,
-              use_prelude = use_prelude, eval_main = eval_main, cwd = info.dir, env = env)
+            Isabelle_Process.start(options, session, session_resources.current_background,
+              session_heaps, cwd = session_info.dir,
+              use_prelude = if (session_heaps.isEmpty) Thy_Header.ml_roots.map(_._1) else Nil,
+              eval_main = Command_Line.ML_tool("Isabelle_Process.init_build ()" :: eval_store),
+              env =
+                Isabelle_System.Settings.env(
+                  List("ISABELLE_ML_DEBUGGER" -> options.bool("ML_debugger").toString)))
 
           val timeout_request: Option[Event_Timer.Request] =
-            if (info.timeout_ignored) None
+            if (session_info.timeout_ignored) None
             else {
-              Some(Event_Timer.request(log, Time.now() + info.timeout) { process.terminate() })
+              Some(Event_Timer.request(session_resources.log, Time.now() + session_info.timeout) {
+                process.terminate()
+              })
             }
 
           val build_errors =
@@ -435,7 +422,7 @@ object Build_Job {
               Exn.capture { process.await_startup() } match {
                 case Exn.Res(_) =>
                   val prover_options = session.prover_options
-                  val resources_xml = session.resources.init_session_xml
+                  val resources_xml = session_resources.init_session_xml
 
                   sealed case class Theory(options: Options.Update, thy: Resources.Thy) {
                     def options_eq(other: Theory): Boolean = options == other.options
@@ -484,15 +471,15 @@ object Build_Job {
 
           val (document_output, document_errors) =
             try {
-              if (Exn.is_res(build_errors) && result0.ok && info.documents.nonEmpty) {
+              if (Exn.is_res(build_errors) && result0.ok && session_info.documents.nonEmpty) {
                 using(Export.open_database_context(store, server = server)) { database_context =>
                   val documents =
-                    using(database_context.open_session(current_background)) {
+                    using(database_context.open_session(session_resources.current_background)) {
                       session_context =>
                         Document_Build.build_documents(
                           Document_Build.context(session_context, progress = progress),
-                          output_sources = info.document_output,
-                          output_pdf = info.document_output)
+                          output_sources = session_info.document_output,
+                          output_pdf = session_info.document_output)
                     }
                   using(database_context.open_database(session_name, output = true))(
                     session_database =>
@@ -582,7 +569,7 @@ object Build_Job {
 
           // write database
           def write_info(db: SQL.Database): Unit =
-            store.write_session_info(db, session_name, session.sources,
+            store.write_session_info(db, session_name, session_sources,
               build_log =
                 if (process_result.timeout) build_log.error("Timeout") else build_log,
               build =
@@ -619,7 +606,7 @@ object Build_Job {
               session_name + " FAILED (see also \"isabelle build_log -H Error " +
               session_name + "\")")
             if (!process_result.interrupted) {
-              val tail = info.options.int("process_output_tail")
+              val tail = session_info.options.int("process_output_tail")
               val suffix =
                 if (tail == 0) log_lines else log_lines.drop(log_lines.length - tail max 0)
               val prefix =

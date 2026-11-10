@@ -147,7 +147,10 @@ class Resources(
   override def toString: String = "Resources(" + current_background.base.print_body + ")"
 
   def sessions_structure: Sessions.Structure = current_background.sessions_structure
+  def session_name: String = current_background.session_name
+  def session_info: Sessions.Info = sessions_structure(session_name)
 
+  def loaded_theories: Sessions.Loaded_Theories = current_background.base.loaded_theories
   def loaded_theory(name: String): Boolean = current_background.base.loaded_theory(name)
   def loaded_theory(name: Document.Node.Name): Boolean = current_background.base.loaded_theory(name)
 
@@ -170,8 +173,7 @@ class Resources(
      (command_timings,
      (Command_Span.list_load_commands.map(cmd => (cmd.name, cmd.position)),
      (Scala.functions.map((fun: Scala.Fun) => (fun.name, (fun.single, fun.bytes, fun.position))),
-     (sessions_structure.global_theories.toList,
-      current_background.base.loaded_theories.keys)))))))
+     (sessions_structure.global_theories.toList, loaded_theories.keys)))))))
   }
 
 
@@ -533,8 +535,8 @@ class Resources(
         theories.map(thy => ((thy.name, ()), thy.imports_no_pos)))
     }
 
-    lazy val loaded_theories: Graph[String, Outer_Syntax] =
-      theories.foldLeft(current_background.base.loaded_theories) {
+    lazy val loaded_theories: Sessions.Loaded_Theories =
+      theories.foldLeft(resources.loaded_theories) {
         case (graph, thy) =>
           val theory = thy.name.theory
           val imports = thy.imports_no_pos.map(_.theory)
@@ -580,7 +582,7 @@ class Resources(
     def imported_files: List[Path] = {
       val base_theories =
         loaded_theories.all_preds(theories.map(_.name.theory)).
-          filter(current_background.base.loaded_theories.defined)
+          filter(resources.loaded_theories.defined)
 
       base_theories.map(theory => current_background.base.known_theories(theory).name.path) :::
       base_theories.flatMap(current_background.base.known_loaded_files.withDefaultValue(Nil))

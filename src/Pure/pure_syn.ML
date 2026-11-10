@@ -54,7 +54,7 @@ val _ =
     (Scan.succeed Toplevel.end_context);
 
 
-val bootstrap_thy = Context.the_global_context ();
+val bootstrap_thy = Theory.get_pure_bootstrap ();
 
 val _ = Theory.setup (Config.put_global Outer_Syntax.bootstrap false);
 

@@ -297,7 +297,7 @@ fun load_thy (thy0: Resources.thy) text parents =
     val (theory, present) =
       Options.strict_thread_update thy_options (fn () =>
         eval_thy loading_theory thy text_pos text
-          (if name = Context.PureN then [Context.the_global_context ()] else parents)) ();
+          (if name = Context.PureN then [Theory.get_pure_bootstrap ()] else parents)) ();
 
     fun commit segments =
       let
@@ -308,11 +308,9 @@ fun load_thy (thy0: Resources.thy) text parents =
 
 in
 
-fun use_thy (thy as {session, name, imports, ...}: Resources.thy) =
+fun use_thy (thy as {name, imports, ...}: Resources.thy) =
   let
-    val text =
-      if session = Context.PureN then File.read (Path.explode (#node name))
-      else Bytes.content (#bytes (Resources.source_file (#node name)));
+    val text = Bytes.content (#bytes (Resources.source_file (#node name)));
     val parents = map (#theory o #1) imports;
     val use_parents = filter_out defined_theory parents;
   in new_entry (#theory name) use_parents {parents = parents, body = load_thy thy text} end;
@@ -389,11 +387,15 @@ val _ =
 
           val _ = Session.init session_name;
 
+          val bootstrap_context =
+            if session_name = Context.PureN then Context.get_generic_context () else NONE;
+
           fun build () =
             let
               val res =
                 theories |>
                   (maps build_theories
+                    |> Context.setmp_generic_context bootstrap_context
                     |> session_timing
                     |> Exn.capture);
               val res1 =
@@ -409,14 +411,8 @@ val _ =
                 if session_name = Context.PureN
                 then Theory.install_pure (get_theory Context.PureN) else ();
             in () end;
-
-          fun exec e =
-            if can Theory.get_pure () then
-              Isabelle_Thread.fork (Isabelle_Thread.params "build_session") e
-              |> ignore
-            else e ();
         in
-          exec (fn () =>
+          (ignore o Isabelle_Thread.fork (Isabelle_Thread.params "build_session")) (fn () =>
             (case Exn.capture_body (Future.interruptible_task build) of
               Exn.Res () => (0, [])
             | Exn.Exn exn =>

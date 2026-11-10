@@ -1288,7 +1288,7 @@ val shrink_proof =
 
 (** axioms for equality **)
 
-local val thy = Sign.local_path (Context.the_global_context ()) in
+local val thy = Sign.local_path (Theory.get_pure_bootstrap ()) in
 
 val [reflexive_axm, symmetric_axm, transitive_axm, equal_intr_axm,
   equal_elim_axm, abstract_rule_axm, combination_axm] =

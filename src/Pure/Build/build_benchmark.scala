@@ -86,10 +86,15 @@ object Build_Benchmark {
 
         val local_build_context = build_context.copy(store = Store(local_options))
 
+        val session_resources =
+          new Resources(
+            parent_background = parent_background,
+            current_background = current_background,
+            Logger.none)
+
         val result =
-          Build_Job.start_session(local_build_context, session, session_conditions, progress,
-            Logger.none, server, parent_background = parent_background,
-            current_background = current_background, session.sources_shasum, input_shasum,
+          Build_Job.start_session(local_build_context, session, session_conditions,
+            session_resources, progress, server, session.sources_shasum, input_shasum,
             node_info, false).join
 
         val timing =
