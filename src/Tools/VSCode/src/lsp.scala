@@ -97,6 +97,9 @@ object LSP {
   class Request(val name: String)
 
   object RequestMessage0 {
+    def apply(id: Id, method: String): JSON.T =
+      Message.empty + ("id" -> id.id) + ("method" -> method)
+
     def unapply(json: JSON.T): Option[(Id, String)] =
       json match {
         case Id(id) => for (method <- JSON.string(json, "method")) yield (id, method)
@@ -105,6 +108,8 @@ object LSP {
   }
 
   class Request0(val name: String) {
+    def apply(id: Id): JSON.T = RequestMessage0.apply(id, name)
+
     def unapply(json: JSON.T): Option[Id] =
       RequestMessage0.unapply(json).filter(_._2 == name).map(_._1)
   }
@@ -112,7 +117,7 @@ object LSP {
   class RequestTextDocumentPosition(name: String) extends Request(name) {
     def unapply(json: JSON.T): Option[(Id, Line.Node_Position)] =
       json match {
-        case RequestMessage(id, method, Some(TextDocumentPosition(node_pos))) if method == name =>
+        case RequestMessage(id, method, TextDocumentPosition(node_pos)) if method == name =>
           Some((id, node_pos))
         case _ => None
       }
@@ -215,6 +220,15 @@ object LSP {
     def compact(range: Line.Range): List[Int] =
       List(range.start.line, range.start.column, range.stop.line, range.stop.column)
 
+    def expand(elems: List[Int]): Option[Line.Range] =
+      elems match {
+        case start_line :: start_column :: stop_line :: stop_column :: Nil =>
+          val start = Line.Position(start_line, start_column)
+          val stop = Line.Position(stop_line, stop_column)
+          Some(Line.Range(start, stop))
+        case _ => None
+      }
+
     def apply(range: Line.Range): JSON.T =
       JSON.Object("start" -> Position(range.start), "end" -> Position(range.stop))
 
@@ -249,6 +263,18 @@ object LSP {
 
   /* marked strings */
 
+  object MarkedString {
+    def unapply(json: JSON.T): Option[MarkedString] =
+      json match {
+        case JSON.Value.String(text) => Some(MarkedString(text))
+        case _ =>
+          for {
+            text <- JSON.string(json, "value")
+            language <- JSON.string_default(json, "language", "plaintext")
+          } yield MarkedString(text, language)
+      }
+  }
+
   sealed case class MarkedString(text: String, language: String = "plaintext") {
     def json: JSON.T = JSON.Object("language" -> language, "value" -> text)
   }
@@ -259,6 +285,12 @@ object LSP {
         case Nil => None
         case List(msg) => Some(msg.json)
         case _ => Some(msgs.map(_.json))
+      }
+
+    def unapply(json: JSON.T): Option[List[MarkedString]] =
+      json match {
+        case values: List[_] => JSON.Value.List.unapply(values, MarkedString.unapply)
+        case _ => MarkedString.unapply(json).map(List(_))
       }
   }
 
@@ -347,13 +379,39 @@ object LSP {
 
   /* workspace edits */
 
+  object TextEdit {
+    def unapply(json: JSON.T): Option[TextEdit] =
+      for {
+        case Range(range) <- JSON.value(json, "range")
+        new_text <- JSON.string(json, "newText")
+      } yield TextEdit(range, new_text)
+  }
+
   sealed case class TextEdit(range: Line.Range, new_text: String) {
     def json: JSON.T = JSON.Object("range" -> Range(range), "newText" -> new_text)
   }
 
   object Document_Edit extends Notification("PIDE/document_edit") {
-    def apply(uri: String, version: Option[Long], edit: TextEdit, end_pos: Line.Position): JSON.T =
-      Notification(name,
+    def unapply(json: JSON.T): Option[Document_Edit] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            uri <- JSON.string(params, "uri")
+            case TextEdit(edit) <- JSON.value(params, "edit")
+            pos <- Position.unapply(params)
+          } yield Document_Edit(uri, JSON.long(params, "version"), edit, pos)
+        case _ => None
+      }
+  }
+
+  sealed case class Document_Edit(
+    uri: String,
+    version: Option[Long],
+    edit: TextEdit,
+    end_pos: Line.Position
+  ) {
+    def json: JSON.T =
+      Notification(Document_Edit.name,
         JSON.Object(
           "uri" -> uri,
           "edit" -> edit.json,
@@ -490,7 +548,7 @@ object LSP {
   }
 
   object Goto_File extends Notification("PIDE/goto_file") {
-    def apply(name: String): JSON.T = Notification(name, JSON.Object("name" -> name))
+    def apply(file_name: String): JSON.T = Notification(name, JSON.Object("name" -> file_name))
 
     def unapply(json: JSON.T): Option[String] =
       json match {
@@ -500,8 +558,8 @@ object LSP {
   }
 
   object Goto_Source_File extends Notification("PIDE/goto_source_file") {
-    def apply(name: String, line: Int, offset: Symbol.Offset): JSON.T =
-      Notification(name, JSON.Object("name" -> name, "line" -> line, "offset" -> offset))
+    def apply(file_name: String, line: Int, offset: Symbol.Offset): JSON.T =
+      Notification(name, JSON.Object("name" -> file_name, "line" -> line, "offset" -> offset))
 
     def unapply(json: JSON.T): Option[(String, Int, Symbol.Offset)] =
       json match {
@@ -623,6 +681,17 @@ object LSP {
 
   /* decorations */
 
+  object Decoration_Range {
+    def unapply(json: JSON.T): Option[Decoration_Range] =
+      for {
+        coords <- JSON.list(json, "range", JSON.Value.Int.unapply)
+        range <- Range.expand(coords)
+      } yield {
+        val msg = for (case MarkedStrings(strs) <- JSON.value(json, "hover_message")) yield strs
+        Decoration_Range(range, msg.getOrElse(Nil))
+      }
+  }
+
   sealed case class Decoration_Range(range: Line.Range, hover_message: List[MarkedString] = Nil) {
     def json: JSON.T =
       JSON.Object("range" -> Range.compact(range)) ++
@@ -632,16 +701,42 @@ object LSP {
   object Decoration_Entry {
     def text_color(color: Rendering.Color.Value, content: List[Decoration_Range]): Decoration_Entry =
       Decoration_Entry("text_" + color.toString, content)
+
+    def unapply(json: JSON.T): Option[Decoration_Entry] =
+      for {
+        typ <- JSON.string(json, "type")
+        content <- JSON.list(json, "content", Decoration_Range.unapply)
+      } yield Decoration_Entry(typ, content)
   }
+
   sealed case class Decoration_Entry(typ: String, content: List[Decoration_Range]) {
     def json: JSON.T = JSON.Object("type" -> typ, "content" -> content.map(_.json))
   }
 
-  sealed case class Decoration(entries: List[Decoration_Entry]) {
+  object Decoration_Entries {
+    def unapply(json: JSON.T): Option[Decoration_Entries] =
+      JSON.Value.List.unapply(json, Decoration_Entry.unapply).map(Decoration_Entries(_))
+  }
+
+  sealed case class Decoration_Entries(entries: List[Decoration_Entry]) {
     def json_entries: JSON.T = entries.map(_.json)
-    def notification(uri: String): JSON.T =
-      Notification("PIDE/decoration",
-        JSON.Object("uri" -> uri, "entries" -> json_entries))
+  }
+
+  object Decoration extends Notification("PIDE/decoration") {
+    def unapply(json: JSON.T): Option[Decoration] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            uri <- JSON.string(params, "uri")
+            entries <- JSON.list(params, "entries", Decoration_Entry.unapply)
+          } yield Decoration(uri, entries)
+        case _ => None
+      }
+  }
+
+  sealed case class Decoration(uri: String, entries: List[Decoration_Entry]) {
+    def json: JSON.T =
+      Notification(Decoration.name, JSON.Object("uri" -> uri, "entries" -> entries.map(_.json)))
   }
 
   object Decoration_Request extends Notification("PIDE/decoration_request") {
@@ -657,35 +752,51 @@ object LSP {
   /* caret update: bidirectional */
 
   object Caret_Update extends Notification("PIDE/caret_update") {
-    def apply(node_pos: Line.Node_Position, focus: Boolean): JSON.T =
-      Notification(name,
-        JSON.Object(
-          "uri" -> Url.print_file_name(node_pos.name),
-          "line" -> node_pos.pos.line,
-          "character" -> node_pos.pos.column,
-          "focus" -> focus))
+    def apply(node_pos: Line.Node_Position, focus: Boolean): Caret_Update =
+      Caret_Update(Url.print_file_name(node_pos.name), node_pos.pos, focus = focus)
 
-    def unapply(json: JSON.T): Option[Option[(String, Line.Position)]] =
+    def unapply(json: JSON.T): Option[Option[Caret_Update]] =
       json match {
         case Notification(method, params) if method == name =>
           val caret =
             for {
-              uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
+              uri <- JSON.string(params, "uri")
               pos <- Position.unapply(params)
-            } yield (uri, pos)
+              focus <- JSON.bool(params, "focus")
+            } yield Caret_Update(uri, pos, focus)
           Some(caret)
         case _ => None
       }
+  }
+
+  sealed case class Caret_Update(uri: String, pos: Line.Position, focus: Boolean = false) {
+    def json: JSON.T =
+      Notification(Caret_Update.name,
+        JSON.Object(
+          "uri" -> uri,
+          "line" -> pos.line,
+          "character" -> pos.column,
+          "focus" -> focus))
   }
 
 
   /* dynamic output */
 
   object Dynamic_Output extends Notification("PIDE/dynamic_output") {
-    def apply(content: String, decorations: Option[Decoration] = None): JSON.T =
+    def apply(content: String, decorations: Option[Decoration_Entries] = None): JSON.T =
       Notification(name,
         JSON.Object("content" -> content) ++
         JSON.optional("decorations" -> decorations.map(_.json_entries)))
+
+    def unapply(json: JSON.T): Option[(String, Option[Decoration_Entries])] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            content <- JSON.string(params, "content")
+            decorations = JSON.value(params, "decorations", Decoration_Entries.unapply)
+          } yield (content, decorations)
+        case _ => None
+      }
   }
 
   object Output_Set_Margin extends Notification("PIDE/output_set_margin") {
@@ -701,18 +812,34 @@ object LSP {
   /* state output */
 
   object State_Output extends Notification("PIDE/state_output") {
-    def apply(
-       id: Counter.ID,
-       content: String,
-       auto_update: Boolean,
-       decorations: Option[Decoration] = None
-    ): JSON.T =
-      Notification(name,
+    def unapply(json: JSON.T): Option[State_Output] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            id <- JSON.long(params, "id")
+            content <- JSON.string(params, "content")
+            auto_update <- JSON.bool(params, "auto_update")
+            decorations = JSON.value(params, "decorations", Decoration_Entries.unapply)
+          } yield State_Output(id, content, auto_update, decorations)
+        case _ => None
+      }
+  }
+
+  case class State_Output(
+    id: Counter.ID,
+    content: String,
+    auto_update: Boolean,
+    decorations: Option[Decoration_Entries]
+  ) {
+    def json: JSON.T =
+      Notification(State_Output.name,
         JSON.Object("id" -> id, "content" -> content, "auto_update" -> auto_update) ++
         JSON.optional("decorations" -> decorations.map(_.json_entries)))
   }
 
   class State_Id_Notification(name: String) extends Notification(name) {
+    def apply(id: Counter.ID): JSON.T = Notification(name, JSON.Object("id" -> id))
+
     def unapply(json: JSON.T): Option[Counter.ID] =
       json match {
         case Notification(method, params) if method == name => JSON.long(params, "id")
@@ -730,6 +857,9 @@ object LSP {
   object State_Update extends State_Id_Notification("PIDE/state_update")
 
   object State_Auto_Update extends Notification("PIDE/state_auto_update") {
+    def apply(id: Counter.ID, enabled: Boolean): JSON.T =
+      Notification(name, JSON.Object("id" -> id, "enabled" -> enabled))
+
     def unapply(json: JSON.T): Option[(Counter.ID, Boolean)] =
       json match {
         case Notification(method, params) if method == name =>
@@ -757,6 +887,9 @@ object LSP {
   /* preview */
 
   object Preview_Request extends Notification("PIDE/preview_request") {
+    def apply(uri: String, column: Int): JSON.T =
+      Notification(name, JSON.Object("uri" -> uri, "column" -> column))
+
     def unapply(json: JSON.T): Option[(String, Int)] =
       json match {
         case Notification(method, params) if method == name =>
@@ -776,6 +909,18 @@ object LSP {
           "column" -> column,
           "label" -> label,
           "content" -> content))
+
+    def unapply(json: JSON.T): Option[(String, Int, String, String)] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            uri <- JSON.string(params, "uri")
+            column <- JSON.int(params, "column")
+            label <- JSON.string(params, "label")
+            content <- JSON.string(params, "content")
+          } yield (uri, column, label, content)
+        case _ => None
+      }
   }
 
 
@@ -786,6 +931,14 @@ object LSP {
   object Abbrevs_Response extends Notification("PIDE/abbrevs_response") {
     def apply(abbrevs: List[(String, String)]): JSON.T =
       Notification(name, JSON.Object("abbrevs" -> (for ((a, b) <- abbrevs) yield List(a, b))))
+
+    def unapply(json: JSON.T): Option[List[(String, String)]] =
+      json match {
+        case Notification(method, params) if method == name =>
+          JSON.list(params, "abbrevs",
+            { case List(a: String, b: String) => Some(a, b) case _ => None })
+        case _ => None
+      }
   }
 
 
@@ -798,8 +951,15 @@ object LSP {
     def apply(entry: Doc.Entry): JSON.T =
       JSON.Object(
         "name" -> entry.name,
-        "path" -> File.platform_path(entry.path),
+        "path" -> entry.path.implode,
         "title" -> entry.title)
+
+    def unapply(json: JSON.T): Option[Doc.Entry] =
+      for {
+        name <- JSON.string(json, "name")
+        path <- JSON.string(json, "path")
+        title <- JSON.string(json, "title")
+      } yield Doc.Entry(name, Path.explode(path), title)
   }
 
   object Doc_Section {
@@ -808,11 +968,26 @@ object LSP {
         "title" -> section.title,
         "important" -> section.important,
         "entries" -> section.entries.map(Doc_Entry.apply))
+
+    def unapply(json: JSON.T): Option[Doc.Section] =
+      for {
+        title <- JSON.string(json, "title")
+        important <- JSON.bool(json, "important")
+        entries <- JSON.list(json, "entries", Doc_Entry.unapply)
+      } yield Doc.Section(title, important, entries)
   }
 
   object Documentation_Response extends Notification("PIDE/documentation_response") {
     def apply(doc_contents: Doc.Contents): JSON.T =
       Notification(name, JSON.Object("sections" -> doc_contents.sections.map(Doc_Section.apply)))
+
+    def unapply(json: JSON.T): Option[Doc.Contents] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for (contents <- JSON.list(params, "sections", Doc_Section.unapply))
+          yield Doc.Contents(contents)
+        case _ => None
+      }
   }
 
 
@@ -823,6 +998,12 @@ object LSP {
 
   object Sledgehammer_Provers_Response extends Notification("PIDE/sledgehammer_provers_response") {
     def apply(provers: String): JSON.T = Notification(name, JSON.Object("provers" -> provers))
+
+    def unapply(json: JSON.T): Option[String] =
+      json match {
+        case Notification(method, params) if method == name => JSON.string(params, "provers")
+        case _ => None
+      }
   }
 
   object Sledgehammer_Request extends Notification("PIDE/sledgehammer_request") {
@@ -843,10 +1024,22 @@ object LSP {
 
   object Sledgehammer_Status extends Notification("PIDE/sledgehammer_status") {
     def apply(message: String): JSON.T = Notification(name, JSON.Object("message" -> message))
+
+    def unapply(json: JSON.T): Option[String] =
+      json match {
+        case Notification(method, params) if method == name => JSON.string(params, "message")
+        case _ => None
+      }
   }
 
   object Sledgehammer_Output extends Notification("PIDE/sledgehammer_output") {
     def apply(content: String): JSON.T = Notification(name, JSON.Object("content" -> content))
+
+    def unapply(json: JSON.T): Option[String] =
+      json match {
+        case Notification(method, params) if method == name => JSON.string(params, "content")
+        case _ => None
+      }
   }
 
   object Sledgehammer_Cancel extends Notification0("PIDE/sledgehammer_cancel")

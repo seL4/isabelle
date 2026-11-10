@@ -14,14 +14,14 @@ object Pretty_Text_Panel {
   def apply(
     session: VSCode_Session,
     channel: Channel,
-    output: (String, Option[LSP.Decoration]) => JSON.T
+    output: (String, Option[LSP.Decoration_Entries]) => JSON.T
   ): Pretty_Text_Panel = new Pretty_Text_Panel(session, channel, output)
 }
 
 class Pretty_Text_Panel private(
   session: VSCode_Session,
   channel: Channel,
-  output_json: (String, Option[LSP.Decoration]) => JSON.T
+  output_json: (String, Option[LSP.Decoration_Entries]) => JSON.T
 ) {
   def resources: VSCode_Resources = session.resources
 
@@ -67,7 +67,7 @@ class Pretty_Text_Panel private(
             .iterator.map({ case (c, rs) => LSP.Decoration_Entry.text_color(c, rs) })
             .toList
 
-        channel.write(output_json(converted_text, Some(LSP.Decoration(entries))))
+        channel.write(output_json(converted_text, Some(LSP.Decoration_Entries(entries))))
         current_formatted = formatted
       }
     }

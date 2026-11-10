@@ -227,8 +227,8 @@ extends Rendering(snapshot, model.session.resources.options, model.session) {
       dotted(model.content.text_range)) :::
     List(VSCode_Spell_Checker.decoration(rendering))
 
-  def decoration_output(decos: List[VSCode_Model.Decoration]): LSP.Decoration =
-    LSP.Decoration(decos.map(deco =>
+  def decoration_output(uri: String, decos: List[VSCode_Model.Decoration]): LSP.Decoration =
+    LSP.Decoration(uri, decos.map(deco =>
       LSP.Decoration_Entry(deco.typ,
         for (Text.Info(text_range, msgs) <- deco.content)
           yield {

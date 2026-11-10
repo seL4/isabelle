@@ -65,7 +65,7 @@ class State_Panel private(val server: Language_Server) {
       server.session,
       server.channel,
       (content, decorations) =>
-        LSP.State_Output(id, content, auto_update_enabled.value, decorations)
+        LSP.State_Output(id, content, auto_update_enabled.value, decorations).json
     ))
 
   private val print_state =

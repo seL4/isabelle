@@ -134,7 +134,7 @@ object Language_Server {
       val pos = Line.Position(line, offset)
       new Hyperlink {
         def follow(editor_context: Context): Unit =
-          server.channel.write(LSP.Caret_Update(Line.Node_Position(name, pos), focus))
+          server.channel.write(LSP.Caret_Update(Line.Node_Position(name, pos), focus).json)
       }
     }
 
@@ -174,7 +174,8 @@ object Language_Server {
       else
         snapshot.find_command_position(id, offset).map(node_pos =>
           new Hyperlink {
-            def follow(unit: Unit): Unit = server.channel.write(LSP.Caret_Update(node_pos, focus))
+            def follow(unit: Unit): Unit =
+              server.channel.write(LSP.Caret_Update(node_pos, focus).json)
           })
     }
 
@@ -276,8 +277,8 @@ class Language_Server(
       session.caret_focus.post(Session.Caret_Focus)
     }
 
-  private def update_caret(caret: Option[(String, Line.Position)]): Unit = {
-    resources.update_caret(caret.map((uri, pos) => (Url.absolute_file(uri), pos)))
+  private def update_caret(caret: Option[LSP.Caret_Update]): Unit = {
+    resources.update_caret(caret.map(caret => (Url.parse_file(caret.uri), caret.pos)))
     delay_caret_update.invoke()
     editor.invoke()
   }
@@ -584,7 +585,8 @@ class Language_Server(
           text_edit <- text_edit(props, text, model)
           file = resources.node_file(node_name)
           end_pos = text_edit.range.start.advance(text_edit.new_text)
-        } channel.write(LSP.Document_Edit(Url.print_file(file), model.version, text_edit, end_pos))
+          document_edit = LSP.Document_Edit(Url.print_file(file), model.version, text_edit, end_pos)
+        } channel.write(document_edit.json)
 
       case Protocol.Dialog(id, serial, result) =>
         session.dialog_result(id, serial, result)
