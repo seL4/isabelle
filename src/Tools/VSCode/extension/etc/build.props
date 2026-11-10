@@ -5,6 +5,7 @@ sources = \
   $ISABELLE_HOME/src/Pure/General/bytes.scala \
   $ISABELLE_HOME/src/Pure/General/cache.scala \
   $ISABELLE_HOME/src/Pure/General/codepoint.scala \
+  $ISABELLE_HOME/src/Pure/General/comment.scala \
   $ISABELLE_HOME/src/Pure/General/completion.scala \
   $ISABELLE_HOME/src/Pure/General/exn.scala \
   $ISABELLE_HOME/src/Pure/General/file.scala \
@@ -23,9 +24,14 @@ sources = \
   $ISABELLE_HOME/src/Pure/General/space.scala \
   $ISABELLE_HOME/src/Pure/General/symbol.scala \
   $ISABELLE_HOME/src/Pure/General/time.scala \
+  $ISABELLE_HOME/src/Pure/General/url.scala \
   $ISABELLE_HOME/src/Pure/General/utf8.scala \
   $ISABELLE_HOME/src/Pure/General/value.scala \
   $ISABELLE_HOME/src/Pure/General/word.scala \
+  $ISABELLE_HOME/src/Pure/GUI/gui.scala \
+  $ISABELLE_HOME/src/Pure/Isar/keyword.scala \
+  $ISABELLE_HOME/src/Pure/Isar/outer_syntax.scala \
+  $ISABELLE_HOME/src/Pure/Isar/token.scala \
   $ISABELLE_HOME/src/Pure/PIDE/document_status.scala \
   $ISABELLE_HOME/src/Pure/PIDE/line.scala \
   $ISABELLE_HOME/src/Pure/PIDE/markup.scala \
@@ -36,22 +42,35 @@ sources = \
   $ISABELLE_HOME/src/Pure/PIDE/yxml.scala \
   $ISABELLE_HOME/src/Pure/ROOT.scala \
   $ISABELLE_HOME/src/Pure/System/isabelle_system.scala \
+  $ISABELLE_HOME/src/Pure/System/options.scala \
   $ISABELLE_HOME/src/Pure/System/platform.scala \
   $ISABELLE_HOME/src/Pure/System/scalajs.scala \
+  $ISABELLE_HOME/src/Pure/Tools/doc.scala \
   $ISABELLE_HOME/src/Pure/library.scala \
   $ISABELLE_VSCODE_HOME/src/lsp.scala \
   $ISABELLE_VSCODE_HOME/src/language_server.scala \
   setup/exn.scala \
   setup/environment.scala \
   setup/library.scala \
+  src/decorations.scala \
+  src/documentation_treeview.scala \
   src/dom_metric.scala \
+  src/extension.scala \
   src/history_text_field.scala \
   src/no_message_digest.scala \
+  src/output_view.scala \
   src/output_webview.scala \
   src/pretty_text_area.scala \
+  src/preview_panel.scala \
+  src/script_decorations.scala \
+  src/sledgehammer_view.scala \
   src/sledgehammer_webview.scala \
+  src/state_panel.scala \
   src/state_webview.scala \
+  src/symbols_view.scala \
   src/symbols_webview.scala \
   src/vscode.scala \
+  src/vscode_lib.scala \
   src/vscode_elements.scala \
+  src/webviews.scala \
   src/webview_api.scala
