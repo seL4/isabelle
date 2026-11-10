@@ -156,7 +156,7 @@ fun pointerEqual (x : 'a, y : 'a) = pointer_eq (x, y)
 local
   val lock = Thread.Mutex.mutex ();
 in
-  fun critical e () = Multithreading.synchronized "metis" lock e
+  fun critical e () = Multithreading.synchronized_body "metis" lock (fn run => run e ())
 end;
 
 val randomWord = Metis_Random.nextWord
