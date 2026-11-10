@@ -389,11 +389,15 @@ val _ =
 
           val _ = Session.init session_name;
 
+          val bootstrap_context =
+            if can Theory.get_pure () then NONE else Context.get_generic_context ();
+
           fun build () =
             let
               val res =
                 theories |>
                   (maps build_theories
+                    |> Context.setmp_generic_context bootstrap_context
                     |> session_timing
                     |> Exn.capture);
               val res1 =
@@ -409,14 +413,8 @@ val _ =
                 if session_name = Context.PureN
                 then Theory.install_pure (get_theory Context.PureN) else ();
             in () end;
-
-          fun exec e =
-            if can Theory.get_pure () then
-              Isabelle_Thread.fork (Isabelle_Thread.params "build_session") e
-              |> ignore
-            else e ();
         in
-          exec (fn () =>
+          (ignore o Isabelle_Thread.fork (Isabelle_Thread.params "build_session")) (fn () =>
             (case Exn.capture_body (Future.interruptible_task build) of
               Exn.Res () => (0, [])
             | Exn.Exn exn =>
