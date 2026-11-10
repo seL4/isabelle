@@ -22,7 +22,7 @@ struct
 fun toplevel_context () =
   let
     fun global_context () =
-      Theory.get_pure ()
+      Theory.get_pure_bootstrap ()
       |> Config.put_global Name_Space.names_long true
       |> Syntax.init_pretty_global;
   in
