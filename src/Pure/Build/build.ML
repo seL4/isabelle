@@ -388,7 +388,7 @@ val _ =
           val _ = Session.init session_name;
 
           val bootstrap_context =
-            if can Theory.get_pure () then NONE else Context.get_generic_context ();
+            if session_name = Context.PureN then Context.get_generic_context () else NONE;
 
           fun build () =
             let
