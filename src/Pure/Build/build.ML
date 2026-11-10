@@ -297,7 +297,7 @@ fun load_thy (thy0: Resources.thy) text parents =
     val (theory, present) =
       Options.strict_thread_update thy_options (fn () =>
         eval_thy loading_theory thy text_pos text
-          (if name = Context.PureN then [Context.the_global_context ()] else parents)) ();
+          (if name = Context.PureN then [Theory.get_pure_bootstrap ()] else parents)) ();
 
     fun commit segments =
       let
