@@ -308,11 +308,9 @@ fun load_thy (thy0: Resources.thy) text parents =
 
 in
 
-fun use_thy (thy as {session, name, imports, ...}: Resources.thy) =
+fun use_thy (thy as {name, imports, ...}: Resources.thy) =
   let
-    val text =
-      if session = Context.PureN then File.read (Path.explode (#node name))
-      else Bytes.content (#bytes (Resources.source_file (#node name)));
+    val text = Bytes.content (#bytes (Resources.source_file (#node name)));
     val parents = map (#theory o #1) imports;
     val use_parents = filter_out defined_theory parents;
   in new_entry (#theory name) use_parents {parents = parents, body = load_thy thy text} end;
