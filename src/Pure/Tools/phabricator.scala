@@ -477,10 +477,7 @@ local_infile = 0
 
     def mysql_conf(R: Regex, which: String): String = {
       val conf = Path.explode("/etc/mysql/debian.cnf")
-      split_lines(File.read(conf)).collectFirst({ case R(a) => a }) match {
-        case Some(res) => res
-        case None => error("Cannot determine " + which + " from " + conf)
-      }
+      split_lines(File.read(conf)).collectFirst({ case R(a) => a }).getOrElse("")
     }
 
     val mysql_root_user = mysql_conf("""^user\s*=\s*(\S*)\s*$""".r, "superuser name")
@@ -490,8 +487,10 @@ local_infile = 0
     val mysql_user_string = SQL.string(mysql_name) + "@'localhost'"
     val mysql_password = Linux.generate_password()
 
-    Isabelle_System.bash("mysql --user=" + Bash.string(mysql_root_user) +
-      " --password=" + Bash.string(mysql_root_password) + " --execute=" +
+    Isabelle_System.bash("mysql" +
+      if_proper(mysql_root_user, " --user=" + Bash.string(mysql_root_user)) +
+      if_proper(mysql_root_password, " --password=" + Bash.string(mysql_root_password)) +
+      " --execute=" +
       Bash.string(
         """DROP USER IF EXISTS """ + mysql_user_string + "; " +
         """CREATE USER """ + mysql_user_string +
