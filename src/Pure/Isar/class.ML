@@ -331,7 +331,8 @@ fun synchronize_class_syntax {base_sort} sort ctxt =
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE);
-    fun subst (c, _) = Option.map (fn {ty, rhs, ...} => (ty, rhs)) (AList.lookup (op =) operations c);
+    fun subst (c, _) = Option.map (fn {ty, rhs, ...} =>
+      (constrain base_sort ty, map_types (constrain base_sort) rhs)) (AList.lookup (op =) operations c);
     val uncheck_rewrites = rewrites_of_operations base_sort operations;
   in
     ctxt
