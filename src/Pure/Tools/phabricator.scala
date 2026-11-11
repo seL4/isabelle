@@ -42,11 +42,22 @@ object Phabricator {
       // mercurial build packages
       "make", "gcc", "gettext", "python3", "python3-dev", "python3-docutils", "python3-setuptools")
 
+  val packages_ubuntu_26_04: List[String] =
+    List(
+      // base packages
+      "git", "mysql-server", "php", "php-mysql", "php-gd", "php-curl", "php-apcu", "php-cli",
+      "php-json", "php-mbstring",
+      // more packages
+      "php-xml", "php-zip", "python3-pygments", "ssh", "subversion",
+      // mercurial
+      "mercurial")
+
   def system_packages(): List[String] = {
     val release = Linux.Release()
     if (release.is_ubuntu_22_04) packages_ubuntu_22_04
     else if (release.is_ubuntu_24_04) packages_ubuntu_24_04
-    else error("Bad Linux version: expected Ubuntu 22.04 or 24.04 LTS")
+    else if (release.is_ubuntu_26_04) packages_ubuntu_26_04
+    else error("Bad Linux version: expected Ubuntu 22.04, 24.04, 26.04 LTS")
   }
 
 
@@ -203,7 +214,8 @@ object Phabricator {
   def standard_mercurial_source: String = {
     val release = Linux.Release()
     if (release.is_ubuntu_22_04) "https://www.mercurial-scm.org/release/mercurial-6.1.4.tar.gz"
-    else "https://www.mercurial-scm.org/release/mercurial-6.8.2.tar.gz"
+    else if (release.is_ubuntu_24_04) "https://www.mercurial-scm.org/release/mercurial-6.8.2.tar.gz"
+    else error("Undefined standard Mercurial source for " + release)
   }
 
 
@@ -632,8 +644,7 @@ WantedBy=multi-user.target
 Usage: isabelle phabricator_setup [OPTIONS]
 
   Options are:
-    -M SOURCE    install Mercurial from source: local PATH, or URL, or ":" for
-                 """ + standard_mercurial_source + """
+    -M SOURCE    install Mercurial from source: local PATH, or URL, or ":" for platform standard
     -R DIR       repository directory (default: """ + default_repo("NAME") + """)
     -U           full update of system packages before installation
     -n NAME      Phorge installation name (default: """ + quote(default_name) + """)
