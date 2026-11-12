@@ -24,7 +24,7 @@ text \<open>
   Processing sessions may take considerable time. Isabelle build management
   helps to organize this efficiently. This includes support for parallel build
   jobs, in addition to the multithreaded theory and proof checking that is
-  already provided by the prover process itself.
+  already provided by the underlying Isabelle/ML process.
 \<close>
 
 
@@ -118,8 +118,8 @@ text \<open>
   directory for this session; by default this is the current directory of the
   \<^verbatim>\<open>ROOT\<close> file.
 
-  All theory files are located relatively to the session directory. The prover
-  process is run within the same as its current working directory.
+  All theory files are located relatively to the session directory. The
+  Isabelle/ML process is run within the same as its current working directory.
 
   \<^descr> \isakeyword{description}~\<open>text\<close> is a free-form description for this
   session (or chapter), e.g. for presentation purposes.
@@ -132,8 +132,8 @@ text \<open>
   \<^descr> \isakeyword{sessions}~\<open>names\<close> specifies sessions that are \<^emph>\<open>imported\<close> into
   the current name space of theories. This allows to refer to a theory \<open>A\<close>
   from session \<open>B\<close> by the qualified name \<open>B.A\<close> --- although it is loaded again
-  into the current ML process, which is in contrast to a theory that is
-  already present in the \<^emph>\<open>parent\<close> session.
+  into the current Isabelle/ML process, which is in contrast to a theory that
+  is already present in the \<^emph>\<open>parent\<close> session.
 
   Theories that are imported from other sessions are excluded from the current
   session document.
@@ -320,9 +320,10 @@ text \<open>
     @{system_option "timeout_scale"} as global adjustment to overall hardware
     performance.
 
-    The timer is controlled outside the ML process by the JVM that runs
-    Isabelle/Scala. Thus it is relatively reliable in canceling processes that
-    get out of control, even if there is a deadlock without CPU time usage.
+    The timer is controlled outside the Isabelle/ML process by the JVM that
+    runs Isabelle/Scala. Thus it is relatively reliable in canceling processes
+    that get out of control, even if there is a deadlock without CPU time
+    usage.
 
     \<^item> @{system_option_def "profiling"} specifies a mode for global ML
     profiling. Possible values are the empty string (disabled), \<^verbatim>\<open>time\<close> for
@@ -514,9 +515,10 @@ text \<open>
 
   \<^medskip>
   Option \<^verbatim>\<open>-j\<close> specifies the maximum number of parallel build jobs (prover
-  processes). Each prover process is subject to a separate limit of parallel
-  worker threads, cf.\ system option @{system_option_ref threads}. The default
-  is 1 for a local build, and 0 for a cluster build (see option \<^verbatim>\<open>-H\<close> below).
+  processes). Each Isabelle/ML process is subject to a separate limit of
+  parallel worker threads, cf.\ system option @{system_option_ref threads}.
+  The default is 1 for a local build, and 0 for a cluster build (see option
+  \<^verbatim>\<open>-H\<close> below).
 
   \<^medskip>
   Option \<^verbatim>\<open>-N\<close> enables cyclic shuffling of NUMA CPU nodes. This may help
