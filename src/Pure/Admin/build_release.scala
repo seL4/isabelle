@@ -449,10 +449,9 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
 
         other_isabelle_purge("browser_info")
 
-        val opt_dirs = "-d '~~/src/Benchmarks' "
         other_isabelle.bash("bin/isabelle build -f -j " + parallel_jobs +
           " -o browser_info -o document=pdf -o document_variants=document:outline=/proof,/ML" +
-          " -o system_heaps -a " + opt_dirs, echo = true).check
+          " -o system_heaps -o build_everything -a", echo = true).check
 
         if (include_find_facts) {
           progress.echo("Building Find_Facts index ...")
@@ -466,10 +465,10 @@ exec "$ISABELLE_JDK_HOME/bin/java" \
               Path.explode("$FIND_FACTS_HOME/lib") + Path.basic(database_name).db)
 
           val sessions =
-            other_isabelle.bash("bin/isabelle sessions -a " + opt_dirs).check.out_lines
+            other_isabelle.bash("bin/isabelle sessions -a").check.out_lines
           other_isabelle.bash(
             "bin/isabelle find_facts_index -o find_facts_database_name=" +
-              Bash.string(database_name) + " -n -N " + opt_dirs +
+              Bash.string(database_name) + " -n -N " +
               Bash.strings(sessions), echo = true).check
           Find_Facts.make_database(database_target, database_dir)
 
