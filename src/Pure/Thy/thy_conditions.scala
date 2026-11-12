@@ -252,8 +252,10 @@ object Thy_Conditions {
 
   /** immutable value **/
 
-  def init(background: Sessions.Background, options: Options): Thy_Conditions =
+  def init(background: Sessions.Background, options: Options): Thy_Conditions = {
+    predicates
     new Thy_Conditions(background, options, SortedMap.empty(Cond.Ordering))
+  }
 }
 
 final class Thy_Conditions private(
