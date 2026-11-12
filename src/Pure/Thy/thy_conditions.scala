@@ -187,7 +187,7 @@ object Thy_Conditions {
               case Some(Options.String) => if (options.string(name).nonEmpty) "" else "empty"
               case _ =>
                 error("Condition " + quote(name) + " cannot be evaluated as system option" +
-                  "\n(environment variables need to be given as \"$NAME\")")
+                  "\n(environment variables need to be given as $NAME or getenv(\"NAME\"))")
             }
         }
       }
