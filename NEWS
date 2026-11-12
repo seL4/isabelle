@@ -19,6 +19,14 @@ used, if A is not an identifier.
 facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
 
 
+*** Pure ***
+
+* Base sort for type classes is honored more accurately in class target syntax.
+
+* For classes covered both by a class’ super classes as well as its base sort,
+no class target syntax is applied.  Minor INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * try0:

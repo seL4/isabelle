@@ -153,7 +153,13 @@ fun all_assm_intros thy =
 
 fun these_defs thy = maps (Item_Net.content o #defs o the_class_data thy) o ancestry thy;
 
-fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
+fun classes_relevant_for_syntax thy {base_sort} sort =
+  sort
+  |> ancestry thy
+  |> subtract (op =) (Sign.complete_sort thy base_sort);
+
+fun these_operations thy {base_sort} sort =
+  maps (#operations o the_class_data thy) (classes_relevant_for_syntax thy {base_sort = base_sort} sort);
 
 val base_morphism = #base_morph oo the_class_data;
 
@@ -283,7 +289,7 @@ fun constraints_of_operations base_sort = constraints_of_operations' (K base_sor
 val global_constraints_of_operations = constraints_of_operations' single;
 
 fun these_constraints thy {base_sort} =
-  these_operations thy #> constraints_of_operations base_sort;
+  these_operations thy {base_sort = base_sort} #> constraints_of_operations base_sort;
 
 fun rewrite_wrt thy rewrites =
   perhaps (try (Pattern.rewrite_term_yoyo thy rewrites []));
@@ -315,7 +321,7 @@ fun synchronize_class_syntax {base_sort} sort ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
-    val operations = these_operations thy sort;
+    val operations = these_operations thy {base_sort = base_sort} sort;
     val primary_constraints = constraints_of_operations base_sort operations;
     val secondary_constraints = global_constraints_of_operations operations;
     fun improve (c, ty) =
@@ -354,7 +360,7 @@ fun pre_begin {base_sort} sort ctxt =
   in
     ctxt
     |> fold (Proof_Context.add_const_constraint o apsnd SOME) (these_constraints thy {base_sort = base_sort} sort)
-    |> fold (redeclare_const thy o fst) (these_operations thy sort)
+    |> fold (redeclare_const thy o fst) (these_operations thy {base_sort = base_sort} sort)
   end;
 
 fun begin {base_sort} sort ctxt =
@@ -468,8 +474,9 @@ fun canonical_abbrev class prmode with_syntax ((b, mx), rhs) thy =
 fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
+    val base_sort = base_sort_for thy [class]
     val preprocess = rewrite_wrt thy
-      (rewrites_of_operations (base_sort_for thy [class]) (these_operations thy [class]));
+      (rewrites_of_operations base_sort (these_operations thy {base_sort = base_sort} [class]));
     val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -490,8 +497,9 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism lthy class;
+    val base_sort = base_sort_for thy [class]
     val rhs_generic = rewrite_wrt thy
-      (reversed_rewrites_of_operations (base_sort_for thy [class]) (these_operations thy [class])) rhs;
+      (reversed_rewrites_of_operations base_sort (these_operations thy {base_sort = base_sort} [class])) rhs;
   in
     lthy
     |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
