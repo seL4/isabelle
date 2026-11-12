@@ -28,7 +28,9 @@ text \<open>
 \<close>
 
 
-section \<open>Session ROOT specifications \label{sec:session-root}\<close>
+section \<open>Session and theory specifications\<close>
+
+subsection \<open>Session ROOT files \label{sec:session-root}\<close>
 
 text \<open>
   Session specifications reside in files called \<^verbatim>\<open>ROOT\<close> within certain
@@ -149,7 +151,8 @@ text \<open>
   are processed within an environment that is augmented by the given options,
   in addition to the global session options given before. Any number of blocks
   of \isakeyword{theories} may be given. Options are only active for each
-  \isakeyword{theories} block separately.
+  \isakeyword{theories} block separately. See also \secref{sec:theory-options}
+  for options within the \<^theory_text>\<open>theory\<close> header specification.
 
   A theory name that is followed by \<open>(\<close>\isakeyword{global}\<open>)\<close> is treated
   literally in other session specifications or theory imports --- the normal
@@ -204,6 +207,104 @@ text \<open>
   \<^verbatim>\<open>HOL-SPARK\<close>, \<^verbatim>\<open>HOL-SPARK-Examples\<close>. An alternative is to use unqualified
   names that are relatively long and descriptive, as in the Archive of Formal
   Proofs (AFP, \<^url>\<open>https://isa-afp.org\<close>), for example.
+\<close>
+
+
+subsection \<open>Theory options and conditions \label{sec:theory-options}\<close>
+
+text \<open>
+  Within a \<^verbatim>\<open>.thy\<close> file, the @{command_ref theory} command has a special role:
+  it specifies the \<^emph>\<open>theory header\<close> with theory imports, syntax keywords,
+  options etc. This information is determined in Isabelle/Scala, without
+  running the Isabelle/ML process yet. The full @{command_ref theory} syntax
+  is given in \<^cite>\<open>"isabelle-isar-ref"\<close>, but the specific aspect of
+  options (and conditions) is described here.
+
+  \<^rail>\<open>
+    @@{command theory} @{syntax system_name}
+      @'imports' (@{syntax system_name} +) \<newline>
+      options? @'begin'
+  \<close>
+
+  Theory options are only used for the theory body --- neither for the theory
+  imports nor for other theories importing the current theory. This is
+  analogous to session options within a \<^verbatim>\<open>ROOT\<close> file
+  (\secref{sec:session-root}), but the scope of options is different, and
+  inlined theory options may be edited within a running PIDE editor session,
+  such as Isabelle/jEdit \<^cite>\<open>"isabelle-jedit"\<close>.
+
+  The following system options refer to a language of \<^emph>\<open>theory conditions\<close>,
+  which will be defined below.
+
+    \<^item> Option @{system_option_def "condition"} guards the processing a theory
+    body. A false condition means that the theory body remains semantically
+    empty: its commands are ignored (except for document commands of the
+    header). Theory imports are always processed, and the resulting theory may
+    be always imported elsewhere. This allows to construct variants of formal
+    specifications, depending on parameters that are changed by external means
+    (e.g. Isabelle system options): with suitable naming conventions and proof
+    tool setup, later theories may work uniformly on either variant.
+
+    \<^item> Option @{system_option_def "condition_proofs"} is analogous to
+    @{system_option condition}, but skips proof checking only. Thus
+    \<^verbatim>\<open>[condition_proofs = false]\<close> is like the historical option
+    \<^verbatim>\<open>[skip_proofs = true]\<close>, but @{system_option condition_proofs} may depend
+    on the process environment, session options, Isabelle/Scala predicates.
+
+  These options take \<^emph>\<open>string\<close> values, but it is convenient to use @{syntax
+  cartouche} syntax instead: \<^verbatim>\<open>\<open>...\<close>\<close> or French single-quotes. That allows to
+  nest other string literals easily, e.g. \<^verbatim>\<open>\<open>getenv("TEST")\<close>\<close>.
+
+  \<^medskip>
+  The lexical syntax of theory conditions is defined as follows:
+
+  \begin{center}
+  \begin{supertabular}{rcl}
+    \<open>ident\<close> & = & \<open>letter quasiletter\<^sup>*\<close> \\
+    \<open>variable\<close> & = & \<^verbatim>\<open>$\<close>\<open>ident\<close> \\
+    \<open>string\<close> & = & \<^verbatim>\<open>"\<close> \<open>\<dots>\<close> \<^verbatim>\<open>"\<close> \\
+    \<open>cartouche\<close> & = & @{verbatim "\<open>"} \<open>\<dots>\<close> @{verbatim "\<close>"} \\[1ex]
+
+    \<open>letter\<close> & = & \<^verbatim>\<open>a\<close>~~\<open>| \<dots> |\<close>~~\<^verbatim>\<open>z\<close>~~\<open>|\<close>~~\<^verbatim>\<open>A\<close>~~\<open>|  \<dots> |\<close>~~\<^verbatim>\<open>Z\<close> \\
+    \<open>digit\<close> & = & \<^verbatim>\<open>0\<close>~~\<open>|  \<dots> |\<close>~~\<^verbatim>\<open>9\<close> \\
+    \<open>quasiletter\<close> & = & \<open>letter  |  digit  |\<close>~~\<^verbatim>\<open>_\<close> \\
+  \end{supertabular}
+  \end{center}
+
+  The grammar of theory conditions is defined as follows:
+
+  \<^rail>\<open>
+    conditions: condition * ','
+    ;
+    condition: variable | ident args?
+    ;
+    args: '(' (arg * ',') ')'
+    ;
+    arg: string | cartouche
+  \<close>
+
+  The semantics of \<^emph>\<open>conditions\<close> is the logical conjunction of each
+  \<^emph>\<open>condition\<close>, where the latter is interpreted as follows:
+
+    \<^item> \<^verbatim>\<open>true\<close> and \<^verbatim>\<open>false\<close> refer to literal Boolean values.
+
+    \<^item> \<^verbatim>\<open>name\<close> without arguments refers to a system option; to be enabled, the
+    value needs to be \<^verbatim>\<open>true\<close> (\<open>bool\<close>), non-empty (\<open>string\<close>), or \<open>>\<close>~0 (\<open>int\<close>
+    or \<open>real\<close>).
+
+    \<^item> \<^verbatim>\<open>name(arguments)\<close> refers to a predicate defined in Isabelle/Scala, via
+    \<^verbatim>\<open>services\<close> in \<^verbatim>\<open>etc/build.props\<close> and suitable instances of the service
+    class @{scala_type isabelle.Thy_Conditions.Predicates}. The Scala
+    implementation determines the number of admissible arguments and their
+    meaning. That function may refer to session options, or other resources
+    from the session build database of ancestor sessions (\<^emph>\<open>not\<close> from the
+    current session).
+
+    \<^item> \<^verbatim>\<open>$NAME\<close> expands to the predicate \<^verbatim>\<open>getenv("NAME")\<close>, which refers to a
+    POSIX process environment variable (e.g. from Isabelle settings). The
+    second form always works, even if the variable name does not conform to
+    plain \<^emph>\<open>ident\<close> syntax from above. The condition is enabled, if the
+    variable is set to a non-empty string value.
 \<close>
 
 
@@ -282,36 +383,6 @@ text \<open>
     sensible value is guessed from the underlying hardware. This sometimes
     requires manual adjustment (on the command-line or within personal
     settings or preferences, not within a session \<^verbatim>\<open>ROOT\<close>).
-
-    \<^item> @{system_option_def "condition"} specifies a comma-separated list of
-    pre-conditions (conjunction) that guard the processing a theory body. A
-    false condition means that the theory body remains empty: its commands are
-    ignored (except for document commands of the header). Theory imports are
-    always processed, and the resulting theory may be always imported
-    elsewhere. This allows to construct variants of specifications, depending
-    on parameters that are changed by external means (e.g. Isabelle system
-    options): with suitable naming conventions and proof tool setup, later
-    theories may work uniformly on either variant.
-
-    The syntax and semantics of individual conditions is as follows:
-
-      \<^item> \<^verbatim>\<open>true\<close> and \<^verbatim>\<open>false\<close> refer to literal Boolean values.
-
-      \<^item> \<^verbatim>\<open>$NAME\<close> refers to a process environment variable: to be enabled, the
-      value needs to be set and non-empty.
-
-      \<^item> \<^verbatim>\<open>name\<close> refers to a system option; to be enabled, the value needs to
-      be true (bool), non-empty (string), or > 0 (int, real).
-
-      \<^item> \<^verbatim>\<open>name()\<close> refers to a predicate defined in Isabelle/Scala (via
-      \<^verbatim>\<open>services\<close> in \<^verbatim>\<open>etc/build.props\<close> and suitable instances of the service
-      class @{scala_type isabelle.Thy_Conditions.Predicates}).
-
-    \<^item> @{system_option_def "condition_proofs"} is analogous to @{system_option
-    condition}, but skips proof checking only. Thus
-    \<^verbatim>\<open>[condition_proofs = false]\<close> is like the historical option
-    \<^verbatim>\<open>[skip_proofs = true]\<close>, but @{system_option condition_proofs} may depend
-    on the process environment, session options, Isabelle/Scala predicates.
 
     \<^item> @{system_option_def "timeout"} and @{system_option_def "timeout_scale"}
     specify a real wall-clock timeout for the session as a whole: the two
