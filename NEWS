@@ -21,8 +21,9 @@ facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
 
 *** Isabelle/jEdit Prover IDE ***
 
-* The FlatLaf look-and-feel (version 3.8) now handles F10 on Windows
-more natively, which is important for the NVDA Screen Reader.
+* The FlatLaf look-and-feel (version 3.8) now handles menu keys Alt and
+F10 on Windows more natively, which is important for the NVDA Screen
+Reader.
 
 
 *** Pure ***
