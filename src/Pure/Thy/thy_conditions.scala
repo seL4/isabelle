@@ -42,11 +42,11 @@ object Thy_Conditions {
 
   class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
 
-  def predicate_name_ok(name: String): Boolean =
+  private def predicate_name_ok(name: String): Boolean =
     Symbol.is_ascii_identifier(name) && !name.exists(_ == '\'') &&
     Value.Boolean.unapply(name).isEmpty
 
-  lazy val predicates: Map[String, Predicate] =
+  private lazy val predicates: Map[String, Predicate] =
     Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
       .foldLeft(Map.empty[String, Predicate])(
         { case (map, pred) =>
