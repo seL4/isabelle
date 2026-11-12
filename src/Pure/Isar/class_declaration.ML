@@ -167,7 +167,7 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
       (map (fn sup => (sup, (("", false), (Expression.Positional [], [])))) sups, []);
     val init_class_body =
       Variable.restore_constraints ctxt
-      #> Class.pre_begin {base_sort = proto_base_sort} sups
+      #> Class.begin {base_sort = proto_base_sort, fixate = false} sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
       ctxt
@@ -236,7 +236,7 @@ fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = includes_ctxt |> Class.begin {base_sort = base_sort} sups;
+    val class_ctxt = includes_ctxt |> Class.begin {base_sort = base_sort, fixate = true} sups;
     val ((_, _, syntax_elems, _), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
