@@ -119,6 +119,50 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
     File.write (dir + Path.basic file_name) (cat_lines lines ^ "\n")
   end
 
+local
+
+fun is_cartouche (str : string) : bool =
+  String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
+
+fun literal_xref_of_fact (ctxt : Proof.context) (thm : thm) : Facts.ref option =
+  let
+    val xref = Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
+  in
+    (* A fact referred to by its statement must be retrievable from that text in "ctxt". This
+       fails, e.g., if the statement mentions a fixed variable that is shadowed by another one with
+       the same name; such a fact cannot be referred to in a proof text at all. *)
+    (case try (Proof_Context.get_fact ctxt) xref of
+      SOME [thm'] => if Thm.eq_thm_prop (thm, thm') then SOME xref else NONE
+    | _ => NONE)
+  end
+
+(* Parses fact names of the form "foo(3)" as a selection of the third theorem of "foo". *)
+fun named_xref_of_name (name : string) : Facts.ref =
+  let val default = Facts.named name in
+    if String.isSuffix ")" name then
+      (case ATP_Util.first_field_substring "(" (Substring.trimr 1 (Substring.full name)) of
+        SOME (name', num) =>
+          (case Int.scan StringCvt.DEC Substring.getc num of
+            SOME (n, rest) =>
+              if Substring.isEmpty rest then
+                Facts.Named ((Substring.string name', Position.none), SOME [Facts.Single n])
+              else
+                default
+          | NONE => default)
+      | NONE => default)
+    else
+      default
+  end
+
+val _ = \<^assert> (named_xref_of_name "foo" = Facts.named "foo")
+val _ = \<^assert>
+  (named_xref_of_name "foo(3)" = Facts.Named (("foo", Position.none), SOME [Facts.Single 3]))
+val _ = \<^assert> (named_xref_of_name "foo(3abc)" = Facts.named "foo(3abc)")
+val _ = \<^assert> (named_xref_of_name "foo(bar)" = Facts.named "foo(bar)")
+val _ = \<^assert> (named_xref_of_name "foo)" = Facts.named "foo)")
+
+in
+
 fun run_tactic_prover mode name ({slices, timeout, ...} : params)
     ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
   let
@@ -130,35 +174,13 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
     fun classify_facts () =
       let
         val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
-        fun is_cartouche str = String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
-        fun literal_xref_of_fact thm =
-          let
-            val xref = Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
-          in
-            (* A fact referred to by its statement must be retrievable from that text in "ctxt".
-               This fails, e.g., if the statement mentions a fixed variable that is shadowed by
-               another one with the same name; such a fact cannot be referred to in a proof text
-               at all. *)
-            (case try (Proof_Context.get_fact ctxt) xref of
-              SOME [thm'] => if Thm.eq_thm_prop (thm, thm') then SOME xref else NONE
-            | _ => NONE)
-          end
         fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
           let
             val xref_opt =
               if is_cartouche name then
-                literal_xref_of_fact thm
+                literal_xref_of_fact ctxt thm
               else
-                SOME (case try (unsuffix ")") name of
-                  SOME s' =>
-                  (case ATP_Util.first_field_substring "(" (Substring.full s') of
-                    SOME (name', num) =>
-                    (case Int.fromString (Substring.string num) of
-                      SOME n =>
-                      Facts.Named ((Substring.string name', Position.none), SOME [Facts.Single n])
-                    | NONE => Facts.named name)
-                  | NONE => Facts.named name)
-                | NONE => Facts.named name)
+                SOME (named_xref_of_name name)
           in
             Option.map (fn xref => (fact, (xref, []))) xref_opt
           end
@@ -218,5 +240,7 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
     {outcome = outcome, used_facts = used_facts, used_from = facts,
      preferred_methss = (meth_of name, []), run_time = run_time, message = message}
   end
+
+end
 
 end;
