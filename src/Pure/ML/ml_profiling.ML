@@ -13,6 +13,11 @@ end;
 
 signature ML_PROFILING =
 sig
+  val kind_time: string
+  val kind_time_thread: string
+  val kind_allocations: string
+  val message: {kind: string} -> {name: string, count: int} list -> unit
+  val message1: {kind: string, name: string} -> unit
   val check_mode: string -> unit
   val profile: string -> ('a -> 'b) -> 'a -> 'b
   include BASIC_ML_PROFILING
@@ -21,13 +26,42 @@ end;
 structure ML_Profiling: ML_PROFILING =
 struct
 
-(* mode *)
+(* kinds *)
+
+val kind_time = "time";
+val kind_time_thread = "time_thread";
+val kind_allocations = "allocations";
+
+
+(* messages *)
+
+local
+
+fun markup_entry entry =
+  if #count entry = 0 then NONE
+  else SOME (XML.Elem (Markup.ML_profiling_entry entry, []));
+
+fun markup_body kind body = XML.Elem (Markup.ML_profiling kind, body);
+
+in
+
+fun message {kind} entries =
+  (case map_filter markup_entry entries of
+    [] => ()
+  | body => Output.tracings (Bytes.contents (YXML.bytes_of (markup_body kind body))));
+
+fun message1 {kind, name} = message {kind = kind} [{name = name, count = 1}];
+
+end;
+
+
+(* Poly/ML mode *)
 
 val modes =
   Symtab.make
-    [("time", PolyML.Profiling.ProfileTime),
-     ("time_thread", PolyML.Profiling.ProfileTimeThisThread),
-     ("allocations", PolyML.Profiling.ProfileAllocations)];
+    [(kind_time, PolyML.Profiling.ProfileTime),
+     (kind_time_thread, PolyML.Profiling.ProfileTimeThisThread),
+     (kind_allocations, PolyML.Profiling.ProfileAllocations)];
 
 fun get_mode kind =
   (case Symtab.lookup modes kind of
@@ -40,35 +74,19 @@ fun check_mode "" = ()
 
 (* profile *)
 
-fun print_entry count name =
-  let
-    val c = string_of_int count;
-    val prefix = Symbol.spaces (Int.max (0, 12 - size c));
-  in prefix ^ c ^ " " ^ name end;
-
 fun profile "" f x = f x
   | profile kind f x =
       let
         val mode = get_mode kind;
-        fun output entries =
-          (case fold (curry (op +) o fst) entries 0 of
-            0 => ()
-          | total =>
-              let
-                val body = entries
-                  |> sort (int_ord o apply2 fst)
-                  |> map (fn (count, name) =>
-                      let val markup = Markup.ML_profiling_entry {name = name, count = count}
-                      in XML.Elem (markup, [XML.Text (print_entry count name ^ "\n")]) end);
-                val head = XML.Text ("profile_" ^ kind ^ ":\n");
-                val foot = XML.Text (print_entry total "TOTAL");
-                val msg = XML.Elem (Markup.ML_profiling kind, head :: body @ [foot]);
-              in tracing (YXML.string_of msg) end);
+        val output =
+          sort (int_ord o apply2 fst)
+          #> map (fn (count, name) => {name = name, count = count})
+          #> message {kind = kind};
       in PolyML.Profiling.profileStream output mode f x end;
 
-fun profile_time f = profile "time" f;
-fun profile_time_thread f = profile "time_thread" f;
-fun profile_allocations f = profile "allocations" f;
+fun profile_time f = profile kind_time f;
+fun profile_time_thread f = profile kind_time_thread f;
+fun profile_allocations f = profile kind_allocations f;
 
 end;
 

@@ -137,7 +137,7 @@ in
 
 fun check_string context tok =
   if ML_Lex.check_string tok andalso Config.get_generic context ML_Env.ML_check_strings andalso
-    exists_string (fn "." => true | _ => false) (ML_Lex.content_of tok)
+    String.exists_str (fn "." => true | _ => false) (ML_Lex.content_of tok)
   then
     let
       val ctxt = Context.proof_of context;

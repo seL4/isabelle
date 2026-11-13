@@ -415,7 +415,7 @@ fun typedef_bnf thm wits specs map_b rel_b pred_b opts lthy =
     val tvs = AbsT |> dest_Type_args |> map (fst o dest_TVar);
     val alpha0s = map (TFree o snd) specs;
 
-    val _ = length tvs = length alpha0s orelse
+    val _ = length_ord (tvs, alpha0s) = EQUAL orelse
       error ("Expected " ^ string_of_int (length tvs) ^ " type argument(s) to " ^ quote AbsT_name);
 
     (* instantiate the new type variables newtvs to oldtvs *)
@@ -836,7 +836,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
     val absT_name = dest_Type_name absT;
 
     val tvs = map (fst o dest_TVar) (dest_Type_args absT);
-    val _ = length tvs = length specs orelse
+    val _ = length_ord (tvs, specs) = EQUAL orelse
       error ("Expected " ^ string_of_int (length tvs) ^
         " type argument" ^ (if (length tvs) = 1 then "" else "s") ^ " to " ^ quote absT_name);
 

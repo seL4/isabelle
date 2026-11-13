@@ -61,7 +61,7 @@ fun plain_strings_of str =
 
 datatype character = Char of string | Ord of int;
 
-val specials = raw_explode "\\\"`'";
+val specials = String.explode_str "\\\"`'";
 
 fun classify_character i =
   let

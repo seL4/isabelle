@@ -81,7 +81,7 @@ fun parse rep =
 
 end;
 
-functor Message_Digest_Ops(val kind: string val scala_fun: Bytes.T -> Bytes.T): MESSAGE_DIGEST_OPS =
+functor Message_Digest_Ops(val kind: string val scala_fun: string): MESSAGE_DIGEST_OPS =
 struct
 
 type T = Message_Digest.T;
@@ -96,10 +96,10 @@ fun parse rep =
       " (expected " ^ kind ^ ")")
   end;
 
-val digest_bytes = parse o Bytes.content o scala_fun;
+val digest_bytes = parse o Bytes.content o Scala.function1_bytes scala_fun;
 val digest = digest_bytes o Bytes.string;
 
 end;
 
-structure SHA1 = Message_Digest_Ops(val kind = "SHA1" val scala_fun = \<^scala>\<open>SHA1.digest\<close>);
-structure SHA256 = Message_Digest_Ops(val kind = "SHA256" val scala_fun = \<^scala>\<open>SHA256.digest\<close>);
+structure SHA1 = Message_Digest_Ops(val kind = "SHA1" val scala_fun = "SHA1.digest");
+structure SHA256 = Message_Digest_Ops(val kind = "SHA256" val scala_fun = "SHA256.digest");

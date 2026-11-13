@@ -51,7 +51,7 @@ export function get_html(
         <title>${title}</title>
       </head>
       <body>
-        <script type="module" src="${uri(Path.join("media", script_name))}"></script>
+        <script type="module" src="${uri(Path.join("js", script_name))}"></script>
       </body>
     </html>`
 }

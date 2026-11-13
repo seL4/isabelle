@@ -76,35 +76,38 @@ fun eta_norm env =
   in eta_nm end;
 
 
+structure Seen = Set(type key = indexname val ord = Term_Ord.fast_indexname_ord);
+type seen = Seen.T Unsynchronized.ref;
+fun init_seen () : seen = Unsynchronized.ref Seen.empty;
+fun member_seen seen v = Seen.member (! seen) v;
+fun insert_seen seen v = Unsynchronized.change seen (Seen.insert v);
+
 (*OCCURS CHECK
-  Does the uvar occur in the term t?
+  Does the variable name v occur in the term t?
   two forms of search, for whether there is a rigid path to the current term.
-  "seen" is list of variables passed through, is a memo variable for sharing.
+  "seen" is set of variables passed through, is a memo variable for sharing.
   This version searches for nonrigid occurrence, returns true if found.
   Since terms may contain variables with same name and different types,
   the occurs check must ignore the types of variables. This avoids
   that ?x::?'a is unified with f(?x::T), which may lead to a cyclic
   substitution when ?'a is instantiated with T later. *)
-fun occurs_terms (seen: indexname list Unsynchronized.ref,
-      env: Envir.env, v: indexname, ts: term list): bool =
+fun occurs_term (seen: seen, env: Envir.env, v: indexname, t: term) : bool =
   let
-    fun occurs [] = false
-      | occurs (t :: ts) = occur t orelse occurs ts
-    and occur (Const _) = false
+    fun occur (Const _) = false
       | occur (Bound _) = false
       | occur (Free _) = false
       | occur (Var (w, T)) =
-          if member (op =) (!seen) w then false
+          if member_seen seen w then false
           else if Term.eq_ix (v, w) then true
             (*no need to lookup: v has no assignment*)
           else
-            (seen := w :: !seen;
+            (insert_seen seen w;
              case Envir.lookup env (w, T) of
                NONE => false
              | SOME t => occur t)
-      | occur (Abs (_, _, body)) = occur body
-      | occur (f $ t) = occur t orelse occur f;
-  in occurs ts end;
+      | occur (Abs (_, _, b)) = occur b
+      | occur (a $ b) = occur b orelse occur a;
+  in occur t end;
 
 
 (* f a1 ... an  ---->  f  using the assignments*)
@@ -143,17 +146,12 @@ If head is an abstraction then possibly no rigid path (head could be a
 Warning: finds a rigid occurrence of ?f in ?f(t).
   Should NOT be called in this case: there is a flex-flex unifier
 *)
-fun rigid_occurs_term (seen: indexname list Unsynchronized.ref, env, v: indexname, t) =
+fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
   let
     fun nonrigid t =
-      if occurs_terms (seen, env, v, [t]) then Nonrigid
+      if occurs_term (seen, env, v, t) then Nonrigid
       else NoOcc
-    fun occurs [] = NoOcc
-      | occurs (t :: ts) =
-          (case occur t of
-            Rigid => Rigid
-          | oc => (case occurs ts of NoOcc => oc | oc2 => oc2))
-    and occomb (f $ t) =
+    fun occomb (f $ t) =
         (case occur t of
           Rigid => Rigid
         | oc => (case occomb f of NoOcc => oc | oc2 => oc2))
@@ -162,10 +160,10 @@ fun rigid_occurs_term (seen: indexname list Unsynchronized.ref, env, v: indexnam
       | occur (Bound _) = NoOcc
       | occur (Free _) = NoOcc
       | occur (Var (w, T)) =
-          if member (op =) (!seen) w then NoOcc
+          if member_seen seen w then NoOcc
           else if Term.eq_ix (v, w) then Rigid
           else
-            (seen := w :: !seen;
+            (insert_seen seen w;
              case Envir.lookup env (w, T) of
                NONE => NoOcc
              | SOME t => occur t)
@@ -210,7 +208,7 @@ fun get_eta_var ([], _, Var vT) = vT
   If v occurs nonrigidly then must use full algorithm. *)
 fun assignment context (rbinder, t, u) env =
   let val vT as (v,T) = get_eta_var (rbinder, 0, t) in
-    (case rigid_occurs_term (Unsynchronized.ref [], env, v, u) of
+    (case rigid_occurs_term (init_seen (), env, v, u) of
       NoOcc =>
         let val env = unify_types context (Envir.body_type env T, fastype env (rbinder, u)) env
         in Envir.update (vT, Logic.rlist_abs (rbinder, u)) env end
@@ -418,7 +416,7 @@ fun MATCH context (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.
   Attempts to update t with u, raising ASSIGN if impossible*)
 fun ff_assign context (env, rbinder, t, u) : Envir.env =
   let val vT as (v, T) = get_eta_var (rbinder, 0, t) in
-    if occurs_terms (Unsynchronized.ref [], env, v, [u]) then raise ASSIGN
+    if occurs_term (init_seen (), env, v, u) then raise ASSIGN
     else
       let val env = unify_types context (Envir.body_type env T, fastype env (rbinder, u)) env
       in Envir.vupdate (vT, Logic.rlist_abs (rbinder, u)) env end
@@ -613,10 +611,10 @@ fun hounifiers binders (context, env, tus : (term * term) list)
                  else (); Seq.pull reseq)
               else
                (if tdepth > unify_trace_bound then
-                  print_dpairs context "Enter MATCH" (env',flexrigid@flexflex)
+                  print_dpairs context "Enter MATCH" (env', flexrigid @ flexflex)
                 else ();
                 Seq.pull (Seq.it_right
-                    (add_unify (tdepth + 1)) (MATCH context (env',dp, frigid'@flexflex), reseq))))
+                    (add_unify (tdepth + 1)) (MATCH context (env', dp, frigid' @ flexflex), reseq))))
         end
         handle CANTUNIFY =>
          (if tdepth > unify_trace_bound
@@ -631,13 +629,6 @@ fun unifiers (params as (context, env, tus)) =
       | Pattern.Pattern => hounifiers [] params;
 
 
-(*For smash_flexflex1*)
-fun var_head_of (env,t) : indexname * typ =
-  (case head_of (strip_abs_body (Envir.norm_term env t)) of
-    Var (v, T) => (v, T)
-  | _ => raise CANTUNIFY);  (*not flexible, cannot use trivial substitution*)
-
-
 (*Eliminate a flex-flex pair by the trivial substitution, see Huet (1975)
   Unifies ?f t1 ... rm with ?g u1 ... un by ?f -> \<lambda>x1...xm. ?a, ?g -> \<lambda>x1...xn. ?a
   Unfortunately, unifies ?f t u with ?g t u by ?f, ?g -> \<lambda>x y. ?a,
@@ -647,13 +638,18 @@ fun var_head_of (env,t) : indexname * typ =
   Handles ?f t1 ... rm with ?f u1 ... um to avoid multiple updates. *)
 fun smash_flexflex1 (t, u) env : Envir.env =
   let
-    val vT as (v, T) = var_head_of (env, t)
-    and wU as (w, U) = var_head_of (env, u);
-    val (env', var) = Envir.genvar (#1 v) (env, Envir.body_type env T);
-    val env'' = Envir.vupdate (wU, type_abs (env', U, var)) env';
+    fun var_head_of tm =
+      (case head_of (strip_abs_body (Envir.norm_term env tm)) of
+        Var var => var
+      | _ => raise CANTUNIFY);  (*not flexible, cannot use trivial substitution*)
+
+    val v as (_, T) = var_head_of t
+    and w as (_, U) = var_head_of u;
+    val (env', var) = Envir.genvar (#1 (#1 v)) (env, Envir.body_type env T);
+    val env'' = Envir.vupdate (w, type_abs (env', U, var)) env';
   in
-    if vT = wU then env''  (*the other update would be identical*)
-    else Envir.vupdate (vT, type_abs (env', T, var)) env''
+    if v = w then env''  (*the other update would be identical*)
+    else Envir.vupdate (v, type_abs (env', T, var)) env''
   end;
 
 

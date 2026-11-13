@@ -31,9 +31,9 @@ object Scan {
 
   /** parser combinators **/
 
-  object Parsers extends Parsers
+  object Scanners extends Scanners
 
-  trait Parsers extends RegexParsers {
+  trait Scanners extends RegexParsers {
     override val whiteSpace: Regex = "".r
 
 
@@ -81,7 +81,7 @@ object Scan {
     /* character */
 
     def character(pred: Char => Boolean): Symbol.Symbol => Boolean =
-      (s: Symbol. Symbol) => s.length == 1 && pred(s.charAt(0))
+      (s: Symbol.Symbol) => s.length == 1 && pred(s.charAt(0))
 
 
     /* quoted strings */
@@ -456,6 +456,6 @@ object Scan {
 
   /* plain text reader */
 
-  def char_reader(text: CharSequence): CharSequenceReader =
+  def char_reader(text: CharSequence): Reader[Char] =
     new CharSequenceReader(text)
 }

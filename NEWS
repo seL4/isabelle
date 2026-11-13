@@ -7,6 +7,97 @@ Isabelle NEWS -- history of user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Theory conditions allow for predicates with arguments: as literal
+strings or cartouches. For example, getenv("A","B","C") to check process
+environment variables (settings). The $A syntax is still supported as
+before, but now expands to getenv("A"); the latter form needs to be
+used, if A is not an identifier.
+
+* The syntax for system option values now allows cartouches as well, to
+facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
+
+
+*** Isabelle/jEdit Prover IDE ***
+
+* The FlatLaf look-and-feel (version 3.8) now handles menu keys Alt and
+F10 on Windows more natively, which is important for the NVDA Screen
+Reader.
+
+
+*** Pure ***
+
+* Base sort for type classes is honored more accurately in class target syntax.
+
+* For classes covered both by a class’ super classes as well as its base sort,
+no class target syntax is applied.  Minor INCOMPATIBILITY.
+
+
+*** HOL ***
+
+* try0:
+  - Changed the ML types Try0.facts and Try0_Util.facts_config: facts
+    are grouped into named classes (e.g. "simp", "intro"), and each proof
+    method declares the argument syntax it accepts (no arguments, plain
+    fact arguments, or class-specific sections such as "simp:").
+    Minor INCOMPATIBILITY.
+  - Facts are passed to a proof method in its own syntax where possible
+    (e.g. "simp:" for "auto", plain arguments for "metis") and via
+    "using" otherwise. In particular, the Sledgehammer tactic provers
+    "auto", "force", and "fastforce" no longer fail when given facts from
+    the background theory, and "argo" now takes facts as plain arguments.
+  - Added optional fact classifiers, which assign facts to classes before
+    the proof methods are tried. They are registered with the ML function
+    Try0.register_fact_classifier and selected with the system option
+    "try0_fact_classifier".
+  - Proof methods are registered in theory data, i.e. they are only
+    available in theories importing the registering theory. The ML
+    functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
+    Try0.get_all_proof_method_names take a Proof.context.
+    Minor INCOMPATIBILITY.
+  - Added the fact classes "split", "iff", and "cong".
+  - Facts in parentheses are passed without class, as in the command
+    "sledgehammer"; they are subject to the fact classifier.
+
+* Mirabelle:
+  - Added argument "log_classifications" to the action "sledgehammer" to
+    write the fact classifications, timings, and outcomes of the tactic
+    provers to files in the output directory.
+  - Added option -e to "isabelle mirabelle" to evaluate ML files before
+    initializing the actions, e.g. to register custom actions or fact
+    classifiers. Context-dependent registrations, such as fact classifiers,
+    must be wrapped in Mirabelle.add_goal_setup to reach each goal.
+
+
+*** ML ***
+
+* Exceptions General.Overflow and General.Size need to be used in
+qualified form: to make it harder to use them casually. Minor
+INCOMPATIBILITY.
+
+* Predicate Exn.is_interrupt_breakdown now covers General.Size and
+General.Overflow as well, in addition to Exn.Interrupt_Breakdown before.
+In particular, these exceptions are no longer handled by the "can" or
+"try" combinators, or \<^try>\<open>... catch ...\<close> expressions.
+INCOMPATIBILITY: subtle change of semantics of program exceptions; need
+to use Exn.capture if the Isabelle/ML evaluation should be checked under
+program control.
+
+* Various low-level string operations have been renamed as follows.
+INCOMPATIBILITY.
+
+  nth_string           ~>  String.nth_str
+  fold_string          ~>  String.fold_str
+  fold_rev_string      ~>  String.fold_rev_str
+  exists_string        ~>  String.exists_str
+  forall_string        ~>  String.forall_str
+  member_string        ~>  String.member_str
+  raw_explode          ~>  String.explode_str
+  translate_string     ~>  String.translate_str
+  Bytes.exists_string  ~>  Bytes.exists_str
+  Bytes.forall_string  ~>  Bytes.forall_str
+
 
 
 New in Isabelle2026 (October 2026)
@@ -238,30 +329,6 @@ checked in the past. INCOMPATIBILITY.
   - Tuned output of proof reconstruction to detect more duplicate
     proofs.
 
-* try0:
-  - Changed the ML types Try0.facts and Try0_Util.facts_config: facts
-    are grouped into named classes (e.g. "simp", "intro"), and each proof
-    method declares the argument syntax it accepts (no arguments, plain
-    fact arguments, or class-specific sections such as "simp:").
-    Minor INCOMPATIBILITY.
-  - Facts are passed to a proof method in its own syntax where possible
-    (e.g. "simp:" for "auto", plain arguments for "metis") and via
-    "using" otherwise. In particular, the Sledgehammer tactic provers
-    "auto", "force", and "fastforce" no longer fail when given facts from
-    the background theory, and "argo" now takes facts as plain arguments.
-  - Added optional fact classifiers, which assign facts to classes before
-    the proof methods are tried. They are registered with the ML function
-    Try0.register_fact_classifier and selected with the system option
-    "try0_fact_classifier".
-  - Proof methods are registered in theory data, i.e. they are only
-    available in theories importing the registering theory. The ML
-    functions Try0.get_proof_method, Try0.get_proof_method_or_noop, and
-    Try0.get_all_proof_method_names take a Proof.context.
-    Minor INCOMPATIBILITY.
-  - Added the fact classes "split", "iff", and "cong".
-  - Facts in parentheses are passed without class, as in the command
-    "sledgehammer"; they are subject to the fact classifier.
-
 * Metis: Updated the Metis prover underlying the "metis" proof method to
 version 2.4 (release 20260920). The new version allocates less memory
 and fixes one implementation defect. Minor INCOMPATIBILITY.
@@ -290,16 +357,8 @@ and fixes one implementation defect. Minor INCOMPATIBILITY.
   - Removed option "cvc_extensions"; use "smt_native_datatypes" and
     "smt_native_codatatypes" instead. INCOMPATIBILITY.
 
-* Mirabelle:
-  - Added option -c to "isabelle mirabelle" to log the source text of
-    each command acted upon, e.g. "source: by (metis foo bar)".
-  - Added argument "log_classifications" to the action "sledgehammer" to
-    write the fact classifications, timings, and outcomes of the tactic
-    provers to files in the output directory.
-  - Added option -e to "isabelle mirabelle" to evaluate ML files before
-    initializing the actions, e.g. to register custom actions or fact
-    classifiers. Context-dependent registrations, such as fact classifiers,
-    must be wrapped in Mirabelle.add_goal_setup to reach each goal.
+* Mirabelle: Added option -c to "isabelle mirabelle" to log the source
+text of each command acted upon, e.g. "source: by (metis foo bar)".
 
 * Constants "open" and "uniformity" are not handled as class parameters
 any longer in generated code: there are hardly any instances with a

@@ -42,9 +42,9 @@ object Token {
 
   /* parsers */
 
-  object Parsers extends Parsers
+  trait Scanners extends Scan.Scanners with Comment.Scanners
 
-  trait Parsers extends Scan.Parsers with Comment.Parsers {
+  object Scanners extends Scanners {
     private def delimited_token: Parser[Token] = {
       val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
       val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
@@ -126,8 +126,8 @@ object Token {
   /* explode */
 
   def explode(keywords: Keyword.Keywords, inp: CharSequence): List[Token] =
-    Parsers.parseAll(Parsers.rep(Parsers.token(keywords)), Scan.char_reader(inp)) match {
-      case Parsers.Success(tokens, _) => tokens
+    Scanners.parseAll(Scanners.rep(Scanners.token(keywords)), Scan.char_reader(inp)) match {
+      case Scanners.Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + inp.toString)
     }
 
@@ -136,14 +136,14 @@ object Token {
     inp: CharSequence,
     context: Scan.Line_Context
   ) : (List[Token], Scan.Line_Context) = {
-    var in: input.Reader[Char] = Scan.char_reader(inp)
+    var in = Scan.char_reader(inp)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      val result = Parsers.parse(Parsers.token_line(keywords, ctxt), in)
+      val result = Scanners.parse(Scanners.token_line(keywords, ctxt), in)
       (result : @unchecked) match {
-        case Parsers.Success((x, c), rest) => toks += x; ctxt = c; in = rest
-        case Parsers.NoSuccess(_, rest) =>
+        case Scanners.Success((x, c), rest) => toks += x; ctxt = c; in = rest
+        case Scanners.NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
       }
     }
@@ -194,65 +194,53 @@ object Token {
     }
 
 
-  /* token reader */
+  /* combinator parsers */
 
-  object Pos {
-    val none: Pos = new Pos(0, 0, "", "")
-    val start: Pos = new Pos(1, 1, "", "")
-    def file(file: String): Pos = new Pos(1, 1, file, "")
-    def id(id: String): Pos = new Pos(0, 1, "", id)
-    val command: Pos = id(Markup.COMMAND)
+  trait Parsers extends Position.Parsers {
+    type Elem = Token
+
+    def command(name: String): Parser[String] = atom("command " + quote(name), _.is_command(name))
+    def $$$(name: String): Parser[String] = atom("keyword " + quote(name), _.is_keyword(name))
+    def string: Parser[String] = atom("string", _.is_string)
+    def nat: Parser[Int] = atom("natural number", _.is_nat) ^^ Value.Nat.parse
+    def name: Parser[String] = atom("name", _.is_name)
+    def embedded: Parser[String] = atom("embedded content", _.is_embedded)
+    def text: Parser[String] = atom("text", _.is_embedded)
+    def ML_source: Parser[String] = atom("ML source", _.is_embedded)
+    def document_source: Parser[String] = atom("document source", _.is_embedded)
+
+    def opt_keyword(s: String): Parser[Boolean] =
+      ($$$("(") ~! $$$(s) ~ $$$(")")) ^^ (_ => true) | success(false)
+
+    def path: Parser[String] =
+      atom("file name/path specification", tok => tok.is_embedded && Path.is_wellformed(tok.content))
+
+    def in_path(default: String): Parser[String] =
+      $$$("in") ~! path ^^ { case _ ~ x => x } | success(default)
+
+    def in_path_parens(default: String): Parser[String] =
+      $$$("(") ~! ($$$("in") ~ path ~ $$$(")")) ^^ { case _ ~ (_ ~ x ~ _) => x } | success(default)
+
+    def chapter_name: Parser[String] = atom("chapter name", _.is_system_name)
+    def session_name: Parser[String] = atom("session name", _.is_system_name)
+    def theory_name: Parser[String] = atom("theory name", _.is_system_name)
+
+    private def tag_name: Parser[String] =
+      atom("tag name", tok =>
+          tok.kind == Token.Kind.IDENT ||
+          tok.kind == Token.Kind.STRING)
+
+    def tag: Parser[String] = $$$("%") ~> tag_name
+    def tags: Parser[List[String]] = rep(tag)
+
+    def marker: Parser[String] = proper_elem("marker", _.is_marker) ^^ (_.content)
+
+    def annotation: Parser[Unit] = rep(tag | marker) ^^ (_ => ())
   }
-
-  final class Pos private[Token](
-      val line: Int,
-      val offset: Symbol.Offset,
-      val file: String,
-      val id: String)
-  extends input.Position {
-    def column = 0
-    def lineContents = ""
-
-    def advance(token: Token): Pos = advance(token.source)
-    def advance(source: String): Pos = {
-      var line1 = line
-      var offset1 = offset
-      for (s <- Symbol.iterator(source)) {
-        if (line1 > 0 && Symbol.is_newline(s)) line1 += 1
-        if (offset1 > 0) offset1 += 1
-      }
-      if (line1 == line && offset1 == offset) this
-      else new Pos(line1, offset1, file, id)
-    }
-
-    def position(end_offset: Symbol.Offset): Position.T =
-      (if (line > 0) Position.Line(line) else Nil) :::
-      (if (offset > 0) Position.Offset(offset) else Nil) :::
-      (if (end_offset > 0) Position.End_Offset(end_offset) else Nil) :::
-      (if (file.nonEmpty) Position.File(file) else Nil) :::
-      (if (id.nonEmpty) Position.Id_String(id) else Nil)
-
-    def position(): Position.T = position(0)
-    def position(token: Token): Position.T = position(advance(token).offset)
-    def position(source: String): Position.T = position(advance(source).offset)
-
-    override def toString: String = Position.here(position(), delimited = false)
-  }
-
-  abstract class Reader extends input.Reader[Token]
-
-  private class Token_Reader(tokens: List[Token], val pos: Pos) extends Reader {
-    def first: Token = tokens.head
-    def rest: Token_Reader = new Token_Reader(tokens.tail, pos.advance(first))
-    def atEnd: Boolean = tokens.isEmpty
-  }
-
-  def reader(tokens: List[Token], start: Token.Pos): Reader =
-    new Token_Reader(tokens, start)
 }
 
 
-sealed case class Token(kind: Token.Kind.Value, source: String) {
+sealed case class Token(kind: Token.Kind.Value, source: String) extends Position.E {
   def is_command: Boolean = kind == Token.Kind.COMMAND
   def is_command(name: String): Boolean = kind == Token.Kind.COMMAND && source == name
   def is_keyword: Boolean = kind == Token.Kind.KEYWORD
@@ -263,6 +251,7 @@ sealed case class Token(kind: Token.Kind.Value, source: String) {
   def is_ident: Boolean = kind == Token.Kind.IDENT
   def is_sym_ident: Boolean = kind == Token.Kind.SYM_IDENT
   def is_string: Boolean = kind == Token.Kind.STRING
+  def is_cartouche: Boolean = kind == Token.Kind.CARTOUCHE
   def is_nat: Boolean = kind == Token.Kind.NAT
   def is_float: Boolean = kind == Token.Kind.FLOAT
   def is_name: Boolean =
@@ -305,10 +294,10 @@ sealed case class Token(kind: Token.Kind.Value, source: String) {
   def symbol_length: Symbol.Offset = Symbol.iterator(source).length
 
   def content: String =
-    if (kind == Token.Kind.STRING) Scan.Parsers.quoted_content("\"", source)
-    else if (kind == Token.Kind.ALT_STRING) Scan.Parsers.quoted_content("`", source)
-    else if (kind == Token.Kind.CARTOUCHE) Scan.Parsers.cartouche_content(source)
-    else if (kind == Token.Kind.INFORMAL_COMMENT) Scan.Parsers.comment_content(source)
+    if (kind == Token.Kind.STRING) Scan.Scanners.quoted_content("\"", source)
+    else if (kind == Token.Kind.ALT_STRING) Scan.Scanners.quoted_content("`", source)
+    else if (kind == Token.Kind.CARTOUCHE) Scan.Scanners.cartouche_content(source)
+    else if (kind == Token.Kind.INFORMAL_COMMENT) Scan.Scanners.comment_content(source)
     else if (kind == Token.Kind.FORMAL_COMMENT) Comment.content(source)
     else source
 

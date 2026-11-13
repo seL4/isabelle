@@ -16,7 +16,7 @@ sig
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
-  val synchronized: string -> Thread.Mutex.mutex -> (unit -> 'a) -> 'a
+  val synchronized_body: string -> Thread.Mutex.mutex -> ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -81,9 +81,9 @@ fun tracing_time detailed time =
     else if time >= seconds 0.001 then 4 else 5);
 
 
-(* synchronized evaluation *)
+(* synchronized/uninterruptible evaluation *)
 
-fun synchronized name lock e =
+fun synchronized_body name lock e =
   Exn.release (Thread_Attributes.uninterruptible_body (fn run =>
     if ! trace > 0 then
       let
@@ -97,14 +97,14 @@ fun synchronized name lock e =
               val time = Timer.checkRealTimer timer;
               val _ = tracing_time true time (fn () => name ^ ": locked after " ^ Time.toString time);
             in false end;
-        val result = Exn.capture0 (run e) ();
+        val result = Exn.capture0 e run;
         val _ = if immediate then () else tracing 5 (fn () => name ^ ": unlocking ...");
         val _ = Thread.Mutex.unlock lock;
       in result end
     else
       let
         val _ = Thread.Mutex.lock lock;
-        val result = Exn.capture0 (run e) ();
+        val result = Exn.capture0 e run;
         val _ = Thread.Mutex.unlock lock;
       in result end));
 

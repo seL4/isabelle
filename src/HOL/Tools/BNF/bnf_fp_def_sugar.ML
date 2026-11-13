@@ -508,7 +508,7 @@ fun cannot_merge_types fp =
 fun merge_type_arg fp T T' = if T = T' then T else cannot_merge_types fp;
 
 fun merge_type_args fp (As, As') =
-  if length As = length As' then map2 (merge_type_arg fp) As As' else cannot_merge_types fp;
+  if length_ord (As, As') = EQUAL then map2 (merge_type_arg fp) As As' else cannot_merge_types fp;
 
 fun type_args_named_constrained_of_spec (((((ncAs, _), _), _), _), _) = ncAs;
 fun type_binding_of_spec (((((_, b), _), _), _), _) = b;

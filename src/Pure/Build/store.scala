@@ -9,6 +9,8 @@ package isabelle
 
 import java.sql.SQLException
 
+import scala.collection.immutable.SortedMap
+
 
 object Store {
   def apply(
@@ -144,15 +146,17 @@ object Store {
     body: Bytes,
     cache: Compress.Cache
   ) {
-    override def toString: String = name
+    override def toString: String = quote(name)
 
     def bytes: Bytes = if (compressed) body.uncompress(cache = cache) else body
   }
 
   object Sources {
+    val empty: Sources = new Sources(SortedMap.empty[String, Source_File])
+
     def load(session_base: Sessions.Base, cache: Compress.Cache = Compress.Cache.none): Sources =
       new Sources(
-        session_base.session_sources.foldLeft(Map.empty) {
+        session_base.session_sources.foldLeft(SortedMap.empty[String, Source_File]) {
           case (sources, (path, digest)) =>
             def err(): Nothing = error("Incoherent digest for source file: " + path.expand)
             val name = File.symbolic_path(path)
@@ -170,15 +174,45 @@ object Store {
                 else err()
             }
         })
+
+    object Scala_Fun extends Scala.Fun("source_file") with Scala.Bytes_Fun {
+      val here = Scala_Project.here
+      def invoke(session: isabelle.Session, args: List[Bytes]): List[Bytes] =
+        args match {
+          case List(name) =>
+            val source_file = session.sources.source_file(name.text)
+            val digest = Bytes(source_file.digest.rep)
+            List(digest, source_file.bytes)
+          case _ => error("Bad arguments")
+        }
+    }
   }
 
-  class Sources private(rep: Map[String, Source_File]) extends Iterable[Source_File] {
-    override def toString: String = rep.values.toList.sortBy(_.name).mkString("Sources(", ", ", ")")
+  class Sources private(rep: SortedMap[String, Source_File]) extends Iterable[Source_File] {
+    override def toString: String =
+      if (rep.isEmpty) "Sources.empty" else iterator.mkString("Sources(", ", ", ")")
     override def iterator: Iterator[Source_File] = rep.valuesIterator
 
-    def get(name: String): Option[Source_File] = rep.get(name)
-    def apply(name: String): Source_File =
-      get(name).getOrElse(error("Missing session sources entry " + quote(name)))
+    def source_file(name: String): Source_File =
+      rep.getOrElse(name, error("No session source file " + quote(name)))
+
+    def blobs(base: Sessions.Base, node_name: Document.Node.Name): List[Command.Blob.Entry] = {
+      val load_commands = base.theory_load_commands.getOrElse(node_name.theory, Nil)
+      if (load_commands.isEmpty || !rep.isDefinedAt(node_name.theory)) Nil
+      else {
+        val syntax = base.theory_syntax(node_name)
+        val master_dir = Path.explode(node_name.master_dir)
+        for {
+          (command_span, command_offset) <- load_commands
+          file <- command_span.loaded_files(syntax).files
+        } yield {
+          val src_path = Path.explode(file)
+          val blob_name = Document.Node.Name(File.symbolic_path(master_dir + src_path))
+          val bytes = source_file(blob_name.node).bytes
+          Command.Blob.entry(blob_name, src_path, bytes, command_offset = command_offset)
+        }
+      }
+    }
   }
 
 

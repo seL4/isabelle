@@ -51,7 +51,7 @@ object JSON {
     def is_error: Boolean = kind == Kind.ERROR
   }
 
-  object Lexer extends Scanners with Scan.Parsers {
+  object Lexer extends Scanners with Scan.Scanners {
     override type Elem = Char
     type Token = JSON.Token
 
@@ -125,6 +125,8 @@ object JSON {
 
   /* parser */
 
+  object Parsers extends Parsers
+
   trait Parsers extends combinator.Parsers {
     type Elem = Token
 
@@ -153,8 +155,6 @@ object JSON {
       }
     }
   }
-
-  object Parsers extends Parsers
 
 
   /* standard format */

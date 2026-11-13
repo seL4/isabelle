@@ -14,6 +14,25 @@ import scala.collection.immutable.SortedMap
 object Command {
   /* blobs */
 
+  object Blob {
+    type Entry = (Blob, Document.Blobs.Item)
+    def entry(
+      name: Document.Node.Name,
+      src_path: Path,
+      bytes: Bytes,
+      source: Option[String] = None,
+      chunk: Option[Symbol.Text_Chunk] = None,
+      command_offset: Symbol.Offset = 0,
+      changed: Boolean = false
+    ): Entry = {
+      val blob =
+        Document.Blobs.Item.make(bytes,  source = source, chunk = chunk,
+          command_offset = command_offset, changed = changed)
+      val content = (blob.bytes.sha1_digest, blob.chunk)
+      Blob(blob.command_offset, name, src_path, Some(content)) -> blob
+    }
+  }
+
   sealed case class Blob(
     command_offset: Symbol.Offset,
     name: Document.Node.Name,
@@ -27,7 +46,7 @@ object Command {
   object Blobs_Info {
     val empty: Blobs_Info = Blobs_Info(Nil)
 
-    def make(blobs: List[(Blob, Document.Blobs.Item)]): Blobs_Info =
+    def make(blobs: List[Blob.Entry]): Blobs_Info =
       if (blobs.isEmpty) empty else Blobs_Info(for ((a, _) <- blobs) yield Exn.Res(a))
 
     def errors(msgs: List[String]): Blobs_Info =
@@ -231,8 +250,6 @@ object Command {
     val document_status: Document_Status.Command_Status
   ) {
     override def toString: String = "Command.State(" + command + ")"
-    override def hashCode(): Int = ???
-    override def equals(obj: Any): Boolean = ???
 
     def initialized: Boolean = document_status.initialized
     def consolidating: Boolean = document_status.consolidating

@@ -44,7 +44,7 @@ fun value (Var {name, state}) =
   (case ! state of
     Immutable x => x
   | Mutable {lock, ...} =>
-      Multithreading.synchronized name lock (fn () =>
+      Multithreading.synchronized_body name lock (fn _ =>
         (case ! state of
           Immutable x => x
         | Mutable {content, ...} => content)));
@@ -53,13 +53,12 @@ fun assign (Var {name, state}) x =
   (case ! state of
     Immutable _ => immutable_fail name
   | Mutable {lock, cond, ...} =>
-      Multithreading.synchronized name lock (fn () =>
+      Multithreading.synchronized_body name lock (fn _ =>
         (case ! state of
           Immutable _ => immutable_fail name
         | Mutable _ =>
-            Thread_Attributes.uninterruptible_body (fn _ =>
-             (state := Immutable x; RunCall.clearMutableBit state;
-               Thread.ConditionVar.broadcast cond)))));
+           (state := Immutable x; RunCall.clearMutableBit state;
+             Thread.ConditionVar.broadcast cond))));
 
 
 (* synchronized access *)
@@ -68,16 +67,15 @@ fun timed_access (Var {name, state}) until body =
   (case ! state of
     Immutable _ => immutable_fail name
   | Mutable {lock, cond, ...} =>
-      Multithreading.synchronized name lock (fn () =>
+      Multithreading.synchronized_body name lock (fn run =>
         let
           fun check x =
-            body x |> Option.map (fn (y, x') =>
-              Thread_Attributes.uninterruptible_body (fn _ =>
+            Thread_Attributes.restore_attributes run body x |> Option.map (fn (y, x') =>
                (state := Mutable {lock = lock, cond = cond, content = x'};
                 Thread.ConditionVar.broadcast cond;
-                y)));
+                y));
           fun min_limit x a =
-            let val b = until x in
+            let val b = Thread_Attributes.restore_attributes run until x in
               if is_none b then a
               else if is_none a then b
               else if the a <= the b then a

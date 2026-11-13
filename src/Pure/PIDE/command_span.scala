@@ -8,7 +8,7 @@ package isabelle
 
 
 import scala.collection.mutable
-import scala.util.parsing.input.CharSequenceReader
+import scala.util.parsing.input.Reader
 
 
 object Command_Span {
@@ -48,8 +48,18 @@ object Command_Span {
 
   object Load_Default extends Load_Command("", Scala_Project.here)
 
-  lazy val load_commands: List[Load_Command] =
-    Load_Default :: Isabelle_System.make_services(classOf[Load_Command])
+  lazy val load_commands: Map[String, Load_Command] =
+    (Load_Default :: Isabelle_System.make_services(classOf[Load_Command]))
+      .foldLeft(Map.empty[String, Load_Command])(
+        { case (map, load_command) =>
+            if (map.isDefinedAt(load_command.name)) {
+              error("Duplicate theory load command function: " + quote(load_command.name))
+            }
+            else map + (load_command.name -> load_command)
+        })
+
+  def list_load_commands: List[Load_Command] =
+    load_commands.valuesIterator.toList.sortBy(_.name)
 
 
   /* span kind */
@@ -89,7 +99,7 @@ object Command_Span {
     def position: Position.T =
       kind match { case k: Command_Span => k.pos case _ => Position.none }
 
-    def keyword_pos(start: Token.Pos): Token.Pos =
+    def keyword_pos(start: Position.P): Position.P =
       kind match {
         case _: Command_Span =>
           content.iterator.takeWhile(tok => !tok.is_command).foldLeft(start)(_.advance(_))
@@ -105,7 +115,7 @@ object Command_Span {
     def is_begin: Boolean = content.exists(_.is_begin)
     def is_end: Boolean = content.exists(_.is_end)
 
-    def content_reader: CharSequenceReader = Scan.char_reader(Token.implode(content))
+    def content_reader: Reader[Char] = Scan.char_reader(Token.implode(content))
 
     def length: Int = content.foldLeft(0)(_ + _.source.length)
     def symbol_length: Symbol.Offset = content.foldLeft(0)(_ + _.symbol_length)
@@ -146,7 +156,7 @@ object Command_Span {
       syntax.load_command(name) match {
         case None => Loaded_Files.none
         case Some(a) =>
-          load_commands.find(_.name == a) match {
+          load_commands.get(a) match {
             case Some(load_command) => load_command.loaded_files(clean_arguments)
             case None => error("Undefined load command function: " + a)
           }

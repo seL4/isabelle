@@ -757,7 +757,8 @@ Usage: isabelle build_worker [OPTIONS]
       YXML.parse_body(read(name).bytes, recode = recode, cache = theory_context.cache)
 
     def read_source_file(name: String): Store.Source_File =
-      theory_context.session_context.source_file(name)
+      theory_context.session_context.get_source_file(name)
+        .getOrElse(error("No session source file " + quote(name)))
 
     for {
       id <- theory_context.document_id()
@@ -770,15 +771,9 @@ Usage: isabelle build_worker [OPTIONS]
         blobs_files0.map { case (command_offset, name0) =>
           val node_name = Document.Node.Name(migrate_file(name0))
           val src_path = Path.explode(name0)
-
-          val file = read_source_file(name0)
-          val bytes = file.bytes
-          val text = recode(bytes.text)
-          val chunk = Symbol.Text_Chunk(text)
-          val content = Some((file.digest, chunk))
-
-          Command.Blob(command_offset, node_name, src_path, content) ->
-            Document.Blobs.Item(bytes, text, chunk, command_offset = command_offset)
+          val bytes = read_source_file(name0).bytes
+          Command.Blob.entry(node_name, src_path, bytes,
+            source = Some(recode(bytes.text)), command_offset = command_offset)
         }
 
       val thy_source = recode(read_source_file(thy_file0).bytes.text)

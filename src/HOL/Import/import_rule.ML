@@ -253,17 +253,17 @@ fun tydef (name as {hol = tycname, ...}) abs_name rep_name P t td_th thy =
 (* basic entities *)
 
 fun make_name hol =
-  {hol = hol, isabelle = String.translate (fn #"." => "dot" | c => Char.toString c) hol}
+  {hol = hol, isabelle = String.translate_str (fn "." => "dot" | s => s) hol}
 
 fun make_bound a =
   (case try (unprefix "_") a of
-    SOME b => if forall_string Symbol.is_ascii_digit b then "u" else b
+    SOME b => if String.forall_str Symbol.is_ascii_digit b then "u" else b
   | NONE => a);
 
 fun make_free x ty = Thm.free (#isabelle (make_name x), ty);
 
 fun make_tfree thy a =
-  let val b = "'" ^ String.translate (fn #"?" => "t" | c => Char.toString c) a
+  let val b = "'" ^ String.translate_str (fn "?" => "t" | s => s) a
   in Thm.global_ctyp_of thy (TFree (b, \<^sort>\<open>type\<close>)) end
 
 fun make_type thy c args =

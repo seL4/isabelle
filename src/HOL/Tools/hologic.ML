@@ -641,7 +641,7 @@ fun dest_char (Const (\<^unchecked_name>\<open>String.char.Char\<close>, _) $ b0
 
 val stringT = listT charT;
 
-val mk_string = mk_list charT o map (mk_char o ord) o raw_explode;
+val mk_string = mk_list charT o map (mk_char o ord) o String.explode_str;
 val dest_string = implode o map (chr o dest_char) o dest_list;
 
 
@@ -658,7 +658,7 @@ fun mk_literal s =
           Const (\<^unchecked_name>\<open>Groups.zero_class.zero\<close>, literalT)
       | mk (c :: cs) =
           list_comb (Literal_const, mk_bits 7 c) $ mk cs;
-    val cs = map ord (raw_explode s);
+    val cs = map ord (String.explode_str s);
   in
     if forall (fn c => c < 128) cs
     then mk cs

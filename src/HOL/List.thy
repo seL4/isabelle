@@ -2930,6 +2930,9 @@ lemma in_set_zip:
   \<and> n < length xs \<and> n < length ys)"
   by (cases p) (auto simp add: set_zip)
 
+lemma zip_iff_nth: "(\<forall>(x, y) \<in> set (zip xs ys). x = y) \<longleftrightarrow> (\<forall>n<min (length xs) (length ys). xs!n = ys!n)"
+using in_set_zip by fastforce
+
 lemma in_set_impl_in_set_zip1:
   assumes "length xs = length ys"
   assumes "x \<in> set xs"
@@ -3475,6 +3478,11 @@ lemma foldr_inject:
   shows "foldr f xs a = foldr f ys b \<longleftrightarrow> xs = ys \<and> a = b"
 by (induction xs ys rule: list_induct2') (use assms(2,3,1) in auto)
 
+lemma foldr_assoc:
+  assumes "\<And>x y z. b (b x y) z = b x (b y z)"
+  shows "foldr b xs (b y z) = b (foldr b xs y) z"
+  using assms by (induction xs) simp_all
+
 
 subsubsection \<open>\<^const>\<open>upt\<close>\<close>
 
@@ -3946,10 +3954,6 @@ lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Lo
   set(xs[n := x]) = insert x (set xs - {xs!n})"
 by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
 
-lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs\<rbrakk> \<Longrightarrow>
-  distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
-  by (smt (verit, del_insts) distinct_conv_nth length_list_update nth_list_update)
-
 lemma set_swap[simp]:
   "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow> set(xs[i := xs!j, j := xs!i]) = set xs"
 by(simp add: set_conv_nth nth_list_update) metis
@@ -3972,6 +3976,10 @@ proof (induct xs)
     thus ?thesis ..
   qed
 qed simp
+
+lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow>
+  distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
+  by (metis card_distinct distinct_card length_list_update set_swap)
 
 lemma distinct_length_filter: "distinct xs \<Longrightarrow> length (filter P xs) = card ({x. P x} Int set xs)"
 by (induct xs) (auto)

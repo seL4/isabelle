@@ -1553,7 +1553,7 @@ fun is_choice_spec_fun ({thy, ctxt, def_tables, nondef_table, choice_spec_table,
           | SOME _ => false
           | NONE =>
             let val ts' = nondef_props_for_const thy true nondef_table x in
-              length ts' = length ts andalso
+              length_ord (ts', ts) = EQUAL andalso
               forall (fn t =>
                          exists (curry (op aconv) (axiom_for_choice_spec ctxt t))
                                 ts') ts

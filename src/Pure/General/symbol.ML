@@ -132,7 +132,8 @@ fun raw_symbolic s =
 fun is_symbolic s =
   s <> open_ andalso s <> close andalso raw_symbolic s;
 
-val is_symbolic_char = member (op =) (raw_explode "!#$%&*+-/<=>?@^_|~");
+val symbolic_chars = Symset.make (String.explode_str "!#$%&*+-/<=>?@^_|~")
+val is_symbolic_char = Symset.member symbolic_chars;
 
 fun is_printable s =
   if is_char s then 32 <= ord s andalso ord s <= Char.ord #"~"
@@ -200,7 +201,7 @@ fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + Char.ord #"A" - Cha
 
 fun is_ascii_identifier s =
   size s > 0 andalso is_ascii_letter (String.substring (s, 0, 1)) andalso
-  forall_string is_ascii_letdig s;
+  String.forall_str is_ascii_letdig s;
 
 val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> implode);
 
@@ -417,7 +418,7 @@ fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Q
 
 val esc = fn s =>
   if is_char s then s
-  else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
+  else if is_utf8 s then String.translate_str (fn c => "\\" ^ string_of_int (ord c)) s
   else "\\" ^ s;
 
 val escape = implode o map esc o Symbol.explode;

@@ -400,55 +400,137 @@ val parse_tstp_extra_arguments =
 
 val waldmeister_conjecture_name = "conjecture_1"
 
-fun is_same_term subst tm1 tm2 =
+local
+
+exception MISMATCH;
+
+fun match_free_variable s1 s2 free [] = (s1, s2) :: free
+  | match_free_variable s1 s2 free ((x, y) :: rest) =
+      if x = s1 then
+        if y = s2 then free else raise MISMATCH
+      else if y = s2 then
+        raise MISMATCH
+      else
+        match_free_variable s1 s2 free rest
+
+fun match_variable bound s1 s2 free =
   let
-    fun do_term_pair (AAbs (((var1, typ1), body1), args1)) (AAbs (((var2, typ2), body2), args2))
-          (SOME subst) =
-        if typ1 <> typ2 andalso length args1 = length args2 then NONE
-        else
-          let val ls = length subst in
-            SOME ((var1, var2) :: subst)
-            |> do_term_pair body1 body2
-            |> (fn SOME subst => SOME (nth_drop (length subst - ls - 1) subst)
-                 | NONE => NONE)
-            |> (if length args1 = length args2
-              then fold2 do_term_pair args1 args2
-              else K NONE)
-          end
-      | do_term_pair (ATerm ((s1, _), args1)) (ATerm ((s2, _), args2)) (SOME subst) =
-        (case apply2 is_tptp_variable (s1, s2) of
-          (true, true) =>
-          (case AList.lookup (op =) subst s1 of
-            SOME s2' => if s2' = s2 then SOME subst else NONE
-          | NONE =>
-            if null (AList.find (op =) subst s2) then SOME ((s1, s2) :: subst)
-            else NONE)
-        | (false, false) =>
-          if s1 = s2 then
-            SOME subst
-          else
-            NONE
-        | _ => NONE) |> (if length args1 = length args2
-                       then fold2 do_term_pair args1 args2
-                       else K NONE)
-      | do_term_pair _ _ _ = NONE
+    val i = find_index (fn (s, _) => s = s1) bound
+    val j = find_index (fn (_, s) => s = s2) bound
   in
-    SOME subst |> do_term_pair tm1 tm2 |> is_some
+    if i = ~1 andalso j = ~1 then
+      match_free_variable s1 s2 free free
+    else if i = j then
+      free
+    else
+      raise MISMATCH
   end
 
-fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
-    q1 = q2 andalso length xs1 = length xs2 andalso
-    is_same_formula comm (map2 (fn (x1, _) => fn (x2, _) => (x1, x2)) xs1 xs2 @ subst) phi1 phi2
-  | is_same_formula comm subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
-    c1 = c2 andalso forall2 (is_same_formula comm subst) phis1 phis2
-  | is_same_formula comm subst (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
-    is_same_term subst tm1 tm2 orelse
-    (comm andalso is_same_term subst (ATerm (("equal", tys), [tm12, tm11])) tm2)
-  | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
-  | is_same_formula _ _ _ _ = false
+fun same_term bound tm1 tm2 =
+  let
+    fun do_term bound (AAbs (((var1, ty1), tm1), args1)) (AAbs (((var2, ty2), tm2), args2)) free =
+          if ty1 <> ty2 then
+            raise MISMATCH
+          else
+            free
+            |> fold2 (do_term bound) args1 args2
+            |> do_term ((var1, var2) :: bound) tm1 tm2
+      | do_term bound (ATerm ((s1, _), args1)) (ATerm ((s2, _), args2)) free =
+          let
+            val free' =
+              (case apply2 is_tptp_variable (s1, s2) of
+                (true, true) => match_variable bound s1 s2 free
+              | (false, false) =>
+                  if s1 = s2 then free else raise MISMATCH
+              | _ => raise MISMATCH)
+          in
+            fold2 (do_term bound) args1 args2 free'
+          end
+      | do_term _ _ _ _ = raise MISMATCH
+  in
+    (ignore (do_term bound tm1 tm2 []); true)
+    handle MISMATCH => false
+         | ListPair.UnequalLengths => false
+  end
+
+fun add_bound [] [] bound = bound
+  | add_bound ((x1, _) :: xs1) ((x2, _) :: xs2) bound =
+      (x1, x2) :: add_bound xs1 xs2 bound
+  | add_bound _ _ _ = raise ListPair.UnequalLengths
+
+fun same_formula comm bound (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
+    q1 = q2 andalso length_ord (xs1, xs2) = EQUAL andalso
+    same_formula comm (add_bound xs1 xs2 bound) phi1 phi2
+  | same_formula comm bound (AConn (c1, phis1)) (AConn (c2, phis2)) =
+    c1 = c2 andalso forall2 (same_formula comm bound) phis1 phis2
+  | same_formula comm bound (AAtom (tm1 as ATerm (("equal", tys), [tm11, tm12]))) (AAtom tm2) =
+    same_term bound tm1 tm2 orelse
+    (comm andalso same_term bound (ATerm (("equal", tys), [tm12, tm11])) tm2)
+  | same_formula _ bound (AAtom tm1) (AAtom tm2) = same_term bound tm1 tm2
+  | same_formula _ _ _ _ = false
+
+val () =
+  let
+    val ty1 = AType (("i", []), [])
+    val ty2 = AType (("o", []), [])
+    fun term s args = ATerm ((s, []), args)
+    fun var s = term s []
+    fun abs s body = AAbs (((s, ty1), body), [])
+    fun app_abs s body args = AAbs (((s, ty1), body), args)
+    fun pred tm = AAtom (term "p" [tm])
+    fun all s phi = AQuant (AForall, [(s, NONE)], phi)
+    fun eq tm1 tm2 = AAtom (term "equal" [tm1, tm2])
+
+    fun check_eq same x y = same x y andalso same y x
+    fun check_neq same x y = not (same x y) andalso not (same y x)
+    val eq_tm = check_eq (same_term [])
+    val neq_tm = check_neq (same_term [])
+    fun eq_fm comm = check_eq (same_formula comm [])
+    fun neq_fm comm = check_neq (same_formula comm [])
+  in
+    (* Free-variable renaming is consistent and injective. *)
+    \<^assert> (eq_tm (term "f" [var "X", var "X"]) (term "f" [var "A", var "A"]));
+    \<^assert> (neq_tm (term "f" [var "X", var "X"]) (term "f" [var "A", var "B"]));
+    \<^assert> (neq_tm (term "f" [var "X", var "Y"]) (term "f" [var "A", var "A"]));
+
+    (* Term structure and constant names must agree. *)
+    \<^assert> (neq_tm (term "f" []) (term "f" [var "A"]));
+    \<^assert> (neq_tm (term "f" []) (term "g" []));
+    \<^assert> (neq_tm (var "X") (term "c" []));
+
+    (* Abstraction binders may be renamed while preserving scope. *)
+    \<^assert> (eq_tm (abs "X" (var "X")) (abs "A" (var "A")));
+    \<^assert> (neq_tm (abs "X" (abs "Y" (var "X"))) (abs "A" (abs "A" (var "A"))));
+    \<^assert> (neq_tm (abs "X" (var "X")) (abs "A" (var "B")));
+
+    (* Abstraction arguments lie outside the binder scope; free renamings persist. *)
+    \<^assert> (eq_tm (app_abs "X" (var "X") [var "X"]) (app_abs "A" (var "A") [var "B"]));
+    \<^assert> (neq_tm (app_abs "X" (var "Y") [var "Y"]) (app_abs "A" (var "B") [var "C"]));
+    \<^assert> (neq_tm (term "f" [abs "X" (var "Y"), var "Y"]) (term "f" [abs "A" (var "B"), var "C"]));
+
+    (* Abstraction binder types must agree; term type annotations are ignored. *)
+    \<^assert> (neq_tm (abs "X" (var "X")) (AAbs ((("A", ty2), var "A"), [])));
+    \<^assert> (eq_tm (ATerm (("c", [ty1]), [])) (ATerm (("c", [ty2]), [])));
+    \<^assert> (eq_tm (ATerm (("X", [ty1]), [])) (ATerm (("X", [ty2]), [])));
+
+    (* Quantifier renaming preserves scope, including nested abstractions. *)
+    \<^assert> (eq_fm false (all "X" (pred (var "X"))) (all "A" (pred (var "A"))));
+    \<^assert> (neq_fm false (all "X" (all "Y" (pred (var "X")))) (all "A" (all "A" (pred (var "A")))));
+    \<^assert> (neq_fm false (all "X" (pred (abs "Y" (var "X")))) (all "A" (pred (abs "A" (var "A")))));
+
+    (* Equality commutation is optional. *)
+    \<^assert> (neq_fm false (eq (var "X") (term "c" [])) (eq (term "c" []) (var "A")));
+    \<^assert> (eq_fm true (eq (var "X") (term "c" [])) (eq (term "c" []) (var "A")))
+  end
+
+in
+
+fun is_same_formula comm = same_formula comm []
+
+end
 
 fun matching_formula_line_identifier phi (Formula ((ident, _), _, phi', _, _)) =
-    if is_same_formula true [] phi phi' then SOME (ident, phi') else NONE
+    if is_same_formula true phi phi' then SOME (ident, phi') else NONE
   | matching_formula_line_identifier _ _ = NONE
 
 fun find_formula_in_problem phi =
@@ -597,7 +679,7 @@ fun parse_tstp_fol_line full problem =
                         confusing Isar. *)
                      [(s, phi')] =>
                      ((num, [s]),
-                      phi |> not (is_same_formula false [] (mk_anot phi) phi') ? commute_eq)
+                      phi |> not (is_same_formula false (mk_anot phi) phi') ? commute_eq)
                    | _ => ((num, []), phi))
                  else
                    ((num, [s]), phi),

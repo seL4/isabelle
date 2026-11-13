@@ -876,7 +876,7 @@ fun kodkod_formula_from_nut ofs
                       val rs1 = unpack_products r1
                       val rs2 = unpack_products r2
                     in
-                      if length rs1 = length rs2 andalso
+                      if length_ord (rs1, rs2) = EQUAL andalso
                          map KK.arity_of_rel_expr rs1
                          = map KK.arity_of_rel_expr rs2 then
                         fold1 kk_and (map2 kk_subset rs1 rs2)

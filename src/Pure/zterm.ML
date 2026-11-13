@@ -1124,7 +1124,7 @@ fun of_class_proof (T, c) = OFCLASSp (ztyp_of T, c);
 local
 
 val thy0 =
-  Context.the_global_context ()
+  (Theory.get_pure_bootstrap ())
   |> Sign.add_types_global [(Binding.name "fun", 2, NoSyn), (Binding.name "prop", 0, NoSyn)]
   |> Sign.local_path
   |> Sign.add_consts

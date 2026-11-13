@@ -30,13 +30,13 @@ object Comment {
     Symbol.explode(source) match {
       case sym :: rest if symbols_blanks(sym) =>
         val body = if (symbols_blanks(sym)) rest.dropWhile(Symbol.is_blank) else rest
-        try { Scan.Parsers.cartouche_content(body.mkString) }
+        try { Scan.Scanners.cartouche_content(body.mkString) }
         catch { case ERROR(_) => err() }
       case _ => err()
     }
   }
 
-  trait Parsers extends Scan.Parsers {
+  trait Scanners extends Scan.Scanners {
    def comment_prefix: Parser[String] =
      one(symbols_blanks) ~ many(Symbol.is_blank) ^^ { case a ~ b => a + b.mkString } |
      one(symbols)

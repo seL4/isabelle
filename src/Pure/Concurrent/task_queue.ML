@@ -89,7 +89,7 @@ fun group_status_unsynchronized (Group {parent, status, ...}) =
     (case parent of NONE => [] | SOME group => group_status_unsynchronized group);
 
 val lock = Thread.Mutex.mutex ();
-fun SYNCHRONIZED e = Multithreading.synchronized "group_status" lock e;
+fun SYNCHRONIZED e = Multithreading.synchronized_body "group_status" lock (fn _ => e ());
 
 in
 

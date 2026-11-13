@@ -129,7 +129,7 @@ local
   val lock = Thread.Mutex.mutex ();
 in
 
-fun SYNCHRONIZED name = Multithreading.synchronized name lock;
+fun SYNCHRONIZED name e = Multithreading.synchronized_body name lock (fn _ => e ());
 
 fun wait cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait NONE cond lock;

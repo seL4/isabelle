@@ -113,7 +113,14 @@ exception Interrupt_Breakdown;
 
 fun is_interrupt_raw exn = (case cause exn of Thread.Thread.Interrupt => true | _ => false);
 fun is_interrupt_break exn = (case cause exn of Interrupt_Break => true | _ => false);
-fun is_interrupt_breakdown exn = (case cause exn of Interrupt_Breakdown => true | _ => false);
+
+fun is_interrupt_breakdown exn =
+  (case cause exn of
+    Interrupt_Breakdown => true
+  | General.Size => true
+  | General.Overflow => true
+  | _ => false);
+
 fun is_interrupt_proper exn = is_interrupt_raw exn orelse is_interrupt_break exn;
 fun is_interrupt exn = is_interrupt_proper exn orelse is_interrupt_breakdown exn;
 

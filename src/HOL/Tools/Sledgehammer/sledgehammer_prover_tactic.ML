@@ -75,6 +75,14 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
   | SOME TimedOut => "timed_out"
   | SOME _ => "gave_up")
 
+fun map_filter_split _ [] = ([], [])
+  | map_filter_split f (x :: xs) =
+      (case f x of
+        NONE => map_filter_split f xs
+      | SOME (y, z) =>
+          let val (ys, zs) = map_filter_split f xs
+          in (y :: ys, z :: zs) end)
+
 val class_width = fold (Integer.max o size) Try0.native_classes 0
 val kind_width = size "direct"
 
@@ -123,13 +131,25 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
       let
         val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
         fun is_cartouche str = String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
-        fun xref_of_fact (((name, _), thm) : Sledgehammer_Fact.fact) =
+        fun literal_xref_of_fact thm =
           let
-            val xref =
+            val xref = Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
+          in
+            (* A fact referred to by its statement must be retrievable from that text in "ctxt".
+               This fails, e.g., if the statement mentions a fixed variable that is shadowed by
+               another one with the same name; such a fact cannot be referred to in a proof text
+               at all. *)
+            (case try (Proof_Context.get_fact ctxt) xref of
+              SOME [thm'] => if Thm.eq_thm_prop (thm, thm') then SOME xref else NONE
+            | _ => NONE)
+          end
+        fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
+          let
+            val xref_opt =
               if is_cartouche name then
-                Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
+                literal_xref_of_fact thm
               else
-                (case try (unsuffix ")") name of
+                SOME (case try (unsuffix ")") name of
                   SOME s' =>
                   (case ATP_Util.first_field_substring "(" (Substring.full s') of
                     SOME (name', num) =>
@@ -140,13 +160,13 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
                   | NONE => Facts.named name)
                 | NONE => Facts.named name)
           in
-            (xref, [])
+            Option.map (fn xref => (fact, (xref, []))) xref_opt
           end
-        val usings_xrefs = map xref_of_fact (sort_by (fst o fst) locals)
-        val direct_xrefs = map xref_of_fact (sort_by (fst o fst) globals)
+        val (local_facts, usings) = map_filter_split with_xref (sort_by (fst o fst) locals)
+        val (global_facts, directs) = map_filter_split with_xref (sort_by (fst o fst) globals)
       in
-        Try0.unclassified_facts {usings = usings_xrefs, directs = direct_xrefs}
-        |> Try0.classify_facts state
+        (Try0.unclassified_facts {usings = usings, directs = directs}
+         |> Try0.classify_facts state, local_facts @ global_facts)
       end
 
     fun run_proof_method facts =
@@ -159,8 +179,8 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
 
     fun classify_facts_and_run_proof_method () =
       (case (SOME (Timing.timing classify_facts ()) handle ERROR _ => NONE) of
-        NONE => (SOME GaveUp, "")
-      | SOME ({elapsed = classifier_time, ...}, classified_facts) =>
+        NONE => ((SOME GaveUp, ""), [])
+      | SOME ({elapsed = classifier_time, ...}, (classified_facts, referable_facts)) =>
           let
             val ({elapsed = method_time, ...}, (outcome, command)) =
               Timing.timing run_proof_method classified_facts
@@ -171,15 +191,15 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
                 write_fact_classification_log ctxt name mode max_facts classifier_time method_time
                   outcome command classified_facts
           in
-            (outcome, command)
+            ((outcome, command), referable_facts)
           end)
 
-    val ({elapsed = run_time, ...}, (outcome, command)) =
+    val ({elapsed = run_time, ...}, ((outcome, command), referable_facts)) =
       Timing.timing classify_facts_and_run_proof_method ()
 
     val used_facts =
       (case outcome of
-        NONE => (found_something name; map fst non_chained)
+        NONE => (found_something name; map fst referable_facts)
       | SOME _ => [])
 
     val message = fn preplay_outcome =>

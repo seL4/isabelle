@@ -1643,5 +1643,7 @@ declare [[ML_write_global = false, ML_check_strings = true]]
 
 ML_command \<open>\<^assert> (not (can ML_command \<open>() handle _ => ()\<close>))\<close>
 ML_command \<open>\<^assert> (not (can ML_command \<open>() handle Interrupt => ()\<close>))\<close>
+ML_command \<open>\<^assert> (not (can ML_command \<open>() handle Overflow => ()\<close>))\<close>
+ML_command \<open>\<^assert> (not (can ML_command \<open>() handle Size => ()\<close>))\<close>
 
 end

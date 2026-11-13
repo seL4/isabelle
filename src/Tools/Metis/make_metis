@@ -52,4 +52,5 @@ EOF
 ;
 EOF
 
-) | egrep -v '\bdie\b' > metis.ML
+) | perl -p -e 's/Multithreading\.synchronized "metis" lock e/Multithreading.synchronized_body "metis" lock (fn run => run e ())/g;' \
+  | egrep -v '\bdie\b' > metis.ML

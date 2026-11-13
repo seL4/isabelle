@@ -86,7 +86,7 @@ fun decimalize d x =
       val k = int_of_rat (round_rat (rat_pow @10 d * z))
     in
       (if x < @0 then "-0." else "0.") ^
-      implode (tl (raw_explode(string_of_int k))) ^
+      implode (tl (String.explode_str (string_of_int k))) ^
       (if e = 0 then "" else "e" ^ string_of_int e)
     end
 
@@ -317,7 +317,7 @@ val csdp_output =
 in
 
 fun parse_csdpoutput s =
-  Symbol.scanner "Malformed CSDP output" csdp_output (raw_explode s);
+  Symbol.scanner "Malformed CSDP output" csdp_output (String.explode_str s);
 
 end;
 
@@ -337,7 +337,7 @@ local
   fun float_of_rat x =
     let val (a,b) = Rat.dest x
     in Real.fromInt a / Real.fromInt b end;
-  fun int_of_float x = (trunc x handle Overflow => 0 | Domain => 0)
+  fun int_of_float x = (trunc x handle General.Overflow => 0 | General.Domain => 0)
 in
 
 fun tri_scale_then solver (obj:vector) mats =

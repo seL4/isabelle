@@ -7,6 +7,10 @@ Position properties.
 package isabelle
 
 
+import scala.annotation.tailrec
+import scala.util.parsing.{input, combinator}
+
+
 object Position {
   type T = Properties.T
 
@@ -160,5 +164,119 @@ object Position {
         (if (defined(File.name)) File(file) else Nil) :::
         (if (defined(Id.name)) Id(id) else Nil)
       }
+  }
+
+
+  /* position for abstract elements  */
+
+  trait E {
+    def kind: Any
+    def is_proper: Boolean
+    def source: String
+    def content: String
+  }
+
+  object P {
+    val none: P = new P(0, 0, "", "")
+    val start: P = new P(1, 1, "", "")
+    def file(file: String): P = new P(1, 1, file, "")
+    def id(id: String): P = new P(0, 1, "", id)
+    val command: P = id(Markup.COMMAND)
+  }
+
+  final class P private[Position](
+    val line: Int,
+    val offset: Symbol.Offset,
+    val file: String,
+    val id: String
+  ) extends input.Position {
+    def column = 0
+    def lineContents = ""
+
+    def advance(elem: E): P = advance(elem.source)
+    def advance(source: String): P = {
+      var line1 = line
+      var offset1 = offset
+      for (s <- Symbol.iterator(source)) {
+        if (line1 > 0 && Symbol.is_newline(s)) line1 += 1
+        if (offset1 > 0) offset1 += 1
+      }
+      if (line1 == line && offset1 == offset) this
+      else new P(line1, offset1, file, id)
+    }
+
+    def position(end_offset: Symbol.Offset): T =
+      (if (line > 0) Line(line) else Nil) :::
+      (if (offset > 0) Offset(offset) else Nil) :::
+      (if (end_offset > 0) End_Offset(end_offset) else Nil) :::
+      (if (file.nonEmpty) File(file) else Nil) :::
+      (if (id.nonEmpty) Id_String(id) else Nil)
+
+    def position(): T = position(0)
+    def position(elem: E): T = position(advance(elem).offset)
+    def position(source: String): T = position(advance(source).offset)
+
+    override def toString: String = here(position(), delimited = false)
+  }
+
+
+  /* combinator parsers */
+
+  class Reader[Elem <: E] private[Position](inp: List[Elem], val pos: P)
+  extends input.Reader[Elem] {
+    def first: Elem = inp.head
+    def rest: Reader[Elem] = new Reader[Elem](inp.tail, pos.advance(first))
+    def atEnd: Boolean = inp.isEmpty
+  }
+
+  def reader[Elem <: E](inp: List[Elem], start: P): Reader[Elem] =
+    new Reader[Elem](inp, start)
+
+  trait Parsers extends combinator.Parsers {
+    type Elem <: E
+
+    def filter_proper: Boolean = true
+
+    @tailrec private def proper(in: Input): Input =
+      if (!filter_proper || in.atEnd || in.first.is_proper) in
+      else proper(in.rest)
+
+    private def proper_position: Parser[T] = { (raw_input: Input) =>
+      val in = proper(raw_input)
+      val pos =
+        in.pos match {
+          case pos: P => pos
+          case _ => P.none
+        }
+      Success(if (in.atEnd) pos.position() else pos.position(in.first.source), in)
+    }
+
+    def position[A](parser: Parser[A]): Parser[(A, T)] =
+      proper_position ~ parser ^^ { case x ~ y => (y, x) }
+
+    def proper_elem(what: String, pred: Elem => Boolean): Parser[Elem] = { (raw_input: Input) =>
+      val in = proper(raw_input)
+      if (in.atEnd) Failure(what + " expected,\nbut end-of-input was found", in)
+      else {
+        val elem = in.first
+        if (pred(elem)) Success(elem, proper(in.rest))
+        else Failure(what + " expected,\nbut " + elem.kind + " was found:\n" + elem.source, in)
+      }
+    }
+
+    def atom(what: String, pred: Elem => Boolean): Parser[String] =
+      proper_elem(what, pred) ^^ (_.content)
+
+
+    /* wrappers */
+
+    def parse[T](p: Parser[T], in: Reader[Elem]): ParseResult[T] = p(in)
+
+    def parse_all[T](p: Parser[T], in: Reader[Elem]): ParseResult[T] = {
+      val result = parse(p, in)
+      val rest = proper(result.next)
+      if (result.successful && !rest.atEnd) Error("bad input", rest)
+      else result
+    }
   }
 }

@@ -130,12 +130,6 @@ sig
   val oct_char: string -> string
 
   (*strings*)
-  val nth_string: string -> int -> string
-  val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
-  val fold_rev_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
-  val exists_string: (string -> bool) -> string -> bool
-  val forall_string: (string -> bool) -> string -> bool
-  val member_string: string -> string -> bool
   val last_string: string -> string option
   val first_field: string -> string -> (string * string) option
   val enclose: string -> string -> string -> string
@@ -159,7 +153,6 @@ sig
   val trim_split_lines: string -> string list
   val normalize_lines: string -> string
   val replicate_string: int -> string -> string
-  val translate_string: (string -> string) -> string -> string
   val encode_lines: string -> string
   val decode_lines: string -> string
   val align_right: string -> int -> string -> string
@@ -695,25 +688,11 @@ fun read_radix_int radix cs =
 
 val read_int = read_radix_int 10;
 
-fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
+fun oct_char s = chr (#1 (read_radix_int 8 (String.explode_str s)));
 
 
 
 (** strings **)
-
-(* functions tuned for strings, avoiding explode *)
-
-fun nth_string str = String.str o String.nth str;
-
-fun fold_string f = String.fold (f o String.str);
-
-fun fold_rev_string f = String.fold_rev (f o String.str);
-
-fun exists_string pred = String.exists (pred o String.str);
-
-fun forall_string pred = String.forall (pred o String.str);
-
-fun member_string str s = exists_string (fn s' => s = s') str;
 
 fun last_string "" = NONE
   | last_string s = SOME (str (String.nth s (size s - 1)));
@@ -781,7 +760,7 @@ fun trim_line s =
 val trim_split_lines = trim_line #> split_lines #> map trim_line;
 
 fun normalize_lines str =
-  if member_string str "\r" then
+  if String.member_str str "\r" then
     split_lines str |> map trim_line |> cat_lines
   else str;
 
@@ -791,10 +770,8 @@ fun replicate_string (0: int) _ = ""
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
 
-fun translate_string f = String.translate (f o String.str);
-
-val encode_lines = translate_string (fn "\n" => "\v" | c => c);
-val decode_lines = translate_string (fn "\v" => "\n" | c => c);
+val encode_lines = String.translate_str (fn "\n" => "\v" | c => c);
+val decode_lines = String.translate_str (fn "\v" => "\n" | c => c);
 
 fun align_right c k s =
   let

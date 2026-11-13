@@ -35,6 +35,9 @@ object Bytes {
         Space.bytes(size).print + " > " + Space.bytes(limit).print
   }
 
+  def total_size(bs: Iterable[Bytes]): Long =
+    bs.foldLeft(0L) { case (n, b) => n + b.size }
+
 
   /* main constructors */
 

@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/vscode_elements.scala
+/*  Title:      Tools/VSCode/extension/src/vscode_elements.scala
     Author:     Fabian Huch
 
 VSCode GUI elements, based @vscode/codicons icons and CSS from @vscode-elements/elements-lite.

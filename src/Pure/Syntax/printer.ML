@@ -100,7 +100,7 @@ fun is_arg (Arg _) = true
   | is_arg (Arg_Type _) = true
   | is_arg _ = false;
 
-fun is_space str = forall_string (fn s => s = " ") str;
+fun is_space str = String.forall_str (fn s => s = " ") str;
 
 fun clean symbs = symbs |> maps
   (fn Block (_, body) => clean body

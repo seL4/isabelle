@@ -91,6 +91,7 @@ sig
   val pure_string_of: T -> string
   val writeln: T -> unit
   val writeln_urgent: T -> unit
+  val error: T -> 'a
   val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
@@ -552,6 +553,8 @@ fun gen_writeln urgent prt =
 
 val writeln = gen_writeln false;
 val writeln_urgent = gen_writeln true;
+
+fun error prt = Exn.error (string_of prt);
 
 
 (* chunks *)

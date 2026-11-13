@@ -99,7 +99,7 @@ fun read_message_string stream =
 (* line message format *)
 
 fun is_length msg =
-  not (Bytes.is_empty msg) andalso Bytes.forall_string Symbol.is_ascii_digit msg;
+  not (Bytes.is_empty msg) andalso Bytes.forall_str Symbol.is_ascii_digit msg;
 
 fun is_terminated msg =
   (case Bytes.last_string msg of
@@ -112,7 +112,7 @@ fun write_line_message stream msg =
   else
     let val n = Bytes.size msg in
       write stream
-        ((if n > 100 orelse Bytes.exists_string (fn s => s = "\n") msg
+        ((if n > 100 orelse Bytes.exists_str (fn s => s = "\n") msg
           then make_header [n + 1] else []) @ [msg, Bytes.newline]);
       flush stream
     end;

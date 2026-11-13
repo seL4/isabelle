@@ -82,7 +82,7 @@ val char_stopper = Scan.stopper (K ("", Position.none)) is_char_eof;
 fun symbol (x : string, _ : Position.T) = x;
 
 fun explode_pos s pos = fst (fold_map (fn x => fn pos =>
-  ((x, pos), Position.symbol x pos)) (raw_explode s) pos);
+  ((x, pos), Position.symbol x pos)) (String.explode_str s) pos);
 
 
 (** scanners **)
@@ -92,9 +92,9 @@ val any = Scan.one (not o Scan.is_stopper char_stopper);
 fun prfx [] = Scan.succeed []
   | prfx (x :: xs) = Scan.one (equal x o symbol) ::: prfx xs;
 
-val $$$ = prfx o raw_explode;
+val $$$ = prfx o String.explode_str;
 
-val lexicon = Scan.make_lexicon (map raw_explode
+val lexicon = Scan.make_lexicon (map String.explode_str
   ["rule_family",
    "For",
    ":",
@@ -150,7 +150,7 @@ val lexicon = Scan.make_lexicon (map raw_explode
    "pending"]);
 
 fun keyword s = Scan.literal lexicon :|--
-  (fn xs => if map symbol xs = raw_explode s then Scan.succeed xs else Scan.fail);
+  (fn xs => if map symbol xs = String.explode_str s then Scan.succeed xs else Scan.fail);
 
 fun is_digit x = "0" <= x andalso x <= "9";
 fun is_alpha x = "a" <= x andalso x <= "z" orelse "A" <= x andalso x <= "Z";

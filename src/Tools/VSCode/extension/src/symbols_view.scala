@@ -1,4 +1,4 @@
-/*  Title:      Tools/VSCode/extension/symbols_view.scala
+/*  Title:      Tools/VSCode/extension/src/symbols_view.scala
     Author:     Fabian Huch
 
 Isabelle symbols view within Isabelle/VSCode extension.
@@ -10,19 +10,38 @@ import isabelle._
 
 
 object Symbols_View {
-  private val vscode = Webview_Api.acquire
+  private var instance: Option[Symbols_View] = None
+
+  object search_changed extends Scalajs.Fun[String] {
+    def apply(input: String): Unit = instance.foreach(_.handle_search(input))
+  }
+  object tab_clicked extends Scalajs.Fun[Int] {
+    def apply(tab: Int): Unit = instance.foreach(_.handle_tab(tab))
+  }
 
 
-  /* gui state */
+  /* persistent GUI state */
 
   object State {
     def apply(tab: Int): JSON.Object.T = JSON.Object("active_tab" -> tab)
     def unapply(json: JSON.Object.T): Option[Int] = JSON.int(json, "active_tab")
   }
 
+
+  /* component */
+
+  def main(): Unit = {
+    val vscode = Webview_Api.acquire
+    val tab = (for { case State(tab) <- vscode.get_state } yield tab) getOrElse 0
+    val view = new Symbols_View(vscode, tab)
+    instance = Some(view)
+    view.init()
+  }
+}
+
+class Symbols_View private(vscode: Webview_Api, private var active_tab: Int) {
   private var abbrevs: Thy_Header.Abbrevs = Nil
   private var search_input: String = ""
-  private var active_tab: Int = (for { case State(tab) <- vscode.get_state } yield tab).getOrElse(0)
 
 
   /* abbrevs */
@@ -35,8 +54,8 @@ object Symbols_View {
     val tooltip =
       cat_lines(drop_caret(txt) :: abbrs.filterNot(_ == "").sorted.map(a => "abbrev: " + a))
 
-    VSCode_Elements.button(symbol, tooltip = tooltip, secondary = true, source = true, script =
-      Webview_Api.Post.function(JSON.Format(msg)))
+    VSCode_Elements.button(symbol, tooltip = tooltip, secondary = true, source = true,
+      script = Webview_Api.Post.function(JSON.Format(msg)))
   }
 
   private def abbrev_panel: List[XML.Elem] = {
@@ -63,12 +82,10 @@ object Symbols_View {
 
   /* search */
 
-  object search_changed extends Scalajs.Fun[String] {
-    def apply(input: String): Unit = {
-      search_input = input
-      update()
-    }
-  }
+  def handle_search(input: String): Unit = {
+   search_input = input
+   update()
+ }
 
   private val search_space =
     for (entry <- Symbol.symbols.entries if entry.code.isDefined)
@@ -76,8 +93,8 @@ object Symbols_View {
 
   private def search_panel: List[XML.Elem] = {
     val search_field = 
-      VSCode_Elements.text_field(text = search_input, script =
-        search_changed.function("this.value")) + ("style" -> "width: 100%;")
+      VSCode_Elements.text_field(text = search_input,
+        script = Symbols_View.search_changed.function("this.value")) + ("style" -> "width: 100%;")
 
     val search_words = Word.explode(Word.lowercase(search_input))
     val search_limit = 50
@@ -99,20 +116,18 @@ object Symbols_View {
 
   /* tabs */
 
-  object tab_clicked extends Scalajs.Fun[Int] {
-    def apply(tab: Int): Unit = {
-      active_tab = tab
-      vscode.set_state(Some(State(active_tab)))
-      update()
-    }
+  def handle_tab(tab: Int): Unit = {
+    active_tab = tab
+    vscode.set_state(Some(Symbols_View.State(active_tab)))
+    update()
   }
 
   private class Tab(name: String, elems: List[XML.Elem], tooltip: String = "") {
     def title: String = Word.implode(Word.explode('_', name).map(Word.perhaps_capitalized))
 
     def button(index: Int): XML.Elem =
-      VSCode_Elements.tab_header(title, selected = index == active_tab, tooltip = tooltip, script =
-        tab_clicked.function(JS.value(index)))
+      VSCode_Elements.tab_header(title, selected = index == active_tab, tooltip = tooltip,
+        script = Symbols_View.tab_clicked.function(JS.value(index)))
 
     def panel(index: Int): XML.Elem = {
       val content = HTML.Wrap_Panel(elems, alignment = HTML.Wrap_Panel.Alignment.center)
@@ -141,7 +156,7 @@ object Symbols_View {
 
   def update(): Unit = Scalajs.DOM.update(HTML.control_markup(group_tabs, hidden = true))
 
-  def main(): Unit = {
+  def init(): Unit = {
     Webview_Api.on_message { e =>
       val json = Scalajs.JSON.unapply(e.data).get
 

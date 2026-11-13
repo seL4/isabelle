@@ -239,9 +239,8 @@ val symbol_provider = Symbol_Static
             Scalajs.Module("symbols_view", "isabelle.vscode.extension.Symbols_View"))
 
         progress.echo("Compiling scalajs modules ...")
-        val scalajs_result =
-          Scalajs.compile(scala_sources.map(_.file), modules,
-            Isabelle_System.make_directory(build_dir + Path.basic("media")))
+        val js_dir = Isabelle_System.make_directory(build_dir + Path.basic("js"))
+        val scalajs_result = Scalajs.compile(scala_sources.map(_.file), modules, js_dir)
 
         scalajs_result.messages.foreach(_.output(progress))
         if (!scalajs_result.ok) error("Failed to compile js modules")
@@ -259,7 +258,7 @@ val symbol_provider = Symbol_Static
         val manifest_text2 =
           manifest_text + cat_lines(
             Isabelle_Fonts.fonts().map(e => "fonts/" + e.path.file_name) :::
-              scalajs_result.outputs.map(m => "media/" + m.file_name))
+              scalajs_result.outputs.map(m => "js/" + m.file_name))
         val manifest_entries2 = split_lines(manifest_text2).filter(_.nonEmpty)
 
         val manifest_shasum: Shasum = {
@@ -287,7 +286,7 @@ val symbol_provider = Symbol_Static
             Library.make_lines(
               "set -e",
               node_dir.path_setup,
-              "yarn",
+              "yarn install --frozen-lockfile --ignore-engines",
               "vsce package"),
             cwd = build_dir, echo = true).check
         val Pattern = """.*Packaged:.*(isabelle-.*\.vsix).*""".r

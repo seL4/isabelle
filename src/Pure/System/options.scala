@@ -19,7 +19,7 @@ object Options {
 
     def parse(content: String): Update = {
       val parser = Parsers.repsep(Parsers.option_spec, Parsers.$$$(","))
-      val reader = Token.reader(Token.explode(syntax.keywords, content), Token.Pos.none)
+      val reader = Position.reader(Token.explode(syntax.keywords, content), Position.P.none)
       Parsers.parse_all(parser, reader) match {
         case Parsers.Success(result, _) => result
         case bad => error(bad.toString)
@@ -197,13 +197,13 @@ object Options {
 
   val prefs_syntax: Outer_Syntax = Outer_Syntax.empty + "="
 
-  trait Parsers extends Parse.Parsers {
+  trait Parsers extends Token.Parsers {
     val option_name: Parser[String] = atom("option name", _.is_name)
     val option_type: Parser[String] = atom("option type", _.is_name)
     val option_value: Parser[String] =
-      opt(token("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
+      opt(proper_elem("-", tok => tok.is_sym_ident && tok.content == "-")) ~ atom("nat", _.is_nat) ^^
         { case s ~ n => if (s.isDefined) "-" + n else n } |
-      atom("option value", tok => tok.is_name || tok.is_float)
+      atom("option value", tok => tok.is_name || tok.is_float || tok.is_cartouche)
     val option_standard: Parser[Option[String]] =
       $$$("(") ~! $$$(STANDARD) ~ opt(option_value) ~ $$$(")") ^^ { case _ ~ _ ~ a ~ _ => a }
     val option_tag: Parser[String] = atom("option tag", _.is_name)
@@ -246,7 +246,7 @@ object Options {
     ): Options = {
       val toks = Token.explode(syntax.keywords, content)
       val ops =
-        parse_all(rep(parser), Token.reader(toks, Token.Pos.file(file_name))) match {
+        parse_all(rep(parser), Position.reader(toks, Position.P.file(file_name))) match {
           case Success(result, _) => result
           case bad => error(bad.toString)
         }
@@ -257,9 +257,9 @@ object Options {
     def parse_prefs(options: Options, content: String): Options =
       parse_file(options, PREFS.file_name, content, syntax = prefs_syntax, parser = prefs_entry)
 
-    def parse_prefs_specs(content: String, start: Token.Pos): List[Options.Spec] = {
+    def parse_prefs_specs(content: String, start: Position.P): List[Options.Spec] = {
       val toks = Token.explode(prefs_syntax.keywords, content)
-      parse_all(rep(prefs_spec), Token.reader(toks, start)) match {
+      parse_all(rep(prefs_spec), Position.reader(toks, start)) match {
         case Success(result, _) => result
         case bad => error(bad.toString)
       }
@@ -268,7 +268,7 @@ object Options {
 
   def parse_prefs(content: String,
     unknown: String => Boolean = _ => false,
-    start: Token.Pos = Token.Pos.none
+    start: Position.P = Position.P.none
   ): List[Options.Change] = {
     Parsers.parse_prefs_specs(content, start).map(spec =>
       Change(spec.name, spec.value.getOrElse(""), unknown = unknown(spec.name)))

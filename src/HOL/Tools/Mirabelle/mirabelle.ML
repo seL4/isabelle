@@ -240,7 +240,7 @@ fun run_actions actions qualifier loaded_theories =
         |> fold add (Command_Span.content span)
         |> snd
         |> Buffer.content
-        |> String.translate (fn #"\n" => " " | c => String.str c)
+        |> String.translate_str (fn "\n" => " " | s => s)
       end;
 
     fun make_commands (thy_index, (thy, segments)) =

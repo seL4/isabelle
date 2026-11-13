@@ -714,7 +714,7 @@ val special_max_depth = 20
 val bound_var_prefix = "b"
 
 fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
-  x1 = x2 andalso js1 = js2 andalso length ts1 = length ts2 andalso
+  x1 = x2 andalso js1 = js2 andalso length_ord (ts1, ts2) = EQUAL andalso
   forall (op aconv) (ts1 ~~ ts2)
 
 fun specialize_consts_in_term

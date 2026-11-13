@@ -182,7 +182,7 @@ fun adjust_rules rules =
 fun print_term module arity_of toplevel_arity_of pattern_var_count pattern_lazy_var_count =
 let
     fun str x = string_of_int x
-    fun protect_blank s = if exists_string Symbol.is_ascii_blank s then "(" ^ s ^")" else s
+    fun protect_blank s = if String.exists_str Symbol.is_ascii_blank s then "(" ^ s ^")" else s
     val module_prefix = (case module of NONE => "" | SOME s => s^".")                                                                                     
     fun print_apps d f [] = f
       | print_apps d f (a::args) = print_apps d (module_prefix^"app "^(protect_blank f)^" "^(protect_blank (print_term d a))) args

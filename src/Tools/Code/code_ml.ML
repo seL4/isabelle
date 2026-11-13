@@ -58,7 +58,7 @@ fun print_sml_char c =
   then ML_Syntax.print_symbol_char c
   else error "non-ASCII byte in SML string literal";
 
-val print_sml_string = quote o translate_string print_sml_char;
+val print_sml_string = quote o String.translate_str print_sml_char;
 
 fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
@@ -375,7 +375,7 @@ val print_ocaml_string =
     fun chr i =
       let
         val xs = string_of_int i;
-        val ys = replicate_string (3 - length (raw_explode xs)) "0";
+        val ys = replicate_string (3 - length (String.explode_str xs)) "0";
       in "\\" ^ ys ^ xs end;
     fun char c =
       let
@@ -385,7 +385,7 @@ val print_ocaml_string =
           else if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
           then chr i else c
       in s end;
-  in quote o translate_string char end;
+  in quote o String.translate_str char end;
 
 fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let

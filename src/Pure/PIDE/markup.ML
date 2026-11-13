@@ -802,7 +802,10 @@ val countN = "count";
 
 val ML_profiling_entryN = "ML_profiling_entry";
 fun ML_profiling_entry {name, count} =
-  (ML_profiling_entryN, [(nameN, name), (countN, Value.print_int count)]);
+  let
+    val name_props = if name = "" orelse name = "UNKNOWN" then [] else [(nameN, name)];
+    val count_props = if count = 1 then [] else [(countN, Value.print_int count)];
+  in (ML_profiling_entryN, name_props @ count_props) end;
 
 val (ML_profilingN, ML_profiling) = markup_string "ML_profiling" kindN;
 

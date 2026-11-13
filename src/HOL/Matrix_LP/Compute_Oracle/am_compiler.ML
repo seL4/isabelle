@@ -49,7 +49,7 @@ fun print_rule (p, t) =
 
         val (n, pattern) = print_pattern 0 p
         val pattern =
-            if exists_string Symbol.is_ascii_blank pattern then "(" ^ pattern ^")"
+            if String.exists_str Symbol.is_ascii_blank pattern then "(" ^ pattern ^")"
             else pattern
         
         fun print_term d (Var x) = "Var " ^ str x

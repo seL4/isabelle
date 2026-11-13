@@ -19,6 +19,10 @@ end;
 structure Class_Declaration: CLASS_DECLARATION =
 struct
 
+(** generic nonsense **)
+
+val class_prefix = Logic.const_of_class o Long_Name.base_name;
+
 (** class definitions **)
 
 local
@@ -72,7 +76,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* canonical interpretation *)
     val base_morph = inst_morph
-      $> Morphism.binding_morphism "class_binding" (Binding.prefix false (Class.class_prefix class))
+      $> Morphism.binding_morphism "class_binding" (Binding.prefix false (class_prefix class))
       $> Element.satisfy_morphism (the_list some_witn);
     val eq_morph =
       Element.eq_morphism thy_ctxt (Class.these_defs thy sups)
@@ -118,27 +122,20 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
   let
     (* user space type system: only permits 'a type variable, improves towards 'a *)
     val thy = Proof_Context.theory_of ctxt;
-    val algebra = Sign.classes_of thy;
-    val inter_sort = curry (Sorts.inter_sort algebra);
-    val proto_base_sort =
-      if null sups then Sign.defaultS thy
-      else fold inter_sort (map (Class.base_sort thy) sups) [];
     val is_param = member (op =) (map fst (Class.these_params thy sups));
-    val base_constraints = (map o apsnd)
-      (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o fst o snd)
-        (Class.these_operations thy sups);
+    val proto_base_sort = Class.base_sort_for thy sups;
     val singleton_fixate = burrow_types (fn Ts =>
       let
         val tfrees = fold Term.add_tfreesT Ts [];
         val inferred_sort =
-          (fold o fold_atyps) (fn TVar (_, S) => inter_sort S | _ => I) Ts [];
+          (fold o fold_atyps) (fn TVar (_, S) => curry (Sign.inter_sort thy) S | _ => I) Ts [];
         val fixate_sort =
           (case tfrees of
             [] => inferred_sort
           | [(a, S)] =>
               if a <> Name.aT then
                 error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
-              else if Sorts.sort_le algebra (S, inferred_sort) then S
+              else if Sign.subsort thy (S, inferred_sort) then S
               else
                 error ("Type inference imposes additional sort constraint " ^
                   Syntax.string_of_sort_global thy inferred_sort ^
@@ -169,8 +166,8 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
     val raw_supexpr =
       (map (fn sup => (sup, (("", false), (Expression.Positional [], [])))) sups, []);
     val init_class_body =
-      fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
-      #> Class.redeclare_operations thy sups
+      Variable.restore_constraints ctxt
+      #> Class.pre_begin {base_sort = proto_base_sort} sups
       #> Context.proof_map (Syntax_Phases.term_check 0 "singleton_fixate" (K singleton_fixate));
     val ((raw_supparams, _, raw_inferred_elems, _), _) =
       ctxt
@@ -239,7 +236,7 @@ fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = Class.begin sups base_sort includes_ctxt;
+    val class_ctxt = includes_ctxt |> Class.begin {base_sort = base_sort} sups;
     val ((_, _, syntax_elems, _), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs =
@@ -292,7 +289,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
       end;
   in
     thy
-    |> Sign.add_path (Class.class_prefix class)
+    |> Sign.add_path (class_prefix class)
     |> fold_map add_const raw_params
     ||> Sign.restore_naming thy
     |-> (fn params => pair (supconsts @ (map o apfst) fst params, params))
@@ -309,7 +306,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
       |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy =
       (case #axioms (Axclass.get_info thy class) of
-         [] => NONE
+        [] => NONE
       | [thm] => SOME thm);
   in
     thy

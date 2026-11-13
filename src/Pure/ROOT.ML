@@ -1,6 +1,6 @@
 (*  Title:      Pure/ROOT.ML
     Author:     Makarius
-    UUID:       2c0f9c1a-5dbb-48c5-b3fe-eea8fd2cecad
+    UUID:       d4540011-c6dc-4033-901a-0c70f4ce099f
 
 Main entry point for the Isabelle/Pure bootstrap process.
 
@@ -322,8 +322,8 @@ ML_file "Thy/document_output.ML";
 ML_file "Thy/document_antiquotations.ML";
 ML_file "General/graph_display.ML";
 ML_file "pure_syn.ML";
-ML_file "Build/resources.ML";
 ML_file "General/message_digest.ML";
+ML_file "Build/resources.ML";
 ML_file "PIDE/command.ML";
 ML_file "PIDE/query_operation.ML";
 ML_file "Thy/thy_presentation.ML";

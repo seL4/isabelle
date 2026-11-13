@@ -393,7 +393,7 @@ val nat_of_integer = @{code nat} o @{code int_of_integer};
 
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       @{code Fun} (dBtype_of_typ T, dBtype_of_typ U)
-  | dBtype_of_typ (TFree (s, _)) = (case raw_explode s of
+  | dBtype_of_typ (TFree (s, _)) = (case String.explode_str s of
         ["'", a] => @{code Atom} (nat_of_integer (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";

@@ -126,7 +126,7 @@ fun strip_imp_concl ct =
     Const ("Pure.imp", _) $ _ $ _ => strip_imp_concl (Thm.dest_arg ct)
   | _ => ct);
 
-fun certify t = Thm.global_cterm_of (Context.the_global_context ()) t;
+fun certify t = Thm.global_cterm_of (Theory.get_pure_bootstrap ()) t;
 
 val implies = certify Logic.implies;
 fun mk_implies (A, B) = Thm.apply (Thm.apply implies A) B;
@@ -549,7 +549,7 @@ val remdups_rl =
 
 local
   val A = certify (Free ("A", propT));
-  val axiom = Thm.unvarify_axiom (Context.the_global_context ());
+  val axiom = Thm.unvarify_axiom (Theory.get_pure_bootstrap ());
   val prop_def = axiom "Pure.prop_def";
   val term_def = axiom "Pure.term_def";
   val sort_constraint_def = axiom "Pure.sort_constraint_def";
@@ -626,7 +626,7 @@ val sort_constraint_eq =
   store_standard_thm (Binding.concealed (Binding.make ("sort_constraint_eq", \<^here>)))
     (Thm.equal_intr
       (Thm.implies_intr CA (Thm.implies_elim (Thm.assume CA)
-        (Thm.unvarify_global (Context.the_global_context ()) sort_constraintI)))
+        (Thm.unvarify_global (Theory.get_pure_bootstrap ()) sort_constraintI)))
       (implies_intr_list [A, C] (Thm.assume A)));
 
 end;

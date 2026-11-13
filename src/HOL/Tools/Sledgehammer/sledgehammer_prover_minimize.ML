@@ -127,7 +127,7 @@ fun test_facts ({debug, verbose, overlord, spy, provers, max_mono_iters, max_new
         SOME failure => string_of_atp_failure failure
       | NONE =>
         "Found " ^ (if falsify then "falsification" else "proof") ^
-         (if length used_facts = length facts then "" else " with " ^ n_facts used_facts) ^
+         (if length_ord (used_facts, facts) = EQUAL then "" else " with " ^ n_facts used_facts) ^
          " (" ^ string_of_time run_time ^ ")"));
     result
   end

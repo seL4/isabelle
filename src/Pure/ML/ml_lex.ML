@@ -62,7 +62,7 @@ val keywords2 =
 val keywords3 =
  Symset.make ["handle", "open", "raise"];
 
-val lexicon = Scan.make_lexicon (map raw_explode keywords);
+val lexicon = Scan.make_lexicon (map String.explode_str keywords);
 
 
 
@@ -203,7 +203,7 @@ val scan_letdigs =
 val scan_alphanumeric =
   Scan.one (Symbol.is_ascii_letter o Symbol_Pos.symbol) ::: scan_letdigs;
 
-val symbolic = Symset.make (raw_explode "!#$%&*+-/:<=>?@\\^`|~");
+val symbolic = Symset.make (String.explode_str "!#$%&*+-/:<=>?@\\^`|~");
 
 val scan_symbolic = Scan.many1 (Symset.member symbolic o Symbol_Pos.symbol);
 
@@ -252,7 +252,7 @@ val scan_blanks1 = Scan.many1 (Symbol.is_ascii_blank o Symbol_Pos.symbol);
 
 local
 
-val escape = Symset.make (raw_explode "\"\\abtnvfr");
+val escape = Symset.make (String.explode_str "\"\\abtnvfr");
 
 val scan_escape =
   Scan.one (Symset.member escape o Symbol_Pos.symbol) >> single ||
@@ -379,7 +379,7 @@ fun read_source' {language, symbols, opaque_warning} scan source =
       else ();
   in
     Input.source_explode source
-    |> not symbols ? maps (fn (s, p) => raw_explode s |> map (rpair p))
+    |> not symbols ? maps (fn (s, p) => String.explode_str s |> map (rpair p))
     |> reader {opaque_warning = opaque_warning} scan
   end;
 

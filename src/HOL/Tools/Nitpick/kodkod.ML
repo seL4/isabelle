@@ -526,7 +526,7 @@ fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
 
 fun inline_comment "" = ""
   | inline_comment comment =
-    " /* " ^ translate_string (fn "\n" => " " | "*" => "* " | s => s) comment ^
+    " /* " ^ String.translate_str (fn "\n" => " " | "*" => "* " | s => s) comment ^
     " */"
 
 fun block_comment "" = ""
@@ -894,7 +894,7 @@ val extract_instance =
                                 raise SYNTAX (\<^unchecked_name>\<open>Kodkod.extract_instance\<close>,
                                               "ill-formed Kodkodi output"))
                             parse_instance))
-  o strip_blanks o raw_explode
+  o strip_blanks o String.explode_str
 
 val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"
@@ -1071,7 +1071,7 @@ fun solve_any_problem kodkod_scala debug overlord deadline max_threads max_solut
       do_solve ()
     else
       case AList.lookup (fn ((max1, ps1), (max2, ps2)) =>
-                            max1 = max2 andalso length ps1 = length ps2 andalso
+                            max1 = max2 andalso length_ord (ps1, ps2) = EQUAL andalso
                             forall problems_equivalent (ps1 ~~ ps2))
                         (the_list (Synchronized.value cached_outcome))
                         (max_solutions, problems) of

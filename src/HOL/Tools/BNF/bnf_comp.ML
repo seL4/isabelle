@@ -1018,7 +1018,7 @@ fun bnf_of_typ _ _ _ _ _ Ds0 (T as TFree T') accum =
       (case bnf_opt of
         NONE => ((DEADID_bnf, ([T], [])), accum)
       | SOME bnf =>
-        if optim andalso forall (can Term.dest_TFree) Ts andalso length Ts = length tfrees then
+        if optim andalso forall (can Term.dest_TFree) Ts andalso length_ord (Ts, tfrees) = EQUAL then
           let
             val T' = T_of_bnf bnf;
             val deads = deads_of_bnf bnf;

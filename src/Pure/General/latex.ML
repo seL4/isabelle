@@ -60,7 +60,7 @@ fun environment name body = [XML.Elem (Markup.latex_environment name, body)];
 (* output name for LaTeX macros *)
 
 val output_name =
-  translate_string
+  String.translate_str
     (fn "_" => "UNDERSCORE"
       | "'" => "PRIME"
       | "0" => "ZERO"
@@ -80,14 +80,16 @@ fun enclose_name bg en = enclose bg en o output_name;
 
 (* output verbatim ASCII *)
 
+val specials = Symset.make (String.explode_str "\"#$%&',-<>\\^_`{}~");
+
 val output_ascii =
-  translate_string
+  String.translate_str
     (fn " " => "\\ "
       | "\t" => "\\ "
       | "\n" => "\\isanewline\n"
       | s =>
           s
-          |> member_string "\"#$%&',-<>\\^_`{}~" s ? enclose "{\\char`\\" "}"
+          |> Symset.member specials s ? enclose "{\\char`\\" "}"
           |> suffix "{\\kern0pt}");
 
 fun output_ascii_breakable sep =
@@ -204,7 +206,7 @@ fun cite {kind, location, citations} =
   let
     val _ =
       citations |> List.app (fn (s, pos) =>
-        if member_string s ","
+        if String.member_str s ","
         then error ("Single citation expected, without commas" ^ Position.here pos)
         else ());
     val citations' = space_implode "," (map #1 citations);

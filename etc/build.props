@@ -134,6 +134,7 @@ sources = \
   src/Pure/General/name_space.scala \
   src/Pure/General/output.scala \
   src/Pure/General/path.scala \
+  src/Pure/General/percentage.scala \
   src/Pure/General/position.scala \
   src/Pure/General/pretty.scala \
   src/Pure/General/properties.scala \
@@ -160,7 +161,6 @@ sources = \
   src/Pure/Isar/keyword.scala \
   src/Pure/Isar/line_structure.scala \
   src/Pure/Isar/outer_syntax.scala \
-  src/Pure/Isar/parse.scala \
   src/Pure/Isar/token.scala \
   src/Pure/ML/ml_console.scala \
   src/Pure/ML/ml_heap.scala \
@@ -248,7 +248,6 @@ sources = \
   src/Pure/Tools/prismjs.scala \
   src/Pure/Tools/process_theories.scala \
   src/Pure/Tools/profiling.scala \
-  src/Pure/Tools/profiling_report.scala \
   src/Pure/Tools/scala_build.scala \
   src/Pure/Tools/scala_project.scala \
   src/Pure/Tools/server.scala \
@@ -384,6 +383,7 @@ services = \
   isabelle.Go_Setup \
   isabelle.ML_Statistics$Handler \
   isabelle.OCaml_Setup \
+  isabelle.Predicates \
   isabelle.Print_Operation$Handler \
   isabelle.Scala$Handler \
   isabelle.Scala_Functions \

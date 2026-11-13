@@ -53,13 +53,12 @@ local exception MATCH
 in
 fun transfer_star_tac ctxt =
   let
-    fun thm_of (Const (\<^const_name>\<open>Ifun\<close>, _) $ t $ u) = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
-      | thm_of (Const (\<^const_name>\<open>star_of\<close>, _) $ _) = @{thm star_of_def}
-      | thm_of (Const (\<^const_name>\<open>star_n\<close>, _) $ _) = @{thm Pure.reflexive}
+    fun thm_of \<^Const_>\<open>Ifun _ _ for t u\<close> = @{thm transfer_Ifun} OF [thm_of t, thm_of u]
+      | thm_of \<^Const_>\<open>star_of _ for _\<close> = @{thm star_of_def}
+      | thm_of \<^Const_>\<open>star_n _ for _\<close> = @{thm Pure.reflexive}
       | thm_of _ = raise MATCH;
 
-    fun thm_of_goal (Const (\<^const_name>\<open>Pure.eq\<close>, _) $ t $ (Const (\<^const_name>\<open>star_n\<close>, _) $ _)) =
-          thm_of t
+    fun thm_of_goal \<^Const_>\<open>Pure.eq _ for t \<^Const_>\<open>star_n _ for _\<close>\<close> = thm_of t
       | thm_of_goal _ = raise MATCH;
   in
     SUBGOAL (fn (t, i) =>

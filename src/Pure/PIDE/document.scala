@@ -42,12 +42,25 @@ object Document {
   /* document blobs: auxiliary files */
 
   object Blobs {
+    object Item {
+      def make(
+        bytes: Bytes,
+        source: Option[String] = None,
+        chunk: Option[Symbol.Text_Chunk] = None,
+        command_offset: Symbol.Offset = 0,
+        changed: Boolean = false
+      ): Item = {
+        val source1 = source.getOrElse(bytes.text)
+        val chunk1 = chunk.getOrElse(Symbol.Text_Chunk(source1))
+        Item(bytes, source1, chunk1, command_offset, changed)
+      }
+    }
     sealed case class Item(
       bytes: Bytes,
       source: String,
       chunk: Symbol.Text_Chunk,
-      command_offset: Symbol.Offset = 0,
-      changed: Boolean = false
+      command_offset: Symbol.Offset,
+      changed: Boolean
     ) {
       override def toString: String =
         "Blobs.Item(bytes = " + bytes.size + ", source = " + source.length +
@@ -218,8 +231,8 @@ object Document {
 
       def starts_pos(
         commands: Iterator[Command],
-        pos: Token.Pos = Token.Pos.start
-      ) : Iterator[(Command, Token.Pos)] = {
+        pos: Position.P = Position.P.start
+      ) : Iterator[(Command, Position.P)] = {
         var p = pos
         for (command <- commands) yield {
           val start = p
@@ -702,7 +715,7 @@ object Document {
     lazy val messages: List[(XML.Elem, Position.T)] =
       (for {
         (command, start) <-
-          Node.Commands.starts_pos(node.commands.iterator, Token.Pos.file(node_name.node))
+          Node.Commands.starts_pos(node.commands.iterator, Position.P.file(node_name.node))
         pos = command.span.keyword_pos(start).position(command.span.name)
         (_, elem) <- state.command_results(version, command).iterator
        } yield (elem, pos)).toList
@@ -865,7 +878,7 @@ object Document {
     def session_options: Options
     def resources: Resources
     def store: Store
-    def conditions: Thy_Conditions.Context
+    def conditions: Thy_Conditions.State
   }
 
   trait Model {

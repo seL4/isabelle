@@ -122,7 +122,8 @@ fun read_thy node span : Resources.thy =
       |> Options.update_no_pos
       |> Options.update_pos_none;
   in
-   {name = #name thy,
+   {session = #session thy,
+    name = #name thy,
     pos = #2 (#name header),
     imports =
       (map #1 (#imports thy) ~~ map #2 (#imports header))
@@ -200,7 +201,7 @@ fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 (* outer syntax keywords *)
 
-val pure_keywords = Thy_Header.get_keywords o Theory.get_pure;
+val pure_keywords = Thy_Header.get_keywords o Theory.get_pure_bootstrap;
 
 fun node_keywords name node =
   let
@@ -630,7 +631,7 @@ fun init_theory deps node span =
         | SOME thy => SOME (thy, (Position.none, Markup.empty))));
 
     val parents =
-      if null parents_reports then [Theory.get_pure ()] else map #1 parents_reports;
+      if null parents_reports then [Theory.get_pure_bootstrap ()] else map #1 parents_reports;
     val _ = List.app (fn (thy, r) => Context_Position.reports_global thy [r]) parents_reports;
 
     val theory = Resources.begin_theory thy parents;
