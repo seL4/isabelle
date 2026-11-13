@@ -208,10 +208,12 @@ fun classify_facts (state : Proof.state) (facts : xref facts) : xref facts =
         (case get_fact_classifier (Context.Proof ctxt) name of
           NONE => (warning ("Fact classifier \"" ^ name ^ "\" is undefined"); facts)
         | SOME classifier =>
-          facts
-          |> map_facts (xxref_of_xref ctxt)
-          |> classifier state
-          |> map_facts #xref))
+          (facts
+           |> map_facts (xxref_of_xref ctxt)
+           |> classifier state
+           |> map_facts #xref)
+          handle ERROR msg =>
+            (warning ("Fact classifier \"" ^ name ^ "\" failed: " ^ msg); facts)))
   end
 
 end
