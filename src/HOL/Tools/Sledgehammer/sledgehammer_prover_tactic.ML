@@ -175,15 +175,12 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
       let
         val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
         fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
-          let
-            val xref_opt =
-              if is_cartouche name then
-                literal_xref_of_fact ctxt thm
-              else
-                SOME (named_xref_of_name name)
-          in
-            Option.map (fn xref => (fact, (xref, []))) xref_opt
-          end
+          if is_cartouche name then
+            (case literal_xref_of_fact ctxt thm of
+              SOME xref => SOME (fact, (xref, []))
+            | NONE => NONE)
+          else
+            SOME (fact, (named_xref_of_name name, []))
         val (referable_local_facts, usings) =
           split_list_map_filter with_xref (sort_by (fst o fst) locals)
         val (referable_global_facts, directs) =
