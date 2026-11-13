@@ -184,11 +184,13 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
           in
             Option.map (fn xref => (fact, (xref, []))) xref_opt
           end
-        val (local_facts, usings) = map_filter_split with_xref (sort_by (fst o fst) locals)
-        val (global_facts, directs) = map_filter_split with_xref (sort_by (fst o fst) globals)
+        val (referable_local_facts, usings) =
+          map_filter_split with_xref (sort_by (fst o fst) locals)
+        val (referable_global_facts, directs) =
+          map_filter_split with_xref (sort_by (fst o fst) globals)
       in
         (Try0.unclassified_facts {usings = usings, directs = directs}
-         |> Try0.classify_facts state, local_facts @ global_facts)
+         |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
       end
 
     fun run_proof_method facts =
@@ -201,8 +203,9 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
 
     fun classify_facts_and_run_proof_method () =
       (case (SOME (Timing.timing classify_facts ()) handle ERROR _ => NONE) of
-        NONE => ((SOME GaveUp, ""), [])
-      | SOME ({elapsed = classifier_time, ...}, (classified_facts, referable_facts)) =>
+        NONE => ((SOME GaveUp, ""), [], [])
+      | SOME ({elapsed = classifier_time, ...},
+          (classified_facts, referable_local_facts, referable_global_facts)) =>
           let
             val ({elapsed = method_time, ...}, (outcome, command)) =
               Timing.timing run_proof_method classified_facts
@@ -213,15 +216,18 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
                 write_fact_classification_log ctxt name mode max_facts classifier_time method_time
                   outcome command classified_facts
           in
-            ((outcome, command), referable_facts)
+            ((outcome, command), referable_local_facts, referable_global_facts)
           end)
 
-    val ({elapsed = run_time, ...}, ((outcome, command), referable_facts)) =
+    val ({elapsed = run_time, ...},
+         ((outcome, command), referable_local_facts, referable_global_facts)) =
       Timing.timing classify_facts_and_run_proof_method ()
 
     val used_facts =
       (case outcome of
-        NONE => (found_something name; map fst referable_facts)
+        NONE =>
+          (found_something name;
+           fold_rev (cons o fst) referable_local_facts (map fst referable_global_facts))
       | SOME _ => [])
 
     val message = fn preplay_outcome =>
