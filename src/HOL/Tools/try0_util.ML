@@ -95,7 +95,7 @@ fun all_classified_xrefs (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_
     Try0.lookup_facts_class class facts
     |> the_default Try0.empty_usings_directs
     |> Try0.union_usings_directs acc)
-    (classes_in_canonical_order (#classified facts)) {usings = [], directs = []}
+    (classes_in_canonical_order (#classified facts)) Try0.empty_usings_directs
 
 (* TODO: Think about duplicates. *)
 fun flatten_facts (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_directs =
@@ -136,7 +136,7 @@ fun mk_method_args_and_usings No_Args (facts : Try0.xref Try0.facts) : string * 
           subtract (op =) listed_classes (classes_in_canonical_order (#classified facts))
 
         val (method_args, unsupported) =
-          ("", {usings = [], directs = []})
+          ("", Try0.empty_usings_directs)
           |> fold (accumulate_listed_class facts) class_prefixes
           |> fold (accumulate_unlisted_class facts) unlisted_classes_in_canonical_order
 

@@ -91,7 +91,7 @@ val native_classes = [simpN, introN, elimN, destN, splitN, iffN, congN]
 
 type 'a facts = {unclassified : 'a usings_directs, classified : 'a usings_directs Symtab.table}
 
-val empty_facts : 'a facts = {unclassified = {usings = [], directs = []}, classified = Symtab.empty}
+val empty_facts : 'a facts = {unclassified = empty_usings_directs, classified = Symtab.empty}
 
 fun unclassified_facts (unclassified : 'a usings_directs) : 'a facts =
   {unclassified = unclassified, classified = Symtab.empty}
@@ -329,12 +329,11 @@ val parse_fact_refs = Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse
 
 fun class_section (class : string) =
   Args.$$$ class |-- Args.colon |-- parse_fact_refs >> (fn xrefs =>
-    {unclassified = {usings = [], directs = []}, classified =
-      Symtab.make [(class, {usings = [], directs = xrefs})]})
+    {unclassified = empty_usings_directs,
+     classified = Symtab.make [(class, {usings = [], directs = xrefs})]})
 
 val parse_unclassified_facts =
-  parse_fact_refs >> (fn xrefs =>
-    {unclassified = {usings = [], directs = xrefs}, classified = Symtab.empty} : xref facts)
+  parse_fact_refs >> (fn xrefs => unclassified_facts {usings = [], directs = xrefs})
 
 val parse_classified_facts =
   Scan.repeat1 (Scan.first (map class_section native_classes)) >>
