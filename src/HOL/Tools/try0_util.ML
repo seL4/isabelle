@@ -90,19 +90,20 @@ fun apply_recursive recurse elapsed0 timeout_opt apply st =
 fun classes_in_canonical_order classified : string list =
   Try0.native_classes @ subtract (op =) Try0.native_classes (Symtab.keys classified)
 
-fun all_classified_xrefs (facts : Try0.xref Try0.facts) : Try0.xref Try0.positioned_facts =
+fun all_classified_xrefs (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_directs =
   fold (fn class => fn acc =>
     Try0.lookup_facts_class class facts
-    |> the_default Try0.empty_positioned_facts
-    |> Try0.union_positioned_facts acc)
+    |> the_default Try0.empty_usings_directs
+    |> Try0.union_usings_directs acc)
     (classes_in_canonical_order (#classified facts)) {usings = [], directs = []}
 
 (* TODO: Think about duplicates. *)
-fun flatten_facts (facts : Try0.xref Try0.facts) : Try0.xref Try0.positioned_facts =
-  Try0.union_positioned_facts (#unclassified facts) (all_classified_xrefs facts)
+fun flatten_facts (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_directs =
+  Try0.union_usings_directs (#unclassified facts) (all_classified_xrefs facts)
 
 fun accumulate_listed_class (facts : Try0.xref Try0.facts) {class : string, prefix : string}
-    (method_args : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
+    (method_args : string, unsupported : Try0.xref Try0.usings_directs)
+    : string * Try0.xref Try0.usings_directs =
   (case Try0.lookup_facts_class class facts of
     NONE => (method_args, unsupported)
   | SOME {usings = [], directs = []} => (method_args, unsupported)
@@ -111,12 +112,13 @@ fun accumulate_listed_class (facts : Try0.xref Try0.facts) {class : string, pref
        unsupported))
 
 fun accumulate_unlisted_class (facts : Try0.xref Try0.facts) (class : string)
-    (method_args : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
+    (method_args : string, unsupported : Try0.xref Try0.usings_directs)
+    : string * Try0.xref Try0.usings_directs =
   let
     val unsupported =
       Try0.lookup_facts_class class facts
-      |> the_default Try0.empty_positioned_facts
-      |> Try0.union_positioned_facts unsupported
+      |> the_default Try0.empty_usings_directs
+      |> Try0.union_usings_directs unsupported
   in
     (method_args, unsupported)
   end
@@ -138,7 +140,7 @@ fun mk_method_args_and_usings No_Args (facts : Try0.xref Try0.facts) : string * 
           |> fold (accumulate_listed_class facts) class_prefixes
           |> fold (accumulate_unlisted_class facts) unlisted_classes_in_canonical_order
 
-        val {usings, directs} = Try0.union_positioned_facts (#unclassified facts) unsupported
+        val {usings, directs} = Try0.union_usings_directs (#unclassified facts) unsupported
       in (method_args, directs @ usings) end
 
 in

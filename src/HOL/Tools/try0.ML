@@ -10,9 +10,9 @@ signature TRY0 =
 sig
   val serial_commas : string -> string list -> string list
 
-  type 'a positioned_facts = {usings : 'a list, directs : 'a list}
-  val empty_positioned_facts : 'a positioned_facts
-  val union_positioned_facts : 'a positioned_facts -> 'a positioned_facts -> 'a positioned_facts
+  type 'a usings_directs = {usings : 'a list, directs : 'a list}
+  val empty_usings_directs : 'a usings_directs
+  val union_usings_directs : 'a usings_directs -> 'a usings_directs -> 'a usings_directs
 
   val simpN : string
   val introN : string
@@ -23,11 +23,11 @@ sig
   val congN : string
   val native_classes : string list
 
-  type 'a facts = {unclassified : 'a positioned_facts, classified : 'a positioned_facts Symtab.table}
+  type 'a facts = {unclassified : 'a usings_directs, classified : 'a usings_directs Symtab.table}
   val empty_facts : 'a facts
-  val unclassified_facts : 'a positioned_facts -> 'a facts
+  val unclassified_facts : 'a usings_directs -> 'a facts
   val union_facts : 'a facts -> 'a facts -> 'a facts
-  val lookup_facts_class : string -> 'a facts -> 'a positioned_facts option
+  val lookup_facts_class : string -> 'a facts -> 'a usings_directs option
   val map_facts : ('a -> 'b) -> 'a facts -> 'b facts
 
   type xref = Facts.ref * Token.src list
@@ -72,11 +72,12 @@ val noneN = "none"
 
 datatype mode = Auto_Try | Try | Normal
 
-type 'a positioned_facts = {usings : 'a list, directs : 'a list}
+type 'a usings_directs = {usings : 'a list, directs : 'a list}
 
-val empty_positioned_facts : 'a positioned_facts = {usings = [], directs = []}
+val empty_usings_directs : 'a usings_directs = {usings = [], directs = []}
 
-fun union_positioned_facts (left : 'a positioned_facts) (right : 'a positioned_facts) : 'a positioned_facts =
+fun union_usings_directs (left : 'a usings_directs) (right : 'a usings_directs)
+    : 'a usings_directs =
   {usings = #usings left @ #usings right, directs = #directs left @ #directs right}
 
 val simpN = "simp"
@@ -88,29 +89,30 @@ val iffN = "iff"
 val congN = "cong"
 val native_classes = [simpN, introN, elimN, destN, splitN, iffN, congN]
 
-type 'a facts = {unclassified : 'a positioned_facts, classified : 'a positioned_facts Symtab.table}
+type 'a facts = {unclassified : 'a usings_directs, classified : 'a usings_directs Symtab.table}
 
 val empty_facts : 'a facts = {unclassified = {usings = [], directs = []}, classified = Symtab.empty}
 
-fun unclassified_facts (unclassified : 'a positioned_facts) : 'a facts =
+fun unclassified_facts (unclassified : 'a usings_directs) : 'a facts =
   {unclassified = unclassified, classified = Symtab.empty}
 
-fun map_position_facts (f : 'a -> 'b) ({usings, directs} : 'a positioned_facts) : 'b positioned_facts =
+fun map_usings_directs (f : 'a -> 'b) ({usings, directs} : 'a usings_directs) : 'b usings_directs =
   {usings = map f usings, directs = map f directs}
 
 fun map_facts (f : 'a -> 'b) ({unclassified, classified} : 'a facts) : 'b facts =
   let
-    val unclassified = map_position_facts f unclassified
-    val classified = Symtab.map (fn _ => map_position_facts f) classified
+    val unclassified = map_usings_directs f unclassified
+    val classified = Symtab.map (fn _ => map_usings_directs f) classified
   in
     {unclassified = unclassified, classified = classified}
   end
 
 fun union_facts (left : 'a facts) (right : 'a facts) : 'a facts =
-  {unclassified = union_positioned_facts (#unclassified left) (#unclassified right),
-   classified = Symtab.join (K (uncurry union_positioned_facts)) (#classified left, #classified right)}
+  {unclassified = union_usings_directs (#unclassified left) (#unclassified right),
+   classified =
+     Symtab.join (K (uncurry union_usings_directs)) (#classified left, #classified right)}
 
-fun lookup_facts_class (class : string) ({classified, ...} : 'a facts) : 'a positioned_facts option =
+fun lookup_facts_class (class : string) ({classified, ...} : 'a facts) : 'a usings_directs option =
   Symtab.lookup classified class
 
 type xref = Facts.ref * Token.src list
@@ -168,8 +170,8 @@ structure Fact_Classifier_Data = Generic_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-fun register_fact_classifier (name : string) (classifier : fact_classifier) :
-    Context.generic -> Context.generic =
+fun register_fact_classifier (name : string) (classifier : fact_classifier)
+    : Context.generic -> Context.generic =
   let val () = if name = "" then error "Registering unnamed fact classifier" else () in
     Fact_Classifier_Data.map (Symtab.update (name, classifier))
   end
