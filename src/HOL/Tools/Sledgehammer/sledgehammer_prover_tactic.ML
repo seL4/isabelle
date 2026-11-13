@@ -75,12 +75,12 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
   | SOME TimedOut => "timed_out"
   | SOME _ => "gave_up")
 
-fun map_filter_split _ [] = ([], [])
-  | map_filter_split f (x :: xs) =
+fun split_list_map_filter _ [] = ([], [])
+  | split_list_map_filter f (x :: xs) =
       (case f x of
-        NONE => map_filter_split f xs
+        NONE => split_list_map_filter f xs
       | SOME (y, z) =>
-          let val (ys, zs) = map_filter_split f xs
+          let val (ys, zs) = split_list_map_filter f xs
           in (y :: ys, z :: zs) end)
 
 val class_width = fold (Integer.max o size) Try0.native_classes 0
@@ -185,9 +185,9 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
             Option.map (fn xref => (fact, (xref, []))) xref_opt
           end
         val (referable_local_facts, usings) =
-          map_filter_split with_xref (sort_by (fst o fst) locals)
+          split_list_map_filter with_xref (sort_by (fst o fst) locals)
         val (referable_global_facts, directs) =
-          map_filter_split with_xref (sort_by (fst o fst) globals)
+          split_list_map_filter with_xref (sort_by (fst o fst) globals)
       in
         (Try0.unclassified_facts {usings = usings, directs = directs}
          |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
