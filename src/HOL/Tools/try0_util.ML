@@ -105,6 +105,7 @@ fun accumulate_listed_class (facts : Try0.xref Try0.facts) {class : string, pref
     (method_args : string, unsupported : Try0.xref Try0.positioned_facts) : string * Try0.xref Try0.positioned_facts =
   (case Try0.lookup_facts_class class facts of
     NONE => (method_args, unsupported)
+  | SOME {usings = [], directs = []} => (method_args, unsupported)
   | SOME {usings, directs} =>
       (method_args ^ " " ^ prefix ^ implode_space (map string_of_xref (usings @ directs)),
        unsupported))
