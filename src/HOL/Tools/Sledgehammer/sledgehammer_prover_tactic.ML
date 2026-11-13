@@ -200,25 +200,31 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
 
     fun classify_facts_and_run_proof_method () =
       (case (SOME (Timing.timing classify_facts ()) handle ERROR _ => NONE) of
-        NONE => ((SOME GaveUp, ""), [], [])
+        NONE => ((SOME GaveUp, ""), [], [], NONE)
       | SOME ({elapsed = classifier_time, ...},
           (classified_facts, referable_local_facts, referable_global_facts)) =>
           let
             val ({elapsed = method_time, ...}, (outcome, command)) =
               Timing.timing run_proof_method classified_facts
-            val () =
-              if Config.get ctxt fact_classification_dest_dir = "" then
-                ()
-              else
-                write_fact_classification_log ctxt name mode max_facts classifier_time method_time
-                  outcome command classified_facts
           in
-            ((outcome, command), referable_local_facts, referable_global_facts)
+            ((outcome, command), referable_local_facts, referable_global_facts,
+             SOME (classifier_time, method_time, classified_facts))
           end)
 
     val ({elapsed = run_time, ...},
-         ((outcome, command), referable_local_facts, referable_global_facts)) =
+         ((outcome, command), referable_local_facts, referable_global_facts, classification)) =
       Timing.timing classify_facts_and_run_proof_method ()
+
+    (* The log is written outside of the timed region so that it does not inflate "run_time". *)
+    val () =
+      (case classification of
+        SOME (classifier_time, method_time, classified_facts) =>
+          if Config.get ctxt fact_classification_dest_dir = "" then
+            ()
+          else
+            write_fact_classification_log ctxt name mode max_facts classifier_time method_time
+              outcome command classified_facts
+      | NONE => ())
 
     val used_facts =
       (case outcome of
