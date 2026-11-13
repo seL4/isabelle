@@ -35,7 +35,8 @@ sig
   type proof_method = Time.time option -> xref facts -> Proof.state -> result option
   type proof_method_options = {run_if_auto_try: bool}
 
-  val register_proof_method : string -> proof_method_options -> proof_method -> unit
+  val register_proof_method : string -> proof_method_options -> proof_method ->
+    Context.generic -> Context.generic
   val get_proof_method : Proof.context -> string -> proof_method option
   val get_proof_method_or_noop : Proof.context -> string -> proof_method
   val get_all_proof_method_names : Proof.context -> string list
@@ -43,8 +44,8 @@ sig
   type xxref = {xref : xref, thms : thm list, number_orig_thms : int}
   type fact_classifier = Proof.state -> xxref facts -> xxref facts
   val register_fact_classifier : string -> fact_classifier -> Context.generic -> Context.generic
-  val get_fact_classifier : Context.generic -> string -> fact_classifier option
-  val get_all_fact_classifier_names : Context.generic -> string list
+  val get_fact_classifier : Proof.context -> string -> fact_classifier option
+  val get_all_fact_classifier_names : Proof.context -> string list
   val fact_classifier : string Config.T
   val classify_facts : Proof.state -> xref facts -> xref facts
 
@@ -127,9 +128,9 @@ structure Proof_Method_Data = Generic_Data
 )
 
 fun register_proof_method (name : string) (options : proof_method_options)
-    (proof_method : proof_method) : unit =
+    (proof_method : proof_method) : Context.generic -> Context.generic =
   let val () = if name = "" then error "Registering unnamed proof method" else () in
-    Context.>> (Proof_Method_Data.map (Symtab.update (name, (proof_method, options))))
+    Proof_Method_Data.map (Symtab.update (name, (proof_method, options)))
   end
 
 fun get_proof_methods (ctxt : Proof.context) : (proof_method * proof_method_options) Symtab.table =
@@ -139,7 +140,7 @@ fun get_proof_method (ctxt : Proof.context) (name : string) : proof_method optio
   Option.map fst (Symtab.lookup (get_proof_methods ctxt) name)
 
 fun get_all_proof_method_names (ctxt : Proof.context) : string list =
-  Symtab.fold (fn (name, _) => fn names => name :: names) (get_proof_methods ctxt) []
+  Symtab.keys (get_proof_methods ctxt)
 
 fun should_auto_try_proof_method (ctxt : Proof.context) (name : string) : bool =
   (case Symtab.lookup (get_proof_methods ctxt) name of
@@ -167,17 +168,20 @@ structure Fact_Classifier_Data = Generic_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-fun register_fact_classifier (name : string) (classifier : fact_classifier)
-  (context : Context.generic) : Context.generic =
+fun register_fact_classifier (name : string) (classifier : fact_classifier) :
+    Context.generic -> Context.generic =
   let val () = if name = "" then error "Registering unnamed fact classifier" else () in
-    Fact_Classifier_Data.map (Symtab.update (name, classifier)) context
+    Fact_Classifier_Data.map (Symtab.update (name, classifier))
   end
 
-fun get_fact_classifier (context : Context.generic) (name : string) : fact_classifier option =
-  Symtab.lookup (Fact_Classifier_Data.get context) name;
+fun get_fact_classifiers (ctxt : Proof.context) : fact_classifier Symtab.table =
+  Fact_Classifier_Data.get (Context.Proof ctxt)
 
-fun get_all_fact_classifier_names (context : Context.generic) : string list =
-  Symtab.keys (Fact_Classifier_Data.get context)
+fun get_fact_classifier (ctxt : Proof.context) (name : string) : fact_classifier option =
+  Symtab.lookup (get_fact_classifiers ctxt) name
+
+fun get_all_fact_classifier_names (ctxt : Proof.context) : string list =
+  Symtab.keys (get_fact_classifiers ctxt)
 
 val fact_classifier =
   Attrib.setup_option_string (\<^system_option>\<open>try0_fact_classifier\<close>, \<^here>)
@@ -205,7 +209,7 @@ fun classify_facts (state : Proof.state) (facts : xref facts) : xref facts =
     (case Config.get ctxt fact_classifier of
       "" => facts
     | name =>
-        (case get_fact_classifier (Context.Proof ctxt) name of
+        (case get_fact_classifier ctxt name of
           NONE => (warning ("Fact classifier \"" ^ name ^ "\" is undefined"); facts)
         | SOME classifier =>
           (facts
