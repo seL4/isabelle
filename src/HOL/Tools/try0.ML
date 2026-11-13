@@ -184,12 +184,19 @@ val fact_classifier =
 
 local
 
-fun xxref (ctxt : Proof.context) (xref : xref) : xxref =
+fun xxref_of_xref (ctxt : Proof.context) (xref as (fact_ref, srcs) : xref) : xxref =
   let
-    val eval = single #> Attrib.eval_thms ctxt
-    val all_r = case fst xref of Facts.Named (np, _) => Facts.Named (np, NONE) | r => r
-    val number_orig_thms = eval (all_r, []) |> length
-  in {xref = xref, thms = eval xref, number_orig_thms = number_orig_thms} end
+    val fact_ref_without_selection =
+      (case fact_ref of
+        Facts.Named (name_pos, SOME _) => Facts.Named (name_pos, NONE)
+      | _ => fact_ref)
+    val all_thms = Proof_Context.get_fact ctxt fact_ref_without_selection
+    val thms =
+      Facts.select fact_ref all_thms
+      |> not (null srcs) ?
+        (fn thms => fst (fold_map (Thm.proof_attributes (map (Attrib.attribute_cmd ctxt) srcs))
+          thms ctxt))
+  in {xref = xref, thms = thms, number_orig_thms = length all_thms} end
 
 in
 
@@ -202,7 +209,7 @@ fun classify_facts (state : Proof.state) (facts : xref facts) : xref facts =
           NONE => (warning ("Fact classifier \"" ^ name ^ "\" is undefined"); facts)
         | SOME classifier =>
           facts
-          |> map_facts (xxref ctxt)
+          |> map_facts (xxref_of_xref ctxt)
           |> classifier state
           |> map_facts #xref))
   end
