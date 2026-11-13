@@ -41,7 +41,7 @@ sig
   val get_proof_method_or_noop : Proof.context -> string -> proof_method
   val get_all_proof_method_names : Proof.context -> string list
 
-  type exref = {xref : xref, thms : thm list, number_orig_thms : int}
+  type exref = {xref : xref, thms : thm list, number_unselected_thms : int}
   type fact_classifier = Proof.state -> exref facts -> exref facts
   val register_fact_classifier : string -> fact_classifier -> Context.generic -> Context.generic
   val get_fact_classifier : Proof.context -> string -> fact_classifier option
@@ -161,7 +161,7 @@ fun maybe_apply_proof_method (ctxt : Proof.context) (name : string) (mode : mode
     noop_proof_method
 
 (* Evaluated extended reference *)
-type exref = {xref : xref, thms : thm list, number_orig_thms : int}
+type exref = {xref : xref, thms : thm list, number_unselected_thms : int}
 type fact_classifier = Proof.state -> exref facts -> exref facts
 
 structure Fact_Classifier_Data = Generic_Data
@@ -203,7 +203,7 @@ fun eval_xref (ctxt : Proof.context) (xref as (fact_ref, srcs) : xref) : exref =
       |> not (null srcs) ?
         (fn thms => fst (fold_map (Thm.proof_attributes (map (Attrib.attribute_cmd ctxt) srcs))
           thms ctxt))
-  in {xref = xref, thms = thms, number_orig_thms = length all_thms} end
+  in {xref = xref, thms = thms, number_unselected_thms = length all_thms} end
 
 in
 
