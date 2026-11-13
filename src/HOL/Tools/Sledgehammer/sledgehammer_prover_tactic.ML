@@ -92,11 +92,11 @@ fun make_fact_lines (facts : Try0.xref Try0.facts) : string list =
       implode_space ["fact", StringCvt.padRight #" " class_width class,
         StringCvt.padRight #" " kind_width kind,
         collapse_whitespace (Try0_Util.string_of_xref xref)]
-    fun make_xxrefs_lines class {usings, directs} =
+    fun make_usings_directs_lines class {usings, directs} =
       map (make_fact_line class "using") usings @ map (make_fact_line class "direct") directs
   in
-    maps (uncurry make_xxrefs_lines) (Symtab.dest (#classified facts)) @
-    make_xxrefs_lines "-" (#unclassified facts)
+    maps (uncurry make_usings_directs_lines) (Symtab.dest (#classified facts)) @
+    make_usings_directs_lines "-" (#unclassified facts)
   end
 
 fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode : mode)

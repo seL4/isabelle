@@ -41,8 +41,8 @@ sig
   val get_proof_method_or_noop : Proof.context -> string -> proof_method
   val get_all_proof_method_names : Proof.context -> string list
 
-  type xxref = {xref : xref, thms : thm list, number_orig_thms : int}
-  type fact_classifier = Proof.state -> xxref facts -> xxref facts
+  type exref = {xref : xref, thms : thm list, number_orig_thms : int}
+  type fact_classifier = Proof.state -> exref facts -> exref facts
   val register_fact_classifier : string -> fact_classifier -> Context.generic -> Context.generic
   val get_fact_classifier : Proof.context -> string -> fact_classifier option
   val get_all_fact_classifier_names : Proof.context -> string list
@@ -160,8 +160,9 @@ fun maybe_apply_proof_method (ctxt : Proof.context) (name : string) (mode : mode
   else
     noop_proof_method
 
-type xxref = {xref : xref, thms : thm list, number_orig_thms : int}
-type fact_classifier = Proof.state -> xxref facts -> xxref facts
+(* Evaluated extended reference *)
+type exref = {xref : xref, thms : thm list, number_orig_thms : int}
+type fact_classifier = Proof.state -> exref facts -> exref facts
 
 structure Fact_Classifier_Data = Generic_Data
 (
@@ -190,7 +191,7 @@ val fact_classifier =
 
 local
 
-fun xxref_of_xref (ctxt : Proof.context) (xref as (fact_ref, srcs) : xref) : xxref =
+fun eval_xref (ctxt : Proof.context) (xref as (fact_ref, srcs) : xref) : exref =
   let
     val fact_ref_without_selection =
       (case fact_ref of
@@ -215,7 +216,7 @@ fun classify_facts (state : Proof.state) (facts : xref facts) : xref facts =
           NONE => (warning ("Fact classifier \"" ^ name ^ "\" is undefined"); facts)
         | SOME classifier =>
           (facts
-           |> map_facts (xxref_of_xref ctxt)
+           |> map_facts (eval_xref ctxt)
            |> classifier state
            |> map_facts #xref)
           handle ERROR msg =>
