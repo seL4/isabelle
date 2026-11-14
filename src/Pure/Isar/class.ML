@@ -14,8 +14,7 @@ sig
   val these_defs: theory -> sort -> thm list
   val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
-  val pre_begin: {base_sort: sort} -> sort -> Proof.context -> Proof.context
-  val begin: {base_sort: sort} -> sort -> Proof.context -> Proof.context
+  val begin: {base_sort: sort, fixate: bool} -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * term -> term list * term list ->
     local_theory -> local_theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory ->
@@ -288,9 +287,6 @@ fun constraints_of_operations base_sort = constraints_of_operations' (K base_sor
 
 val global_constraints_of_operations = constraints_of_operations' single;
 
-fun these_constraints thy {base_sort} =
-  these_operations thy {base_sort = base_sort} #> constraints_of_operations base_sort;
-
 fun rewrite_wrt thy rewrites =
   perhaps (try (Pattern.rewrite_term_yoyo thy rewrites []));
 
@@ -354,25 +350,16 @@ fun synchronize_class_syntax_target class lthy =
   |> Local_Theory.map_contexts
       (K (synchronize_class_syntax {base_sort = base_sort_for (Proof_Context.theory_of lthy) [class]} [class]));
 
-fun pre_begin {base_sort} sort ctxt =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-  in
-    ctxt
-    |> fold (Proof_Context.add_const_constraint o apsnd SOME) (these_constraints thy {base_sort = base_sort} sort)
-    |> fold (redeclare_const thy o fst) (these_operations thy {base_sort = base_sort} sort)
-  end;
-
-fun begin {base_sort} sort ctxt =
+fun begin {base_sort, fixate} sort ctxt =
   ctxt
-  |> Variable.declare_term (Logic.mk_type (Term.aT base_sort))
+  |> fixate ? Variable.declare_term (Logic.mk_type (Term.aT base_sort))
   |> synchronize_class_syntax {base_sort = base_sort} sort
   |> Overloading.activate_improvable_syntax;
 
 fun init class thy =
   thy
   |> Locale.init class
-  |> begin {base_sort = base_sort_for thy [class]} [class];
+  |> begin {base_sort = base_sort_for thy [class], fixate = true} [class];
 
 
 (* class target *)
