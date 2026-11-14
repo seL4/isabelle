@@ -25,6 +25,11 @@ object ML_Statistics {
     space_explode(',', s).flatMap(Properties.Eq.unapply)
 
   val GC_Phase = new Properties.Int("GC_phase")
+  val gc_phases: Map[Int, String] =
+    Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing", 4 -> "other").withDefaultValue("")
+  val gc_phases_description: String =
+    Library.commas(for ((i, s) <- gc_phases.toList.sortBy(_._1)) yield i.toString + ": " + s)
+
   val GC_Percent = new Properties.Int("GC_percent")
 
 
@@ -66,6 +71,8 @@ object ML_Statistics {
   val Workers_Total = new Field("workers_total")
   val Workers_Active = new Field("workers_active")
   val Workers_Waiting = new Field("workers_waiting")
+
+  val GC = new Field(GC_Phase.name, description = gc_phases_description)
 
   val GCs_Minor = new Field("partial_GCs", description = "GCs (minor)")
   val GCs_Major = new Field("full_GCs", description = "GCs (major)")
@@ -120,8 +127,6 @@ object ML_Statistics {
 
   /* memory status */
 
-  private val gc_phases = Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing")
-
   sealed case class Memory_Status(
     heap_size: Space,
     heap_free_minor: Space,
@@ -135,7 +140,7 @@ object ML_Statistics {
     def heap_used_major_fraction: Double = heap_size.used_fraction(heap_free_major)
     def gc_status: Option[(String, Double)] =
       if (gc_phase > 0 && 1 <= gc_percent && gc_percent <= 100) {
-        val kind = gc_phases.getOrElse(gc_phase, "")
+        val kind = gc_phases(gc_phase)
         val p = (gc_percent - 1) * 0.01
         Some((kind, p))
       }
@@ -244,6 +249,9 @@ object ML_Statistics {
   val workers_fields: Fields =
     Fields("Worker threads", List(Workers_Total, Workers_Active, Workers_Waiting))
 
+  val GC_fields: Fields =
+    Fields("GC", List(GC))
+
   val GCs_fields: Fields =
     Fields("GCs", List(GCs_Minor, GCs_Major, GCs_Sharing))
 
@@ -279,7 +287,7 @@ object ML_Statistics {
     List(heap_fields, tasks_fields, workers_fields)
 
   val other_fields: List[Fields] =
-    List(threads_fields, GCs_fields, program_fields, time_fields, speed_fields,
+    List(threads_fields, GC_fields, GCs_fields, program_fields, time_fields, speed_fields,
       java_heap_fields, java_thread_fields)
 
   val all_fields: List[Fields] = main_fields ::: other_fields
