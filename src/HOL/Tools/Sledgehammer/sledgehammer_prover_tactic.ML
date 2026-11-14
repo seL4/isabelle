@@ -202,28 +202,32 @@ fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
          |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
       end
 
-    val classifications = Synchronized.var "classifications" []
+    val slice_facts = Synchronized.var "slice_facts" []
 
-    fun classification_of fact_filter num_facts non_chained =
-      Synchronized.change_result classifications (fn classifications =>
-        (case AList.lookup (op =) classifications (fact_filter, num_facts) of
-          SOME classification => (classification, classifications)
+    (* the facts of a slice and their classification, which depend only on the fact filter and
+       the number of facts *)
+    fun slice_facts_of fact_filter num_facts =
+      Synchronized.change_result slice_facts (fn entries =>
+        (case AList.lookup (op =) entries (fact_filter, num_facts) of
+          SOME entry => (entry, entries)
         | NONE =>
             let
-              val classification = Lazy.lazy (fn () => Timing.timing classify_facts non_chained)
-            in (classification, ((fact_filter, num_facts), classification) :: classifications) end))
+              val entry = Lazy.lazy (fn () =>
+                let
+                  val facts = facts_of_basic_slice (1, false, false, num_facts, fact_filter) factss
+                  val classification =
+                    SOME (Timing.timing classify_facts (filter_out is_fact_chained facts))
+                    handle ERROR _ => NONE
+                in (facts, classification) end)
+            in (entry, ((fact_filter, num_facts), entry) :: entries) end))
       |> Lazy.force
   in
     fn name =>
       let
         val proof_method = Try0.get_proof_method_or_noop ctxt name
       in
-        fn slice =>
+        fn ((slice_size, _, _, slice_max_facts, fact_filter), _) =>
           let
-            val (basic_slice as (slice_size, _, _, slice_max_facts, fact_filter), No_Slice) = slice
-            val facts = facts_of_basic_slice basic_slice factss
-            val non_chained = filter_out is_fact_chained facts
-
             fun run_proof_method facts =
               (case proof_method (SOME (slice_timeout slice_size slices timeout)) facts state of
                 NONE => (SOME GaveUp, "")
@@ -232,21 +236,22 @@ fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
                    | Timeout.TIMEOUT _ => (SOME TimedOut, "")
 
             fun classify_facts_and_run_proof_method () =
-              (case (SOME (classification_of fact_filter slice_max_facts non_chained)
-                  handle ERROR _ => NONE) of
-                NONE => ((SOME GaveUp, ""), [], [], NONE)
-              | SOME ({elapsed = classifier_time, ...},
-                  (classified_facts, referable_local_facts, referable_global_facts)) =>
-                  let
-                    val ({elapsed = method_time, ...}, (outcome, command)) =
-                      Timing.timing run_proof_method classified_facts
-                  in
-                    ((outcome, command), referable_local_facts, referable_global_facts,
-                     SOME (classifier_time, method_time, classified_facts))
-                  end)
+              let val (facts, classification) = slice_facts_of fact_filter slice_max_facts in
+                (case classification of
+                  NONE => (facts, (SOME GaveUp, ""), [], [], NONE)
+                | SOME ({elapsed = classifier_time, ...},
+                    (classified_facts, referable_local_facts, referable_global_facts)) =>
+                    let
+                      val ({elapsed = method_time, ...}, (outcome, command)) =
+                        Timing.timing run_proof_method classified_facts
+                    in
+                      (facts, (outcome, command), referable_local_facts, referable_global_facts,
+                       SOME (classifier_time, method_time, classified_facts))
+                    end)
+              end
 
             val ({elapsed = run_time, ...},
-                 ((outcome, command), referable_local_facts, referable_global_facts,
+                 (facts, (outcome, command), referable_local_facts, referable_global_facts,
                   classification)) =
               Timing.timing classify_facts_and_run_proof_method ()
 
