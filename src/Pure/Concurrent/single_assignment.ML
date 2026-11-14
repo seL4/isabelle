@@ -32,7 +32,7 @@ fun peek (Var {name, state}) =
   (case ! state of
     Set x => SOME x
   | Unset {lock, ...} =>
-      Multithreading.synchronized_body name lock (fn _ =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn _ =>
         (case ! state of
           Set x => SOME x
         | Unset _ => NONE)));
@@ -41,7 +41,7 @@ fun await (Var {name, state}) =
   (case ! state of
     Set x => x
   | Unset {lock, cond} =>
-      Multithreading.synchronized_body name lock (fn _ =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn _ =>
         let
           fun wait () =
             (case ! state of
@@ -57,7 +57,7 @@ fun assign (Var {name, state}) x =
   (case ! state of
     Set _ => assign_fail name
   | Unset {lock, cond} =>
-      Multithreading.synchronized_body name lock (fn _ =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn _ =>
         (case ! state of
           Set _ => assign_fail name
         | Unset _ =>

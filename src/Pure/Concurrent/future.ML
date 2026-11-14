@@ -129,7 +129,8 @@ local
   val lock = Thread.Mutex.mutex ();
 in
 
-fun SYNCHRONIZED name e = Multithreading.synchronized_body name lock (fn _ => e ());
+fun SYNCHRONIZED_UNINTERRUPTIBLE name e =
+  Multithreading.synchronized_uninterruptible_body name lock (fn _ => e ());
 
 fun wait cond = (*requires SYNCHRONIZED*)
   Multithreading.sync_wait NONE cond lock;
@@ -231,7 +232,7 @@ fun worker_exec (task, jobs) =
       if ! Multithreading.trace >= 2 then
         Output.try_protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) []
       else ();
-    val _ = SYNCHRONIZED "finish" (fn () =>
+    val _ = SYNCHRONIZED_UNINTERRUPTIBLE "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
         val test = Isabelle_Thread.expose_interrupt_result ();
@@ -263,7 +264,7 @@ fun worker_next () = (*requires SYNCHRONIZED*)
     end;
 
 fun worker_loop name =
-  (case SYNCHRONIZED name (fn () => worker_next ()) of
+  (case SYNCHRONIZED_UNINTERRUPTIBLE name (fn () => worker_next ()) of
     NONE => ()
   | SOME work => (worker_exec work; worker_loop name));
 
@@ -372,7 +373,7 @@ fun scheduler_loop () =
  (while
     Thread_Attributes.with_attributes
       (Thread_Attributes.sync_interrupts Thread_Attributes.public_interrupts)
-      (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
+      (fn _ => SYNCHRONIZED_UNINTERRUPTIBLE "scheduler" (fn () => scheduler_next ()))
   do (); last_round := Time.zeroTime);
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
@@ -397,7 +398,7 @@ fun cancel_group_unsynchronized group = (*requires SYNCHRONIZED*)
   in () end;
 
 fun cancel_group group =
-  SYNCHRONIZED "cancel_group" (fn () => cancel_group_unsynchronized group);
+  SYNCHRONIZED_UNINTERRUPTIBLE "cancel_group" (fn () => cancel_group_unsynchronized group);
 
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
@@ -432,7 +433,7 @@ fun assign_result group result res =
     val ok =
       (case the (Single_Assignment.peek result) of
         Exn.Exn exn =>
-          (SYNCHRONIZED "cancel" (fn () => Task_Queue.cancel_group group exn); false)
+          (SYNCHRONIZED_UNINTERRUPTIBLE "cancel" (fn () => Task_Queue.cancel_group group exn); false)
       | Exn.Res _ => true);
   in ok end;
 
@@ -483,7 +484,7 @@ fun forks ({name, group, deps, pri, interrupts}: params) es =
           val future = Future {promised = false, task = task, result = result};
         in (future, queue') end;
     in
-      SYNCHRONIZED "enqueue" (fn () =>
+      SYNCHRONIZED_UNINTERRUPTIBLE "enqueue" (fn () =>
         let
           val (futures, queue') = fold_map enqueue es (! queue);
           val _ = queue := queue';
@@ -525,7 +526,7 @@ fun join_next atts deps = (*requires SYNCHRONIZED*)
     | (SOME work, deps') => SOME (work, deps'));
 
 fun join_loop atts deps =
-  (case SYNCHRONIZED "join" (fn () => join_next atts deps) of
+  (case SYNCHRONIZED_UNINTERRUPTIBLE "join" (fn () => join_next atts deps) of
     NONE => ()
   | SOME (work, deps') => (worker_joining (fn () => worker_exec work); join_loop atts deps'));
 
@@ -579,7 +580,7 @@ fun task_context name group f x =
     let
       val (result, job) = future_job group orig_atts (fn () => f x);
       val task =
-        SYNCHRONIZED "enroll" (fn () =>
+        SYNCHRONIZED_UNINTERRUPTIBLE "enroll" (fn () =>
           Unsynchronized.change_result queue (Task_Queue.enroll (Isabelle_Thread.self ()) name group));
       val _ = worker_exec (task, [job]);
     in
@@ -594,8 +595,10 @@ fun task_context name group f x =
 fun enabled () =
   let val threads = Multithreading.max_threads () in
     threads > 1 andalso
-      let val lim = threads * Options.default_int "parallel_limit"
-      in lim <= 0 orelse SYNCHRONIZED "enabled" (fn () => Task_Queue.total_jobs (! queue) < lim) end
+      let val lim = threads * Options.default_int "parallel_limit" in
+        lim <= 0 orelse
+        SYNCHRONIZED_UNINTERRUPTIBLE "enabled" (fn () => Task_Queue.total_jobs (! queue) < lim)
+      end
   end;
 
 val relevant = (fn [] => false | [_] => false | _ => enabled ());
@@ -632,7 +635,7 @@ fun map_future f x =
       val (result, job) =
         future_job group Thread_Attributes.private_interrupts (fn () => f (join x));
 
-      val extended = SYNCHRONIZED "extend" (fn () =>
+      val extended = SYNCHRONIZED_UNINTERRUPTIBLE "extend" (fn () =>
         (case Task_Queue.extend task job (! queue) of
           SOME queue' => (queue := queue'; true)
         | NONE => false));
@@ -663,7 +666,7 @@ fun promise_name name abort : 'a future =
     fun job () =
       Thread_Attributes.with_attributes Thread_Attributes.no_interrupts
         (fn _ => Exn.release (Exn.capture assign () before abort ()));
-    val task = SYNCHRONIZED "enqueue_passive" (fn () =>
+    val task = SYNCHRONIZED_UNINTERRUPTIBLE "enqueue_passive" (fn () =>
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group name job));
   in Future {promised = true, task = task, result = result} end;
 
@@ -680,7 +683,7 @@ fun fulfill_result (Future {promised = true, task, result}) res =
           Thread_Attributes.with_attributes Thread_Attributes.no_interrupts (fn _ =>
             let
               val passive_job =
-                SYNCHRONIZED "fulfill_result" (fn () =>
+                SYNCHRONIZED_UNINTERRUPTIBLE "fulfill_result" (fn () =>
                   Unsynchronized.change_result queue
                     (Task_Queue.dequeue_passive (Isabelle_Thread.self ()) task));
             in
@@ -702,7 +705,7 @@ fun fulfill x res = fulfill_result x (Exn.Res res);
 
 fun snapshot [] = []
   | snapshot groups =
-      SYNCHRONIZED "snapshot" (fn () =>
+      SYNCHRONIZED_UNINTERRUPTIBLE "snapshot" (fn () =>
         Task_Queue.group_tasks (! queue) groups);
 
 
@@ -712,7 +715,7 @@ fun shutdown () =
   if is_some (worker_task ()) then
     raise Fail "Cannot shutdown while running as worker thread"
   else
-    SYNCHRONIZED "shutdown" (fn () =>
+    SYNCHRONIZED_UNINTERRUPTIBLE "shutdown" (fn () =>
       while scheduler_active () do
        (do_shutdown := true;
         Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");

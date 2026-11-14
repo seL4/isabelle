@@ -89,19 +89,21 @@ fun group_status_unsynchronized (Group {parent, status, ...}) =
     (case parent of NONE => [] | SOME group => group_status_unsynchronized group);
 
 val lock = Thread.Mutex.mutex ();
-fun SYNCHRONIZED e = Multithreading.synchronized_body "group_status" lock (fn _ => e ());
+
+fun SYNCHRONIZED_UNINTERRUPTIBLE e =
+  Multithreading.synchronized_uninterruptible_body "group_status" lock (fn _ => e ());
 
 in
 
 fun cancel_group (Group {status, ...}) exn =
-  SYNCHRONIZED (fn () =>
+  SYNCHRONIZED_UNINTERRUPTIBLE (fn () =>
     Unsynchronized.change status (fn exns => SOME (Par_Exn.make (exn :: the_list exns))));
 
 fun is_canceled group =
-  SYNCHRONIZED (fn () => is_canceled_unsynchronized group);
+  SYNCHRONIZED_UNINTERRUPTIBLE (fn () => is_canceled_unsynchronized group);
 
 fun group_status group =
-  SYNCHRONIZED (fn () => group_status_unsynchronized group);
+  SYNCHRONIZED_UNINTERRUPTIBLE (fn () => group_status_unsynchronized group);
 
 end;
 

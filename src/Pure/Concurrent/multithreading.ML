@@ -16,7 +16,8 @@ sig
   val trace: int ref
   val tracing: int -> (unit -> string) -> unit
   val tracing_time: bool -> Time.time -> (unit -> string) -> unit
-  val synchronized_body: string -> Thread.Mutex.mutex -> ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
+  val synchronized_uninterruptible_body: string -> Thread.Mutex.mutex ->
+    ((('b -> 'c) -> 'b -> 'c) -> 'a) -> 'a
 end;
 
 structure Multithreading: MULTITHREADING =
@@ -83,7 +84,7 @@ fun tracing_time detailed time =
 
 (* synchronized/uninterruptible evaluation *)
 
-fun synchronized_body name lock e =
+fun synchronized_uninterruptible_body name lock e =
   Exn.release (Thread_Attributes.uninterruptible_body (fn run =>
     if ! trace > 0 then
       let

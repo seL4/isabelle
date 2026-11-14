@@ -44,7 +44,7 @@ fun value (Var {name, state}) =
   (case ! state of
     Immutable x => x
   | Mutable {lock, ...} =>
-      Multithreading.synchronized_body name lock (fn _ =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn _ =>
         (case ! state of
           Immutable x => x
         | Mutable {content, ...} => content)));
@@ -53,7 +53,7 @@ fun assign (Var {name, state}) x =
   (case ! state of
     Immutable _ => immutable_fail name
   | Mutable {lock, cond, ...} =>
-      Multithreading.synchronized_body name lock (fn _ =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn _ =>
         (case ! state of
           Immutable _ => immutable_fail name
         | Mutable _ =>
@@ -67,7 +67,7 @@ fun timed_access (Var {name, state}) until body =
   (case ! state of
     Immutable _ => immutable_fail name
   | Mutable {lock, cond, ...} =>
-      Multithreading.synchronized_body name lock (fn run =>
+      Multithreading.synchronized_uninterruptible_body name lock (fn run =>
         let
           fun check x =
             Thread_Attributes.restore_attributes run body x |> Option.map (fn (y, x') =>
