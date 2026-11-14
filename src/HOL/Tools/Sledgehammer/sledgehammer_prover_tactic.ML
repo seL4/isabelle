@@ -75,14 +75,6 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
   | SOME TimedOut => "timed_out"
   | SOME _ => "gave_up")
 
-fun split_list_map_filter _ [] = ([], [])
-  | split_list_map_filter f (x :: xs) =
-      (case f x of
-        NONE => split_list_map_filter f xs
-      | SOME (y, z) =>
-          let val (ys, zs) = split_list_map_filter f xs
-          in (y :: ys, z :: zs) end)
-
 val class_width = fold (Integer.max o size) Try0.native_classes 0
 val kind_width = size "direct"
 
@@ -161,9 +153,6 @@ val _ = \<^assert> (named_xref_of_name "foo(3abc)" = Facts.named "foo(3abc)")
 val _ = \<^assert> (named_xref_of_name "foo(bar)" = Facts.named "foo(bar)")
 val _ = \<^assert> (named_xref_of_name "foo)" = Facts.named "foo)")
 
-(* Equivalent to "string_ord o apply2 (fst o fst)" but avoids a memory allocation. *)
-fun fact_name_ord (((name1, _), _), ((name2, _), _)) = string_ord (name1, name2)
-
 in
 
 fun run_tactic_prover mode name ({slices, timeout, ...} : params)
@@ -185,9 +174,9 @@ fun run_tactic_prover mode name ({slices, timeout, ...} : params)
           else
             SOME (fact, (named_xref_of_name name, []))
         val (referable_local_facts, usings) =
-          split_list_map_filter with_xref (sort fact_name_ord locals)
+          split_list (map_filter with_xref (sort_by (fst o fst) locals))
         val (referable_global_facts, directs) =
-          split_list_map_filter with_xref (sort fact_name_ord globals)
+          split_list (map_filter with_xref (sort_by (fst o fst) globals))
       in
         (Try0.unclassified_facts {usings = usings, directs = directs}
          |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
