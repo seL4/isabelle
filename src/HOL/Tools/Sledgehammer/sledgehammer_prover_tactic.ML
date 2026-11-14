@@ -9,7 +9,10 @@ signature SLEDGEHAMMER_PROVER_TACTIC =
 sig
   type stature = ATP_Problem_Generate.stature
   type mode = Sledgehammer_Prover.mode
-  type prover = Sledgehammer_Prover.prover
+  type params = Sledgehammer_Prover.params
+  type prover_problem = Sledgehammer_Prover.prover_problem
+  type prover_slice = Sledgehammer_Prover.prover_slice
+  type prover_result = Sledgehammer_Prover.prover_result
   type base_slice = Sledgehammer_ATP_Systems.base_slice
 
   val fact_classification_dest_dir : string Config.T
@@ -17,7 +20,8 @@ sig
 
   val is_tactic_prover : Proof.context -> string -> bool
   val good_slices_of_tactic_prover : string -> base_slice list
-  val run_tactic_prover : mode -> string -> prover
+  val run_tactic_prover : mode -> params -> prover_problem -> string -> prover_slice ->
+    prover_result
 end;
 
 structure Sledgehammer_Prover_Tactic : SLEDGEHAMMER_PROVER_TACTIC =
@@ -155,8 +159,8 @@ val _ = \<^assert> (named_xref_of_name "foo)" = Facts.named "foo)")
 
 in
 
-fun run_tactic_prover mode name ({slices, timeout, ...} : params)
-    ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
+fun run_tactic_prover mode ({slices, timeout, ...} : params)
+    ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) name slice =
   let
     val (basic_slice as (slice_size, _, _, max_facts, _), No_Slice) = slice
     val facts = facts_of_basic_slice basic_slice factss

@@ -13,12 +13,16 @@ sig
   type mode = Sledgehammer_Prover.mode
   type params = Sledgehammer_Prover.params
   type prover = Sledgehammer_Prover.prover
+  type prover_problem = Sledgehammer_Prover.prover_problem
   type prover_slice = Sledgehammer_Prover.prover_slice
   type prover_result = Sledgehammer_Prover.prover_result
 
+  datatype prover_class = ATP_Class | SMT_Class | Tactic_Class
+
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
-  val get_prover : Proof.context -> mode -> string -> prover
+  val prover_class_of : Proof.context -> string -> prover_class
+  val get_prover : Proof.context -> string -> mode -> prover
   val get_slices : Proof.context -> string -> prover_slice list
 
   val binary_min_facts : int Config.T
@@ -26,7 +30,9 @@ sig
     int -> Proof.state -> thm -> ((string * stature) * thm list) list -> prover_result ->
     ((string * stature) * thm list) list option
     * (((Pretty.T * stature) list * (proof_method * play_outcome)) option -> string)
-  val get_minimizing_prover : Proof.context -> mode -> (thm list -> unit) -> string -> prover
+  val get_minimizing_prover_of_class : prover_class -> mode -> (thm list -> unit) -> params ->
+    prover_problem -> string -> prover_slice -> prover_result
+  val get_minimizing_prover : Proof.context -> string -> mode -> (thm list -> unit) -> prover
 end;
 
 structure Sledgehammer_Prover_Minimize : SLEDGEHAMMER_PROVER_MINIMIZE =
@@ -59,11 +65,22 @@ fun is_prover_installed ctxt prover_name =
   else
     true
 
-fun get_prover ctxt mode name =
-  if is_atp name then run_atp mode name
-  else if is_smt_solver ctxt name then run_smt_solver mode name
-  else if is_tactic_prover ctxt name then run_tactic_prover mode name
+datatype prover_class = ATP_Class | SMT_Class | Tactic_Class
+
+fun prover_class_of ctxt name =
+  if is_atp name then ATP_Class
+  else if is_smt_solver ctxt name then SMT_Class
+  else if is_tactic_prover ctxt name then Tactic_Class
   else error ("No such prover: " ^ name)
+
+fun get_prover_of_class ATP_Class = run_atp
+  | get_prover_of_class SMT_Class = run_smt_solver
+  | get_prover_of_class Tactic_Class = run_tactic_prover
+
+fun get_prover ctxt name =
+  let val prover_class = prover_class_of ctxt name in
+    fn mode => fn params => fn problem => get_prover_of_class prover_class mode params problem name
+  end
 
 fun get_slices ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
@@ -210,7 +227,7 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) slice 
     goal facts result =
   let
     val ctxt = Proof.context_of state
-    val prover = get_prover ctxt Minimize prover_name
+    val prover = get_prover ctxt prover_name Minimize
     val (chained, non_chained) = List.partition is_fact_chained facts
 
     fun test timeout non_chained =
@@ -273,8 +290,18 @@ fun maybe_minimize mode do_learn name (params as {verbose, minimize, ...})
       | NONE => result)
     end
 
-fun get_minimizing_prover ctxt mode do_learn name params problem slice =
-  get_prover ctxt mode name params problem slice
-  |> maybe_minimize mode do_learn name params problem slice
+fun get_minimizing_prover_of_class prover_class mode do_learn params problem =
+  let val prover_of_name = get_prover_of_class prover_class mode params problem in
+    fn name =>
+      let val prover = prover_of_name name in
+        fn slice => prover slice |> maybe_minimize mode do_learn name params problem slice
+      end
+  end
+
+fun get_minimizing_prover ctxt name =
+  let val prover_class = prover_class_of ctxt name in
+    fn mode => fn do_learn => fn params => fn problem =>
+      get_minimizing_prover_of_class prover_class mode do_learn params problem name
+  end
 
 end;

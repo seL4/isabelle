@@ -10,14 +10,18 @@ signature SLEDGEHAMMER_PROVER_SMT =
 sig
   type stature = ATP_Problem_Generate.stature
   type mode = Sledgehammer_Prover.mode
-  type prover = Sledgehammer_Prover.prover
+  type params = Sledgehammer_Prover.params
+  type prover_problem = Sledgehammer_Prover.prover_problem
+  type prover_slice = Sledgehammer_Prover.prover_slice
+  type prover_result = Sledgehammer_Prover.prover_result
 
   val smt_builtins : bool Config.T
   val smt_triggers : bool Config.T
 
   val is_smt_solver : Proof.context -> string -> bool
   val is_smt_solver_installed : Proof.context -> string -> bool
-  val run_smt_solver : mode -> string -> prover
+  val run_smt_solver : mode -> params -> prover_problem -> string -> prover_slice ->
+    prover_result
 
   val smt_solvers : Proof.context -> string list
   val default_smt_solvers : Proof.context -> string list
@@ -128,12 +132,12 @@ fun smt_filter name ({debug, overlord, max_mono_iters, max_new_mono_instances, t
     {outcome = outcome, filter_result = filter_result, used_from = facts, run_time = run_time}
   end
 
-fun run_smt_solver mode name
+fun run_smt_solver mode
     (params as {debug, verbose, isar_proofs, compress, try0, smt_proofs, minimize, preplay_timeout,
       ...} : params)
     ({state, goal, subgoal, subgoal_count, factss, found_something, memoize_fun_call,
       ...} : prover_problem)
-    slice =
+    name slice =
   let
     val (basic_slice as (slice_size, _, _, _, _), SMT_Slice options) = slice
     val facts = facts_of_basic_slice basic_slice factss

@@ -155,12 +155,11 @@ fun select_one_line_proof preferred_meth preplay_results =
     AList.lookup (op =) preplay_results preferred_meth
     |> Option.map (fn (outcome, used_facts) => (used_facts, (preferred_meth, outcome))))
 
-fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
-    (problem as {state, subgoal, factss, ...} : prover_problem)
-    (slice as ((slice_size, abduce, falsify, num_facts, fact_filter), _)) name =
+fun launch_prover ({verbose, spy, slices, timeout, ...} : params)
+    ({state, subgoal, factss, ...} : prover_problem)
+    (slice as ((slice_size, abduce, falsify, num_facts, fact_filter), _)) name
+    (prover : prover_slice -> prover_result) =
   let
-    val ctxt = Proof.context_of state
-
     val _ = spying spy (fn () => (state, subgoal, name,
       "Launched" ^ (if abduce then " (abduce)" else "") ^ (if falsify then " (falsify)" else "")))
 
@@ -213,7 +212,7 @@ fun launch_prover (params as {verbose, spy, slices, timeout, ...}) mode learn
       | spying_str_of_res {outcome = SOME failure, ...} =
         "Failure: " ^ string_of_atp_failure failure
  in
-   get_minimizing_prover ctxt mode learn name params problem slice
+   prover slice
    |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
        print_used_facts used_facts used_from
      | _ => ())
@@ -317,68 +316,96 @@ fun check_expected_outcome ctxt prover_name expect outcome =
       | _ => error ("Unexpected outcome: " ^ quote outcome_code))
   end
 
-fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode
-    has_already_found_something found_something massage_message writeln_result learn
-    (problem as {state, subgoal, ...}) (slice as ((_, _, falsify, _, _), _)) prover_name =
+local
+
+fun flip_problem found_something
+    ({comment, state, goal, subgoal, factss, has_already_found_something, memoize_fun_call, ...}
+      : prover_problem) =
+  let
+    val ctxt = Proof.context_of state
+    val thy = Proof_Context.theory_of ctxt
+    val assms = Assumption.all_assms_of ctxt
+    val assm_ts = map Thm.term_of assms
+    val subgoal_t = Logic.get_goal (Thm.prop_of goal) subgoal
+    val polymorphic_subgoal_t = (Logic.list_implies (assm_ts, subgoal_t))
+      |> Logic.varify_global
+    val nonfixeds =
+      subtract (op =) (fold Term.add_free_names assm_ts []) (Term.add_free_names subgoal_t [])
+    val monomorphic_subgoal_t = subgoal_t
+      |> varify_nonfixed_terms_global nonfixeds
+    val subgoal_thms = map (Skip_Proof.make_thm thy)
+      [polymorphic_subgoal_t, monomorphic_subgoal_t]
+    val new_facts =
+      map (fn thm => (((sledgehammer_goal_as_fact, (Assum, General)), thm))) subgoal_thms
+  in
+    {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
+     subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
+     has_already_found_something = has_already_found_something,
+     found_something = found_something "a falsification",
+     memoize_fun_call = memoize_fun_call}
+  end
+
+in
+
+fun launch_prover_and_preplay (params as {debug, timeout, expect, ...}) mode found_something
+    massage_message writeln_result learn (problem as {state, subgoal, ...}) =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = Time.scale 5.0 timeout
-
-    fun flip_problem {comment, state, goal, subgoal, factss, memoize_fun_call, ...} =
-      let
-        val thy = Proof_Context.theory_of ctxt
-        val assms = Assumption.all_assms_of ctxt
-        val assm_ts = map Thm.term_of assms
-        val subgoal_t = Logic.get_goal (Thm.prop_of goal) subgoal
-        val polymorphic_subgoal_t = (Logic.list_implies (assm_ts, subgoal_t))
-          |> Logic.varify_global
-        val nonfixeds =
-          subtract (op =) (fold Term.add_free_names assm_ts []) (Term.add_free_names subgoal_t [])
-        val monomorphic_subgoal_t = subgoal_t
-          |> varify_nonfixed_terms_global nonfixeds
-        val subgoal_thms = map (Skip_Proof.make_thm thy)
-          [polymorphic_subgoal_t, monomorphic_subgoal_t]
-        val new_facts =
-          map (fn thm => (((sledgehammer_goal_as_fact, (Assum, General)), thm))) subgoal_thms
-      in
-        {comment = comment, state = state, goal = Thm.trivial @{cprop False}, subgoal = 1,
-         subgoal_count = 1, factss = map (apsnd (append new_facts)) factss,
-         has_already_found_something = has_already_found_something,
-         found_something = found_something "a falsification",
-         memoize_fun_call = memoize_fun_call}
-      end
-
-    val problem as {goal, ...} = problem |> falsify ? flip_problem
-
-    fun really_go () =
-      launch_prover params mode learn problem slice prover_name
-      |> (if falsify then analyze_prover_result_for_inconsistency else
-        preplay_prover_result params state goal subgoal)
-
-    fun go () =
-      if debug then
-        really_go ()
-      else
-        \<^try>\<open>really_go ()
-          catch ERROR msg => (SH_Unknown, fn () => msg ^ "\n")
-            | exn => (SH_Unknown, fn () => Runtime.exn_message exn ^ "\n")\<close>
-
-    val (outcome, message) = Timeout.apply hard_timeout go ()
-    val () = check_expected_outcome ctxt prover_name expect outcome
-
-    val message = message ()
-    val () =
-      if mode = Auto_Try then
-        ()
-      else
-        (case outcome of
-          SH_Some _ =>
-          the_default writeln writeln_result (prover_name ^ ": " ^
-            massage_message (if falsify then "falsification" else "proof") message)
-        | _ => ())
+    val flipped_problem = Lazy.lazy (fn () => flip_problem found_something problem)
   in
-    (outcome, message)
+    (* staged, so that all prover classes share the flipped problem *)
+    fn prover_of_class =>
+      let
+        fun prepare_class problem = (problem, prover_of_class mode learn params problem)
+        val prepared_class = prepare_class problem
+        val prepared_flipped_class = Lazy.map prepare_class flipped_problem
+      in
+        fn prover_name =>
+          let
+            fun prepare (problem, prover_of_name) = (problem, prover_of_name prover_name)
+            val prepared = prepare prepared_class
+            val prepared_flipped = Lazy.map prepare prepared_flipped_class
+          in
+            fn (slice as ((_, _, falsify, _, _), _)) =>
+              let
+                val (problem as {goal, ...}, prover) =
+                  if falsify then Lazy.force prepared_flipped else prepared
+
+                fun really_go () =
+                  launch_prover params problem slice prover_name prover
+                  |> (if falsify then analyze_prover_result_for_inconsistency else
+                    preplay_prover_result params state goal subgoal)
+
+                fun go () =
+                  if debug then
+                    really_go ()
+                  else
+                    \<^try>\<open>really_go ()
+                      catch ERROR msg => (SH_Unknown, fn () => msg ^ "\n")
+                        | exn => (SH_Unknown, fn () => Runtime.exn_message exn ^ "\n")\<close>
+
+                val (outcome, message) = Timeout.apply hard_timeout go ()
+                val () = check_expected_outcome ctxt prover_name expect outcome
+
+                val message = message ()
+                val () =
+                  if mode = Auto_Try then
+                    ()
+                  else
+                    (case outcome of
+                      SH_Some _ =>
+                      the_default writeln writeln_result (prover_name ^ ": " ^
+                        massage_message (if falsify then "falsification" else "proof") message)
+                    | _ => ())
+              in
+                (outcome, message)
+              end
+          end
+      end
   end
+
+end
 
 fun string_of_facts filter facts =
   "Selected " ^ string_of_int (length facts) ^ " " ^ (if filter = "" then "" else filter ^ " ") ^
@@ -659,8 +686,8 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
                factss = factss, has_already_found_something = has_already_found_something,
                found_something = found_something "a proof", memoize_fun_call = memoize_fun_call}
             val learn = mash_learn_proof ctxt params (Thm.prop_of goal)
-            val launch = launch_prover_and_preplay params mode has_already_found_something
-              found_something massage_message writeln_result learn
+            val launch = launch_prover_and_preplay params mode found_something massage_message
+              writeln_result learn problem
 
             val timer = Timer.startRealTimer ()
 
@@ -674,19 +701,37 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
                 writeln ("Running " ^ commas (map fst prover_slices) ^ "...")
               else
                 ()
+
+            fun launch_class prover_class = launch (get_minimizing_prover_of_class prover_class)
+            val atp_launcher = Lazy.lazy (fn () => launch_class ATP_Class)
+            and smt_launcher = Lazy.lazy (fn () => launch_class SMT_Class)
+            and tactic_launcher = Lazy.lazy (fn () => launch_class Tactic_Class)
+            fun class_launcher ATP_Class = Lazy.force atp_launcher
+              | class_launcher SMT_Class = Lazy.force smt_launcher
+              | class_launcher Tactic_Class = Lazy.force tactic_launcher
+            fun launcher_of_prover prover = class_launcher (prover_class_of ctxt prover) prover
+
+            val launchers =
+              fold (fn (prover, _) => fn launchers =>
+                  if Symtab.defined launchers prover then
+                    launchers
+                  else
+                    Symtab.update_new (prover, launcher_of_prover prover) launchers)
+                prover_slices Symtab.empty
+            fun launch_slice prover slice = the (Symtab.lookup launchers prover) slice
           in
             if mode = Auto_Try then
               (SH_Unknown, "")
               |> fold (fn (prover, slice) =>
                   fn accum as (SH_Some _, _) => accum
-                    | _ => launch problem slice prover)
+                    | _ => launch_slice prover slice)
                 prover_slices
             else
               (learn chained_thms;
                Par_List.map (fn (prover, slice) =>
                    if Synchronized.value found_proofs_and_falsifications < max_proofs
                       andalso Timer.checkRealTimer timer < timeout then
-                     launch problem slice prover
+                     launch_slice prover slice
                    else
                      (SH_None, ""))
                  prover_slices
