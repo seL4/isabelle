@@ -25,6 +25,9 @@ facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
 F10 on Windows more natively, which is important for the NVDA Screen
 Reader.
 
+* More detailed information about Isabelle/ML garbage collection phases:
+see Monitor dockable "GC", or status widget at the bottom line.
+
 
 *** Pure ***
 
