@@ -54,6 +54,9 @@ fun good_slices_of_tactic_prover "metis" = slices_of_max_facts [0, 64, 32, 8, 16
   | good_slices_of_tactic_prover "auto" = slices_of_max_facts [0, 16, 32, 8, 4, 64, 2, 1]
   | good_slices_of_tactic_prover _ = slices_of_max_facts [0, 2, 8, 16, 32, 64]
 
+(* FUDGE *)
+val tactic_prover_max_facts = 64
+
 end
 
 fun meth_of "algebra" = Algebra_Method
@@ -159,11 +162,57 @@ val _ = \<^assert> (named_xref_of_name "foo)" = Facts.named "foo)")
 
 in
 
-fun run_tactic_prover mode ({slices, timeout, ...} : params)
+fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
     ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val log_classification = Config.get ctxt fact_classification_dest_dir <> ""
+
+    val verified_literal_xrefs =
+      let val num_facts = the_default tactic_prover_max_facts max_facts in
+        fold (fn (fact_filter, _) =>
+            facts_of_basic_slice (1, false, false, num_facts, fact_filter) factss
+            |> fold (fn fact as ((name, _), thm) => fn xrefs =>
+              if is_cartouche name andalso not (is_fact_chained fact)
+                 andalso not (Symtab.defined xrefs name) then
+                Symtab.update_new (name, literal_xref_of_fact ctxt thm) xrefs
+              else
+                xrefs))
+          factss Symtab.empty
+      end
+
+    fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
+      (if is_cartouche name then
+         (case Symtab.lookup verified_literal_xrefs name of
+           SOME xref => xref
+         | NONE => literal_xref_of_fact ctxt thm)
+       else
+         SOME (named_xref_of_name name))
+      |> Option.map (fn xref => (fact, (xref, [])))
+
+    fun classify_facts non_chained =
+      let
+        val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
+        val (referable_local_facts, usings) =
+          split_list (map_filter with_xref (sort_by (fst o fst) locals))
+        val (referable_global_facts, directs) =
+          split_list (map_filter with_xref (sort_by (fst o fst) globals))
+      in
+        (Try0.unclassified_facts {usings = usings, directs = directs}
+         |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
+      end
+
+    val classifications = Synchronized.var "classifications" []
+
+    fun classification_of fact_filter num_facts non_chained =
+      Synchronized.change_result classifications (fn classifications =>
+        (case AList.lookup (op =) classifications (fact_filter, num_facts) of
+          SOME classification => (classification, classifications)
+        | NONE =>
+            let
+              val classification = Lazy.lazy (fn () => Timing.timing classify_facts non_chained)
+            in (classification, ((fact_filter, num_facts), classification) :: classifications) end))
+      |> Lazy.force
   in
     fn name =>
       let
@@ -171,29 +220,9 @@ fun run_tactic_prover mode ({slices, timeout, ...} : params)
       in
         fn slice =>
           let
-            val (basic_slice as (slice_size, _, _, max_facts, _), No_Slice) = slice
+            val (basic_slice as (slice_size, _, _, slice_max_facts, fact_filter), No_Slice) = slice
             val facts = facts_of_basic_slice basic_slice factss
             val non_chained = filter_out is_fact_chained facts
-
-            fun classify_facts () =
-              let
-                val (locals, globals) =
-                  List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
-                fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
-                  if is_cartouche name then
-                    (case literal_xref_of_fact ctxt thm of
-                      SOME xref => SOME (fact, (xref, []))
-                    | NONE => NONE)
-                  else
-                    SOME (fact, (named_xref_of_name name, []))
-                val (referable_local_facts, usings) =
-                  split_list (map_filter with_xref (sort_by (fst o fst) locals))
-                val (referable_global_facts, directs) =
-                  split_list (map_filter with_xref (sort_by (fst o fst) globals))
-              in
-                (Try0.unclassified_facts {usings = usings, directs = directs}
-                 |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
-              end
 
             fun run_proof_method facts =
               (case proof_method (SOME (slice_timeout slice_size slices timeout)) facts state of
@@ -203,7 +232,8 @@ fun run_tactic_prover mode ({slices, timeout, ...} : params)
                    | Timeout.TIMEOUT _ => (SOME TimedOut, "")
 
             fun classify_facts_and_run_proof_method () =
-              (case (SOME (Timing.timing classify_facts ()) handle ERROR _ => NONE) of
+              (case (SOME (classification_of fact_filter slice_max_facts non_chained)
+                  handle ERROR _ => NONE) of
                 NONE => ((SOME GaveUp, ""), [], [], NONE)
               | SOME ({elapsed = classifier_time, ...},
                   (classified_facts, referable_local_facts, referable_global_facts)) =>
@@ -226,7 +256,7 @@ fun run_tactic_prover mode ({slices, timeout, ...} : params)
               (case classification of
                 SOME (classifier_time, method_time, classified_facts) =>
                   if log_classification then
-                    write_fact_classification_log ctxt name mode max_facts classifier_time
+                    write_fact_classification_log ctxt name mode slice_max_facts classifier_time
                       method_time outcome command classified_facts
                   else
                     ()
