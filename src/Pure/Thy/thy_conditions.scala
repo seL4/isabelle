@@ -36,8 +36,10 @@ object Thy_Conditions {
   }
 
   object Getenv extends Predicate("getenv") {
-    def apply(conditions: Thy_Conditions, args: List[String]): Boolean =
-      args.forall(a => Isabelle_System.getenv(a).nonEmpty)
+    def apply(conditions: Thy_Conditions, args: List[String]): Boolean = {
+      if (args.isEmpty) error("non-empty arguments required")
+      else args.forall(a => Isabelle_System.getenv(a).nonEmpty)
+    }
   }
 
   class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
