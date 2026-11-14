@@ -303,8 +303,28 @@ text \<open>
     \<^item> \<^verbatim>\<open>$NAME\<close> expands to the predicate \<^verbatim>\<open>getenv("NAME")\<close>, which refers to a
     POSIX process environment variable (e.g. from Isabelle settings). The
     second form always works, even if the variable name does not conform to
-    plain \<^emph>\<open>ident\<close> syntax from above. The condition is enabled, if the
-    variable is set to a non-empty string value.
+    plain \<^emph>\<open>ident\<close> syntax from above; it also allows multiple arguments. The
+    condition is enabled, if all given variables are set to a non-empty string
+    value --- this is usually done via Isabelle settings
+    (\secref{sec:settings}).
+\<close>
+
+subsubsection \<open>Examples\<close>
+
+text \<open>
+  The subsequent theory specification requires both \<^verbatim>\<open>$ISABELLE_MLTON\<close> and
+  \<^verbatim>\<open>$ISABELLE_SMLNJ\<close> to be set in the process environment:
+  @{verbatim [display]\<open>theory B
+  imports A
+  options [condition = "$ISABELLE_MLTON, $ISABELLE_SMLNJ"]
+begin ... end\<close>}
+
+  Here is an alternative, with the predicate \<^verbatim>\<open>getenv()\<close> and two string
+  arguments:
+  @{verbatim [display]\<open>theory B
+  imports A
+  options [condition = \<open>getenv("ISABELLE_MLTON", "ISABELLE_SMLNJ")\<close>]
+begin ... end\<close>}
 \<close>
 
 
