@@ -24,11 +24,12 @@ object ML_Statistics {
   def parse_properties(s: String): Properties.T =
     space_explode(',', s).flatMap(Properties.Eq.unapply)
 
-  val GC_Phase = new Properties.Int("GC_phase")
-  val gc_phases: Map[Int, String] =
-    Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing", 4 -> "other").withDefaultValue("")
-  val gc_phases_description: String =
-    Library.commas(for ((i, s) <- gc_phases.toList.sortBy(_._1)) yield i.toString + ": " + s)
+  object GC_Phase extends Properties.Int("GC_phase") {
+    val decode: Map[Int, String] =
+      Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing", 4 -> "other").withDefaultValue("")
+    val description: String =
+      Library.commas(for ((i, s) <- decode.toList.sortBy(_._1)) yield i.toString + ": " + s)
+  }
 
   val GC_Percent = new Properties.Int("GC_percent")
 
@@ -72,7 +73,7 @@ object ML_Statistics {
   val Workers_Active = new Field("workers_active")
   val Workers_Waiting = new Field("workers_waiting")
 
-  val GC = new Field(GC_Phase.name, description = gc_phases_description)
+  val GC = new Field(GC_Phase.name, description = GC_Phase.description)
 
   val GCs_Minor = new Field("partial_GCs", description = "GCs (minor)")
   val GCs_Major = new Field("full_GCs", description = "GCs (major)")
@@ -140,7 +141,7 @@ object ML_Statistics {
     def heap_used_major_fraction: Double = heap_size.used_fraction(heap_free_major)
     def gc_status: Option[(String, Double)] =
       if (gc_phase > 0 && 1 <= gc_percent && gc_percent <= 100) {
-        val kind = gc_phases(gc_phase)
+        val kind = GC_Phase.decode(gc_phase)
         val p = (gc_percent - 1) * 0.01
         Some((kind, p))
       }
