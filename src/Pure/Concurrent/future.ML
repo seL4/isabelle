@@ -129,6 +129,9 @@ local
   val lock = Thread.Mutex.mutex ();
 in
 
+fun SYNCHRONIZED name e =
+  Multithreading.synchronized_uninterruptible_body name lock (fn run => run e ());
+
 fun SYNCHRONIZED_UNINTERRUPTIBLE name e =
   Multithreading.synchronized_uninterruptible_body name lock (fn _ => e ());
 
@@ -373,7 +376,7 @@ fun scheduler_loop () =
  (while
     Thread_Attributes.with_attributes
       (Thread_Attributes.sync_interrupts Thread_Attributes.public_interrupts)
-      (fn _ => SYNCHRONIZED_UNINTERRUPTIBLE "scheduler" (fn () => scheduler_next ()))
+      (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
   do (); last_round := Time.zeroTime);
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
@@ -526,7 +529,7 @@ fun join_next atts deps = (*requires SYNCHRONIZED*)
     | (SOME work, deps') => SOME (work, deps'));
 
 fun join_loop atts deps =
-  (case SYNCHRONIZED_UNINTERRUPTIBLE "join" (fn () => join_next atts deps) of
+  (case SYNCHRONIZED "join" (fn () => join_next atts deps) of
     NONE => ()
   | SOME (work, deps') => (worker_joining (fn () => worker_exec work); join_loop atts deps'));
 
