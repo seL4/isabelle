@@ -24,6 +24,7 @@ object ML_Statistics {
   def parse_properties(s: String): Properties.T =
     space_explode(',', s).flatMap(Properties.Eq.unapply)
 
+  val GC_Phase = new Properties.Int("GC_phase")
   val GC_Percent = new Properties.Int("GC_percent")
 
 
@@ -119,26 +120,35 @@ object ML_Statistics {
 
   /* memory status */
 
+  private val gc_phases = Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing")
+
   sealed case class Memory_Status(
     heap_size: Space,
     heap_free_minor: Space,
     heap_free_major: Space,
+    gc_phase: Int,
     gc_percent: Int
   ) {
     def heap_used_minor: Space = heap_size.used(heap_free_minor)
     def heap_used_minor_fraction: Double = heap_size.used_fraction(heap_free_minor)
     def heap_used_major: Space = heap_size.used(heap_free_major)
     def heap_used_major_fraction: Double = heap_size.used_fraction(heap_free_major)
-    def gc_progress: Option[Double] =
-      if (1 <= gc_percent && gc_percent <= 100) Some((gc_percent - 1) * 0.01) else None
+    def gc_status: Option[(String, Double)] =
+      if (gc_phase > 0 && 1 <= gc_percent && gc_percent <= 100) {
+        val kind = gc_phases.getOrElse(gc_phase, "")
+        val p = (gc_percent - 1) * 0.01
+        Some((kind, p))
+      }
+      else None
   }
 
   def memory_status(props: Properties.T): Memory_Status = {
     val heap_size = Heap_Size.get_space(props)
     val heap_free_minor = Heap_Free_Minor.get_space(props)
     val heap_free_major = Heap_Free_Major.get_space(props)
+    val gc_phase = GC_Phase.get(props)
     val gc_percent = GC_Percent.get(props)
-    Memory_Status(heap_size, heap_free_minor, heap_free_major, gc_percent)
+    Memory_Status(heap_size, heap_free_minor, heap_free_major, gc_phase, gc_percent)
   }
 
 
