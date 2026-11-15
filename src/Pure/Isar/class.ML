@@ -8,6 +8,7 @@ signature CLASS =
 sig
   (*classes*)
   val is_class: theory -> class -> bool
+  val ancestry: theory -> sort -> sort
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val base_sort_for: theory -> sort -> sort
   val rules: theory -> class -> thm option * thm
@@ -157,8 +158,15 @@ fun classes_relevant_for_syntax thy {base_sort} sort =
   |> ancestry thy
   |> subtract (op =) (Sign.complete_sort thy base_sort);
 
+fun reconstrain base_sort = map_type_tfree (K (Term.aT base_sort));
+
+fun reconstrain_operation base_sort (c, {ty, rhs, class, input_only}) =
+  (c, {ty = reconstrain base_sort ty, rhs = map_types (reconstrain base_sort) rhs,
+    class = class, input_only = input_only});
+
 fun these_operations thy {base_sort} sort =
-  maps (#operations o the_class_data thy) (classes_relevant_for_syntax thy {base_sort = base_sort} sort);
+  maps (map (reconstrain_operation base_sort) o #operations o the_class_data thy)
+    (classes_relevant_for_syntax thy {base_sort = base_sort} sort);
 
 val base_morphism = #base_morph oo the_class_data;
 
@@ -279,13 +287,11 @@ fun register_def class def_thm thy =
 
 (* class context syntax *)
 
-fun constraints_of_operations' base_sort_for_class =
-  (map o apsnd) (fn {ty, rhs = _, class, input_only = _} =>
-    map_type_tfree (K (TVar ((Name.aT, 0), base_sort_for_class class))) ty)
-
-fun constraints_of_operations base_sort = constraints_of_operations' (K base_sort);
-
-val global_constraints_of_operations = constraints_of_operations' single;
+fun constraints_of_operations operations =
+  {primary_constraints =
+     (map o apsnd) (map_type_tfree (fn (_, base_sort) => TVar ((Name.aT, 0), base_sort)) o #ty) operations,
+   secondary_constraints =
+     (map o apsnd) (fn {ty, class, ...} => map_type_tfree (K (TVar ((Name.aT, 0), [class]))) ty) operations};
 
 fun rewrite_wrt thy rewrites =
   perhaps (try (Pattern.rewrite_term_yoyo thy rewrites []));
@@ -298,16 +304,12 @@ fun make_rewrite (lhs, rhs) =
       |> map (fn (v, T) => Var ((v, 0), T));
   in (betapplys (lhs, vts), betapplys (rhs, vts)) end;
 
-fun constrain base_sort = map_type_tfree (K (Term.aT base_sort));
-
-fun rewrites_of_operations base_sort =
+val rewrites_of_operations =
   map_filter (fn (c, {ty, rhs, class = _, input_only}) =>
-    if input_only then NONE else
-      SOME (make_rewrite (map_types (constrain base_sort) rhs, Const (c, constrain base_sort ty))));
+    if input_only then NONE else SOME (make_rewrite (rhs, Const (c, ty))));
 
-fun reversed_rewrites_of_operations base_sort =
-  map (fn (c, {ty, rhs, class = _, input_only = _}) =>
-    (Const (c, constrain base_sort ty), map_types (constrain base_sort) rhs));
+val reversed_rewrites_of_operations =
+  map (fn (c, {ty, rhs, class = _, input_only = _}) => (Const (c, ty), rhs));
 
 fun redeclare_const thy c =
   let val b = Long_Name.base_name c
@@ -316,10 +318,8 @@ fun redeclare_const thy c =
 fun synchronize_class_syntax {base_sort} sort ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val algebra = Sign.classes_of thy;
     val operations = these_operations thy {base_sort = base_sort} sort;
-    val primary_constraints = constraints_of_operations base_sort operations;
-    val secondary_constraints = global_constraints_of_operations operations;
+    val {primary_constraints, secondary_constraints} = constraints_of_operations operations;
     fun improve (c, ty) =
       (case AList.lookup (op =) primary_constraints c of
         SOME ty' =>
@@ -327,21 +327,20 @@ fun synchronize_class_syntax {base_sort} sort ctxt =
             SOME tyenv =>
               (case Vartab.lookup tyenv (Name.aT, 0) of
                 SOME (_, ty' as TVar (vi, sort)) =>
-                  if Type_Infer.is_param vi andalso Sorts.sort_le algebra (base_sort, sort)
+                  if Type_Infer.is_param vi andalso Sign.subsort thy (base_sort, sort)
                   then SOME (ty', Term.aT base_sort)
                   else NONE
               | _ => NONE)
           | NONE => NONE)
       | NONE => NONE);
     fun subst (c, _) = Option.map (fn {ty, rhs, ...} =>
-      (constrain base_sort ty, map_types (constrain base_sort) rhs)) (AList.lookup (op =) operations c);
-    val uncheck_rewrites = rewrites_of_operations base_sort operations;
+      (ty, rhs)) (AList.lookup (op =) operations c);
   in
     ctxt
     |> fold (redeclare_const thy o fst) primary_constraints
     |> Overloading.map_improvable_syntax (K {primary_constraints = primary_constraints,
       secondary_constraints = secondary_constraints, improve = improve, subst = subst,
-      no_subst_in_abbrev_mode = true, unchecks = uncheck_rewrites})
+      no_subst_in_abbrev_mode = true, unchecks = rewrites_of_operations operations})
     |> Overloading.set_primary_constraints
   end;
 
@@ -458,12 +457,8 @@ fun canonical_abbrev class prmode with_syntax ((b, mx), rhs) thy =
     |> Sign.add_const_constraint (c, SOME (fastype_of rhs'))
   end;
 
-fun canonical_abbrev_target class phi prmode ((b, mx), rhs) lthy =
+fun canonical_abbrev_target class preprocess phi prmode ((b, mx), rhs) lthy =
   let
-    val thy = Proof_Context.theory_of lthy;
-    val base_sort = base_sort_for thy [class]
-    val preprocess = rewrite_wrt thy
-      (rewrites_of_operations base_sort (these_operations thy {base_sort = base_sort} [class]));
     val (global_rhs, (_, (_, term_params))) =
       Generic_Target.export_abbrev lthy preprocess rhs;
     val mx' = Generic_Target.check_mixfix_global (b, null term_params) mx;
@@ -484,12 +479,12 @@ fun abbrev class prmode ((b, mx), rhs) lthy =
   let
     val thy = Proof_Context.theory_of lthy;
     val phi = morphism lthy class;
-    val base_sort = base_sort_for thy [class]
-    val rhs_generic = rewrite_wrt thy
-      (reversed_rewrites_of_operations base_sort (these_operations thy {base_sort = base_sort} [class])) rhs;
+    val operations = these_operations thy {base_sort = base_sort_for thy [class]} [class];
+    val preprocess = rewrite_wrt thy (rewrites_of_operations operations);
+    val rhs_generic = rewrite_wrt thy (reversed_rewrites_of_operations operations) rhs;
   in
     lthy
-    |> canonical_abbrev_target class phi prmode ((b, mx), rhs)
+    |> canonical_abbrev_target class preprocess phi prmode ((b, mx), rhs)
     |> Generic_Target.abbrev (further_abbrev_target class phi) prmode ((b, mx), rhs_generic)
     ||> synchronize_class_syntax_target class
   end;
