@@ -8,6 +8,7 @@ signature CLASS =
 sig
   (*classes*)
   val is_class: theory -> class -> bool
+  val ancestry: theory -> sort -> sort
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val base_sort_for: theory -> sort -> sort
   val rules: theory -> class -> thm option * thm

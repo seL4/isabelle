@@ -197,6 +197,11 @@ fun prep_class_elems prep_decl ctxt sups raw_elems =
           [] => error "No type variable in class specification"
         | [(_, sort)] => sort
         | _ => error "Multiple type variables in class specification");
+    val _ =
+      (case inter (op =) (Class.ancestry thy sups) (Sign.complete_sort thy base_sort) of
+        [] => ()
+      | common => warning ("Super classes intersect with base sort: "
+          ^ Syntax.string_of_sort_global thy (Sign.minimize_sort thy common)));
     val supparams = map (fn ((c, T), _) =>
       (c, map_atyps (K (Term.aT base_sort)) T)) raw_supparams;
     val supparam_names = map fst supparams;
@@ -232,7 +237,8 @@ fun prep_class_spec prep_class prep_include prep_class_elems ctxt raw_supclasses
     (* infer types and base sort *)
     val includes = map (prep_include ctxt) raw_includes;
     val includes_ctxt = Bundle.includes includes ctxt;
-    val (base_sort, supparam_names, supexpr, inferred_elems) = prep_class_elems includes_ctxt sups raw_elems;
+    val (base_sort, supparam_names, supexpr, inferred_elems) =
+      prep_class_elems includes_ctxt sups raw_elems;
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
