@@ -46,6 +46,33 @@ List.app PolyML.Compiler.forgetStructure ["CInterface", "Signal"];
   }
 
 
+  /* Poly/ML runtime debugging */
+
+  val logfile_timestamp: Date.Format = Date.Format("uuuuMMdd'T'HHmmss'Z'")
+
+  def ml_logfile(options: Options, session_name: String): Option[Path] =
+    proper_string(options.string("ML_logfile")).map { s =>
+      val timestamp = logfile_timestamp(Date.now(Date.timezone_utc))
+      Path.explode(s.replacing("{session}" -> session_name, "{timestamp}" -> timestamp)).expand
+    }
+
+  def ml_debug_options(options: Options, session_background: Sessions.Background): List[String] = {
+    val debug =
+      proper_string(options.string("ML_debug")) match {
+        case Some(flags) => List("--debug", flags)
+        case None => Nil
+      }
+    val logfile =
+      ml_logfile(options, session_background.session_name) match {
+        case Some(path) =>
+          Isabelle_System.make_directory(path.dir)
+          List("--logfile", File.platform_path(path))
+        case None => Nil
+      }
+    debug ::: logfile
+  }
+
+
   /* process */
 
   def apply(
@@ -113,7 +140,7 @@ List.app PolyML.Compiler.forgetStructure ["CInterface", "Signal"];
       val ml_options2 =
         if (!Platform.is_windows || ml_options0.exists(_.containsSlice("codepage"))) ml_options1
         else ml_options1 ::: List("--codepage", "utf8")
-      ml_options2 ::: List("--exportstats")
+      ml_options2 ::: List("--exportstats") ::: ml_debug_options(ml_options, session_background)
     }
 
     // bash

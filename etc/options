@@ -209,6 +209,12 @@ public option ML_system_64 : bool = false for build build_sync
 public option ML_system_apple : bool = true for build
   -- "prefer native Apple/ARM64 platform (change requires restart)"
 
+option ML_debug : string = ""
+  -- "comma-separated list of Poly/ML runtime debug flags (see \"poly --help\")"
+
+option ML_logfile : string = ""
+  -- "output for Poly/ML runtime debug messages (log file or \"\" for stdout; \"{session}\" is replaced by the session name, \"{timestamp}\" by the start time in UTC, ISO 8601 basic format)"
+
 
 section "Build Process"
 
