@@ -114,7 +114,9 @@ fun print_exn exn =
   | exn => "exception: " ^ General.exnMessage exn);
 
 fun run_action_function f =
-  \<^try>\<open>f () catch exn => print_exn exn\<close>;
+  (case Exn.capture_body (fn () => \<^try>\<open>f () catch exn => print_exn exn\<close>) of
+    Exn.Res s => s
+  | Exn.Exn exn => if Exn.is_interrupt_breakdown exn then print_exn exn else Exn.reraise exn);
 
 fun make_action_path ({index, label, name, ...} : action_context) =
   Path.basic (if label = "" then string_of_int index ^ "." ^ name else label);
