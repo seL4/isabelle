@@ -53,7 +53,7 @@ List.app PolyML.Compiler.forgetStructure ["CInterface", "Signal"];
   def ml_logfile(options: Options, session_name: String): Option[Path] =
     proper_string(options.string("ML_logfile")).map { s =>
       val timestamp = logfile_timestamp(Date.now(Date.timezone_utc))
-      Path.explode(s.replacing("{session}" -> session_name, "{timestamp}" -> timestamp)).expand
+      Path.explode(s.replacing("{session}" -> session_name, "{timestamp}" -> timestamp)).absolute
     }
 
   def ml_debug_options(options: Options, session_background: Sessions.Background): List[String] = {
