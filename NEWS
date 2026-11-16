@@ -104,26 +104,15 @@ INCOMPATIBILITY.
 
 *** System ***
 
-* System options "ML_debug" and "ML_logfile" allow to extract and store
-debug information from the Poly/ML runtime. The option "ML_debug" contains
-the flags passed to Poly/ML's "--debug" option (e.g., "gc,sharing"),
-and the option "ML_logfile" contains a template for the file path passed
-to Poly/ML's "--logfile" option. The file-path template may use the
-following metavariables:
-
- - "{session}" is replaced by the session name.
- - "{timestamp}" is replaced by the start time in UTC (ISO 8601 basic format).
-
-Below is a small example for Isabelle/HOL.
+* System options "ML_debug" and "ML_logfile" pass the corresponding
+"--debug" and "--logfile" options to the Poly/ML runtime. The log file
+name may refer to "{session}" and "{timestamp}" (start time in UTC).
+Example:
 
   isabelle build \
-    -o ML_debug=gc,sharing \
+    -o ML_debug=gc \
     -o 'ML_logfile=$ISABELLE_HOME_USER/ml_log/{session}.log' \
-    -f -b HOL
-
-Notice that the single qotes around "ML_logfile=..." avoids the shell
-from interpreting "$ISABELLE_HOME_USER": It is passed  unchanged to the
-Isabelle system that interprets it accordingly.
+     HOL
 
 
 
