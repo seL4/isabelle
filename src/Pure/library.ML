@@ -14,7 +14,7 @@ infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
 infix orf andf
 
-signature BASIC_LIBRARY =
+signature PERVASIVE_LIBRARY =
 sig
   (*functions*)
   val undefined: 'a -> 'b
@@ -233,7 +233,7 @@ end;
 
 signature LIBRARY =
 sig
-  include BASIC_LIBRARY
+  include PERVASIVE_LIBRARY
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
 end;
@@ -1103,5 +1103,4 @@ fun getenv_strict x =
 
 end;
 
-structure Basic_Library: BASIC_LIBRARY = Library;
-open Basic_Library;
+local structure Pervasive: PERVASIVE_LIBRARY = Library in open Pervasive end;

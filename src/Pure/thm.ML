@@ -9,7 +9,7 @@ resolution), oracles.
 
 infix 0 RS RSN;
 
-signature BASIC_THM =
+signature PERVASIVE_THM =
 sig
   type ctyp
   type cterm
@@ -23,7 +23,7 @@ end;
 
 signature THM =
 sig
-  include BASIC_THM
+  include PERVASIVE_THM
   (*certified types*)
   val typ_of: ctyp -> typ
   val global_ctyp_of: theory -> typ -> ctyp
@@ -2792,5 +2792,4 @@ fun add_arity raw_th thy =
 
 end;
 
-structure Basic_Thm: BASIC_THM = Thm;
-open Basic_Thm;
+local structure Pervasive: PERVASIVE_THM = Thm in open Pervasive end;

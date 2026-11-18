@@ -4,7 +4,7 @@
 Parallel tacticals.
 *)
 
-signature BASIC_PAR_TACTICAL =
+signature PERVASIVE_PAR_TACTICAL =
 sig
   val PARALLEL_CHOICE: tactic list -> tactic
   val PARALLEL_GOALS: tactic -> tactic
@@ -13,7 +13,7 @@ end;
 
 signature PAR_TACTICAL =
 sig
-  include BASIC_PAR_TACTICAL
+  include PERVASIVE_PAR_TACTICAL
   val strip_goals: thm -> cterm list option
   val retrofit_tac: {close: bool} -> thm list -> tactic
 end;
@@ -71,5 +71,4 @@ val PARALLEL_ALLGOALS = PARALLEL_GOALS o ALLGOALS;
 
 end;
 
-structure Basic_Par_Tactical: BASIC_PAR_TACTICAL = Par_Tactical;
-open Basic_Par_Tactical;
+local structure Pervasive: PERVASIVE_PAR_TACTICAL = Par_Tactical in open Pervasive end;

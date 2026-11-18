@@ -6,7 +6,7 @@ Derived rules and other operations on theorems.
 
 infix 0 RL RLN MRS OF COMP INCR_COMP COMP_INCR;
 
-signature BASIC_DRULE =
+signature PERVASIVE_DRULE =
 sig
   val mk_implies: cterm * cterm -> cterm
   val list_implies: cterm list * cterm -> cterm
@@ -47,7 +47,7 @@ end;
 
 signature DRULE =
 sig
-  include BASIC_DRULE
+  include PERVASIVE_DRULE
   val outer_params: term -> (string * typ) list
   val generalize: Names.set * Names.set -> thm -> thm
   val list_comb: cterm * cterm list -> cterm
@@ -835,5 +835,4 @@ fun rename_bvars' xs thm =
 
 end;
 
-structure Basic_Drule: BASIC_DRULE = Drule;
-open Basic_Drule;
+local structure Pervasive: PERVASIVE_DRULE = Drule in open Pervasive end;

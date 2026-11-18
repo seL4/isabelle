@@ -4,14 +4,14 @@
 Syntax translation functions.
 *)
 
-signature BASIC_SYNTAX_TRANS =
+signature PERVASIVE_SYNTAX_TRANS =
 sig
   val eta_contract: bool Config.T
 end
 
 signature SYNTAX_TRANS =
 sig
-  include BASIC_SYNTAX_TRANS
+  include PERVASIVE_SYNTAX_TRANS
   val bracketsN: string
   val no_bracketsN: string
   val no_brackets: unit -> bool
@@ -518,5 +518,4 @@ val pure_print_ast_translation =
 
 end;
 
-structure Basic_Syntax_Trans: BASIC_SYNTAX_TRANS = Syntax_Trans;
-open Basic_Syntax_Trans;
+local structure Pervasive: PERVASIVE_SYNTAX_TRANS = Syntax_Trans in open Pervasive end;

@@ -5,7 +5,7 @@
 Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
-signature BASIC_PRINTER =
+signature PERVASIVE_PRINTER =
 sig
   val show_types: bool Config.T
   val show_sorts: bool Config.T
@@ -18,7 +18,7 @@ end;
 
 signature PRINTER =
 sig
-  include BASIC_PRINTER
+  include PERVASIVE_PRINTER
   val show_type_emphasis: bool Config.T
   val type_emphasis: Proof.context -> typ -> bool
   type prtab
@@ -328,5 +328,4 @@ end;
 
 end;
 
-structure Basic_Printer: BASIC_PRINTER = Printer;
-open Basic_Printer;
+local structure Pervasive: PERVASIVE_PRINTER = Printer in open Pervasive end;

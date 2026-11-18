@@ -10,7 +10,7 @@ infixr 5 -->;
 infixr --->;
 infix aconv;
 
-signature BASIC_TERM =
+signature PERVASIVE_TERM =
 sig
   type indexname = string * int
   type class = string
@@ -127,7 +127,7 @@ end;
 
 signature TERM =
 sig
-  include BASIC_TERM
+  include PERVASIVE_TERM
   val map_atyps_same: typ Same.operation -> typ Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
@@ -1141,5 +1141,4 @@ fun string_of_vname' (x, ~1) = x
 
 end;
 
-structure Basic_Term: BASIC_TERM = Term;
-open Basic_Term;
+local structure Pervasive: PERVASIVE_TERM = Term in open Pervasive end;

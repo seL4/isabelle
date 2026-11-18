@@ -4,7 +4,7 @@
 Goals in tactical theorem proving, with support for forked proofs.
 *)
 
-signature BASIC_GOAL =
+signature PERVASIVE_GOAL =
 sig
   val quick_and_dirty: bool Config.T
   val SELECT_GOAL: tactic -> int -> tactic
@@ -15,7 +15,7 @@ end;
 
 signature GOAL =
 sig
-  include BASIC_GOAL
+  include PERVASIVE_GOAL
   val init: cterm -> thm
   val protect: int -> thm -> thm
   val conclude: thm -> thm
@@ -332,5 +332,4 @@ fun assume_rule_tac ctxt = norm_hhf_tac ctxt THEN' CSUBGOAL (fn (goal, i) =>
 
 end;
 
-structure Basic_Goal: BASIC_GOAL = Goal;
-open Basic_Goal;
+local structure Pervasive: PERVASIVE_GOAL = Goal in open Pervasive end;

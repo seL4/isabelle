@@ -6,9 +6,9 @@ Further operations on type ctyp/cterm/thm, outside the inference kernel.
 
 infix aconvc;
 
-signature BASIC_THM =
+signature PERVASIVE_THM =
 sig
-  include BASIC_THM
+  include PERVASIVE_THM
   val show_consts: bool Config.T
   val show_hyps: bool Config.T
   val show_tags: bool Config.T
@@ -769,5 +769,4 @@ open Thm;
 
 end;
 
-structure Basic_Thm: BASIC_THM = Thm;
-open Basic_Thm;
+local structure Pervasive: PERVASIVE_THM = Thm in open Pervasive end;

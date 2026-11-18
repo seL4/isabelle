@@ -4,7 +4,7 @@
 Support for exceptions.
 *)
 
-signature BASIC_EXN =
+signature PERVASIVE_EXN =
 sig
   exception ERROR of string
   val error: string -> 'a
@@ -13,7 +13,7 @@ end;
 
 signature EXN0 =
 sig
-  include BASIC_EXN
+  include PERVASIVE_EXN
   val polyml_location: exn -> PolyML.location option
   val reraise: exn -> 'a
   datatype 'a result = Res of 'a | Exn of exn

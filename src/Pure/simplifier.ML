@@ -5,7 +5,7 @@ Generic simplifier, suitable for most logics (see also
 raw_simplifier.ML for the actual meta-level rewriting engine).
 *)
 
-signature BASIC_SIMPLIFIER =
+signature PERVASIVE_SIMPLIFIER =
 sig
   val simp_tac: Proof.context -> int -> tactic
   val asm_simp_tac: Proof.context -> int -> tactic
@@ -26,7 +26,7 @@ end;
 
 signature SIMPLIFIER =
 sig
-  include BASIC_SIMPLIFIER
+  include PERVASIVE_SIMPLIFIER
   include RAW_SIMPLIFIER
   val attrib: (thm -> Proof.context -> Proof.context) -> attribute
   val simp_add: attribute
@@ -522,5 +522,4 @@ val _ =
 
 end;
 
-structure Basic_Simplifier: BASIC_SIMPLIFIER = Simplifier;
-open Basic_Simplifier;
+local structure Pervasive: PERVASIVE_SIMPLIFIER = Simplifier in open Pervasive end;

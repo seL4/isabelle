@@ -16,7 +16,7 @@ Bad names:
   context: Proof.context
 *)
 
-signature BASIC_CONTEXT =
+signature PERVASIVE_CONTEXT =
 sig
   type theory
   exception THEORY of string * theory list
@@ -31,7 +31,7 @@ end;
 
 signature CONTEXT =
 sig
-  include BASIC_CONTEXT
+  include PERVASIVE_CONTEXT
   (*theory data*)
   type data_kind = int
   val data_kinds: unit -> (data_kind * Position.T) list
@@ -731,8 +731,7 @@ in end;
 
 end;
 
-structure Basic_Context: BASIC_CONTEXT = Context;
-open Basic_Context;
+local structure Pervasive: PERVASIVE_CONTEXT = Context in open Pervasive end;
 
 
 

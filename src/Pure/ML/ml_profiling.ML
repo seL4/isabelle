@@ -4,7 +4,7 @@
 ML profiling (via Poly/ML run-time system).
 *)
 
-signature BASIC_ML_PROFILING =
+signature PERVASIVE_ML_PROFILING =
 sig
   val profile_time: ('a -> 'b) -> 'a -> 'b
   val profile_time_thread: ('a -> 'b) -> 'a -> 'b
@@ -20,7 +20,7 @@ sig
   val message1: {kind: string, name: string} -> unit
   val check_mode: string -> unit
   val profile: string -> ('a -> 'b) -> 'a -> 'b
-  include BASIC_ML_PROFILING
+  include PERVASIVE_ML_PROFILING
 end;
 
 structure ML_Profiling: ML_PROFILING =
@@ -90,5 +90,4 @@ fun profile_allocations f = profile kind_allocations f;
 
 end;
 
-structure Basic_ML_Profiling: BASIC_ML_PROFILING = ML_Profiling;
-open Basic_ML_Profiling;
+local structure Pervasive: PERVASIVE_ML_PROFILING = ML_Profiling in open Pervasive end;

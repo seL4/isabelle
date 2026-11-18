@@ -4,7 +4,7 @@
 Isabelle output channels.
 *)
 
-signature BASIC_OUTPUT =
+signature PERVASIVE_OUTPUT =
 sig
   val writeln: string -> unit
   val tracing: string -> unit
@@ -14,7 +14,7 @@ end;
 
 signature OUTPUT =
 sig
-  include BASIC_OUTPUT
+  include PERVASIVE_OUTPUT
   type output = string
   val physical_stdout: output -> unit
   val physical_stderr: output -> unit
@@ -136,5 +136,4 @@ fun try_protocol_message props body = protocol_message props body handle Protoco
 end;
 
 structure Output: OUTPUT = Private_Output;
-structure Basic_Output: BASIC_OUTPUT = Output;
-open Basic_Output;
+local structure Pervasive: PERVASIVE_OUTPUT = Output in open Pervasive end;

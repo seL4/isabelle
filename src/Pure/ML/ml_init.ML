@@ -20,8 +20,7 @@ val pointer_eq = PolyML.pointerEq;
 
 val error_depth = PolyML.error_depth;
 
-structure Basic_Exn: BASIC_EXN = Exn;
-open Basic_Exn;
+local structure Pervasive: PERVASIVE_EXN = Exn in open Pervasive end;
 
 structure String =
 struct
