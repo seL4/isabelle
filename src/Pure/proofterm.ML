@@ -398,8 +398,8 @@ fun proof_to_zproof thy =
           in zproof_const proof_name prop Ts end;
   in zproof end;
 
-fun encode_standard_term thy = ZTerm.zterm_of thy #> ZTerm.encode_zterm {typed_vars = false};
-fun encode_standard_proof thy = proof_to_zproof thy #> ZTerm.encode_zproof {typed_vars = false};
+fun encode_standard_term thy = ZTerm.zterm_of thy #> Term_XML.Encode.zterm {typed_vars = false};
+fun encode_standard_proof thy = proof_to_zproof thy #> Term_XML.Encode.zproof {typed_vars = false};
 
 
 (* encode *)
@@ -2076,9 +2076,9 @@ fun export_proof thy i prop0 proof0 =
       let
         open XML.Encode Term_XML.Encode;
         val encode_tfrees = list (pair string sort);
-        val encode_frees = list (pair string ZTerm.encode_ztyp);
-        val encode_term = ZTerm.encode_zterm {typed_vars = false};
-        val encode_proof = ZTerm.encode_zproof {typed_vars = false};
+        val encode_frees = list (pair string Term_XML.Encode.ztyp);
+        val encode_term = Term_XML.Encode.zterm {typed_vars = false};
+        val encode_proof = Term_XML.Encode.zproof {typed_vars = false};
       in pair encode_tfrees (pair encode_frees (pair encode_term encode_proof)) end;
   in
     Export.export_params (Context.Theory thy)

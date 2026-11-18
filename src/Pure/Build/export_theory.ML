@@ -146,12 +146,12 @@ val _ = (Theory.setup o Thy_Presentation.add_hook) (fn context => fn thy =>
     val zterm_of = ZTerm.zterm_of thy_cache;
     val zproof_of = Proofterm.proof_to_zproof thy_cache;
 
-    val encode_ztyp = ZTerm.encode_ztyp;
-    val encode_zterm = ZTerm.encode_zterm {typed_vars = true};
+    val encode_ztyp = Term_XML.Encode.ztyp;
+    val encode_zterm = Term_XML.Encode.zterm {typed_vars = true};
     val encode_term = encode_zterm o zterm_of;
 
-    val encode_standard_zterm = ZTerm.encode_zterm {typed_vars = false};
-    val encode_standard_zproof = ZTerm.encode_zproof {typed_vars = false};
+    val encode_standard_zterm = Term_XML.Encode.zterm {typed_vars = false};
+    val encode_standard_zproof = Term_XML.Encode.zproof {typed_vars = false};
 
 
     (* strict parents *)

@@ -17,7 +17,13 @@ end
 
 signature TERM_XML =
 sig
-  structure Encode: TERM_XML_OPS
+  structure Encode:
+  sig
+    include TERM_XML_OPS
+    val ztyp: ztyp T
+    val zterm: {typed_vars: bool} -> zterm T
+    val zproof: {typed_vars: bool} -> zproof T
+  end
   structure Decode: TERM_XML_OPS
 end;
 
@@ -60,6 +66,44 @@ fun term consts t = t |> variant
   fn t =>
     let val (T, c) = Logic.match_of_class t
     in ([c], typ T) end];
+
+fun ztyp T = T |> variant
+ [fn ZFun args => (["fun"], pair ztyp ztyp args)
+   | ZProp => (["prop"], [])
+   | ZType0 a => ([a], [])
+   | ZType1 (a, b) => ([a], list ztyp [b])
+   | ZType (a, b) => ([a], list ztyp b),
+  fn ZTVar ((a, ~1), b) => ([a], sort b),
+  fn ZTVar (a, b) => (indexname a, sort b)];
+
+fun zvar_type {typed_vars} T =
+  if typed_vars andalso T <> ZTerm.ztyp_dummy then ztyp T else [];
+
+fun zterm flag t = t |> variant
+ [fn ZConst0 a => ([a], [])
+   | ZConst1 (a, b) => ([a], list ztyp [b])
+   | ZConst (a, b) => ([a], list ztyp b),
+  fn ZVar ((a, ~1), b) => ([a], zvar_type flag b),
+  fn ZVar (a, b) => (indexname a, zvar_type flag b),
+  fn ZBound a => ([], int a),
+  fn ZAbs (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
+  fn ZApp a => ([], pair (zterm flag) (zterm flag) a),
+  fn OFCLASS (a, b) => ([b], ztyp a)];
+
+fun zproof flag prf = prf |> variant
+ [fn ZNop => ([], []),
+  fn ZBoundp a => ([], int a),
+  fn ZAbst (a, b, c) => ([a], pair ztyp (zproof flag) (b, c)),
+  fn ZAbsp (a, b, c) => ([a], pair (zterm flag) (zproof flag) (b, c)),
+  fn ZAppt a => ([], pair (zproof flag) (zterm flag) a),
+  fn ZAppp a => ([], pair (zproof flag) (zproof flag) a),
+  fn ZHyp a => ([], zterm flag a),
+  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (ZTerm.zproof_const_typargs c)),
+  fn OFCLASSp (a, b) => ([b], ztyp a),
+  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (ZTerm.zproof_const_typargs c)),
+  fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
+    ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
+      list (ztyp o #2) (ZTerm.zproof_const_typargs c))];
 
 end;
 
