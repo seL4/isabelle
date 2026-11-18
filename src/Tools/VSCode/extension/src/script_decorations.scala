@@ -7,8 +7,6 @@ Non-unicode Isabelle symbols as text decorations.
 
 package isabelle.vscode.extension
 
-import scala.collection.mutable
-
 import VSCode.{Decoration, Document, Extension, Text_Editor, Window, Workspace}
 
 import isabelle._
@@ -71,20 +69,26 @@ object Script_Decorations {
   }
 
   def register_script_decorations(context: Extension.Context): Unit = {
-    val hide = Window.create_decoration(Decoration.Rendering(
-      text_decoration = "none; font-size: 0.001em",
-      range_behavior = Decoration.Range_Behavior.closed_closed))
+    val hide =
+      Window.create_decoration(
+        Decoration.Rendering(
+          text_decoration = "none; font-size: 0.001em",
+          range_behavior = Decoration.Range_Behavior.closed_closed))
 
-    val superscript = Window.create_decoration(Decoration.Rendering(
-      text_decoration = "none; position: relative; top: -0.5em; font-size: 80%"))
+    val superscript =
+      Window.create_decoration(
+        Decoration.Rendering(
+          text_decoration = "none; position: relative; top: -0.5em; font-size: 80%"))
 
-    val subscript = Window.create_decoration(Decoration.Rendering(
-      text_decoration = "none; position: relative; bottom: -0.5em; font-size: 80%"))
+    val subscript =
+      Window.create_decoration(
+        Decoration.Rendering(
+          text_decoration = "none; position: relative; bottom: -0.5em; font-size: 80%"))
 
-    val bold = Window.create_decoration(Decoration.Rendering(
-      text_decoration = "none; font-weight: bold"))
+    val bold =
+      Window.create_decoration(Decoration.Rendering(text_decoration = "none; font-weight: bold"))
 
-    def set_editor_decorations(editor: Text_Editor, doc: Document): Unit = {
+    def set_decorations(editor: Text_Editor, doc: Document): Unit = {
       val ranges = extract_ranges(doc)
 
       editor.set_decorations(hide, ranges.getOrElse(Style.hidden, Nil))
@@ -93,26 +97,14 @@ object Script_Decorations {
       editor.set_decorations(bold, ranges.getOrElse(Style.bold, Nil))
     }
 
-    context.subscribe(
-      hide, superscript, subscript, bold,
+    def handle_change_editor(editor: Text_Editor): Unit = set_decorations(editor, editor.document)
+    def handle_set_decorations(change: Document.Change): Unit =
+      for (editor <- Window.visible_editors if editor.document.uri == change.document.uri) {
+        set_decorations(editor, change.document)
+      }
 
-      Window.on_change_editor(editor =>
-        {
-          editor.foreach { editor =>
-
-            val doc = editor.document
-            set_editor_decorations(editor, doc)
-          }
-        }),
-
-      Workspace.on_change_document({ case Document.Change(document) =>
-        {
-          for (editor <- Window.visible_editors
-            if editor.document.uri == document.uri) {
-              set_editor_decorations(editor, document)
-            }
-        }
-      })
-    )
+    context.subscribe(hide, superscript, subscript, bold,
+      Window.on_change_editor(_.foreach(handle_change_editor)),
+      Workspace.on_change_document(handle_set_decorations))
   }
 }

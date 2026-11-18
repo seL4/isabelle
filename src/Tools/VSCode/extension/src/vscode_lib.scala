@@ -21,9 +21,7 @@ object VSCode_Lib {
     def check(editor: Text_Editor): Boolean =
       editor.document.uri.is_file && editor.document.uri.platform_path == uri.platform_path
 
-    if (uri.is_file) {
-      Window.active_editor.filter(check).orElse(Window.visible_editors.find(check))
-    }
+    if (uri.is_file) Window.active_editor.filter(check).orElse(Window.visible_editors.find(check))
     else None
   }
 

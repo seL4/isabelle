@@ -203,7 +203,7 @@ object Decorations {
     for {
       editor <- Window.visible_editors
       if touched_documents(editor.document)
-     } touched_editors += editor
+    } touched_editors += editor
 
     touched_documents = Set.empty
     touched_editors.foreach(update_editor)

@@ -21,14 +21,13 @@ object Documentation_Treeview {
     name: String = "",
     uri: Option[Uri] = None,
     important: Option[Boolean] = None,
-    children: List[Node] = Nil
-  )
+    children: List[Node] = Nil)
 
   class Provider extends Treeview.Provider[Node] {
-    private var _nodes: List[Node] = Nil
-    private val _changed = new Event.Emitter[List[Node]]
+    private var nodes: List[Node] = Nil
+    private val changed = new Event.Emitter[List[Node]]
 
-    override val on_change = Some(_changed.event)
+    override val on_change = Some(changed.event)
 
     def setup(language_client: Language_Client): Unit = {
       language_client.on_notification(LSP.Documentation_Response.name,
@@ -37,21 +36,18 @@ object Documentation_Treeview {
     }
 
     private def update_nodes(sections: List[Doc.Section]): Unit = {
-      def map_entry(entry: Doc.Entry): Node = {
+      def map_entry(entry: Doc.Entry): Node =
         Node(entry.title, name = entry.name, uri = Some(Uri.file(entry.path)))
-      }
-      def map_section(section: Doc.Section): Node = {
+
+      def map_section(section: Doc.Section): Node =
         Node(section.title, important = Some(section.important), children =
           section.entries.map(map_entry))
-      }
 
-      this._nodes = sections.map(map_section)
-      this._changed.fire(Nil)
+      nodes = sections.map(map_section)
+      changed.fire(Nil)
     }
 
-    def get_children(element: Option[Node]): List[Node] = {
-      element.map(_.children).getOrElse(_nodes)
-    }
+    def get_children(element: Option[Node]): List[Node] = element.map(_.children).getOrElse(nodes)
 
     def get_item(element: Node): Treeview.Item = {
       val label = if_proper(element.name.nonEmpty && element.title.nonEmpty, element.name + ":")

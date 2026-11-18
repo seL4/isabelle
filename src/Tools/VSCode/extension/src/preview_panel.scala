@@ -6,7 +6,7 @@ Preview panel via HTML webview inside VSCode.
 
 package isabelle.vscode.extension
 
-import VSCode.{Language_Client, Uri, Text_Editor, Webview, Window}
+import VSCode.{Language_Client, Uri, Text_Editor, Window}
 
 import isabelle._
 import isabelle.vscode._
@@ -23,11 +23,9 @@ object Preview_Panel {
       webview_panel.webview.html = body
     }
 
-    def reveal(column: Text_Editor.Column): Unit = {
-      webview_panel.reveal(column)
-    }
+    def reveal(column: Text_Editor.Column): Unit = webview_panel.reveal(column)
 
-    webview_panel.on_dispose(_ => { panel = None })
+    webview_panel.on_dispose { _ => panel = None }
   }
 
   private var panel: Option[Panel] = None
@@ -51,11 +49,9 @@ object Preview_Panel {
         case uri: Uri => uri
         case _ => Window.active_editor.get.document.uri
       }
-    language_client.foreach { client =>
-      client.send_notification(
-        LSP.Preview_Request(
-          document_uri.toString,
-          VSCode_Lib.adjacent_editor_column(Window.active_editor, split).rep))
-    }
+    language_client.foreach(
+      _.send_notification(
+        LSP.Preview_Request(document_uri.toString,
+          VSCode_Lib.adjacent_editor_column(Window.active_editor, split).rep)))
   }
 }

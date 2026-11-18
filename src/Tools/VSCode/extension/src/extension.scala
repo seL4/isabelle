@@ -11,7 +11,7 @@ package isabelle.vscode.extension
 import scala.collection.mutable
 import scala.scalajs.js
 
-import VSCode.{Uri, Text_Editor, Workspace, Window, Commands, Progress, Language_Client, Treeview}
+import VSCode.{Uri, Text_Editor, Workspace, Window, Commands, Language_Client}
 
 import isabelle._
 import isabelle.vscode.LSP
@@ -23,9 +23,7 @@ object Extension extends VSCode.Extension {
 
   /* command-line arguments from "isabelle vscode" */
 
-  def print_value(x: Any): String = x match {
-    case x: String => x case _ => JSON.Format(x)
-  }
+  def print_value(x: Any): String = x match { case x: String => x case _ => JSON.Format(x) }
 
   def isabelle_options(args: JSON.T): List[String] = {
     val result = new mutable.ListBuffer[String]
@@ -81,31 +79,25 @@ object Extension extends VSCode.Extension {
       val server_opts = isabelle_options(args)
       val server_options =
         if (Platform.is_windows)
-          Language_Client.Server_Options(
-            command = setup.Environment.cygwin_root() + "\\bin\\bash",
+          Language_Client.Server_Options(command = setup.Environment.cygwin_root() + "\\bin\\bash",
             args = List("-l", isabelle_tool, "vscode_server") ::: server_opts)
         else
-          Language_Client.Server_Options(
-            command = isabelle_tool,
+          Language_Client.Server_Options(command = isabelle_tool,
             args = "vscode_server" :: server_opts)
 
-      val language_client_options = Language_Client.Options(
-        document_selector = List(
-          Language_Client.Document_Filter("isabelle", scheme = VSCode_Lib.file_scheme),
-          Language_Client.Document_Filter("isabelle-ml", scheme = VSCode_Lib.file_scheme),
-          Language_Client.Document_Filter("bibtex", scheme = VSCode_Lib.file_scheme),
-        )
-      )
+      val language_client_options =
+        Language_Client.Options(document_selector =
+          List(
+            Language_Client.Document_Filter("isabelle", scheme = VSCode_Lib.file_scheme),
+            Language_Client.Document_Filter("isabelle-ml", scheme = VSCode_Lib.file_scheme),
+            Language_Client.Document_Filter("bibtex", scheme = VSCode_Lib.file_scheme)))
 
-      val language_client =
-        Language_Client("Isabelle", server_options, language_client_options)
+      val language_client = Language_Client("Isabelle", server_options, language_client_options)
 
-      Window.with_progress(
-        (progress) =>
-          {
-            progress.report("Waiting for Isabelle language server...")
-            language_client.on_ready()
-          })
+      Window.with_progress { progress =>
+        progress.report("Waiting for Isabelle language server...")
+        language_client.on_ready()
+      }
 
 
       /* decorations */
@@ -149,23 +141,19 @@ object Extension extends VSCode.Extension {
       def goto_file(caret_update: LSP.Caret_Update): Unit = {
         val pos = caret_update.pos
 
-        def show_position(editor: Text_Editor): Unit = {
-          editor.reveal(Line.Range(pos))
-        }
+        def show_position(editor: Text_Editor): Unit = editor.reveal(Line.Range(pos))
 
-        def show_file(uri: Uri): Unit = {
-          Workspace.open_document(uri).map(document =>
-            {
-              val editor = VSCode_Lib.find_file_editor(document.uri)
-              val column = editor.flatMap(_.column) getOrElse Text_Editor.Column.one
-              val options =
-                Text_Editor.Show_Options(
-                  column = Some(column),
-                  preserve_focus = !caret_update.focus,
-                  selection = Some(Line.Range(pos)))
-              Window.show_document(document, options).map(show_position)
-          })
-        }
+        def show_file(uri: Uri): Unit =
+          Workspace.open_document(uri).map { document =>
+            val editor = VSCode_Lib.find_file_editor(document.uri)
+            val column = editor.flatMap(_.column) getOrElse Text_Editor.Column.one
+            val options =
+              Text_Editor.Show_Options(
+                column = Some(column),
+                preserve_focus = !caret_update.focus,
+                selection = Some(Line.Range(pos)))
+            Window.show_document(document, options).map(show_position)
+          }
 
         val uri = Uri.parse(caret_update.uri)
         Workspace.is_file(uri).map {
@@ -174,16 +162,15 @@ object Extension extends VSCode.Extension {
         }
       }
 
-      language_client.on_ready().map(_ =>
-        {
-          context.subscribe(
-            Window.on_change_editor(_ => update_caret()),
-            Window.on_change_selection(_ => update_caret()))
-          update_caret()
+      language_client.on_ready().map { _ =>
+        context.subscribe(
+          Window.on_change_editor(_ => update_caret()),
+          Window.on_change_selection(_ => update_caret()))
+        update_caret()
 
-          language_client.on_notification(LSP.Caret_Update.name,
-            { case LSP.Caret_Update(Some(caret_update)) => goto_file(caret_update) })
-        })
+        language_client.on_notification(LSP.Caret_Update.name,
+          { case LSP.Caret_Update(Some(caret_update)) => goto_file(caret_update) })
+      }
 
 
       /* edits */
@@ -200,52 +187,46 @@ object Extension extends VSCode.Extension {
           { case LSP.Document_Edit(edit) => apply_edit(edit) }))
 
 
-      /* dynamic output */
+      /* output view */
 
       val output_provider = new Output_View.Provider(context, language_client)
-      context.subscribe(
-        Window.register(output_provider))
+      context.subscribe(Window.register(output_provider))
 
       language_client.on_ready().map(_ =>
         language_client.on_notification(LSP.Dynamic_Output.name,
           { case LSP.Dynamic_Output(content, _) => output_provider.update_content(content) }))
 
 
-      /* documentation panel */
+      /* documentation treeview */
 
       val documentation_provider = new Documentation_Treeview.Provider
       context.subscribe(
-        Window.create_treeview(Documentation_Treeview.name,
-          documentation_provider),
+        Window.create_treeview(Documentation_Treeview.name, documentation_provider),
         Commands.register(Documentation_Treeview.open_document_command,
           { case uri: Uri => documentation_provider.open_document(uri) }))
 
       language_client.on_ready().map(_ => documentation_provider.setup(language_client))
 
 
-      /* symbols panel */
+      /* symbols view */
 
       val symbols_provider = new Symbols_View.Provider(context, language_client)
-      context.subscribe(
-        Window.register(symbols_provider))
+      context.subscribe(Window.register(symbols_provider))
 
       language_client.on_ready().map(_ => symbols_provider.setup())
 
 
-      /* sledgehammer panel */
+      /* sledgehammer view */
 
-      val sledgehammer_provider =
-        new Sledgehammer_View.Provider(context, language_client)
-      context.subscribe(
-        Window.register(sledgehammer_provider))
+      val sledgehammer_provider = new Sledgehammer_View.Provider(context, language_client)
+      context.subscribe(Window.register(sledgehammer_provider))
 
       language_client.on_ready().map(_ => sledgehammer_provider.setup())
 
 
       /* state panel */
 
-      context.subscribe(
-        Commands.register("isabelle.state", _ => State_Panel.init()))
+      context.subscribe(Commands.register("isabelle.state", _ => State_Panel.init()))
 
       language_client.on_ready().map(_ => State_Panel.setup(context, language_client))
 
@@ -261,20 +242,19 @@ object Extension extends VSCode.Extension {
 
       /* spell checker */
 
-      language_client.on_ready().map(_ =>
-        {
-          context.subscribe(
-            Commands.register("isabelle.include-word", _ =>
-              language_client.send_notification(LSP.Include_Word())),
-            Commands.register("isabelle.include-word-permanently", _ =>
-              language_client.send_notification(LSP.Include_Word_Permanently())),
-            Commands.register("isabelle.exclude-word", _ =>
-              language_client.send_notification(LSP.Exclude_Word())),
-            Commands.register("isabelle.exclude-word-permanently", _ =>
-              language_client.send_notification(LSP.Exclude_Word_Permanently())),
-            Commands.register("isabelle.reset-words", _ =>
-              language_client.send_notification(LSP.Reset_Words())))
-        })
+      language_client.on_ready().map { _ =>
+        context.subscribe(
+          Commands.register("isabelle.include-word", _ =>
+            language_client.send_notification(LSP.Include_Word())),
+          Commands.register("isabelle.include-word-permanently", _ =>
+            language_client.send_notification(LSP.Include_Word_Permanently())),
+          Commands.register("isabelle.exclude-word", _ =>
+            language_client.send_notification(LSP.Exclude_Word())),
+          Commands.register("isabelle.exclude-word-permanently", _ =>
+            language_client.send_notification(LSP.Exclude_Word_Permanently())),
+          Commands.register("isabelle.reset-words", _ =>
+            language_client.send_notification(LSP.Reset_Words())))
+      }
 
 
       /* start server */
