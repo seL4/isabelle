@@ -140,7 +140,7 @@ let
   val ptiming = Pretty.item [Pretty.str ("Running time function:\n"), fun_pretty' ctxt tpfunc]
 in
   Pretty.writeln (Pretty.text_fold [
-      Pretty.str ("Converting " ^ (hd names) ^ (String.concat (map (fn nm => ", " ^ nm) (tl names))) ^ "\n"),
+      Pretty.str ("Converting " ^ (hd names) ^ (implode (map (fn nm => ", " ^ nm) (tl names))) ^ "\n"),
       poriginal, Pretty.str "\n", ptiming])
 end
 fun print_timing ctxt (oinfo: Function.info) (tinfo: Function.info) =
@@ -162,7 +162,7 @@ let
   val _ = Pretty.writeln (Pretty.str "Characteristic recursion equations can be derived:")
 in
   (begin :: lines @ proof)
-  |> String.concat
+  |> implode
   |> Active.sendback_markup_properties [Markup.padding_command]
   |> Pretty.str
   |> Pretty.writeln
