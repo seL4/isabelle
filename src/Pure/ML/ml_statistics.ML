@@ -90,13 +90,13 @@ fun make_properties
     val workers_total = Vector.sub (userCounters, 5);
     val workers_active = Vector.sub (userCounters, 6);
     val workers_waiting = Vector.sub (userCounters, 7);
-    val gc_percent =
+    val (gc_phase, gc_percent) =
       (case gc_state of
-        PolyML.Statistics.MLCode => 0
-      | PolyML.Statistics.MinorGC p => p + 1
-      | PolyML.Statistics.MajorGC p => p + 1
-      | PolyML.Statistics.GCSharing p => p + 1
-      | PolyML.Statistics.OtherState p => p + 1);
+        PolyML.Statistics.MLCode => (0, 0)
+      | PolyML.Statistics.MinorGC p => (1, p + 1)
+      | PolyML.Statistics.MajorGC p => (2, p + 1)
+      | PolyML.Statistics.GCSharing p => (3, p + 1)
+      | PolyML.Statistics.OtherState p => (4, p + 1));
   in
     [("now", print_time_us (Time.now ())),
      ("tasks_ready", print_int tasks_ready),
@@ -128,6 +128,7 @@ fun make_properties
      ("time_elapsed_GC", print_time_ms timeGCReal),
      ("time_CPU", print_time_ms (timeNonGCSystem + timeNonGCUser)),
      ("time_GC", print_time_ms (timeGCSystem + timeGCUser)),
+     ("GC_phase", print_int gc_phase),
      ("GC_percent", print_int gc_percent)]
   end;
 

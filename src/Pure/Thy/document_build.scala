@@ -213,7 +213,7 @@ object Document_Build {
 
     def documents: List[Document_Variant] = info.documents
 
-    def session_document_theories: List[Document.Node.Name] = base.proper_session_theories
+    def session_document_theories: List[Document.Node.Name] = base.used_theories_proper.map(_.name)
     def all_document_theories: List[Document.Node.Name] = base.all_document_theories
 
     lazy val isabelle_logo: Option[File.Content] = {
@@ -251,9 +251,7 @@ object Document_Build {
             YXML.parse_body(entry.bytes)
           }
           else {
-            val text =
-              proper_string(session_context.theory_source(name.theory)) getOrElse
-                File.read(name.path)
+            val text = session_context.get_theory_source(name.theory) getOrElse File.read(name.path)
             (for {
               outer <- Bibtex.Cite.parse(Bibtex.cite_commands(options), text)
               inner <- outer.parse

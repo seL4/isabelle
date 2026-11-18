@@ -473,12 +473,6 @@ fun create_thy state ids name stage ancestry data =
 
 (* primitives *)
 
-val pre_pure_thy =
-  let
-    val state = make_state ();
-    val stage = next_stage state;
-  in create_thy state Bitset.empty PureN stage (make_ancestry [] []) Datatab.empty end;
-
 local
 
 fun change_thy finish f thy =
@@ -728,7 +722,12 @@ fun >>> f =
 nonfix >>;
 fun >> f = >>> (fn context => ((), f context));
 
-val _ = put_generic_context (SOME (Theory pre_pure_thy));
+local
+  val state = make_state ();
+  val stage = next_stage state;
+  val init_thy = create_thy state Bitset.empty PureN stage (make_ancestry [] []) Datatab.empty;
+  val _ = put_generic_context (SOME (Theory init_thy));
+in end;
 
 end;
 

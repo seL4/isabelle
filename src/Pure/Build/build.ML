@@ -59,17 +59,17 @@ fun lookup_thy name = lookup (get_thys ()) name;
 fun get thys name =
   (case lookup thys name of
     SOME thy => thy
-  | NONE => error ("Theory loader: nothing known about theory " ^ quote name));
+  | NONE => error ("Build database: nothing known about theory " ^ quote name));
 
 fun check_new thys name =
   if String_Graph.defined thys name
-  then error ("Theory loader: cannot change loaded theory " ^ quote name)
+  then error ("Build database: cannot change loaded theory " ^ quote name)
   else ();
 
 fun check_old thys (name, thy) =
   let val (thy', _) = get thys name in
     if Context.eq_thy (thy, thy') then ()
-    else error ("Theory loader: incoherent theory " ^ quote name)
+    else error ("Build database: incoherent theory " ^ quote name)
   end;
 
 
@@ -82,7 +82,7 @@ val defined_theory = is_some o lookup_theory;
 fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
-  | _ => error ("Theory loader: undefined entry for theory " ^ quote name));
+  | _ => error ("Build database: undefined entry for theory " ^ quote name));
 
 fun get_theory_segments name =
   let
@@ -92,7 +92,7 @@ fun get_theory_segments name =
       | _ => []);
   in
     if null segments then
-      error ("Theory loader: no theory segments for theory " ^ quote name ^
+      error ("Build database: no theory segments for theory " ^ quote name ^
         "\n Need to build with option " ^ quote \<^system_option>\<open>record_theories\<close>)
     else segments
   end;
@@ -297,7 +297,7 @@ fun load_thy (thy0: Resources.thy) text parents =
     val (theory, present) =
       Options.strict_thread_update thy_options (fn () =>
         eval_thy loading_theory thy text_pos text
-          (if name = Context.PureN then [Context.the_global_context ()] else parents)) ();
+          (if name = Context.PureN then [Theory.get_pure_bootstrap ()] else parents)) ();
 
     fun commit segments =
       let
@@ -310,7 +310,7 @@ in
 
 fun use_thy (thy as {name, imports, ...}: Resources.thy) =
   let
-    val text = File.read (Path.explode (#node name));
+    val text = Bytes.content (#bytes (Resources.source_file (#node name)));
     val parents = map (#theory o #1) imports;
     val use_parents = filter_out defined_theory parents;
   in new_entry (#theory name) use_parents {parents = parents, body = load_thy thy text} end;
@@ -387,11 +387,15 @@ val _ =
 
           val _ = Session.init session_name;
 
+          val bootstrap_context =
+            if session_name = Context.PureN then Context.get_generic_context () else NONE;
+
           fun build () =
             let
               val res =
                 theories |>
                   (maps build_theories
+                    |> Context.setmp_generic_context bootstrap_context
                     |> session_timing
                     |> Exn.capture);
               val res1 =
@@ -407,14 +411,8 @@ val _ =
                 if session_name = Context.PureN
                 then Theory.install_pure (get_theory Context.PureN) else ();
             in () end;
-
-          fun exec e =
-            if can Theory.get_pure () then
-              Isabelle_Thread.fork (Isabelle_Thread.params "build_session") e
-              |> ignore
-            else e ();
         in
-          exec (fn () =>
+          (ignore o Isabelle_Thread.fork (Isabelle_Thread.params "build_session")) (fn () =>
             (case Exn.capture_body (Future.interruptible_task build) of
               Exn.Res () => (0, [])
             | Exn.Exn exn =>

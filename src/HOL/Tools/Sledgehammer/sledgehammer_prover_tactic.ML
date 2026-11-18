@@ -9,7 +9,10 @@ signature SLEDGEHAMMER_PROVER_TACTIC =
 sig
   type stature = ATP_Problem_Generate.stature
   type mode = Sledgehammer_Prover.mode
-  type prover = Sledgehammer_Prover.prover
+  type params = Sledgehammer_Prover.params
+  type prover_problem = Sledgehammer_Prover.prover_problem
+  type prover_slice = Sledgehammer_Prover.prover_slice
+  type prover_result = Sledgehammer_Prover.prover_result
   type base_slice = Sledgehammer_ATP_Systems.base_slice
 
   val fact_classification_dest_dir : string Config.T
@@ -17,7 +20,8 @@ sig
 
   val is_tactic_prover : Proof.context -> string -> bool
   val good_slices_of_tactic_prover : string -> base_slice list
-  val run_tactic_prover : mode -> string -> prover
+  val run_tactic_prover : mode -> params -> prover_problem -> string -> prover_slice ->
+    prover_result
 end;
 
 structure Sledgehammer_Prover_Tactic : SLEDGEHAMMER_PROVER_TACTIC =
@@ -50,6 +54,9 @@ fun good_slices_of_tactic_prover "metis" = slices_of_max_facts [0, 64, 32, 8, 16
   | good_slices_of_tactic_prover "auto" = slices_of_max_facts [0, 16, 32, 8, 4, 64, 2, 1]
   | good_slices_of_tactic_prover _ = slices_of_max_facts [0, 2, 8, 16, 32, 64]
 
+(* FUDGE *)
+val tactic_prover_max_facts = 64
+
 end
 
 fun meth_of "algebra" = Algebra_Method
@@ -78,22 +85,22 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
 val class_width = fold (Integer.max o size) Try0.native_classes 0
 val kind_width = size "direct"
 
-fun make_fact_lines (facts : Try0.facts) : string list =
+fun make_fact_lines (facts : Try0.xref Try0.facts) : string list =
   let
     fun make_fact_line class kind xref =
       implode_space ["fact", StringCvt.padRight #" " class_width class,
         StringCvt.padRight #" " kind_width kind,
         collapse_whitespace (Try0_Util.string_of_xref xref)]
-    fun make_xxrefs_lines class {usings, directs} =
+    fun make_usings_directs_lines class {usings, directs} =
       map (make_fact_line class "using") usings @ map (make_fact_line class "direct") directs
   in
-    maps (uncurry make_xxrefs_lines) (Symtab.dest (#classified facts)) @
-    make_xxrefs_lines "-" (#unclassified facts)
+    maps (uncurry make_usings_directs_lines) (Symtab.dest (#classified facts)) @
+    make_usings_directs_lines "-" (#unclassified facts)
   end
 
 fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode : mode)
     (max_facts : int) (classifier_time : Time.time) (method_time : Time.time)
-    (outcome : atp_failure option) (command : string) (facts : Try0.facts) : unit =
+    (outcome : atp_failure option) (command : string) (facts : Try0.xref Try0.facts) : unit =
   let
     val command = collapse_whitespace (Protocol_Message.clean_output command)
     val slice_fields =
@@ -111,92 +118,179 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
     File.write (dir + Path.basic file_name) (cat_lines lines ^ "\n")
   end
 
-fun run_tactic_prover mode name ({slices, timeout, ...} : params)
-    ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) slice =
-  let
-    val (basic_slice as (slice_size, _, _, max_facts, _), No_Slice) = slice
-    val facts = facts_of_basic_slice basic_slice factss
-    val non_chained = filter_out is_fact_chained facts
-    val ctxt = Proof.context_of state
+local
 
-    fun classify_facts () =
-      let
-        val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
-        fun is_cartouche str = String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
-        fun xref_of_fact (((name, _), thm) : Sledgehammer_Fact.fact) =
-          let
-            val xref =
-              if is_cartouche name then
-                Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
+fun is_cartouche (str : string) : bool =
+  String.isPrefix "\<open>" str andalso String.isSuffix "\<close>" str
+
+fun literal_xref_of_fact (ctxt : Proof.context) (thm : thm) : Facts.ref option =
+  let
+    val xref = Facts.Fact (Pretty.pure_string_of (Thm.pretty_thm ctxt thm))
+  in
+    (* A fact referred to by its statement must be retrievable from that text in "ctxt". This
+       fails, e.g., if the statement mentions a fixed variable that is shadowed by another one with
+       the same name; such a fact cannot be referred to in a proof text at all. *)
+    (case try (Proof_Context.get_fact ctxt) xref of
+      SOME [thm'] => if Thm.eq_thm_prop (thm, thm') then SOME xref else NONE
+    | _ => NONE)
+  end
+
+(* Parses fact names of the form "foo(3)" as a selection of the third theorem of "foo". *)
+fun named_xref_of_name (name : string) : Facts.ref =
+  let val default = Facts.named name in
+    if String.isSuffix ")" name then
+      (case ATP_Util.first_field_substring "(" (Substring.trimr 1 (Substring.full name)) of
+        SOME (name', num) =>
+          (case Int.scan StringCvt.DEC Substring.getc num of
+            SOME (n, rest) =>
+              if Substring.isEmpty rest then
+                Facts.Named ((Substring.string name', Position.none), SOME [Facts.Single n])
               else
-                (case try (unsuffix ")") name of
-                  SOME s' =>
-                  (case ATP_Util.first_field_substring "(" (Substring.full s') of
-                    SOME (name', num) =>
-                    (case Int.fromString (Substring.string num) of
-                      SOME n =>
-                      Facts.Named ((Substring.string name', Position.none), SOME [Facts.Single n])
-                    | NONE => Facts.named name)
-                  | NONE => Facts.named name)
-                | NONE => Facts.named name)
-          in
-            (xref, [])
-          end
-        val usings_xrefs = map xref_of_fact (sort_by (fst o fst) locals)
-        val direct_xrefs = map xref_of_fact (sort_by (fst o fst) globals)
-      in
-        {unclassified = {usings = usings_xrefs, directs = direct_xrefs}, classified = Symtab.empty}
-        |> Try0.classify_facts ctxt
+                default
+          | NONE => default)
+      | NONE => default)
+    else
+      default
+  end
+
+val _ = \<^assert> (named_xref_of_name "foo" = Facts.named "foo")
+val _ = \<^assert>
+  (named_xref_of_name "foo(3)" = Facts.Named (("foo", Position.none), SOME [Facts.Single 3]))
+val _ = \<^assert> (named_xref_of_name "foo(3abc)" = Facts.named "foo(3abc)")
+val _ = \<^assert> (named_xref_of_name "foo(bar)" = Facts.named "foo(bar)")
+val _ = \<^assert> (named_xref_of_name "foo)" = Facts.named "foo)")
+
+in
+
+fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
+    ({state, subgoal, subgoal_count, factss, found_something, ...} : prover_problem) =
+  let
+    val ctxt = Proof.context_of state
+    val log_classification = Config.get ctxt fact_classification_dest_dir <> ""
+
+    val verified_literal_xrefs =
+      let val num_facts = the_default tactic_prover_max_facts max_facts in
+        fold (fn (fact_filter, _) =>
+            facts_of_basic_slice (1, false, false, num_facts, fact_filter) factss
+            |> fold (fn fact as ((name, _), thm) => fn xrefs =>
+              if is_cartouche name andalso not (is_fact_chained fact)
+                 andalso not (Symtab.defined xrefs name) then
+                Symtab.update_new (name, literal_xref_of_fact ctxt thm) xrefs
+              else
+                xrefs))
+          factss Symtab.empty
       end
 
-    fun run_proof_method facts =
-      (case Try0.get_proof_method_or_noop ctxt name
-          (SOME (slice_timeout slice_size slices timeout)) facts state of
-        NONE => (SOME GaveUp, "")
-      | SOME {command, ...} => (NONE, command))
-      handle ERROR _ => (SOME GaveUp, "")
-           | Timeout.TIMEOUT _ => (SOME TimedOut, "")
+    fun with_xref (fact as ((name, _), thm) : Sledgehammer_Fact.fact) =
+      (if is_cartouche name then
+         (case Symtab.lookup verified_literal_xrefs name of
+           SOME xref => xref
+         | NONE => literal_xref_of_fact ctxt thm)
+       else
+         SOME (named_xref_of_name name))
+      |> Option.map (fn xref => (fact, (xref, [])))
 
-    fun classify_facts_and_run_proof_method () =
-      (case (SOME (Timing.timing classify_facts ()) handle ERROR _ => NONE) of
-        NONE => (SOME GaveUp, "")
-      | SOME ({elapsed = classifier_time, ...}, classified_facts) =>
-          let
-            val ({elapsed = method_time, ...}, (outcome, command)) =
-              Timing.timing run_proof_method classified_facts
-            val () =
-              if Config.get ctxt fact_classification_dest_dir = "" then
-                ()
-              else
-                write_fact_classification_log ctxt name mode max_facts classifier_time method_time
-                  outcome command classified_facts
-          in
-            (outcome, command)
-          end)
+    fun classify_facts non_chained =
+      let
+        val (locals, globals) = List.partition (fn ((_, (sc, _)), _) => sc <> Global) non_chained
+        val (referable_local_facts, usings) =
+          split_list (map_filter with_xref (sort_by (fst o fst) locals))
+        val (referable_global_facts, directs) =
+          split_list (map_filter with_xref (sort_by (fst o fst) globals))
+      in
+        (Try0.unclassified_facts {usings = usings, directs = directs}
+         |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
+      end
 
-    val ({elapsed = run_time, ...}, (outcome, command)) =
-      Timing.timing classify_facts_and_run_proof_method ()
+    val slice_facts = Synchronized.var "slice_facts" []
 
-    val used_facts =
-      (case outcome of
-        NONE => (found_something name; map fst non_chained)
-      | SOME _ => [])
-
-    val message = fn preplay_outcome =>
-      (case outcome of
-        NONE =>
-        let
-          val banner = proof_banner mode name
-        in
-          (case preplay_outcome of
-            NONE => try_command_line banner (Played run_time) command
-          | SOME preplay_result =>
-              one_line_proof_text (preplay_result, banner, subgoal, subgoal_count))
-        end
-      | SOME failure => string_of_atp_failure failure)
+    (* the facts of a slice and their classification, which depend only on the fact filter and
+       the number of facts *)
+    fun slice_facts_of fact_filter num_facts =
+      Synchronized.change_result slice_facts (fn entries =>
+        (case AList.lookup (op =) entries (fact_filter, num_facts) of
+          SOME entry => (entry, entries)
+        | NONE =>
+            let
+              val entry = Lazy.lazy (fn () =>
+                let
+                  val facts = facts_of_basic_slice (1, false, false, num_facts, fact_filter) factss
+                  val classification =
+                    SOME (Timing.timing classify_facts (filter_out is_fact_chained facts))
+                    handle ERROR _ => NONE
+                in (facts, classification) end)
+            in (entry, ((fact_filter, num_facts), entry) :: entries) end))
+      |> Lazy.force
   in
-    {outcome = outcome, used_facts = used_facts, used_from = facts,
-     preferred_methss = (meth_of name, []), run_time = run_time, message = message}
+    fn name =>
+      let
+        val proof_method = Try0.get_proof_method_or_noop ctxt name
+      in
+        fn ((slice_size, _, _, slice_max_facts, fact_filter), _) =>
+          let
+            fun run_proof_method facts =
+              (case proof_method (SOME (slice_timeout slice_size slices timeout)) facts state of
+                NONE => (SOME GaveUp, "")
+              | SOME {command, ...} => (NONE, command))
+              handle ERROR _ => (SOME GaveUp, "")
+                   | Timeout.TIMEOUT _ => (SOME TimedOut, "")
+
+            fun classify_facts_and_run_proof_method () =
+              let val (facts, classification) = slice_facts_of fact_filter slice_max_facts in
+                (case classification of
+                  NONE => (facts, (SOME GaveUp, ""), [], [], NONE)
+                | SOME ({elapsed = classifier_time, ...},
+                    (classified_facts, referable_local_facts, referable_global_facts)) =>
+                    let
+                      val ({elapsed = method_time, ...}, (outcome, command)) =
+                        Timing.timing run_proof_method classified_facts
+                    in
+                      (facts, (outcome, command), referable_local_facts, referable_global_facts,
+                       SOME (classifier_time, method_time, classified_facts))
+                    end)
+              end
+
+            val ({elapsed = run_time, ...},
+                 (facts, (outcome, command), referable_local_facts, referable_global_facts,
+                  classification)) =
+              Timing.timing classify_facts_and_run_proof_method ()
+
+            (* The log is written outside of the timed region so that it does not inflate
+               "run_time". *)
+            val () =
+              (case classification of
+                SOME (classifier_time, method_time, classified_facts) =>
+                  if log_classification then
+                    write_fact_classification_log ctxt name mode slice_max_facts classifier_time
+                      method_time outcome command classified_facts
+                  else
+                    ()
+              | NONE => ())
+
+            val used_facts =
+              (case outcome of
+                NONE =>
+                  (found_something name;
+                   fold_rev (cons o fst) referable_local_facts (map fst referable_global_facts))
+              | SOME _ => [])
+
+            val message = fn preplay_outcome =>
+              (case outcome of
+                NONE =>
+                  let val banner = proof_banner mode name in
+                    (case preplay_outcome of
+                      NONE => try_command_line banner (Played run_time) command
+                    | SOME preplay_result =>
+                        one_line_proof_text (preplay_result, banner, subgoal, subgoal_count))
+                  end
+              | SOME failure => string_of_atp_failure failure)
+          in
+            {outcome = outcome, used_facts = used_facts, used_from = facts,
+             preferred_methss = (meth_of name, []), run_time = run_time, message = message}
+          end
+      end
   end
+
+end
 
 end;

@@ -226,6 +226,85 @@ proof (induct fs)
   qed
 qed simp
 
+text \<open>A positive-degree divisor of a nonzero split polynomial has a root.  An
+  irreducible factor of the divisor is prime, so it divides one of the linear
+  factors in the splitting product and must itself have degree one.\<close>
+lemma split_multiple_has_root:
+  assumes p: "p \<in> poly_carrier" and dp: "0 < degree p"
+    and Q: "Q \<in> poly_carrier" and Qnz: "Q \<noteq> \<zero>\<^sub>P"
+    and sp: "splits Q" and dvd: "poly_dvd p Q"
+  obtains a where "a \<in> R" and "eval a p = \<zero>"
+proof -
+  have pnz: "p \<noteq> \<zero>\<^sub>P" using dp by auto
+  have pnu: "\<not> poly_unit p"
+    using dp poly_unit_imp_const by force
+  obtain f where fi: "poly_irreducible f" and fp: "poly_dvd f p"
+    using exists_poly_irreducible_factor [OF p pnz pnu] by blast
+  have fc: "f \<in> poly_carrier" by (rule poly_irreducibleD_carrier [OF fi])
+  have fpos: "0 < degree f" by (rule poly_irreducible_degree_pos [OF fi])
+  have prime: "FX.prime_elem f"
+    by (rule poly_irreducible_imp_prime)
+      (simp add: FX_irreducible_iff_poly_irreducible fi)
+  have fQ: "FX.divides f Q"
+    using FX.divides_trans [OF FX_divides_iff_poly_dvd [OF fc, THEN iffD2, OF fp]
+      FX_divides_iff_poly_dvd [OF p, THEN iffD2, OF dvd] fc] .
+  obtain c as where c: "c \<in> R" and as: "set as \<subseteq> R"
+    and Qeq: "Q = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor as)"
+    using sp by (rule splitsE)
+  have fs: "\<And>g. g \<in> set (List.map root_factor as) \<Longrightarrow> g \<in> poly_carrier"
+    using as by (auto intro: root_factor_closed)
+  have prod: "poly_prod (List.map root_factor as) \<in> poly_carrier"
+    by (rule poly_prod_closed [OF fs])
+  have cnz: "c \<noteq> \<zero>"
+    using Qnz Qeq prod by (auto simp: poly_const_zero poly_mult_zero_left)
+  have cu: "FX.is_unit (poly_const c)"
+    using poly_const_unit [OF c cnz] by (simp add: FX_is_unit_iff_poly_unit [OF poly_const_closed [OF c]])
+  have pc: "poly_const c \<in> poly_carrier" by (rule poly_const_closed [OF c])
+  have fprod: "FX.divides f (poly_prod (List.map root_factor as))"
+  proof -
+    have disj: "FX.divides f (poly_const c) \<or>
+      FX.divides f (poly_prod (List.map root_factor as))"
+      using prime fQ Qeq pc prod unfolding FX.prime_elem_def by blast
+    show ?thesis
+    proof (rule disjE [OF disj])
+      assume fpc: "FX.divides f (poly_const c)"
+      have "FX.divides f \<one>\<^sub>P"
+        by (rule FX.divides_trans [OF fpc FX.unit_divides_one [OF cu] fc])
+      then have "FX.is_unit f"
+        using fc FX.one_divides_unit_iff by blast
+      then show ?thesis using prime by (simp add: FX.prime_elem_def)
+    qed
+  qed
+  have list_eq: "FX.list_prod (List.map root_factor as) =
+      poly_prod (List.map root_factor as)"
+    by (induct as) simp_all
+  have fsset: "set (List.map root_factor as) \<subseteq> poly_carrier"
+    using fs by blast
+  have flist: "FX.divides f (FX.list_prod (List.map root_factor as))"
+    using fprod by (simp add: list_eq)
+  have fe: "\<exists>g\<in>set (List.map root_factor as). FX.divides f g"
+    by (rule FX.prime_divides_list_prod [OF prime fsset flist])
+  obtain g where g: "g \<in> set (List.map root_factor as)"
+    and fg: "FX.divides f g"
+    using fe by blast
+  obtain a where a: "a \<in> set as" and geq: "g = root_factor a"
+    using g by auto
+  have ar: "a \<in> R" using a as by blast
+  have frf: "poly_dvd f (root_factor a)"
+    using fg geq FX_divides_iff_poly_dvd [OF fc] by blast
+  have "degree f \<le> degree (root_factor a)"
+    by (rule poly_dvd_degree_le [OF frf fc root_factor_nonzero [OF ar]])
+  then have fd: "degree f = 1"
+    using fpos degree_root_factor [OF ar] by simp
+  obtain z where z: "z \<in> R" and evf: "eval z f = \<zero>"
+    using degree1_has_root [OF fc fd] by blast
+  obtain t where t: "t \<in> poly_carrier" and peq: "p = t \<otimes>\<^sub>P f"
+    using fp unfolding poly_dvd_def by blast
+  have "eval z p = \<zero>"
+    using evf peq t fc z by (simp add: eval_mult)
+  then show thesis using that z by blast
+qed
+
 subsection \<open>The field of remainders modulo an irreducible polynomial\<close>
 
 text \<open>

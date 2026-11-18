@@ -3954,10 +3954,6 @@ lemma set_update_distinct: "\<lbrakk> distinct xs;  n < length xs \<rbrakk> \<Lo
   set(xs[n := x]) = insert x (set xs - {xs!n})"
 by(auto simp: set_eq_iff in_set_conv_nth nth_list_update nth_eq_iff_index_eq)
 
-lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs\<rbrakk> \<Longrightarrow>
-  distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
-  by (smt (verit, del_insts) distinct_conv_nth length_list_update nth_list_update)
-
 lemma set_swap[simp]:
   "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow> set(xs[i := xs!j, j := xs!i]) = set xs"
 by(simp add: set_conv_nth nth_list_update) metis
@@ -3980,6 +3976,10 @@ proof (induct xs)
     thus ?thesis ..
   qed
 qed simp
+
+lemma distinct_swap[simp]: "\<lbrakk> i < size xs; j < size xs \<rbrakk> \<Longrightarrow>
+  distinct(xs[i := xs!j, j := xs!i]) = distinct xs"
+  by (metis card_distinct distinct_card length_list_update set_swap)
 
 lemma distinct_length_filter: "distinct xs \<Longrightarrow> length (filter P xs) = card ({x. P x} Int set xs)"
 by (induct xs) (auto)

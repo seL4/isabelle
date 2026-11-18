@@ -670,12 +670,12 @@ object Find_Facts {
                   if (browser_info) Browser_Info.build_session(context1, session_context)
 
                   Find_Facts.private_data.delete_session(db, session_name)
-                  deps(session_name).proper_session_theories.foreach { name =>
-                    val theory_context = session_context.theory(name.theory)
+                  deps(session_name).used_theories_proper.foreach { thy =>
+                    val theory_context = session_context.theory(thy.name.theory)
                     Build.read_theory(theory_context) match {
-                      case None => progress.echo_warning("No snapshot for theory " + name.theory)
+                      case None => progress.echo_warning("No snapshot for theory " + thy.name.theory)
                       case Some(snapshot) =>
-                        progress.echo("Indexing theory " + quote(name.theory), verbose = true)
+                        progress.echo("Indexing theory " + quote(thy.name.theory), verbose = true)
                         val blocks =
                           make_thy_blocks(options, session, context, document_info, theory_context,
                             snapshot, info.chapter)

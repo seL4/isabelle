@@ -72,7 +72,7 @@ object File_Store {
       val name = Url.append_path(name_prefix, path.expand.implode)
       val bs = Bytes.read(dir + path)
       val size = bs.size
-      val digest = SHA1.digest(bs)
+      val digest = bs.sha1_digest
       val executable = File.is_executable(dir + path)
       val (compressed, body) = bs.maybe_compress(options = compress_options, cache = compress_cache)
       Entry(name, size, digest, executable, compressed, body)

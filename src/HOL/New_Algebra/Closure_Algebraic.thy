@@ -1,10 +1,666 @@
-section \<open>The Algebraic Closure of a Field\<close>
+section \<open>Algebraic Closures of Carrier-Set and Type-Class Fields\<close>
 
 theory Closure_Algebraic
-  imports Closure_Extension Poly_Typeclass Algebraic_Transitivity Extension_Properties
+  imports Closure_Extension Field_Tower_Locale Poly_Divisibility
+    Poly_Typeclass Algebraic_Transitivity Extension_Properties
     Finite_Generated_Extension Linear_System
-    "HOL-Computational_Algebra.Polynomial_Factorial" "HOL-Computational_Algebra.Field_as_Ring"
+    "HOL-Computational_Algebra.Polynomial_Factorial"
+    "HOL-Computational_Algebra.Field_as_Ring"
 begin
+
+text \<open>An algebraic closure in the sense of HOL-Algebra's
+  \<open>algebraic_closure\<close> locale: an algebraic field extension in which
+  every polynomial over the base field splits.\<close>
+locale carrier_algebraic_closure = field_tower_locale K L
+  addition multiplication zero unit
+  for K L :: "'a set"
+    and addition multiplication :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and zero unit :: 'a +
+  assumes algebraic_extension:
+    "\<And>x. x \<in> L \<Longrightarrow> algebraic_over_base x"
+    and base_polynomials_split:
+    "\<And>p. p \<in> base.poly_carrier \<Longrightarrow> ext.splits p"
+
+locale carrier_algebraically_closed = Field L addition multiplication zero unit
+  for L :: "'a set"
+    and addition multiplication :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and zero unit :: 'a +
+  assumes polynomials_split:
+    "\<And>p. p \<in> poly_carrier \<Longrightarrow> splits p"
+
+lemma (in Field) splits_if_roots:
+  assumes roots: "\<And>p. \<lbrakk>p \<in> poly_carrier; 0 < degree p\<rbrakk>
+      \<Longrightarrow> \<exists>x\<in>R. eval x p = zero"
+    and p: "p \<in> poly_carrier"
+  shows "splits p"
+  using p
+proof (induction "degree p" arbitrary: p rule: less_induct)
+  case (less p)
+  show ?case
+  proof (cases "degree p = 0")
+    case True
+    then have "p = poly_const (p 0)"
+      using degree_zero_imp_const [OF less.prems] by simp
+    moreover have "p 0 \<in> R"
+      by (rule poly_carrier_coeff_closed [OF less.prems])
+    ultimately show ?thesis by (metis splits_const)
+  next
+    case False
+    then have pos: "0 < degree p" by simp
+    obtain x where x: "x \<in> R" and root: "eval x p = zero"
+      using roots [OF less.prems pos] by blast
+    obtain q where q: "q \<in> poly_carrier"
+      and peq: "p = poly_mult (root_factor x) q"
+      using factor_theorem [OF less.prems x] root by blast
+    have rf: "root_factor x \<in> poly_carrier"
+      by (rule root_factor_closed [OF x])
+    have pnz: "p \<noteq> poly_zero"
+    proof
+      assume "p = poly_zero"
+      then have "degree p = 0" by simp
+      then show False using pos by simp
+    qed
+    have qnz: "q \<noteq> poly_zero"
+      using peq pnz poly_mult_zero_right [OF rf] by blast
+    have dq: "degree q < degree p"
+      using peq degree_mult [OF rf q
+        root_factor_nonzero [OF x] qnz] degree_root_factor [OF x] by simp
+    have "splits q" by (rule less.hyps [OF dq q])
+    then show ?thesis
+      using peq splits_mult splits_root_factor [OF x] by blast
+  qed
+qed
+
+context carrier_algebraic_closure
+begin
+
+theorem roots_over_carrier:
+  assumes p: "p \<in> ext.poly_carrier" and pos: "0 < ext.degree p"
+  obtains x where "x \<in> L" and "ext.eval x p = zero"
+proof -
+  let ?C = "p ` {..ext.degree p}"
+  have finC: "finite ?C" by simp
+  have CL: "?C \<subseteq> L"
+    using p ext.poly_carrier_coeff_closed by blast
+  have algC: "\<forall>x\<in>?C. algebraic_over_base x"
+    using CL algebraic_extension by blast
+  obtain E B where FE: "Field E addition multiplication zero unit"
+    and KEsub: "K \<subseteq> E" and ELsub: "E \<subseteq> L"
+    and CE: "?C \<subseteq> E"
+    and finB: "finite B" and BE: "B \<subseteq> E"
+    and ESpan: "E \<subseteq> vs.span B"
+    using finite_algebraic_set_in_finite_extension [OF finC algC] by blast
+  interpret F: Field E addition multiplication zero unit by (rule FE)
+  interpret KE: field_tower_locale K E addition multiplication zero unit
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        base.Field_axioms FE KEsub)
+  interpret EL: field_tower_locale E L addition multiplication zero unit
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        FE ext.Field_axioms ELsub)
+  interpret Chain: field_tower_chain_locale K E L addition multiplication zero unit
+    by (rule field_tower_chain_locale.intro [OF KE.field_tower_locale_axioms
+      EL.field_tower_locale_axioms])
+  have ESpanKE: "E \<subseteq> KE.vs.span B"
+    using ESpan Chain.middle_span_eq [OF BE] by simp
+  have pE: "p \<in> F.poly_carrier"
+  proof (rule F.poly_carrierI)
+    show "finite {i. p i \<noteq> zero}"
+      by (rule ext.poly_carrier_finite [OF p])
+    fix i
+    show "p i \<in> E"
+    proof (cases "i \<le> ext.degree p")
+      case True
+      then show ?thesis using CE by blast
+    next
+      case False
+      have "p i = zero"
+        by (rule ext.coeff_gt_degree [OF p]) (use False in simp)
+      then show ?thesis by simp
+    qed
+  qed
+  have degreeE: "F.degree p = ext.degree p"
+    by (simp add: F.degree_def ext.degree_def)
+  obtain Q where QK: "Q \<in> base.poly_carrier"
+    and Qnz: "Q \<noteq> base.poly_zero"
+    and modE: "F.pmod Q p = F.poly_zero"
+    using KE.finite_spanning_polynomial_multiple
+      [OF finB BE ESpanKE pE] pos degreeE by auto
+  have QE: "Q \<in> F.poly_carrier"
+    using KE.base_poly_carrier_subset_ext QK by blast
+  have pEnz: "p \<noteq> F.poly_zero"
+    using pos degreeE by auto
+  have dvdE: "F.poly_dvd p Q"
+    using F.poly_dvd_iff_pmod_zero [OF pE pEnz QE] modE by blast
+  obtain q where qE: "q \<in> F.poly_carrier"
+    and Qeq: "Q = F.poly_mult q p"
+    using dvdE unfolding F.poly_dvd_def by blast
+  have qL: "q \<in> ext.poly_carrier"
+    using EL.base_poly_carrier_subset_ext qE by blast
+  have QeqL: "Q = ext.poly_mult q p"
+    using Qeq EL.poly_mult_agrees [OF qE pE] by simp
+  have dvdL: "ext.poly_dvd p Q"
+    using qL QeqL unfolding ext.poly_dvd_def by blast
+  have QL: "Q \<in> ext.poly_carrier"
+    using base_poly_carrier_subset_ext QK by blast
+  have QLn: "Q \<noteq> ext.poly_zero"
+    using Qnz by (simp add: base.poly_zero_def ext.poly_zero_def)
+  have split: "ext.splits Q"
+    by (rule base_polynomials_split [OF QK])
+  obtain x where x: "x \<in> L" and root: "ext.eval x p = zero"
+    using ext.split_multiple_has_root [OF p pos QL QLn split dvdL] by blast
+  show thesis by (rule that [OF x root])
+qed
+
+end
+
+sublocale carrier_algebraic_closure \<subseteq>
+  carrier_algebraically_closed L addition multiplication zero unit
+proof (intro carrier_algebraically_closed.intro ext.Field_axioms
+    carrier_algebraically_closed_axioms.intro)
+  fix p assume p: "p \<in> ext.poly_carrier"
+  show "ext.splits p"
+  proof (rule ext.splits_if_roots [OF _ p])
+    fix q assume q: "q \<in> ext.poly_carrier" and pos: "0 < ext.degree q"
+    obtain x where "x \<in> L" "ext.eval x q = zero"
+      by (rule roots_over_carrier [OF q pos])
+    then show "\<exists>x\<in>L. ext.eval x q = zero" by blast
+  qed
+qed
+
+subsection \<open>Algebraic elements of a splitting extension\<close>
+
+text \<open>For a locale field, algebraicity is expressed directly in the fixed splitting extension:
+  a nonzero polynomial over the base field annihilates the element after its coefficients are
+  embedded as indexed-polynomial constants.  This formulation uses only carrier-set fields.\<close>
+
+context Field
+begin
+
+lemma splits_pos_degree_has_root:
+  assumes sp: "splits p" and deg: "0 < degree p"
+  obtains x where "x \<in> R" and "eval x p = \<zero>"
+proof -
+  obtain c as where c: "c \<in> R" and as: "set as \<subseteq> R"
+    and peq: "p = poly_const c \<otimes>\<^sub>P poly_prod (List.map root_factor as)"
+    using sp by (rule splitsE)
+  have ne: "as \<noteq> []"
+  proof
+    assume "as = []"
+    then have "p = poly_const c"
+      using peq c by (simp add: poly_mult_one_right poly_const_closed)
+    then show False using deg degree_const_le by simp
+  qed
+  obtain x bs where xbs: "as = x # bs"
+    using ne by (cases as) auto
+  have x: "x \<in> R" and bs: "set bs \<subseteq> R"
+    using as xbs by auto
+  have pc: "poly_prod (List.map root_factor bs) \<in> poly_carrier"
+    using bs by (intro poly_prod_closed) (auto intro: root_factor_closed)
+  have pa: "poly_prod (List.map root_factor as) \<in> poly_carrier"
+    using as by (intro poly_prod_closed) (auto intro: root_factor_closed)
+  have ev: "eval x (poly_prod (List.map root_factor as)) = \<zero>"
+    unfolding xbs
+    using x pc by (simp add: eval_mult root_factor_closed)
+  have "eval x p = \<zero>"
+    unfolding peq
+    using c x pa ev by (simp add: eval_mult poly_const_closed)
+  then show thesis using that x by blast
+qed
+
+definition algebraic_in_split :: "'a ipoly set"
+  where "algebraic_in_split =
+    {x \<in> ecarrier splitting_extension.
+       \<exists>P \<in> poly_carrier.
+         P \<noteq> \<zero>\<^sub>P \<and> eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I}"
+
+lemma algebraic_in_splitI:
+  assumes "x \<in> ecarrier splitting_extension"
+    and "P \<in> poly_carrier" and "P \<noteq> \<zero>\<^sub>P"
+    and "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+  shows "x \<in> algebraic_in_split"
+  using assms unfolding algebraic_in_split_def by blast
+
+lemma algebraic_in_splitD:
+  assumes "x \<in> algebraic_in_split"
+  obtains P where "x \<in> ecarrier splitting_extension"
+    and "P \<in> poly_carrier" and "P \<noteq> \<zero>\<^sub>P"
+    and "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+  using assms unfolding algebraic_in_split_def by blast
+
+lemma algebraic_in_split_subset:
+  "algebraic_in_split \<subseteq> ecarrier splitting_extension"
+  by (auto simp: algebraic_in_split_def)
+
+lemma base_mem_splitting_extension:
+  assumes "a \<in> R"
+  shows "ipoly_const a \<in> ecarrier splitting_extension"
+  using assms splitting_extension_spec is_extension_const_mem by blast
+
+lemma base_image_field:
+  "Field (ipoly_const ` R) (eadd splitting_extension) (emult splitting_extension)
+    \<zero>\<^sub>I \<one>\<^sub>I"
+proof -
+  have ext: "is_extension splitting_extension"
+    using splitting_extension_spec by blast
+  have "Field (ipoly_const ` R) (eadd splitting_extension) (emult splitting_extension)
+    (ipoly_const \<zero>) (ipoly_const \<one>)"
+    apply (rule field_image_transport [OF ipoly_const_inj_on])
+    by (auto simp: is_extension_const_add [OF ext] is_extension_const_mult [OF ext])
+  then show ?thesis by simp
+qed
+
+lemma splitting_field_tower:
+  "field_tower_locale (ipoly_const ` R) (ecarrier splitting_extension)
+    (eadd splitting_extension) (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I"
+  by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+      base_image_field splitting_extension_field)
+    (use base_mem_splitting_extension in blast)
+
+
+theorem algebraic_in_split_field:
+  "Field algebraic_in_split (eadd splitting_extension)
+    (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R"
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_field_tower)
+  have zero_lift: "lift_poly \<zero>\<^sub>P = T.base.poly_zero"
+    by (simp add: lift_poly_def poly_zero_def T.base.poly_zero_def)
+  have nzlift: "lift_poly P \<noteq> T.base.poly_zero"
+    if Pnz: "P \<noteq> \<zero>\<^sub>P" for P
+  proof -
+    obtain k where k: "P k \<noteq> \<zero>"
+      using Pnz by (auto simp: poly_zero_def fun_eq_iff)
+    then have "ipoly_const (P k) \<noteq> \<zero>\<^sub>I"
+      by (metis ipoly_const_coeff ipoly_zero_def)
+    then show ?thesis
+      by (auto simp: lift_poly_def T.base.poly_zero_def fun_eq_iff)
+  qed
+  have lift_base: "lift_poly P \<in> T.base.poly_carrier"
+    if P: "P \<in> poly_carrier" for P
+  proof (rule T.base.poly_carrierI)
+    have "{i. lift_poly P i \<noteq> \<zero>\<^sub>I} \<subseteq> {i. P i \<noteq> \<zero>}"
+      by (auto simp: lift_poly_def ipoly_const_def ipoly_zero_def)
+    then show "finite {i. lift_poly P i \<noteq> \<zero>\<^sub>I}"
+      using poly_carrier_finite [OF P] by (rule finite_subset)
+    show "\<And>i. lift_poly P i \<in> ipoly_const ` R"
+      using P by (auto simp: lift_poly_def poly_carrier_coeff_closed)
+  qed
+  have unlift: "p \<in> T.base.poly_carrier \<Longrightarrow>
+    \<exists>P\<in>poly_carrier. lift_poly P = p" for p
+  proof -
+    assume p: "p \<in> T.base.poly_carrier"
+    define P where "P = (\<lambda>i. SOME z. z \<in> R \<and> ipoly_const z = p i)"
+    have coeff: "P i \<in> R \<and> ipoly_const (P i) = p i" for i
+    proof -
+      have im: "p i \<in> ipoly_const ` R"
+        by (rule T.base.poly_carrier_coeff_closed [OF p])
+      obtain z where z: "z \<in> R" "p i = ipoly_const z"
+        using im by (rule imageE)
+      have "\<exists>z. z \<in> R \<and> ipoly_const z = p i"
+        by (rule exI [of _ z]) (simp add: z)
+      then show ?thesis unfolding P_def
+        by (rule someI_ex)
+    qed
+    have zero_coeff: "p i = \<zero>\<^sub>I \<longleftrightarrow> P i = \<zero>" for i
+    proof
+      assume "p i = \<zero>\<^sub>I"
+      then show "P i = \<zero>"
+        using coeff [of i] by (metis ipoly_const_coeff ipoly_const_zero)
+    next
+      assume "P i = \<zero>"
+      then show "p i = \<zero>\<^sub>I" using coeff [of i] by simp
+    qed
+    have supp: "{i. P i \<noteq> \<zero>} = {i. p i \<noteq> \<zero>\<^sub>I}"
+      using zero_coeff by blast
+    have Pc: "P \<in> poly_carrier"
+    proof (rule poly_carrierI)
+      show "finite {i. P i \<noteq> \<zero>}"
+        using T.base.poly_carrier_finite [OF p] by (simp add: supp)
+      show "\<And>i. P i \<in> R" using coeff by blast
+    qed
+    have "lift_poly P = p"
+    proof (rule ext)
+      fix i
+      show "lift_poly P i = p i"
+        using coeff [of i] by simp
+    qed
+    then show ?thesis using Pc by blast
+  qed
+  have eq: "algebraic_in_split = T.algebraic_carrier"
+  proof
+    show "algebraic_in_split \<subseteq> T.algebraic_carrier"
+    proof
+      fix x assume "x \<in> algebraic_in_split"
+      then obtain P where x: "x \<in> ecarrier splitting_extension"
+        and P: "P \<in> poly_carrier" and nz: "P \<noteq> \<zero>\<^sub>P"
+        and ev: "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+        by (rule algebraic_in_splitD)
+      have "T.algebraic_over_base x"
+        by (rule T.algebraic_over_baseI [OF x lift_base [OF P] nzlift [OF nz] ev])
+      then show "x \<in> T.algebraic_carrier"
+        by (simp add: T.algebraic_carrier_def)
+    qed
+    show "T.algebraic_carrier \<subseteq> algebraic_in_split"
+    proof
+      fix x assume "x \<in> T.algebraic_carrier"
+      then have ax: "T.algebraic_over_base x"
+        by (simp add: T.algebraic_carrier_def)
+      obtain p where x: "x \<in> ecarrier splitting_extension"
+        and p: "p \<in> T.base.poly_carrier"
+        and nz: "p \<noteq> T.base.poly_zero"
+        and ev: "eeval splitting_extension x p = \<zero>\<^sub>I"
+        using ax by (rule T.algebraic_over_baseD)
+      obtain P where P: "P \<in> poly_carrier" and lift: "lift_poly P = p"
+        using unlift [OF p] by blast
+      have Pnz: "P \<noteq> \<zero>\<^sub>P"
+        using nz lift zero_lift by blast
+      have evP: "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+        using ev lift by simp
+      show "x \<in> algebraic_in_split"
+        by (rule algebraic_in_splitI [OF x P Pnz evP])
+    qed
+  qed
+  show ?thesis using T.algebraic_carrier_field by (simp add: eq)
+qed
+
+
+lemma unlift_base_polynomial:
+  assumes p: "p \<in> Ring.poly_carrier (ipoly_const ` R) \<zero>\<^sub>I"
+  obtains P where "P \<in> poly_carrier" and "lift_poly P = p"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R"
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_field_tower)
+  have pT: "p \<in> T.base.poly_carrier" using p by simp
+  define P where "P = (\<lambda>i. SOME z. z \<in> R \<and> ipoly_const z = p i)"
+  have coeff: "P i \<in> R \<and> ipoly_const (P i) = p i" for i
+  proof -
+    have im: "p i \<in> ipoly_const ` R"
+      by (rule T.base.poly_carrier_coeff_closed [OF pT])
+    obtain z where z: "z \<in> R" "p i = ipoly_const z"
+      using im by (rule imageE)
+    have "\<exists>z. z \<in> R \<and> ipoly_const z = p i"
+      by (rule exI [of _ z]) (simp add: z)
+    then show ?thesis unfolding P_def by (rule someI_ex)
+  qed
+  have zero_coeff: "p i = \<zero>\<^sub>I \<longleftrightarrow> P i = \<zero>" for i
+  proof
+    assume "p i = \<zero>\<^sub>I"
+    then show "P i = \<zero>"
+      using coeff [of i] by (metis ipoly_const_coeff ipoly_const_zero)
+  next
+    assume "P i = \<zero>"
+    then show "p i = \<zero>\<^sub>I" using coeff [of i] by simp
+  qed
+  have supp: "{i. P i \<noteq> \<zero>} = {i. p i \<noteq> \<zero>\<^sub>I}"
+    using zero_coeff by blast
+  have Pc: "P \<in> poly_carrier"
+  proof (rule poly_carrierI)
+    show "finite {i. P i \<noteq> \<zero>}"
+      using T.base.poly_carrier_finite [OF pT] by (simp add: supp)
+    show "\<And>i. P i \<in> R" using coeff by blast
+  qed
+  have "lift_poly P = p"
+  proof (rule ext)
+    fix i
+    show "lift_poly P i = p i"
+      using coeff [of i] by simp
+  qed
+  then show thesis by (rule that [OF Pc])
+qed
+
+lemma lift_poly_base_carrier:
+  assumes P: "P \<in> poly_carrier"
+  shows "lift_poly P \<in> Ring.poly_carrier (ipoly_const ` R) \<zero>\<^sub>I"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R"
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_field_tower)
+  show ?thesis
+  proof (rule T.base.poly_carrierI)
+  have "{i. lift_poly P i \<noteq> \<zero>\<^sub>I} \<subseteq> {i. P i \<noteq> \<zero>}"
+    by (auto simp: lift_poly_def ipoly_const_def ipoly_zero_def)
+  then show "finite {i. lift_poly P i \<noteq> \<zero>\<^sub>I}"
+    using poly_carrier_finite [OF P] by (rule finite_subset)
+  show "\<And>i. lift_poly P i \<in> ipoly_const ` R"
+    using P by (auto simp: lift_poly_def poly_carrier_coeff_closed)
+  qed
+qed
+
+lemma lift_poly_base_nonzero:
+  assumes Pnz: "P \<noteq> \<zero>\<^sub>P"
+  shows "lift_poly P \<noteq> Ring.poly_zero \<zero>\<^sub>I"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R"
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_field_tower)
+  obtain k where k: "P k \<noteq> \<zero>"
+    using Pnz by (auto simp: poly_zero_def fun_eq_iff)
+  then have "ipoly_const (P k) \<noteq> \<zero>\<^sub>I"
+    by (metis ipoly_const_coeff ipoly_zero_def)
+  then show ?thesis
+    by (auto simp: lift_poly_def T.base.poly_zero_def fun_eq_iff)
+qed
+
+lemma algebraic_in_split_iff_base_algebraic:
+  "x \<in> algebraic_in_split \<longleftrightarrow>
+    x \<in> ecarrier splitting_extension \<and>
+    (\<exists>p \<in> Ring.poly_carrier (ipoly_const ` R) \<zero>\<^sub>I.
+      p \<noteq> Ring.poly_zero \<zero>\<^sub>I \<and>
+      eeval splitting_extension x p = \<zero>\<^sub>I)"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R"
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_field_tower)
+  have eq: "x \<in> algebraic_in_split \<longleftrightarrow> T.algebraic_over_base x"
+  proof
+  assume "x \<in> algebraic_in_split"
+  then obtain P where x: "x \<in> ecarrier splitting_extension"
+    and P: "P \<in> poly_carrier" and nz: "P \<noteq> \<zero>\<^sub>P"
+    and ev: "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+    by (rule algebraic_in_splitD)
+  show "T.algebraic_over_base x"
+    by (rule T.algebraic_over_baseI
+      [OF x lift_poly_base_carrier [OF P] lift_poly_base_nonzero [OF nz] ev])
+next
+  assume ax: "T.algebraic_over_base x"
+  obtain p where x: "x \<in> ecarrier splitting_extension"
+    and p: "p \<in> T.base.poly_carrier"
+    and nz: "p \<noteq> T.base.poly_zero"
+    and ev: "eeval splitting_extension x p = \<zero>\<^sub>I"
+    using ax by (rule T.algebraic_over_baseD)
+  obtain P where P: "P \<in> poly_carrier" and lift: "lift_poly P = p"
+    using unlift_base_polynomial [OF p] by blast
+  have Pnz: "P \<noteq> \<zero>\<^sub>P"
+    using nz lift by (auto simp: lift_poly_def poly_zero_def T.base.poly_zero_def)
+  show "x \<in> algebraic_in_split"
+    by (rule algebraic_in_splitI [OF x P Pnz]) (use ev lift in simp)
+  qed
+  show ?thesis using eq by (simp add: T.algebraic_over_base_def)
+qed
+
+lemma base_algebraic_in_split:
+  assumes a: "a \<in> R"
+  shows "ipoly_const a \<in> algebraic_in_split"
+proof -
+  have ext: "is_extension splitting_extension"
+    using splitting_extension_spec by blast
+  interpret W: Field "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_extension_field)
+  have rf: "lift_poly (root_factor a) = W.root_factor (ipoly_const a)"
+    unfolding lift_poly_def
+    apply (rule root_factor_hom [where mult=multiplication
+          and bmult="emult splitting_extension"])
+    using a
+    by (auto intro: base_mem_splitting_extension Ring_axioms W.Ring_axioms
+          commutative_ring_axioms W.commutative_ring_axioms
+        simp: is_extension_const_add [OF ext] is_extension_const_mult [OF ext])
+  have ev: "eeval splitting_extension (ipoly_const a) (lift_poly (root_factor a)) = \<zero>\<^sub>I"
+    using rf W.eval_root_factor [OF base_mem_splitting_extension [OF a]] by simp
+  show ?thesis
+    by (rule algebraic_in_splitI [OF base_mem_splitting_extension [OF a]
+          root_factor_closed [OF a] root_factor_nonzero [OF a] ev])
+qed
+
+lemma base_subset_algebraic_in_split:
+  "ipoly_const ` R \<subseteq> algebraic_in_split"
+  using base_algebraic_in_split by blast
+
+lemma lift_poly_degree:
+  "Ring.degree \<zero>\<^sub>I (lift_poly P) = degree P"
+proof -
+  have "{i. lift_poly P i \<noteq> \<zero>\<^sub>I} = {i. P i \<noteq> \<zero>}"
+    by (auto simp: lift_poly_def ipoly_const_def ipoly_zero_def fun_eq_iff)
+  then show ?thesis
+    by (simp add: Ring.degree_def [OF ipoly_ring] degree_def)
+qed
+
+lemma splitting_root_algebraic:
+  assumes "P \<in> poly_carrier" and "P \<noteq> \<zero>\<^sub>P"
+    and "x \<in> ecarrier splitting_extension"
+    and "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+  shows "x \<in> algebraic_in_split"
+  by (rule algebraic_in_splitI [OF assms(3) assms(1) assms(2) assms(4)])
+
+theorem splitting_extension_has_algebraic_root:
+  assumes P: "P \<in> poly_carrier" and pos: "0 < degree P"
+  obtains x where "x \<in> algebraic_in_split"
+    and "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+proof -
+  interpret W: Field "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule splitting_extension_field)
+  have sp: "W.splits (lift_poly P)"
+    by (rule splitting_extension_splits [OF P])
+  have deg: "0 < W.degree (lift_poly P)"
+    using pos by (simp add: lift_poly_degree)
+  obtain x where x: "x \<in> ecarrier splitting_extension"
+    and ev: "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+    using W.splits_pos_degree_has_root [OF sp deg] by blast
+  have nz: "P \<noteq> \<zero>\<^sub>P" using pos by auto
+  show thesis
+    by (rule that [OF splitting_root_algebraic [OF P nz x ev] ev])
+qed
+
+theorem algebraic_in_split_splits:
+  assumes P: "P \<in> poly_carrier"
+  shows "Field.splits algebraic_in_split (eadd splitting_extension)
+    (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I (lift_poly P)"
+proof -
+  interpret A: Field algebraic_in_split "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule algebraic_in_split_field)
+  interpret T: field_tower_locale algebraic_in_split
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        A.Field_axioms splitting_extension_field algebraic_in_split_subset)
+  have liftA: "lift_poly P \<in> A.poly_carrier"
+  proof (rule A.poly_carrierI)
+    have "{i. lift_poly P i \<noteq> \<zero>\<^sub>I} \<subseteq> {i. P i \<noteq> \<zero>}"
+      by (auto simp: lift_poly_def ipoly_const_def ipoly_zero_def)
+    then show "finite {i. lift_poly P i \<noteq> \<zero>\<^sub>I}"
+      using poly_carrier_finite [OF P] by (rule finite_subset)
+    show "\<And>i. lift_poly P i \<in> algebraic_in_split"
+      using P by (simp add: base_algebraic_in_split poly_carrier_coeff_closed)
+  qed
+  show ?thesis
+  proof (cases "P = \<zero>\<^sub>P")
+    case True
+    have "lift_poly P = A.poly_zero"
+      using True by (simp add: lift_poly_def poly_zero_def A.poly_zero_def)
+    then show ?thesis by simp
+  next
+    case False
+    show ?thesis
+    proof (rule T.splits_descends [OF liftA splitting_extension_splits [OF P]])
+      fix x
+      assume x: "x \<in> ecarrier splitting_extension"
+        and ev: "eeval splitting_extension x (lift_poly P) = \<zero>\<^sub>I"
+      show "x \<in> algebraic_in_split"
+        by (rule splitting_root_algebraic [OF P False x ev])
+    qed
+  qed
+qed
+
+theorem algebraic_in_split_is_algebraic_closure:
+  "carrier_algebraic_closure (ipoly_const ` R) algebraic_in_split
+    (eadd splitting_extension) (emult splitting_extension)
+    \<zero>\<^sub>I \<one>\<^sub>I"
+proof -
+  interpret T: field_tower_locale "ipoly_const ` R" algebraic_in_split
+    "eadd splitting_extension" "emult splitting_extension"
+    "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        base_image_field algebraic_in_split_field base_subset_algebraic_in_split)
+  interpret AL: field_tower_locale algebraic_in_split
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        algebraic_in_split_field splitting_extension_field algebraic_in_split_subset)
+  show ?thesis
+  proof (intro carrier_algebraic_closure.intro T.field_tower_locale_axioms
+      carrier_algebraic_closure_axioms.intro)
+    fix x assume x: "x \<in> algebraic_in_split"
+    show "T.algebraic_over_base x"
+    proof -
+      obtain q where q: "q \<in> T.base.poly_carrier"
+        and qnz: "q \<noteq> T.base.poly_zero"
+        and ev: "eeval splitting_extension x q = \<zero>\<^sub>I"
+        using x algebraic_in_split_iff_base_algebraic by blast
+      have qA: "q \<in> T.ext.poly_carrier"
+        using T.base_poly_carrier_subset_ext q by blast
+      have "T.ext.eval x q = \<zero>\<^sub>I"
+        using ev AL.eval_agrees_on_base [OF x qA] by simp
+      then show ?thesis by (rule T.algebraic_over_baseI [OF x q qnz])
+    qed
+  next
+    fix q assume q: "q \<in> T.base.poly_carrier"
+    obtain P where P: "P \<in> poly_carrier" and lift: "lift_poly P = q"
+      using unlift_base_polynomial [OF q] by blast
+    show "T.ext.splits q"
+      using algebraic_in_split_splits [OF P] by (simp add: lift)
+  qed
+qed
+
+text \<open>Every positive-degree polynomial over the algebraic part of the
+  splitting extension has a root there.  Its finitely many coefficients lie
+  in a finite extension of the base field.  The remainder-space argument
+  supplies a nonzero base polynomial divisible by it; that base polynomial
+  splits in the algebraic carrier.\<close>
+theorem algebraic_in_split_algebraically_closed:
+  assumes p: "p \<in> Ring.poly_carrier algebraic_in_split \<zero>\<^sub>I"
+    and pos: "0 < Ring.degree \<zero>\<^sub>I p"
+  obtains x where "x \<in> algebraic_in_split"
+    and "eeval splitting_extension x p = \<zero>\<^sub>I"
+proof -
+  interpret C: carrier_algebraic_closure "ipoly_const ` R" algebraic_in_split
+    "eadd splitting_extension" "emult splitting_extension"
+    "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (rule algebraic_in_split_is_algebraic_closure)
+  interpret AL: field_tower_locale algebraic_in_split
+    "ecarrier splitting_extension" "eadd splitting_extension"
+    "emult splitting_extension" "\<zero>\<^sub>I" "\<one>\<^sub>I"
+    by (intro field_tower_locale.intro field_tower_locale_axioms.intro
+        algebraic_in_split_field splitting_extension_field algebraic_in_split_subset)
+  obtain x where x: "x \<in> algebraic_in_split"
+    and ev: "C.ext.eval x p = \<zero>\<^sub>I"
+    using C.roots_over_carrier [OF p pos] by blast
+  have "eeval splitting_extension x p = \<zero>\<^sub>I"
+    using ev AL.eval_agrees_on_base [OF x p] by simp
+  then show thesis by (rule that [OF x])
+qed
+
+end
+
+section \<open>The Algebraic Closure as a Field Type\<close>
 
 text \<open>
   \<open>Closure_Extension\<close> produces, for any field, an extension inside the indexed
@@ -13,11 +669,13 @@ text \<open>
   root index, and it is not algebraic over the base.  The closure is cut out of it as the set of
   elements algebraic over the base.
 
-  Rather than redo the theory of algebraicity over a subfield for locale fields, we transport the
-  extension onto a type.  The development's field-extension and Galois theory already works with an
-  ambient type-class field and subfields as carrier sets, and once the extension is a type all of it
-  applies --- in particular @{thm [source] subfield_algebraic_elements}, which is the statement that
-  the algebraic elements form a subfield.
+  The closure theorem in this theory transports the extension onto a type.  The development's
+  field-extension and Galois theory already works with an ambient type-class field and subfields as
+  carrier sets, and once the extension is a type all of it applies --- in particular
+  @{thm [source] subfield_algebraic_elements}, which says that the algebraic elements form a subfield.
+  The preceding part proves algebraic closure directly for carrier-set fields.  The development
+  below also transports the splitting extension onto a type, providing the type-class field used
+  by the field-extension and Galois theories.
 \<close>
 
 subsection \<open>An extension of the whole type in which every polynomial splits\<close>
@@ -28,11 +686,7 @@ begin
 text \<open>A definite choice among the extensions supplied by @{thm [source] exists_extension_with_roots},
   so that the type constructed from it below depends on nothing but @{typ 'a}.\<close>
 
-definition wide_extension
-  where "wide_extension \<equiv>
-    (SOME M. is_extension M
-             \<and> (\<forall>P \<in> poly_carrier.
-                  Field.splits (ecarrier M) (eadd M) (emult M) ipoly_zero ipoly_one (lift_poly P)))"
+definition wide_extension where "wide_extension = splitting_extension"
 
 lemma wide_extension_spec:
   "is_extension wide_extension
@@ -40,7 +694,7 @@ lemma wide_extension_spec:
         Field.splits (ecarrier wide_extension) (eadd wide_extension) (emult wide_extension)
                      ipoly_zero ipoly_one (lift_poly P))"
   unfolding wide_extension_def
-  by (rule someI_ex) (metis exists_extension_with_roots)
+  by (rule splitting_extension_spec)
 
 lemmas is_extension_wide_extension = wide_extension_spec [THEN conjunct1]
 

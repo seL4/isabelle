@@ -1794,14 +1794,14 @@ class ring_char_0 = ring_1 + semiring_char_0
 lemma (in ordered_semiring_1) of_nat_0_le_iff [simp]: "0 \<le> of_nat n"
   by (induct n) simp_all
 
+lemma (in ordered_semiring_1) of_nat_mono[simp]: "i \<le> j \<Longrightarrow> of_nat i \<le> of_nat j"
+  by (auto simp: le_iff_add intro!: add_increasing2)
+
 context linordered_nonzero_semiring
 begin
 
 lemma of_nat_less_0_iff [simp]: "\<not> of_nat m < 0"
   by (simp add: not_less)
-
-lemma of_nat_mono[simp]: "i \<le> j \<Longrightarrow> of_nat i \<le> of_nat j"
-  by (auto simp: le_iff_add intro!: add_increasing2)
 
 lemma of_nat_less_iff [simp]: "of_nat m < of_nat n \<longleftrightarrow> m < n"
 proof(induct m n rule: diff_induct)

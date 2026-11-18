@@ -1714,6 +1714,33 @@ proof -
   qed
 qed
 
+text \<open>Choose one splitting extension for each locale field.  The carrier may be much larger than
+  the algebraic closure; the algebraic elements will be cut out of it separately.\<close>
+definition splitting_extension :: "'a iext"
+  where "splitting_extension =
+    (SOME M. is_extension M
+       \<and> (\<forall>P \<in> poly_carrier.
+          Field.splits (ecarrier M) (eadd M) (emult M) \<zero>\<^sub>I \<one>\<^sub>I (lift_poly P)))"
+
+lemma splitting_extension_spec:
+  "is_extension splitting_extension
+   \<and> (\<forall>P \<in> poly_carrier.
+      Field.splits (ecarrier splitting_extension) (eadd splitting_extension)
+        (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I (lift_poly P))"
+  unfolding splitting_extension_def
+  by (rule someI_ex) (metis exists_extension_with_roots)
+
+lemma splitting_extension_field:
+  "Field (ecarrier splitting_extension) (eadd splitting_extension)
+    (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I"
+  using splitting_extension_spec is_extension_field by blast
+
+lemma splitting_extension_splits:
+  "P \<in> poly_carrier \<Longrightarrow>
+    Field.splits (ecarrier splitting_extension) (eadd splitting_extension)
+      (emult splitting_extension) \<zero>\<^sub>I \<one>\<^sub>I (lift_poly P)"
+  using splitting_extension_spec by blast
+
 end
 
 end

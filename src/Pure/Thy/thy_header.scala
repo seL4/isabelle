@@ -246,10 +246,10 @@ sealed case class Thy_Header(
         error("Illegal load command specification for kind: " + quote(spec.kind) +
           Position.here(spec.kind_pos))
       }
-      if (!Command_Span.load_commands.exists(_.name == spec.load_command)) {
+      if (!Command_Span.load_commands.isDefinedAt(spec.load_command)) {
         val completion =
           for {
-            load_command <- Command_Span.load_commands
+            load_command <- Command_Span.list_load_commands
             name = load_command.name
             if name.startsWith(spec.load_command)
           } yield (name, (Markup.LOAD_COMMAND, name))

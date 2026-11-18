@@ -479,18 +479,17 @@ object Export {
     def theory(theory: String, other_cache: Option[Term.Cache] = None): Theory_Context =
       new Theory_Context(session_context, theory, other_cache)
 
-    def get_source_file(name: String): Option[Store.Source_File] = {
-      val store = database_context.store
-      (for {
-        database <- db_hierarchy.iterator
-        file <- store.read_sources(database.db, database.session, name = name).iterator
-      } yield file).nextOption()
-    }
+    def get_source_file(name: String): Option[Store.Source_File] =
+      if (name.isEmpty) None
+      else {
+        val store = database_context.store
+        (for {
+          database <- db_hierarchy.iterator
+          file <- store.read_sources(database.db, database.session, name = name).iterator
+        } yield file).nextOption()
+      }
 
-    def source_file(name: String): Store.Source_File =
-      get_source_file(name).getOrElse(error("Missing session source file " + quote(name)))
-
-    def theory_source(theory: String, unicode_symbols: Boolean = false): String = {
+    def get_theory_source(theory: String, unicode_symbols: Boolean = false): Option[String] = {
       def snapshot_source: Option[String] =
         for {
           snapshot <- document_snapshot
@@ -504,10 +503,12 @@ object Export {
         for {
           (_, name) <- theory_context.files0(permissive = true).headOption
           file <- get_source_file(name)
-        } yield Symbol.output(unicode_symbols, file.bytes.text)
+          text = file.bytes.text
+          if text.nonEmpty
+        } yield Symbol.output(unicode_symbols, text)
       }
 
-      snapshot_source orElse db_source getOrElse ""
+      snapshot_source orElse db_source
     }
 
     def classpath(): List[File.Content] = {

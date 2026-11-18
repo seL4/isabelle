@@ -14,7 +14,6 @@ sig
   val local_setup: (Proof.context -> Proof.context) -> unit
   val local_setup_result: (Proof.context -> 'a * Proof.context) -> 'a
   val install_pure: theory -> unit
-  val get_pure: unit -> theory
   val get_pure_bootstrap: unit -> theory
   val get_markup: theory -> Markup.T
   val check_theory: {get: string -> theory, all: unit -> string list} ->
@@ -63,11 +62,6 @@ fun local_setup_result f = Context.>>> (Context.map_proof_result f);
 val pure: theory Single_Assignment.var = Single_Assignment.var "pure";
 
 fun install_pure thy = Single_Assignment.assign pure thy;
-
-fun get_pure () =
-  (case Single_Assignment.peek pure of
-    SOME thy => thy
-  | NONE => raise Fail "Theory Pure not present");
 
 fun get_pure_bootstrap () =
   (case Single_Assignment.peek pure of

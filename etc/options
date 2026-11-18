@@ -209,6 +209,12 @@ public option ML_system_64 : bool = false for build build_sync
 public option ML_system_apple : bool = true for build
   -- "prefer native Apple/ARM64 platform (change requires restart)"
 
+option ML_debug : string = ""
+  -- "comma-separated list of Poly/ML runtime debug flags (see \"poly --help\")"
+
+option ML_logfile : string = ""
+  -- "output for Poly/ML runtime debug messages (log file or \"\" for stdout; \"{session}\" is replaced by the session name, \"{timestamp}\" by the start time in UTC, ISO 8601 basic format)"
+
 
 section "Build Process"
 
@@ -461,10 +467,10 @@ public option ssh_alive_count_max : int = 3
 
 section "Phabricator / Phorge"
 
-option phabricator_version_arcanist : string = "80906355979a8d35f85ee7e075e510d89f7f57ca"
+option phabricator_version_arcanist : string = "922ffd9dd8233e29e269bc28c19931a39a0ef46d"
   -- "repository version for arcanist"
 
-option phabricator_version_phabricator : string = "ee9991d3c995470b6b5f2c736a9abfa70e01bdc8"
+option phabricator_version_phabricator : string = "7d2dd8899c3b31bfd7a61d8e0de94b9b9a675615"
   -- "repository version for phabricator"
 
 

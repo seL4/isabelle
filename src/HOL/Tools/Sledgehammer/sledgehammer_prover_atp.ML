@@ -9,7 +9,10 @@ ATPs as Sledgehammer provers.
 signature SLEDGEHAMMER_PROVER_ATP =
 sig
   type mode = Sledgehammer_Prover.mode
-  type prover = Sledgehammer_Prover.prover
+  type params = Sledgehammer_Prover.params
+  type prover_problem = Sledgehammer_Prover.prover_problem
+  type prover_slice = Sledgehammer_Prover.prover_slice
+  type prover_result = Sledgehammer_Prover.prover_result
 
   val atp_problem_dest_dir : string Config.T
   val atp_proof_dest_dir : string Config.T
@@ -17,7 +20,8 @@ sig
   val atp_completish : int Config.T
   val atp_full_names : bool Config.T
 
-  val run_atp : mode -> string -> prover
+  val run_atp : mode -> params -> prover_problem -> string -> prover_slice ->
+    prover_result
 end;
 
 structure Sledgehammer_Prover_ATP : SLEDGEHAMMER_PROVER_ATP =
@@ -109,13 +113,13 @@ fun tptp_logic_of_atp_format CNF = "CNF"
   | tptp_logic_of_atp_format (THF (Polymorphic, _, _)) = "TH1"
   | tptp_logic_of_atp_format (DFG _) = "DFG"
 
-fun run_atp mode name
+fun run_atp mode
     ({debug, verbose, overlord, abduce = abduce_max_candidates, strict, max_mono_iters,
       max_new_mono_instances, isar_proofs, compress, try0, smt_proofs, minimize, slices, timeout,
       preplay_timeout, spy, ...} : params)
     ({comment, state, goal, subgoal, subgoal_count, factss, has_already_found_something,
       found_something, memoize_fun_call} : prover_problem)
-    slice =
+    name slice =
   let
     val (basic_slice as (slice_size, abduce, _, _, _),
         ATP_Slice (good_format, good_type_enc, good_lam_trans, good_uncurried_aliases, extra)) =

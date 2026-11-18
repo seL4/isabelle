@@ -36,22 +36,30 @@ object Thy_Conditions {
   }
 
   object Getenv extends Predicate("getenv") {
-    def apply(conditions: Thy_Conditions, args: List[String]): Boolean =
-      args.forall(a => Isabelle_System.getenv(a).nonEmpty)
+    def apply(conditions: Thy_Conditions, args: List[String]): Boolean = {
+      if (args.isEmpty) error("non-empty arguments required")
+      else args.forall(a => Isabelle_System.getenv(a).nonEmpty)
+    }
   }
 
   class Predicates(val predicates: Predicate*) extends Isabelle_System.Service
 
-  lazy val predicates: Map[String, Predicate] = {
+  private def predicate_name_ok(name: String): Boolean =
+    Symbol.is_ascii_identifier(name) && !name.exists(_ == '\'') &&
+    Value.Boolean.unapply(name).isEmpty
+
+  private lazy val predicates: Map[String, Predicate] =
     Isabelle_System.make_services(classOf[Predicates]).flatMap(_.predicates.iterator)
       .foldLeft(Map.empty[String, Predicate])(
         { case (map, pred) =>
+            if (!predicate_name_ok(pred.name)) {
+              error("Bad name for theory condition predicate: " + quote(pred.name))
+            }
             if (map.isDefinedAt(pred.name)) {
               error("Duplicate theory condition predicate: " + quote(pred.name))
             }
             else map + (pred.name -> pred)
         })
-  }
 
   def the_predicate(name: String): Predicate =
     predicates.getOrElse(name, error("Bad theory condition predicate: " + quote(name)))
@@ -181,7 +189,7 @@ object Thy_Conditions {
               case Some(Options.String) => if (options.string(name).nonEmpty) "" else "empty"
               case _ =>
                 error("Condition " + quote(name) + " cannot be evaluated as system option" +
-                  "\n(environment variables need to be given as \"$NAME\")")
+                  "\n(environment variables need to be given as $NAME or getenv(\"NAME\"))")
             }
         }
       }
@@ -246,8 +254,10 @@ object Thy_Conditions {
 
   /** immutable value **/
 
-  def init(background: Sessions.Background, options: Options): Thy_Conditions =
+  def init(background: Sessions.Background, options: Options): Thy_Conditions = {
+    predicates
     new Thy_Conditions(background, options, SortedMap.empty(Cond.Ordering))
+  }
 }
 
 final class Thy_Conditions private(

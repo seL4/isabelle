@@ -24,6 +24,13 @@ object ML_Statistics {
   def parse_properties(s: String): Properties.T =
     space_explode(',', s).flatMap(Properties.Eq.unapply)
 
+  object GC_Phase extends Properties.Int("GC_phase") {
+    val decode: Map[Int, String] =
+      Map(1 -> "minor GC", 2 -> "major GC", 3 -> "sharing", 4 -> "other").withDefaultValue("")
+    val description: String =
+      Library.commas(for ((i, s) <- decode.toList.sortBy(_._1)) yield i.toString + ": " + s)
+  }
+
   val GC_Percent = new Properties.Int("GC_percent")
 
 
@@ -65,6 +72,8 @@ object ML_Statistics {
   val Workers_Total = new Field("workers_total")
   val Workers_Active = new Field("workers_active")
   val Workers_Waiting = new Field("workers_waiting")
+
+  val GC = new Field(GC_Phase.name, description = GC_Phase.description)
 
   val GCs_Minor = new Field("partial_GCs", description = "GCs (minor)")
   val GCs_Major = new Field("full_GCs", description = "GCs (major)")
@@ -123,22 +132,29 @@ object ML_Statistics {
     heap_size: Space,
     heap_free_minor: Space,
     heap_free_major: Space,
+    gc_phase: Int,
     gc_percent: Int
   ) {
     def heap_used_minor: Space = heap_size.used(heap_free_minor)
     def heap_used_minor_fraction: Double = heap_size.used_fraction(heap_free_minor)
     def heap_used_major: Space = heap_size.used(heap_free_major)
     def heap_used_major_fraction: Double = heap_size.used_fraction(heap_free_major)
-    def gc_progress: Option[Double] =
-      if (1 <= gc_percent && gc_percent <= 100) Some((gc_percent - 1) * 0.01) else None
+    def gc_status: Option[(String, Double)] =
+      if (gc_phase > 0 && 1 <= gc_percent && gc_percent <= 100) {
+        val kind = GC_Phase.decode(gc_phase)
+        val p = (gc_percent - 1) * 0.01
+        Some((kind, p))
+      }
+      else None
   }
 
   def memory_status(props: Properties.T): Memory_Status = {
     val heap_size = Heap_Size.get_space(props)
     val heap_free_minor = Heap_Free_Minor.get_space(props)
     val heap_free_major = Heap_Free_Major.get_space(props)
+    val gc_phase = GC_Phase.get(props)
     val gc_percent = GC_Percent.get(props)
-    Memory_Status(heap_size, heap_free_minor, heap_free_major, gc_percent)
+    Memory_Status(heap_size, heap_free_minor, heap_free_major, gc_phase, gc_percent)
   }
 
 
@@ -234,6 +250,9 @@ object ML_Statistics {
   val workers_fields: Fields =
     Fields("Worker threads", List(Workers_Total, Workers_Active, Workers_Waiting))
 
+  val GC_fields: Fields =
+    Fields("GC", List(GC))
+
   val GCs_fields: Fields =
     Fields("GCs", List(GCs_Minor, GCs_Major, GCs_Sharing))
 
@@ -269,7 +288,7 @@ object ML_Statistics {
     List(heap_fields, tasks_fields, workers_fields)
 
   val other_fields: List[Fields] =
-    List(threads_fields, GCs_fields, program_fields, time_fields, speed_fields,
+    List(threads_fields, GC_fields, GCs_fields, program_fields, time_fields, speed_fields,
       java_heap_fields, java_thread_fields)
 
   val all_fields: List[Fields] = main_fields ::: other_fields

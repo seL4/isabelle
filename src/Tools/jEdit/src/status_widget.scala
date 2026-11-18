@@ -21,7 +21,7 @@ import org.gjt.sp.jedit.gui.statusbar.{StatusWidgetFactory, Widget}
 object Status_Widget {
   /** generic GUI **/
 
-  private val template = "ABC: 99999/99999MB"
+  private val template = "ABC: 999999/999999MiB"
 
   abstract class GUI(view: View) extends JComponent {
     /* init */
@@ -160,8 +160,8 @@ object Status_Widget {
     private var status = ML_Statistics.memory_status(Nil)
 
     def get_status: (String, Double) =
-      status.gc_progress match {
-        case Some(p) => ("ML cleanup", 1.0 - p)
+      status.gc_status match {
+        case Some((kind, p)) => ("ML cleanup" + if_proper(kind, ": " + kind), 1.0 - p)
         case None =>
           val text =
             "ML: " + status.heap_used_minor.MiB.round + "/" + status.heap_size.MiB.round + "MiB"

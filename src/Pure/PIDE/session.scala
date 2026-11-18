@@ -129,7 +129,7 @@ object Session {
 abstract class Session extends Document.Session {
   session =>
 
-  override def toString: String = resources.current_background.session_name
+  override def toString: String = resources.session_name
 
   def session_options: Options
   def interactive: Boolean
@@ -144,8 +144,16 @@ abstract class Session extends Document.Session {
   def doc_contents: Doc.Contents = Doc.contents(store.ml_settings)
   def doc_entry(name: String): Option[Doc.Entry] = doc_contents.entries(name = _ == name).headOption
 
-  def build_blobs_info(name: Document.Node.Name): Command.Blobs_Info = Command.Blobs_Info.empty
-  def build_blobs(name: Document.Node.Name): Document.Blobs = Document.Blobs.empty
+
+  /* sources */
+
+  def sources: Store.Sources = Store.Sources.empty
+
+  def build_blobs_info(node_name: Document.Node.Name): Command.Blobs_Info =
+    Command.Blobs_Info.make(sources.blobs(resources.current_background.base, node_name))
+
+  def build_blobs(node_name: Document.Node.Name): Document.Blobs =
+    Document.Blobs.make(sources.blobs(resources.current_background.base, node_name))
 
 
   /* diagnostics */
@@ -910,7 +918,7 @@ abstract class Session extends Document.Session {
     no_build: Boolean = false
   ): Build.Results = {
     Build.build(store.options,
-      selection = Sessions.Selection.session(resources.current_background.session_name),
+      selection = Sessions.Selection.session(resources.session_name),
       progress = progress, build_heap = true, no_build = no_build, dirs = dirs,
       infos = resources.current_background.infos)
   }

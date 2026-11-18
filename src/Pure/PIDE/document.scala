@@ -42,12 +42,25 @@ object Document {
   /* document blobs: auxiliary files */
 
   object Blobs {
+    object Item {
+      def make(
+        bytes: Bytes,
+        source: Option[String] = None,
+        chunk: Option[Symbol.Text_Chunk] = None,
+        command_offset: Symbol.Offset = 0,
+        changed: Boolean = false
+      ): Item = {
+        val source1 = source.getOrElse(bytes.text)
+        val chunk1 = chunk.getOrElse(Symbol.Text_Chunk(source1))
+        Item(bytes, source1, chunk1, command_offset, changed)
+      }
+    }
     sealed case class Item(
       bytes: Bytes,
       source: String,
       chunk: Symbol.Text_Chunk,
-      command_offset: Symbol.Offset = 0,
-      changed: Boolean = false
+      command_offset: Symbol.Offset,
+      changed: Boolean
     ) {
       override def toString: String =
         "Blobs.Item(bytes = " + bytes.size + ", source = " + source.length +

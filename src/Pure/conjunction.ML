@@ -30,7 +30,7 @@ struct
 
 (** abstract syntax **)
 
-fun certify t = Thm.global_cterm_of (Context.the_global_context ()) t;
+fun certify t = Thm.global_cterm_of (Theory.get_pure_bootstrap ()) t;
 val read_prop = certify o Simple_Syntax.read_prop;
 
 val true_prop = certify Logic.true_prop;
@@ -76,7 +76,7 @@ val ABC = read_prop "A \<Longrightarrow> B \<Longrightarrow> C";
 val A_B = read_prop "A &&& B";
 
 val conjunction_def =
-  Thm.unvarify_axiom (Context.the_global_context ()) "Pure.conjunction_def";
+  Thm.unvarify_axiom (Theory.get_pure_bootstrap ()) "Pure.conjunction_def";
 
 fun conjunctionD which =
   Drule.implies_intr_list [A, B] (Thm.assume (which (A, B))) COMP
@@ -138,12 +138,11 @@ fun elim_balanced 0 _ = []
 
 local
 
-val bootstrap_thy = Context.the_global_context ();
-
 fun conjs n =
   let
+    val thy = Theory.get_pure_bootstrap ();
     val As =
-      map (fn A => Thm.global_cterm_of bootstrap_thy (Free (A, propT)))
+      map (fn A => Thm.global_cterm_of thy (Free (A, propT)))
         (Name.invent_global "" n);
   in (As, mk_conjunction_balanced As) end;
 

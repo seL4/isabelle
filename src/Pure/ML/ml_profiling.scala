@@ -11,6 +11,10 @@ import scala.collection.immutable.SortedMap
 
 
 object ML_Profiling {
+  object Entry {
+    def make(name: String, count: Long): List[Entry] =
+      if (count > 0) List(Entry(name, count)) else Nil
+  }
   sealed case class Entry(name: String, count: Long) {
     def clean_name: Entry = copy(name = """-?\(\d+\).*$""".r.replaceAllIn(name, ""))
 
@@ -29,13 +33,16 @@ object ML_Profiling {
     def clean_name: Report = copy(entries = entries.map(_.clean_name))
 
     lazy val total_account: Long = entries.iterator.map(_.account).sum
-    def total: Entry = Entry("TOTAL", total_account)
 
     def print(relevant: Percentage = Percentage.zero): String = {
-      val relevant_entries =
-        entries.filter(entry => entry.percentage(total_account).permille >= relevant.permille)
+      val (relevant_entries, ignored_entries) =
+        entries.partition(entry => entry.percentage(total_account).permille >= relevant.permille)
+      val ignored_account = ignored_entries.iterator.map(_.account).sum
+      val show_entries =
+        Entry.make("IGNORED", ignored_account) ::: relevant_entries :::
+        Entry.make("TOTAL", total_account)
       ("profile_" + kind + ":\n") +
-      cat_lines((relevant_entries ::: List(total)).map(_.print(total_account)))
+      cat_lines(show_entries.sortBy(_.count).map(_.print(total_account)))
     }
   }
 
@@ -49,7 +56,7 @@ object ML_Profiling {
       results = results + (kind -> map)
     }
     for ((kind, map) <- results.toList)
-      yield Report(kind, for ((name, count) <- map.toList.sortBy(_._2)) yield Entry(name, count))
+      yield Report(kind, List.from(for ((name, count) <- map.iterator) yield Entry(name, count)))
   }
 
 

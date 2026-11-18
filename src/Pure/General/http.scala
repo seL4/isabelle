@@ -240,7 +240,7 @@ object HTTP {
     def write(http: HttpExchange, code: Int, is_head: Boolean = false): Unit = {
       http.getResponseHeaders.set("Content-Type", content_type)
       if (is_head) {
-        val digest_base64 = SHA1.digest(output).base64
+        val digest_base64 = output.sha1_digest.base64
         http.getResponseHeaders.set("Content-Digest", "sha=:" + digest_base64 + ":")
       }
       http.sendResponseHeaders(code, if (is_head) -1 else output.size)

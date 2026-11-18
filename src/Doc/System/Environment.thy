@@ -191,7 +191,7 @@ text \<open>
   \<^verbatim>\<open>pdf\<close> files.
 
   \<^descr>[@{setting_def ISABELLE_TMP_PREFIX}\<open>\<^sup>*\<close>] is the prefix from which any
-  running Isabelle ML process derives an individual directory for temporary
+  running Isabelle/ML process derives an individual directory for temporary
   files.
 
   \<^descr>[@{setting_def ISABELLE_TOOL_JAVA_OPTIONS}] is passed to the \<^verbatim>\<open>java\<close>

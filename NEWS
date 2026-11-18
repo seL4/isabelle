@@ -19,6 +19,24 @@ used, if A is not an identifier.
 facilitate nested strings such as [condition = \<open>getenv("A")\<close>].
 
 
+*** Isabelle/jEdit Prover IDE ***
+
+* The FlatLaf look-and-feel (version 3.8) now handles menu keys Alt and
+F10 on Windows more natively, which is important for the NVDA Screen
+Reader.
+
+* More detailed information about Isabelle/ML garbage collection phases:
+see Monitor dockable "GC", or status widget at the bottom line.
+
+
+*** Pure ***
+
+* Base sort for type classes is honored more accurately in class target syntax.
+
+* For classes covered both by a class’ super classes as well as its base sort,
+no class target syntax is applied.  Minor INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * try0:
@@ -82,6 +100,19 @@ INCOMPATIBILITY.
   translate_string     ~>  String.translate_str
   Bytes.exists_string  ~>  Bytes.exists_str
   Bytes.forall_string  ~>  Bytes.forall_str
+
+
+*** System ***
+
+* System options "ML_debug" and "ML_logfile" pass the corresponding
+"--debug" and "--logfile" options to the Poly/ML runtime. The log file
+name may refer to "{session}" and "{timestamp}" (start time in UTC).
+Example:
+
+  isabelle build \
+    -o ML_debug=gc \
+    -o 'ML_logfile=$ISABELLE_HOME_USER/ml_log/{session}.log' \
+     HOL
 
 
 

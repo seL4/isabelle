@@ -98,7 +98,7 @@ object Update_Tool {
           progress.echo("Updating " + session + " ...")
           val session_options = sessions_structure(session).options
           val proper_session_theory =
-            build_results.deps(session).proper_session_theories.map(_.theory).toSet
+            build_results.deps(session).used_theories_proper.map(thy => thy.name.theory).toSet
           using(database_context.open_session0(session)) { session_context =>
             for {
               db <- session_context.session_db()

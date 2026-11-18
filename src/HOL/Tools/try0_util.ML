@@ -18,7 +18,7 @@ sig
   val clas_attrs : facts_config
   val simp_attrs : facts_config
   val apply_raw_named_method : string -> bool -> facts_config ->
-    (Proof.context -> Proof.context) -> Time.time option -> Try0.facts -> Proof.state ->
+    (Proof.context -> Proof.context) -> Time.time option -> Try0.xref Try0.facts -> Proof.state ->
     Try0.result option
 end
 
@@ -87,62 +87,75 @@ fun apply_recursive recurse elapsed0 timeout_opt apply st =
       else (elapsed0 + elapsed, st')
    |_ => (elapsed0, st))
 
-fun classes_in_canonical_order (facts : Try0.facts) : string list =
-  Try0.native_classes @ subtract (op =) Try0.native_classes (Symtab.keys (#classified facts))
+fun classes_in_canonical_order classified : string list =
+  Try0.native_classes @ subtract (op =) Try0.native_classes (Symtab.keys classified)
 
-fun all_classified_xxrefs (facts : Try0.facts) : Try0.xxrefs =
-  fold (fn class => fn acc => Try0.union_xxrefs acc (Try0.get_class_xxrefs class facts))
-    (classes_in_canonical_order facts) {usings = [], directs = []}
+fun all_classified_xrefs (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_directs =
+  fold (fn class => fn acc =>
+    Try0.lookup_facts_class class facts
+    |> the_default Try0.empty_usings_directs
+    |> Try0.union_usings_directs acc)
+    (classes_in_canonical_order (#classified facts)) Try0.empty_usings_directs
 
-fun all_class_xxrefs (facts : Try0.facts) : Try0.xxrefs =
-  Try0.union_xxrefs (#unclassified facts) (all_classified_xxrefs facts)
+(* TODO: Think about duplicates. *)
+fun flatten_facts (facts : Try0.xref Try0.facts) : Try0.xref Try0.usings_directs =
+  Try0.union_usings_directs (#unclassified facts) (all_classified_xrefs facts)
 
-fun accumulate_listed_class (facts : Try0.facts) {class : string, prefix : string}
-    (class_attrs : string, unsupported : Try0.xxrefs) : string * Try0.xxrefs =
-  (case Try0.get_class_xxrefs class facts of
-    {usings = [], directs = []} => (class_attrs, unsupported)
-  | xxrefs =>
-      (class_attrs ^ " " ^ prefix ^
-        implode_space (map string_of_xref (#usings xxrefs @ #directs xxrefs)),
+fun accumulate_listed_class (facts : Try0.xref Try0.facts) {class : string, prefix : string}
+    (method_args : string, unsupported : Try0.xref Try0.usings_directs)
+    : string * Try0.xref Try0.usings_directs =
+  (case Try0.lookup_facts_class class facts of
+    NONE => (method_args, unsupported)
+  | SOME {usings = [], directs = []} => (method_args, unsupported)
+  | SOME {usings, directs} =>
+      (method_args ^ " " ^ prefix ^ implode_space (map string_of_xref (usings @ directs)),
        unsupported))
 
-fun accumulate_unlisted_class (facts : Try0.facts) (class : string)
-    (class_attrs : string, unsupported : Try0.xxrefs) : string * Try0.xxrefs =
-  (class_attrs, Try0.union_xxrefs unsupported (Try0.get_class_xxrefs class facts))
+fun accumulate_unlisted_class (facts : Try0.xref Try0.facts) (class : string)
+    (method_args : string, unsupported : Try0.xref Try0.usings_directs)
+    : string * Try0.xref Try0.usings_directs =
+  let
+    val unsupported =
+      Try0.lookup_facts_class class facts
+      |> the_default Try0.empty_usings_directs
+      |> Try0.union_usings_directs unsupported
+  in
+    (method_args, unsupported)
+  end
 
-fun mk_attrs_and_usings No_Args (facts : Try0.facts) : string * Try0.xref list =
-      let val {usings, directs} = all_class_xxrefs facts in ("", directs @ usings) end
-  | mk_attrs_and_usings Direct_Args facts =
-      let val {usings, directs} = all_class_xxrefs facts in
-        ((if null directs then "" else " " ^ implode_space (map string_of_xref directs)), usings)
+fun mk_method_args_and_usings No_Args (facts : Try0.xref Try0.facts) : string * Try0.xref list =
+      let val {usings, directs} = flatten_facts facts in ("", directs @ usings) end
+  | mk_method_args_and_usings Direct_Args facts =
+      let val {usings, directs} = flatten_facts facts in
+        (implode_space ("" :: map string_of_xref directs), usings)
       end
-  | mk_attrs_and_usings (Prefixed_Args class_prefixes) facts =
+  | mk_method_args_and_usings (Prefixed_Args class_prefixes) facts =
       let
         val listed_classes = map #class class_prefixes
         val unlisted_classes_in_canonical_order =
-          subtract (op =) listed_classes (classes_in_canonical_order facts)
+          subtract (op =) listed_classes (classes_in_canonical_order (#classified facts))
 
-        val (class_attrs, unsupported) =
-          ("", {usings = [], directs = []})
+        val (method_args, unsupported) =
+          ("", Try0.empty_usings_directs)
           |> fold (accumulate_listed_class facts) class_prefixes
           |> fold (accumulate_unlisted_class facts) unlisted_classes_in_canonical_order
 
-        val {usings, directs} = Try0.union_xxrefs (#unclassified facts) unsupported
-      in (class_attrs, directs @ usings) end
+        val {usings, directs} = Try0.union_usings_directs (#unclassified facts) unsupported
+      in (method_args, directs @ usings) end
 
 in
 
 fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config)
-  (silence_methods : Proof.context -> Proof.context) timeout_opt (facts : Try0.facts)
-  (st : Proof.state) : Try0.result option =
+  (silence_methods : Proof.context -> Proof.context) timeout_opt (facts : Try0.xref Try0.facts)
+  (state : Proof.state) : Try0.result option =
   let
-    val st = Proof.map_contexts silence_methods st
-    val ctxt = Proof.context_of st
+    val state = Proof.map_contexts silence_methods state
+    val ctxt = Proof.context_of state
 
-    val (attrs, usings) = mk_attrs_and_usings facts_config facts
+    val (method_args, usings) = mk_method_args_and_usings facts_config facts
 
     val text =
-      name ^ attrs
+      name ^ method_args
       |> parse_method ctxt
       |> Method.method_cmd ctxt
       |> Method.Basic
@@ -151,21 +164,25 @@ fun apply_raw_named_method (name : string) all_goals (facts_config: facts_config
     val apply =
       Proof.using [Attrib.eval_thms ctxt usings |> map (rpair [] o single)]
       #> Proof.refine text #> Seq.filter_results
-    val num_before = num_goals st
+    val num_before = num_goals state
     val multiple_goals = all_goals andalso num_before > 1
-    val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply st
+    val (time, st') = apply_recursive multiple_goals Time.zeroTime timeout_opt apply state
     val num_after = num_goals st'
     val command =
       let
-        val usings = map (Pretty.str o string_of_xref) usings
-        val using_clause = if null usings then [] else Pretty.str "using" :: usings
         val select = "[" ^ string_of_int (num_before - num_after)  ^ "]"
         val command_clause =
           [Pretty.str ((if num_after = 0 then "by " else "apply ") ^
-              (name ^ attrs |> attrs <> "" ? enclose "(" ")"))] @
+              (name ^ method_args |> method_args <> "" ? enclose "(" ")"))] @
           (if multiple_goals andalso num_after > 0 then [Pretty.str select] else [])
+        val using_command_clause =
+          if null usings then
+            command_clause
+          else
+            Pretty.str "using" ::
+              fold_rev (cons o Pretty.str o string_of_xref) usings command_clause
       in
-        using_clause @ command_clause
+        using_command_clause
         |> Pretty.block o Pretty.breaks
         |> Pretty.symbolic_string_of (* markup string *)
       end

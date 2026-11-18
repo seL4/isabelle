@@ -875,7 +875,7 @@ fun run_prover_for_mash ctxt params prover goal_name facts goal =
        found_something = K (), memoize_fun_call = (fn f => f)}
     val slice = hd (get_slices ctxt prover)
   in
-    get_minimizing_prover ctxt MaSh (K ()) prover params problem slice
+    get_minimizing_prover ctxt prover MaSh (K ()) params problem slice
   end
 
 val bad_types = [\<^type_name>\<open>prop\<close>, \<^type_name>\<open>bool\<close>, \<^type_name>\<open>fun\<close>]

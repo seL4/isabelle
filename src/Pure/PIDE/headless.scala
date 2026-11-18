@@ -309,9 +309,6 @@ object Headless {
         resources.dependencies(conditions, import_names,
           options = options, progress = progress).check_errors
       }
-      val dep_theories = dependencies.theories
-      val dep_theories_set = dep_theories.toSet
-      val dep_files = dependencies.loaded_files
 
       val use_theories_state = {
         val dep_graph = dependencies.theory_graph
@@ -339,7 +336,10 @@ object Headless {
           version <- state.stable_tip_version
           load_theories = use_theories_state.change_result(_.check(state, version, beyond_limit))
           if load_theories.nonEmpty
-        } resources.load_theories(session, id, load_theories, dep_files, unicode_symbols, progress)
+        } {
+          resources.load_theories(session, id, load_theories, dependencies.loaded_files,
+            unicode_symbols, progress)
+        }
       }
 
       lazy val check_progress = {
@@ -375,7 +375,8 @@ object Headless {
           val state = session.get_state()
 
           def apply_changed(st: Use_Theories_State): Use_Theories_State =
-            st.changed(changed.nodes.iterator.filter(dep_theories_set), changed.assignment)
+            st.changed(changed.nodes.iterator.filter(dependencies.theories_defined),
+              changed.assignment)
 
           state.stable_tip_version match {
             case None => use_theories_state.change(apply_changed)
@@ -385,7 +386,7 @@ object Headless {
                   val changed_st = apply_changed(st)
 
                   val domain =
-                    if (st.nodes_status.is_empty) dep_theories_set
+                    if (st.nodes_status.is_empty) dependencies.theories_defined
                     else changed_st.changed_nodes
 
                   val (nodes_status_changed, st1) =
@@ -429,7 +430,7 @@ object Headless {
       }
       finally {
         session.commands_changed -= consumer
-        resources.unload_theories(session, id, dep_theories)
+        resources.unload_theories(session, id, dependencies.theories.map(_.name))
       }
 
       Exn.release(use_theories_state.guarded_access(_.join_result))
@@ -522,10 +523,7 @@ object Headless {
             val bytes = Bytes.read(name.path)
             blobs.get(name) match {
               case Some(blob) if blob.bytes == bytes => None
-              case _ =>
-                val text = bytes.text
-                val blob = Document.Blobs.Item(bytes, text, Symbol.Text_Chunk(text), changed = true)
-                Some(name -> blob)
+              case _ => Some(name -> Document.Blobs.Item.make(bytes, changed = true))
             }
           }
         val blobs1 = new_blobs.foldLeft(blobs)(_ + _)
