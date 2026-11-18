@@ -2245,11 +2245,11 @@ fun proof_boxes {included, excluded} proofs =
 
 end;
 
-structure Basic_Proofterm =
-struct
-  datatype proof = datatype Proofterm.proof
-  datatype proof_body = datatype Proofterm.proof_body
-  val op %> = Proofterm.%>
-end;
-
-open Basic_Proofterm;
+local
+  structure Pervasive =
+  struct
+    datatype proof = datatype Proofterm.proof
+    datatype proof_body = datatype Proofterm.proof_body
+    val op %> = Proofterm.%>
+  end;
+in open Pervasive end;
