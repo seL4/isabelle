@@ -43,20 +43,23 @@ class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) 
   private var abbrevs: Thy_Header.Abbrevs = Nil
   private var search_input: String = ""
 
-
-  /* abbrevs */
-
-  private def abbrev_elem(txt: String, abbrs: List[String]) = {
+  private def elem(txt: String, abbrs: List[String], apply_control: Boolean) = {
     def drop_caret(s: String): String = s.replacing(Completion.caret_indicator.toString -> "")
 
     val symbol = Symbol.decode(txt)
-    val msg = JSON.Object("command" -> "insert_symbol", "symbol" -> drop_caret(symbol))
+    val msg =
+     if (apply_control) JSON.Object("command" -> "apply_control", "symbol" -> symbol)
+     else JSON.Object("command" -> "insert_symbol", "symbol" -> drop_caret(symbol))
+
     val tooltip =
       cat_lines(drop_caret(txt) :: abbrs.filterNot(_ == "").sorted.map(a => "abbrev: " + a))
 
     VSCode_Elements.button(symbol, tooltip = tooltip, secondary = true, source = true,
       script = Webview_Api.Post.function(JSON.Format(msg)))
   }
+
+
+  /* abbrevs */
 
   private def abbrev_panel: List[XML.Elem] = {
     val entries: List[(String, List[String])] =
@@ -66,14 +69,14 @@ class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) 
           txt = Symbol.encode(txt0)
           if !Symbol.iterator(txt).forall(s => s.length == 1 && s(0) != Completion.caret_indicator)
         } yield (txt, abbr)): _*).iterator_list.toList
-    entries.map(abbrev_elem.tupled)
+    entries.map((txt, abbr) => elem(txt, abbr, false))
   }
 
 
   /* symbols */
 
-  private def symbol_elem(symbol: String): XML.Elem =
-    abbrev_elem(symbol, Symbol.symbols.get_abbrevs(symbol))
+  private def symbol_elem(symbol: String, is_control: Boolean): XML.Elem =
+    elem(symbol, Symbol.symbols.get_abbrevs(symbol), is_control && HTML.is_control(symbol))
 
   private val reset_elem: XML.Elem = {
     val msg = JSON.Object("command" -> "apply_control", "symbol" -> "")
@@ -102,8 +105,10 @@ class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) 
     val search_limit = 50
     val results =
       if (search_words.isEmpty) Nil
-      else
-        for ((sym, s) <- search_space; if search_words.forall(s.contains(_))) yield symbol_elem(sym)
+      else {
+        for ((sym, s) <- search_space; if search_words.forall(s.contains(_)))
+        yield symbol_elem(sym, false)
+      }
 
     val search_results =
       if (results.length <= search_limit) results
@@ -143,7 +148,8 @@ class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) 
     val symbols_tabs =
       Symbol.symbols.groups_code.map({ case (group, symbols) =>
         val control = group == "control"
-        new Tab(group, symbols.map(symbol_elem) ::: (if (control) List(reset_elem) else Nil))
+        new Tab(group,
+          symbols.map(symbol_elem(_, control)) ::: (if (control) List(reset_elem) else Nil))
       })
 
     val search_tab = new Tab("search", search_panel, "Search Symbols")
