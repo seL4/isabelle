@@ -7,7 +7,7 @@ provides implicit configuration for various output mechanisms.
 The special print mode "input" is never enabled for output.
 *)
 
-signature BASIC_PRINT_MODE =
+signature PERVASIVE_PRINT_MODE =
 sig
   val print_mode: string list Unsynchronized.ref  (*global template*)
   val print_mode_value: unit -> string list       (*thread-local value*)
@@ -16,7 +16,7 @@ end;
 
 signature PRINT_MODE =
 sig
-  include BASIC_PRINT_MODE
+  include PERVASIVE_PRINT_MODE
   val input: string
   val internal: string
   val ASCII: string
@@ -60,5 +60,4 @@ fun PIDE_enabled () =
 
 end;
 
-structure Basic_Print_Mode: BASIC_PRINT_MODE = Print_Mode;
-open Basic_Print_Mode;
+local structure Pervasive: PERVASIVE_PRINT_MODE = Print_Mode in open Pervasive end;

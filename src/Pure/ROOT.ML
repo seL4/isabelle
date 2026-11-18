@@ -28,8 +28,8 @@ ML_file "General/time.ML";
 
 ML_file "Concurrent/multithreading.ML";
 ML_file "Concurrent/unsynchronized.ML";
-ML_file "Concurrent/synchronized.ML";
 ML_file "Concurrent/counter.ML";
+ML_file "Concurrent/synchronized.ML";
 ML_file "Concurrent/single_assignment.ML";
 ML_file "Concurrent/isabelle_thread.ML";
 
@@ -177,10 +177,10 @@ ML_file "defs.ML";
 ML_file "pattern.ML";
 ML_file "unify.ML";
 ML_file "theory.ML";
-ML_file "term_sharing.ML";
-ML_file "term_xml.ML";
 ML_file "thm_name.ML";
 ML_file "zterm.ML";
+ML_file "term_sharing.ML";
+ML_file "term_xml.ML";
 ML_file "proofterm.ML";
 ML_file "thm.ML";
 ML_file "cterm_items.ML";

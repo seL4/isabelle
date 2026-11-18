@@ -45,10 +45,10 @@ val platform_path =
                 (case Char.fromString drive of
                   NONE => drive ^ ":"
                 | SOME d => String.str (Char.toUpper d) ^ ":");
-            in String.concatWith "\\" (vol :: arcs) end
+            in space_implode "\\" (vol :: arcs) end
         | arcs =>
             (case OS.Process.getEnv "CYGWIN_ROOT" of
-              SOME root => OS.Path.concat (root, String.concatWith "\\" arcs)
+              SOME root => OS.Path.concat (root, space_implode "\\" arcs)
             | NONE => raise Fail "Unknown environment variable CYGWIN_ROOT"))
       else String.translate (fn #"/" => "\\" | c => String.str c) path
   else fn path => path;
@@ -63,7 +63,7 @@ val standard_path =
         if isAbs then
           (case String.explode vol of
             [d, #":"] =>
-              String.concatWith "/" ("/cygdrive" :: String.str (Char.toLower d) :: arcs)
+              space_implode "/" ("/cygdrive" :: String.str (Char.toLower d) :: arcs)
           | _ => path')
         else path'
       end

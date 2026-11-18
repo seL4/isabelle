@@ -180,7 +180,7 @@ fun parse_raw_proof_steps (curr_anchor_id : string option) (smtlib_lines : SMTLI
 
     fun split_step [] = (NO_STEP, SMTLIB.S [], [])
       | split_step ((step as SMTLIB.S (SMTLIB.Sym kind :: _)) :: remaining_steps) = (step_kind kind, step, remaining_steps)
-      | split_step steps = raise throw_alethe_ex ("malformed step: " ^ String.concat (map SMTLIB.str_of steps))
+      | split_step steps = raise throw_alethe_ex ("malformed step: " ^ implode (map SMTLIB.str_of steps))
 
     fun parse_id (SMTLIB.S ((SMTLIB.Sym _) :: (SMTLIB.Sym id) :: l)) = (id, l)
       | parse_id t = raise throw_alethe_ex ("unrecognized Alethe proof " ^ \<^make_string> t)

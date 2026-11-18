@@ -9,7 +9,7 @@ Conversions: primitive equality reasoning.
 infix 1 then_conv;
 infix 0 else_conv;
 
-signature BASIC_CONV =
+signature PERVASIVE_CONV =
 sig
   val then_conv: conv * conv -> conv
   val else_conv: conv * conv -> conv
@@ -17,7 +17,7 @@ end;
 
 signature CONV =
 sig
-  include BASIC_CONV
+  include PERVASIVE_CONV
   val no_conv: conv
   val all_conv: conv
   val first_conv: conv list -> conv
@@ -233,5 +233,4 @@ fun gconv_rule cv i th =
 
 end;
 
-structure Basic_Conv: BASIC_CONV = Conv;
-open Basic_Conv;
+local structure Pervasive: PERVASIVE_CONV = Conv in open Pervasive end;

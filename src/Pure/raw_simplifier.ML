@@ -4,7 +4,7 @@
 Higher-order Simplification.
 *)
 
-signature BASIC_RAW_SIMPLIFIER =
+signature PERVASIVE_RAW_SIMPLIFIER =
 sig
   type cong_name = bool * string
   type rrule
@@ -23,7 +23,7 @@ end;
 
 signature RAW_SIMPLIFIER =
 sig
-  include BASIC_RAW_SIMPLIFIER
+  include PERVASIVE_RAW_SIMPLIFIER
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val dest_ss: simpset ->
@@ -1572,5 +1572,4 @@ end;
 
 end;
 
-structure Basic_Raw_Simplifier: BASIC_RAW_SIMPLIFIER = Raw_Simplifier;
-open Basic_Raw_Simplifier;
+local structure Pervasive: PERVASIVE_RAW_SIMPLIFIER = Raw_Simplifier in open Pervasive end;

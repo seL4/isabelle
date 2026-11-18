@@ -6,7 +6,7 @@ Tactics with proof context / cases -- as basis for Isar proof methods.
 
 infix 1 CONTEXT_THEN_ALL_NEW;
 
-signature BASIC_CONTEXT_TACTIC =
+signature PERVASIVE_CONTEXT_TACTIC =
 sig
   type context_state = Proof.context * thm
   type context_tactic = context_state -> context_state Seq.result Seq.seq
@@ -21,7 +21,7 @@ end;
 
 signature CONTEXT_TACTIC =
 sig
-  include BASIC_CONTEXT_TACTIC
+  include PERVASIVE_CONTEXT_TACTIC
 end;
 
 structure Context_Tactic: CONTEXT_TACTIC =
@@ -81,5 +81,4 @@ fun SUBPROOFS tac : context_tactic =
 
 end;
 
-structure Basic_Context_Tactic: BASIC_CONTEXT_TACTIC = Context_Tactic;
-open Basic_Context_Tactic;
+local structure Pervasive: PERVASIVE_CONTEXT_TACTIC = Context_Tactic in open Pervasive end;

@@ -14,7 +14,7 @@ infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
 infix orf andf
 
-signature BASIC_LIBRARY =
+signature PERVASIVE_LIBRARY =
 sig
   (*functions*)
   val undefined: 'a -> 'b
@@ -136,7 +136,6 @@ sig
   val unenclose: string -> string
   val quote: string -> string
   val cartouche: string -> string
-  val space_implode: string -> string list -> string
   val implode_space: string list -> string
   val commas: string list -> string
   val commas_quote: string list -> string
@@ -234,7 +233,7 @@ end;
 
 signature LIBRARY =
 sig
-  include BASIC_LIBRARY
+  include PERVASIVE_LIBRARY
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
 end;
@@ -720,7 +719,6 @@ val quote = enclose "\"" "\"";
 
 val cartouche = enclose "\<open>" "\<close>";
 
-val space_implode = String.concatWith;
 val implode_space = space_implode " ";
 
 val commas = space_implode ", ";
@@ -911,7 +909,7 @@ fun rev_order LESS = GREATER
   | rev_order GREATER = LESS;
 
 (*compose orders*)
-fun (a_ord ||| b_ord) p = (case a_ord p of EQUAL => b_ord p | ord => ord);
+fun (a_ord ||| b_ord) = fn p => (case a_ord p of EQUAL => b_ord p | ord => ord);
 
 (*assume rel is a linear strict order*)
 fun make_ord rel (x, y) =
@@ -1105,5 +1103,4 @@ fun getenv_strict x =
 
 end;
 
-structure Basic_Library: BASIC_LIBRARY = Library;
-open Basic_Library;
+local structure Pervasive: PERVASIVE_LIBRARY = Library in open Pervasive end;

@@ -4,7 +4,7 @@
 Support for time measurement.
 *)
 
-signature BASIC_TIMING =
+signature PERVASIVE_TIMING =
 sig
   val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
@@ -14,7 +14,7 @@ end
 
 signature TIMING =
 sig
-  include BASIC_TIMING
+  include PERVASIVE_TIMING
   type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time}
   val zero: timing
   type start
@@ -122,5 +122,4 @@ fun command_timing name pos f x =
 
 end;
 
-structure Basic_Timing: BASIC_TIMING = Timing;
-open Basic_Timing;
+local structure Pervasive: PERVASIVE_TIMING = Timing in open Pervasive end;

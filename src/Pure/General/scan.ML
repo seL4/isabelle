@@ -9,7 +9,7 @@ infixr 5 ::: @@@;
 infix 3 >>;
 infixr 0 ||;
 
-signature BASIC_SCAN =
+signature PERVASIVE_SCAN =
 sig
   type message = unit -> string
   (*error msg handler*)
@@ -38,7 +38,7 @@ end;
 
 signature SCAN =
 sig
-  include BASIC_SCAN
+  include PERVASIVE_SCAN
   val permissive: ('a -> 'b) -> 'a -> 'b
   val error: ('a -> 'b) -> 'a -> 'b
   val catch: ('a -> 'b) -> 'a -> 'b    (*exception Fail*)
@@ -369,5 +369,4 @@ fun merge_lexicons (lex1, lex2) =
 
 end;
 
-structure Basic_Scan: BASIC_SCAN = Scan;
-open Basic_Scan;
+local structure Pervasive: PERVASIVE_SCAN = Scan in open Pervasive end;

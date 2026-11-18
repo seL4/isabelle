@@ -6,7 +6,7 @@ Abstract morphisms on formal entities.
 
 infix 1 $>
 
-signature BASIC_MORPHISM =
+signature PERVASIVE_MORPHISM =
 sig
   type morphism
   val $> : morphism * morphism -> morphism
@@ -14,7 +14,7 @@ end
 
 signature MORPHISM =
 sig
-  include BASIC_MORPHISM
+  include PERVASIVE_MORPHISM
   exception MORPHISM of string * exn
   val the_theory: theory option -> theory
   val set_context: theory -> morphism -> morphism
@@ -263,5 +263,4 @@ fun instantiate_morphism (cinstT, cinst) =
 
 end;
 
-structure Basic_Morphism: BASIC_MORPHISM = Morphism;
-open Basic_Morphism;
+local structure Pervasive: PERVASIVE_MORPHISM = Morphism in open Pervasive end;
