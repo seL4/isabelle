@@ -13,7 +13,7 @@ import isabelle._
 
 
 object Script_Decorations {
-  enum Style { case sub, sup, bold, hidden }
+  enum Style { case sub, sup, bold, control, hidden }
 
   class Styling extends XML.Traversal {
     private var offset: Text.Offset = 0
@@ -44,6 +44,7 @@ object Script_Decorations {
     def style(markup: Markup): Option[Style] =
       markup match {
         case Markup("span", List("class" -> "hidden")) => Some(Style.hidden)
+        case Markup("span", List("class" -> "control")) => Some(Style.control)
         case _ => styles.get(markup.name)
       }
 
@@ -88,12 +89,17 @@ object Script_Decorations {
     val bold =
       Window.create_decoration(Decoration.Rendering(text_decoration = "none; font-weight: bold"))
 
+    val control =
+      Window.create_decoration(
+        Decoration.Rendering(text_decoration = "none; font-weight: bold; font-style: italic"))
+
     def set_decorations(editor: Text_Editor, doc: Document): Unit = {
       val ranges = extract_ranges(doc)
 
       editor.set_decorations(hide, ranges.getOrElse(Style.hidden, Nil))
       editor.set_decorations(superscript, ranges.getOrElse(Style.sup, Nil))
       editor.set_decorations(subscript, ranges.getOrElse(Style.sub, Nil))
+      editor.set_decorations(control, ranges.getOrElse(Style.control, Nil))
       editor.set_decorations(bold, ranges.getOrElse(Style.bold, Nil))
     }
 
@@ -103,7 +109,7 @@ object Script_Decorations {
         set_decorations(editor, change.document)
       }
 
-    context.subscribe(hide, superscript, subscript, bold,
+    context.subscribe(hide, superscript, subscript, control, bold,
       Window.on_change_editor(_.foreach(handle_change_editor)),
       Workspace.on_change_document(handle_set_decorations))
   }
