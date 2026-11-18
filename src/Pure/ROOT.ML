@@ -28,8 +28,8 @@ ML_file "General/time.ML";
 
 ML_file "Concurrent/multithreading.ML";
 ML_file "Concurrent/unsynchronized.ML";
-ML_file "Concurrent/synchronized.ML";
 ML_file "Concurrent/counter.ML";
+ML_file "Concurrent/synchronized.ML";
 ML_file "Concurrent/single_assignment.ML";
 ML_file "Concurrent/isabelle_thread.ML";
 
