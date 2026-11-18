@@ -165,12 +165,13 @@ fun get_inst_param thy (c, tyco) =
 fun add_inst_param (c, tyco) (a, th) =
   let
     val th' = Thm.trim_context th
+    val symmetric_th' = Thm.trim_context (Thm.symmetric th)
   in
     (map_inst_params o apfst o Symtab.map_default (c, Symtab.empty))
       (Symtab.update_new (tyco, (a, th')))
     #> (map_inst_params o apsnd) (Symtab.update_new (a, (c, tyco)))
     #> map_rewriting (fn ctxt => apfst (Raw_Simplifier.simpset_map ctxt (Raw_Simplifier.add_simp th')))
-    #> map_rewriting (fn ctxt => apsnd (Raw_Simplifier.simpset_map ctxt (Raw_Simplifier.add_simp (Thm.symmetric th'))))
+    #> map_rewriting (fn ctxt => apsnd (Raw_Simplifier.simpset_map ctxt (Raw_Simplifier.add_simp symmetric_th')))
   end;
 
 val inst_of_param = Symtab.lookup o #2 o inst_params_of;
