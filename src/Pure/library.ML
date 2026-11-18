@@ -136,7 +136,6 @@ sig
   val unenclose: string -> string
   val quote: string -> string
   val cartouche: string -> string
-  val space_implode: string -> string list -> string
   val implode_space: string list -> string
   val commas: string list -> string
   val commas_quote: string list -> string
@@ -720,7 +719,6 @@ val quote = enclose "\"" "\"";
 
 val cartouche = enclose "\<open>" "\<close>";
 
-val space_implode = String.concatWith;
 val implode_space = space_implode " ";
 
 val commas = space_implode ", ";

@@ -14,6 +14,7 @@ val _ =
 val ord = SML90.ord;
 val chr = SML90.chr;
 val implode = String.concat;
+val space_implode = String.concatWith;
 
 val pointer_eq = PolyML.pointerEq;
 

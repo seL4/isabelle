@@ -192,7 +192,7 @@ let
     | replace_last_name _ = error "Internal error: Invalid function name to convert"
   val parts = split_name name
 in
-  String.concatWith "." (replace_last_name parts)
+  space_implode "." (replace_last_name parts)
 end
 fun fun_name_to_time ctxt s name = fun_name_to_time' ctxt s false name
 (* Count number of arguments of a function *)
