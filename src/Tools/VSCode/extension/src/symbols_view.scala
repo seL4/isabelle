@@ -47,53 +47,33 @@ object Symbols_View {
         JSON.string(message, "command") match {
           case Some("ready") => update_webview()
           case Some("insert_symbol") => JSON.string(message, "symbol").foreach(insert_symbol)
-          case Some("reset_control") => reset_control()
-          case Some("apply_control") => JSON.string(message, "action").foreach(apply_control)
+          case Some("apply_control") => JSON.string(message, "symbol").foreach(edit_control_style)
           case _ =>
         })
     }
 
-    private def apply_control(action: String): Unit =
-      for {
-        editor <- Window.active_editor
-        selection = editor.selection
-        selected_text = editor.document.text(selection.range)
-        if !selected_text.isBlank || selection.is_empty
-        control_symbol <- control_render.get(action)
-      } {
-        val all_control_symbols = control_render.values.toList
-
-        if (!selection.is_empty) {
-          val new_text = selected_text
-            .split("")
-            .map(char =>
-              if (char.trim == "") char
-              else if (all_control_symbols.contains(char)) ""
-              else control_symbol + char)
-            .mkString
-          editor.edit(List(LSP.TextEdit(selection.range, new_text)))
+    private def edit_control_style(control_sym: Symbol.Symbol): Unit = {
+      def update_style(text: String): String =
+        Library.string_builder() { result =>
+          for (sym <- Symbol.iterator(text) if !HTML.is_control(sym)) {
+            if (Symbol.is_controllable(sym)) result ++= control_sym
+            result ++= sym
+          }
         }
-        else editor.edit(List(LSP.TextEdit(Line.Range(selection.active), control_symbol)))
-      }
 
-    private def insert_symbol(symbol: String): Unit =
+      for (editor <- Window.active_editor) {
+        val selection = editor.selection
+        val text =
+          if (selection.is_empty) control_sym
+          else update_style(editor.document.text(selection.range))
+
+        editor.edit(List(LSP.TextEdit(selection.range, text)))
+      }
+    }
+
+    private def insert_symbol(symbol: Symbol.Symbol): Unit =
       Window.active_editor.foreach { editor =>
         editor.edit(List(LSP.TextEdit(Line.Range(editor.selection.active), symbol)))
-      }
-
-    private def reset_control(): Unit =
-      for {
-        editor <- Window.active_editor
-        selection = editor.selection
-        if !selection.is_empty
-        selected_text = editor.document.text(selection.range)
-        if !selected_text.isBlank
-      } {
-        val all_control_symbols = control_render.values.toList
-        val new_text = selected_text
-          .map(char => if (all_control_symbols.contains(char.toString)) "" else char.toString)
-          .mkString
-        editor.edit(List(LSP.TextEdit(selection.range, new_text)))
       }
 
     def update_abbrevs(abbrevs: List[(String, String)]): Unit = {

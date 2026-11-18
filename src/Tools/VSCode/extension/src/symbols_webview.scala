@@ -75,9 +75,11 @@ class Symbols_Webview private(vscode: Webview_Api, private var active_tab: Int) 
   private def symbol_elem(symbol: String): XML.Elem =
     abbrev_elem(symbol, Symbol.symbols.get_abbrevs(symbol))
 
-  private val reset_elem: XML.Elem =
+  private val reset_elem: XML.Elem = {
+    val msg = JSON.Object("command" -> "apply_control", "symbol" -> "")
     VSCode_Elements.button("Reset", secondary = true, tooltip = "Reset control symbols within text",
-      script = Webview_Api.Post.function(JSON.Format(JSON.Object("command" -> "reset_control"))))
+      script = Webview_Api.Post.function(JSON.Format(msg)))
+  }
 
 
   /* search */
