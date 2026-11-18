@@ -911,7 +911,7 @@ fun rev_order LESS = GREATER
   | rev_order GREATER = LESS;
 
 (*compose orders*)
-fun (a_ord ||| b_ord) p = (case a_ord p of EQUAL => b_ord p | ord => ord);
+fun (a_ord ||| b_ord) = fn p => (case a_ord p of EQUAL => b_ord p | ord => ord);
 
 (*assume rel is a linear strict order*)
 fun make_ord rel (x, y) =
