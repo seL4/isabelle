@@ -244,6 +244,9 @@ val symbol_provider = Symbol_Static
 
         scalajs_result.messages.foreach(_.output(progress))
         if (!scalajs_result.ok) error("Failed to compile js modules")
+        if (!scalajs_result.outputs.contains(js_dir + Scalajs.Module.main_js)) {
+          error("Missing main js module")
+        }
 
         val manifest_text = File.read(VSCode_Main.extension_dir + VSCode_Main.MANIFEST)
         val manifest_entries = split_lines(manifest_text).filter(_.nonEmpty)
@@ -278,6 +281,8 @@ val symbol_provider = Symbol_Static
         val package_body = File.read(package_path).replacing("\"ISABELLE_OPTIONS\": {}," -> opt_json)
         File.write(package_path, package_body)
 
+        File.write(build_dir + Path.basic(".vscodeignore"),
+          Library.make_lines("**/*.scala", "**/*.map", "yarn.lock"))
 
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
