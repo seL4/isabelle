@@ -780,6 +780,24 @@ object LSP {
   }
 
 
+  /* document view ranges */
+
+  object Document_Ranges_Update extends Notification("PIDE/document_ranges_update") {
+    def apply(uri: String, ranges: List[Line.Range]): JSON.T =
+      Notification(name, JSON.Object("uri" -> uri, "ranges" -> ranges.map(Range(_))))
+
+    def unapply(json: JSON.T): Option[(String, List[Line.Range])] =
+      json match {
+        case Notification(method, params) if method == name =>
+          for {
+            ranges <- JSON.list(params, "ranges", Range.unapply)
+            uri <- JSON.string(params, "uri") if Url.is_wellformed_file(uri)
+          } yield (uri, ranges)
+        case _ => None
+      }
+  }
+
+
   /* dynamic output */
 
   object Dynamic_Output extends Notification("PIDE/dynamic_output") {

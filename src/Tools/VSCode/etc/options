@@ -27,8 +27,5 @@ option vscode_unicode_symbols_output : bool = false for vscode
 option vscode_unicode_symbols_edits : bool = false for vscode
   -- "output Isabelle symbols via Unicode in Edits (according to etc/symbols)"
 
-option vscode_caret_perspective : int = 50 for vscode
-  -- "number of visible lines above and below the caret (0: unrestricted)"
-
 option vscode_html_output : bool = false for vscode
   -- "output State and Output in HTML"

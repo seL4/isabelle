@@ -284,6 +284,14 @@ class Language_Server(
   }
 
 
+  /* document view ranges */
+
+  private def update_document_ranges(uri: String, ranges: List[Line.Range]): Unit = {
+    resources.update_view_ranges(Url.absolute_file(uri), ranges)
+    editor.invoke()
+  }
+
+
   /* preview */
 
   private lazy val preview_panel = new Preview_Panel(resources)
@@ -641,6 +649,7 @@ class Language_Server(
           case LSP.Markup_Action(active, text) => markup_action(active, text)
           case LSP.Decoration_Request(uri) => decoration_request(uri)
           case LSP.Caret_Update(caret) => update_caret(caret)
+          case LSP.Document_Ranges_Update(uri, ranges) => update_document_ranges(uri, ranges)
           case LSP.Output_Set_Margin(margin) => dynamic_output.set_margin(margin)
           case LSP.State_Init(id) => State_Panel.init(id, server)
           case LSP.State_Exit(state_id) => State_Panel.exit(state_id)

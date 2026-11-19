@@ -203,7 +203,8 @@ extends Resources(session_background, session_background, log = log_file) {
     state.change_result(st =>
       st.models.get(file) match {
         case None => (false, st)
-        case Some(model) => (true, st.update_models(Some(file -> model.external(true))))
+        case Some(model) =>
+          (true, st.update_models(Some(file -> model.external(true).set_view_ranges(Nil))))
       })
 
   def sync_models(changed_files: Set[JFile]): Unit =
@@ -362,6 +363,15 @@ extends Resources(session_background, session_background, log = log_file) {
     }
     yield VSCode_Resources.Caret(file, model, offset)
   }
+
+
+  /* view ranges handling */
+
+  def update_view_ranges(file: JFile, ranges: List[Line.Range]): Unit =
+    state.change { st =>
+      val updated = for (model <- st.models.get(file)) yield file -> model.set_view_ranges(ranges)
+      st.update_models(updated)
+    }
 
 
   /* decoration requests */

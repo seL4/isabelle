@@ -19,6 +19,7 @@ import isabelle.vscode.LSP
 
 object Extension extends VSCode.Extension {
   private var last_caret_update: Option[LSP.Caret_Update] = None
+  private var last_visible_editors: List[Text_Editor] = Nil
 
 
   /* command-line arguments from "isabelle vscode" */
@@ -119,6 +120,26 @@ object Extension extends VSCode.Extension {
       Script_Decorations.register_script_decorations(context)
 
 
+      /* document view ranges */
+
+      def update_document_ranges(editor: Text_Editor): Unit = {
+        val uri = editor.document.uri
+        val ranges =
+          for {
+            editor <- Window.visible_editors if editor.document.uri == uri
+            range <- editor.visible
+          } yield range
+
+        language_client.send_notification(LSP.Document_Ranges_Update(uri.toString, ranges))
+      }
+
+      def update_visible_editors(editors: List[Text_Editor]): Unit = {
+        last_visible_editors.filterNot(editors.contains).foreach(update_document_ranges)
+        editors.filterNot(last_visible_editors.contains).foreach(update_document_ranges)
+        last_visible_editors = editors
+      }
+
+
      /* caret handling */
 
       def update_caret(): Unit = {
@@ -165,8 +186,11 @@ object Extension extends VSCode.Extension {
       language_client.on_ready().map { _ =>
         context.subscribe(
           Window.on_change_active_editor(_ => update_caret()),
-          Window.on_change_selection(_ => update_caret()))
+          Window.on_change_selection(_ => update_caret()),
+          Window.on_change_visible_ranges(update_document_ranges),
+          Window.on_change_visible_editors(update_visible_editors))
         update_caret()
+        update_visible_editors(Window.visible_editors)
 
         language_client.on_notification(LSP.Caret_Update.name,
           { case LSP.Caret_Update(Some(caret_update)) => goto_file(caret_update) })

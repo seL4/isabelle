@@ -68,6 +68,7 @@ sealed case class VSCode_Model(
   version: Option[Long] = None,
   external_file: Boolean = false,
   node_required: Boolean = false,
+  view_ranges: List[Line.Range] = Nil,
   last_perspective: Document.Node.Perspective_Text.T = Document.Node.Perspective_Text.empty,
   pending_edits: List[Text.Edit] = Nil,
   published_diagnostics: List[Text.Info[Command.Results]] = Nil,
@@ -101,6 +102,8 @@ sealed case class VSCode_Model(
 
   /* perspective */
 
+  def set_view_ranges(ranges: List[Line.Range]): VSCode_Model = copy(view_ranges = ranges)
+
   def node_perspective(
     doc_blobs: Document.Blobs,
     caret: Option[Line.Position]
@@ -110,29 +113,18 @@ sealed case class VSCode_Model(
 
       val required = node_required || editor.document_node_required(node_name)
 
-      val caret_perspective = session.resources.options.int("vscode_caret_perspective") max 0
-      val caret_range =
-        if (caret_perspective != 0) {
-          caret match {
-            case Some(pos) =>
-              val doc = content.doc
-              val pos1 = Line.Position((pos.line - caret_perspective) max 0)
-              val pos2 = Line.Position((pos.line + caret_perspective + 1) min doc.lines.length)
-              Text.Range(doc.offset(pos1).get, doc.offset(pos2).get)
-            case None => Text.Range.offside
-          }
-        }
-        else if (node_visible) content.text_range
-        else Text.Range.offside
-
       val text_perspective =
         if (snapshot.commands_loading_ranges(session.resources.visible_node(_)).nonEmpty)
           Text.Perspective.full
-        else
-          content.text_range.try_restrict(caret_range) match {
-            case Some(range) => Text.Perspective(List(range))
-            case None => Text.Perspective.empty
-          }
+        else {
+          val doc = content.doc
+          val ranges =
+            for {
+              line_range <- view_ranges
+              range <- doc.text_range(line_range)
+            } yield range
+          Text.Perspective(ranges)
+        }
 
       val overlays = editor.node_overlays(node_name)
 
