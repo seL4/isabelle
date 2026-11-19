@@ -161,7 +161,7 @@ proof
   proof (induct n arbitrary: f)
     case 0
     { fix v have "size (v :: 'a list) > 0" by (induct v) auto }
-    from this show ?case by (simp add: list.exhaustive_list.simps)
+    from this show ?case by (simp add: exhaustive_list.simps)
   next
     case (Suc n)
     show ?case
@@ -172,7 +172,7 @@ proof
       proof (cases "v")
       case Nil
         from this v show ?thesis
-          unfolding list.exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
+          unfolding exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
           by (auto split: option.split simp add: less_natural_def)
       next 
       case (Cons v' vs')
@@ -182,7 +182,7 @@ proof
           by metis
         from complete_imp1[OF size_v', of "%x. (exhaustive_class.exhaustive (\<lambda>xs. f (x # xs)) (natural_of_nat n))", OF this]
         show ?thesis
-          unfolding list.exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
+          unfolding exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
           by (auto split: option.split simp add: less_natural_def)
       qed
     next
@@ -196,7 +196,7 @@ proof
         case None
         with is_some have
           "is_some (exhaustive_class.exhaustive (\<lambda>x. exhaustive_class.exhaustive (\<lambda>xs. f (x # xs)) (natural_of_nat n)) (natural_of_nat n))"
-          unfolding list.exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
+          unfolding exhaustive_list.simps[of _ "natural_of_nat (Suc n)"] Quickcheck_Exhaustive.orelse_def
           by (simp add: less_natural_def)
         then obtain v' where
             v: "size v' \<le> n"

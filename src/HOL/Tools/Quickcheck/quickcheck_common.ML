@@ -51,8 +51,6 @@ struct
 
 val compat_prefs = [BNF_LFP_Compat.Include_GFPs]
 
-val define_foundationally = false
-
 
 (* HOLogic's term functions *)
 
@@ -357,7 +355,7 @@ fun pat_completeness_auto ctxt =
   Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt
 
 fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
-  if define_foundationally andalso is_some termination_tac then
+  if is_some termination_tac then
     let
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
     in
