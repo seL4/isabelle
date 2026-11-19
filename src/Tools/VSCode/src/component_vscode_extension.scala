@@ -282,7 +282,7 @@ val symbol_provider = Symbol_Static
         File.write(package_path, package_body)
 
         File.write(build_dir + Path.basic(".vscodeignore"),
-          Library.make_lines("**/*.scala", "**/*.map", "yarn.lock"))
+          Library.make_lines(node_dir.path.file_name, "**/*.scala", "**/*.map", "yarn.lock"))
 
         build_grammar(options, build_dir, logic = logic, dirs = dirs, progress = progress)
 
