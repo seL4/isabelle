@@ -294,16 +294,9 @@ object VSCode {
   @js.native
   private trait TextEditorSelectionChangeEvent extends js.Object {
     val textEditor: TextEditor = js.native
-    val selections: js.Array[Selection] = js.native
   }
 
   object Text_Editor {
-    object Selection {
-      case class Change(editor: Text_Editor, selections: List[Selection])
-      private[VSCode] def change(e: TextEditorSelectionChangeEvent): Change =
-        Change(Text_Editor(e.textEditor), e.selections.map(selection).toList)
-    }
-
     case class Selection(anchor: Line.Position, active: Line.Position) {
       def is_empty: Boolean = anchor == active
       def is_reversed: Boolean = anchor.compare(active) > 0
@@ -467,8 +460,8 @@ object VSCode {
     val on_change_active_editor: Event[Option[Text_Editor]] =
       Event(JS_window.onDidChangeActiveTextEditor, _.toOption.map(Text_Editor(_)))
 
-    val on_change_selection: Event[Text_Editor.Selection.Change] =
-      Event(JS_window.onDidChangeTextEditorSelection, Text_Editor.Selection.change)
+    val on_change_selection: Event[Text_Editor] =
+      Event(JS_window.onDidChangeTextEditorSelection, e => Text_Editor(e.textEditor))
 
     def show_document(
       document: Document,
