@@ -464,7 +464,7 @@ object VSCode {
     def active_editor: Option[Text_Editor] = JS_window.activeTextEditor.toOption.map(Text_Editor(_))
     def visible_editors: List[Text_Editor] = JS_window.visibleTextEditors.toList.map(Text_Editor(_))
 
-    val on_change_editor: Event[Option[Text_Editor]] =
+    val on_change_active_editor: Event[Option[Text_Editor]] =
       Event(JS_window.onDidChangeActiveTextEditor, _.toOption.map(Text_Editor(_)))
 
     val on_change_selection: Event[Text_Editor.Selection.Change] =

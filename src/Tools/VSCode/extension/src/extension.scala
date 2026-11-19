@@ -106,7 +106,7 @@ object Extension extends VSCode.Extension {
       context.subscribe(
         Workspace.on_change_configuration(_ => Decorations.setup(context)),
         Workspace.on_change_document(event => Decorations.touch_document(event.document)),
-        Window.on_change_editor(_.foreach(Decorations.update_editor)),
+        Window.on_change_active_editor(_.foreach(Decorations.update_editor)),
         Workspace.on_close_document(Decorations.close_document))
 
       language_client.on_ready().map(_ =>
@@ -164,7 +164,7 @@ object Extension extends VSCode.Extension {
 
       language_client.on_ready().map { _ =>
         context.subscribe(
-          Window.on_change_editor(_ => update_caret()),
+          Window.on_change_active_editor(_ => update_caret()),
           Window.on_change_selection(_ => update_caret()))
         update_caret()
 

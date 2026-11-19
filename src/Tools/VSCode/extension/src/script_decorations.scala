@@ -110,7 +110,7 @@ object Script_Decorations {
       }
 
     context.subscribe(hide, superscript, subscript, control, bold,
-      Window.on_change_editor(_.foreach(handle_change_editor)),
+      Window.on_change_active_editor(_.foreach(handle_change_editor)),
       Workspace.on_change_document(handle_set_decorations))
   }
 }
