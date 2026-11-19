@@ -284,6 +284,7 @@ object VSCode {
     val document: TextDocument = js.native
     val selection: Selection = js.native
     val viewColumn: js.UndefOr[Int] = js.native
+    val visibleRanges: js.Array[Range] = js.native
 
     def edit(callback: js.Function1[TextEditorEdit, Unit]): js.Thenable[Boolean] = js.native
     def revealRange(range: Range, revealType: Int): Unit = js.native
@@ -293,6 +294,11 @@ object VSCode {
 
   @js.native
   private trait TextEditorSelectionChangeEvent extends js.Object {
+    val textEditor: TextEditor = js.native
+  }
+
+  @js.native
+  private trait TextEditorVisibleRangesChangeEvent extends js.Object {
     val textEditor: TextEditor = js.native
   }
 
@@ -336,6 +342,7 @@ object VSCode {
     def document: Document = Document(rep.document)
     def selection: Text_Editor.Selection = Text_Editor.selection(rep.selection)
     def column: Option[Text_Editor.Column] = rep.viewColumn.toOption.map(Text_Editor.Column(_))
+    def visible: List[Line.Range] = rep.visibleRanges.map(Range(_)).toList
 
     def reveal(range: Line.Range): Unit =
       rep.revealRange(Range(range), TextEditorRevealType.InCenterIfOutsideViewport)
@@ -440,7 +447,10 @@ object VSCode {
     val activeTextEditor: js.UndefOr[TextEditor] = js.native
     val visibleTextEditors: js.Array[TextEditor] = js.native
     val onDidChangeActiveTextEditor: Event_Fun[js.UndefOr[TextEditor]] = js.native
+    val onDidChangeVisibleTextEditors: Event_Fun[js.Array[TextEditor]] = js.native
     val onDidChangeTextEditorSelection: Event_Fun[TextEditorSelectionChangeEvent] = js.native
+    val onDidChangeTextEditorVisibleRanges: Event_Fun[TextEditorVisibleRangesChangeEvent] =
+      js.native
     def createTextEditorDecorationType(options: js.Any): Decoration = js.native
     def createWebviewPanel(viewType: String, title: String, showOptions: Int, options: js.Object)
       : WebviewPanel = js.native
@@ -460,8 +470,14 @@ object VSCode {
     val on_change_active_editor: Event[Option[Text_Editor]] =
       Event(JS_window.onDidChangeActiveTextEditor, _.toOption.map(Text_Editor(_)))
 
+    val on_change_visible_editors: Event[List[Text_Editor]] =
+      Event(JS_window.onDidChangeVisibleTextEditors, _.toList.map(Text_Editor(_)))
+
     val on_change_selection: Event[Text_Editor] =
       Event(JS_window.onDidChangeTextEditorSelection, e => Text_Editor(e.textEditor))
+
+    val on_change_visible_ranges: Event[Text_Editor] =
+      Event(JS_window.onDidChangeTextEditorVisibleRanges, e => Text_Editor(e.textEditor))
 
     def show_document(
       document: Document,
