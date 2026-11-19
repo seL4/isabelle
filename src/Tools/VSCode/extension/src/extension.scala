@@ -115,7 +115,7 @@ object Extension extends VSCode.Extension {
           { case LSP.Decoration(decoration) => Decorations.apply_decoration(decoration) }))
 
 
-     /* super-/subscript decorations */
+      /* super-/subscript decorations */
 
       Script_Decorations.register_script_decorations(context)
 
@@ -140,7 +140,7 @@ object Extension extends VSCode.Extension {
       }
 
 
-     /* caret handling */
+      /* caret handling */
 
       def update_caret(): Unit = {
         var caret_update: Option[LSP.Caret_Update] = None
