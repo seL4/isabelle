@@ -46,6 +46,25 @@ val bounded_forall = Attrib.setup_config_bool \<^binding>\<open>quickcheck_bound
 val full_support = Attrib.setup_config_bool \<^binding>\<open>quickcheck_full_support\<close> (K true)
 val quickcheck_pretty = Attrib.setup_config_bool \<^binding>\<open>quickcheck_pretty\<close> (K true)
 
+(** general term functions **)
+
+fun mk_measure f =
+  let
+    val Type ("fun", [T, @{typ nat}]) = fastype_of f 
+  in
+    Const (@{const_name Wellfounded.measure},
+      (T --> @{typ nat}) --> HOLogic.mk_prodT (T, T) |> HOLogic.mk_setT)
+    $ f
+  end
+
+fun mk_sumcases rT f (Type (@{type_name Sum_Type.sum}, [TL, TR])) =
+  let
+    val lt = mk_sumcases rT f TL
+    val rt = mk_sumcases rT f TR
+  in
+    Sum_Tree.mk_sumcase TL TR rT lt rt
+  end
+  | mk_sumcases _ f T = f T
 
 (** abstract syntax **)
 
@@ -184,6 +203,26 @@ fun mk_full_equations functerms =
       mk_if (size_ge_zero, foldr1 mk_none_continuation exprs, Const (\<^const_name>\<open>None\<close>, resultT))
   in mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms) end
 
+(** foundational definition with the function package **)
+
+val less_int_pred = @{lemma "i > 0 ==> Code_Numeral.nat_of_natural ((i :: natural) - 1) < Code_Numeral.nat_of_natural i" by (auto simp add: less_natural_def)}
+
+fun mk_single_measure T = HOLogic.mk_comp (@{term "Code_Numeral.nat_of_natural"},
+    Const (@{const_name "Product_Type.snd"}, T --> @{typ "natural"}))
+
+fun mk_termination_measure T =
+  let
+    val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
+  in
+    mk_measure (mk_sumcases @{typ nat} mk_single_measure T')
+  end
+
+fun termination_tac ctxt = 
+  Function_Relation.relation_tac ctxt mk_termination_measure 1
+  THEN resolve_tac ctxt @{thms wf_measure} 1
+  THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
+    (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps ([@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
+     @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.case})) 1))
 
 (** instantiating generator classes **)
 
