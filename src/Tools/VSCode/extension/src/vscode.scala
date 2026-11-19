@@ -650,6 +650,7 @@ object VSCode {
       json match {
         case LSP.Notification(method, params) => rep.sendNotification(method, Scalajs.JSON(params))
         case LSP.Notification0(method) => rep.sendNotification(method)
+        case _ => error("Invalid LSP.Notification: " + JSON.Format(json))
       }
 
     def send_request(json: JSON.T): Future[JSON.T] =
