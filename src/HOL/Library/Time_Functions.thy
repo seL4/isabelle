@@ -94,7 +94,12 @@ lemma T_filter_bound:
 by (metis T_filter_eq_T_map T_map_bound)
 
 lemma T_filter_map: "T_filter g (map f xs) = T_filter (\<lambda>x. g (f x)) xs"
-by (simp add: T_filter comp_def)
+  by (simp add: T_filter comp_def)
+
+time_fun List.member equations List.member_code
+
+lemma T_member_bound: "T_member xs x \<le> Suc(length xs)"
+by(induction xs) auto
 
 time_fun nth
 
