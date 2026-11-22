@@ -141,8 +141,6 @@ exception ZTERM of string * ztyp list * zterm list * zproof list;
 
 (* derived operations *)
 
-val ZFuns = Library.foldr ZFun;
-
 val ZAbsts = fold_rev (fn (x, T) => fn prf => ZAbst (x, T, prf));
 val ZAbsps = fold_rev (fn t => fn prf => ZAbsp ("H", t, prf));
 
@@ -1062,7 +1060,8 @@ fun lift_proof thy gprop inc prems prf =
         let
           val n = length Ts;
           fun incr lev (ZVar ((x, i), T)) =
-                if i >= 0 then combound (ZVar ((x, i + inc), ZFuns (Ts, Same.commit typ T)), lev, n)
+                if i >= 0
+                then combound (ZVar ((x, i + inc), Pure_Term.ZFuns (Ts, Same.commit typ T)), lev, n)
                 else raise Same.SAME
             | incr _ (ZBound _) = raise Same.SAME
             | incr _ (ZConst0 _) = raise Same.SAME

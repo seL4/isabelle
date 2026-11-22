@@ -26,6 +26,7 @@ signature PURE_TERM =
 sig
   datatype ztyp = datatype ztyp
   datatype zterm = datatype zterm
+  val ZFuns: ztyp list * ztyp -> ztyp
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
   val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
@@ -48,6 +49,8 @@ struct
 
 datatype ztyp = datatype ztyp;
 datatype zterm = datatype zterm;
+
+val ZFuns = Library.foldr ZFun;
 
 
 (* fold *)
