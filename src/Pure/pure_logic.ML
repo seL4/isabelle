@@ -27,7 +27,7 @@ end;
 signature PURE_LOGIC =
 sig
   include BASIC_PURE_LOGIC
-  exception ZTERM of string * Pure_Term.T list * Pure_Term.t list * proof list
+  exception PURE_LOGIC of string * Pure_Term.T list * Pure_Term.t list * proof list
   val Absts: (string * Pure_Term.T) list -> proof -> proof
   val Absps: Pure_Term.t list -> proof -> proof
   val Appts: proof * Pure_Term.t list -> proof
@@ -162,7 +162,7 @@ datatype proof =
   | Hypp of Pure_Term.t
   | OFCLASSp of Pure_Term.T * class;      (*OFCLASS proof from sorts algebra*)
 
-exception ZTERM of string * Pure_Term.T list * Pure_Term.t list * proof list;
+exception PURE_LOGIC of string * Pure_Term.T list * Pure_Term.t list * proof list;
 
 
 (* derived operations *)
@@ -747,7 +747,7 @@ fun close_proof prems prf =
     fun proof lev (Hypp t) =
           (case get_bound lev t of
             SOME p => p
-          | NONE => raise ZTERM ("Loose bound in proof term", [], [t], [prf]))
+          | NONE => raise PURE_LOGIC ("Loose bound in proof term", [], [t], [prf]))
       | proof lev (OFCLASSp C) =
           (case get_bound lev (OFCLASS C) of
             SOME p => p
