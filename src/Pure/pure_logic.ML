@@ -84,14 +84,14 @@ sig
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
   val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
   val zproof_const_args: zproof_const -> ((indexname * ztyp) * zterm) list
-  type zbox = serial * (zterm * zproof)
-  val zbox_ord: zbox ord
-  type zboxes = zbox Ord_List.T
-  val union_zboxes: zboxes -> zboxes -> zboxes
-  val unions_zboxes: zboxes list -> zboxes
+  type box = serial * (zterm * zproof)
+  val box_ord: box ord
+  type boxes = box Ord_List.T
+  val union_boxes: boxes -> boxes -> boxes
+  val unions_boxes: boxes list -> boxes
   val add_box_proof: {unconstrain: bool} -> theory ->
-    term list -> term -> zproof -> zboxes -> zproof * zboxes
-  val thm_proof: theory -> Thm_Name.P -> term list -> term -> zproof -> zbox * zproof
+    term list -> term -> zproof -> boxes -> zproof * boxes
+  val thm_proof: theory -> Thm_Name.P -> term list -> term -> zproof -> box * zproof
   val axiom_proof:  theory -> string -> term -> zproof
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
@@ -701,13 +701,13 @@ fun make_const_proof (f, g) ((a, insts): zproof_const) =
 
 (* closed proof boxes *)
 
-type zbox = serial * (zterm * zproof);
-val zbox_ord: zbox ord = fn ((i, _), (j, _)) => int_ord (j, i);
+type box = serial * (zterm * zproof);
+val box_ord: box ord = fn ((i, _), (j, _)) => int_ord (j, i);
 
-type zboxes = zbox Ord_List.T;
-val union_zboxes = Ord_List.union zbox_ord;
-val unions_zboxes = Ord_List.unions zbox_ord;
-val add_zboxes = Ord_List.insert zbox_ord;
+type boxes = box Ord_List.T;
+val union_boxes = Ord_List.union box_ord;
+val unions_boxes = Ord_List.unions box_ord;
+val add_boxes = Ord_List.insert box_ord;
 
 local
 
@@ -777,7 +777,7 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val prf' = beta_norm_prooft (close_proof prems (unconstrain_proof prf));
 
     val i = serial ();
-    val zbox: zbox = (i, (prop', prf'));
+    val box: box = (i, (prop', prf'));
 
     val proof_name =
       ZThm {theory_name = Context.theory_long_name thy, thm_name = thm_name, serial = i};
@@ -787,17 +787,17 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
       outer_constraints |> map (fn (T, c) =>
         OFCLASSp (ztyp_of (if unconstrain then unconstrain_typ T else T), c));
     val args2 = if unconstrain then map ZHyp hyps' else map (ZHyp o zterm) hyps;
-  in (zbox, ZAppps (ZAppps (const, args1), args2)) end;
+  in (box, ZAppps (ZAppps (const, args1), args2)) end;
 
 in
 
 val thm_proof = box_proof {unconstrain = false};
 
-fun add_box_proof unconstrain thy hyps concl prf zboxes =
+fun add_box_proof unconstrain thy hyps concl prf boxes =
   let
-    val (zbox, prf') = box_proof unconstrain thy Thm_Name.none hyps concl prf;
-    val zboxes' = add_zboxes zbox zboxes;
-  in (prf', zboxes') end;
+    val (box, prf') = box_proof unconstrain thy Thm_Name.none hyps concl prf;
+    val boxes' = add_boxes box boxes;
+  in (prf', boxes') end;
 
 end;
 

@@ -187,7 +187,7 @@ sig
   val plain_prop_of: thm -> term
   val get_zproof_serials: theory -> serial list
   val get_zproof: theory -> serial ->
-    {name: Thm_Name.P, thm: thm, zboxes: Pure_Logic.zboxes, zproof: zproof} option
+    {name: Thm_Name.P, thm: thm, boxes: Pure_Logic.boxes, zproof: zproof} option
   val store_zproof: Thm_Name.P -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -777,9 +777,9 @@ fun weaken_sorts raw_sorts ct =
 
 fun make_deriv0 promises body = Deriv {promises = promises, body = body};
 
-fun make_deriv promises oracles thms zboxes zproof proof =
+fun make_deriv promises oracles thms boxes zproof proof =
   make_deriv0 promises
-    (PBody {oracles = oracles, thms = thms, zboxes = zboxes, zproof = zproof, proof = proof});
+    (PBody {oracles = oracles, thms = thms, boxes = boxes, zproof = zproof, proof = proof});
 
 val empty_deriv = make_deriv [] [] [] [] ZNop MinProof;
 
@@ -794,17 +794,17 @@ fun deriv_rule2 zproof proof
   let
     val ps' = Ord_List.union promise_ord ps1 ps2;
 
-    val {oracles = oracles1, thms = thms1, zboxes = zboxes1, zproof = zprf1, proof = prf1} = body1;
-    val {oracles = oracles2, thms = thms2, zboxes = zboxes2, zproof = zprf2, proof = prf2} = body2;
+    val {oracles = oracles1, thms = thms1, boxes = boxes1, zproof = zprf1, proof = prf1} = body1;
+    val {oracles = oracles2, thms = thms2, boxes = boxes2, zproof = zprf2, proof = prf2} = body2;
 
     val oracles' = Proofterm.union_oracles oracles1 oracles2;
     val thms' = Proofterm.union_thms thms1 thms2;
-    val zboxes' = Pure_Logic.union_zboxes zboxes1 zboxes2;
+    val boxes' = Pure_Logic.union_boxes boxes1 boxes2;
 
     val proofs = Proofterm.get_proofs_level ();
     val zproof' = if Proofterm.zproof_enabled proofs then zproof zprf1 zprf2 else ZNop;
     val proof' = if Proofterm.proof_enabled proofs then proof prf1 prf2 else MinProof;
-  in make_deriv ps' oracles' thms' zboxes' zproof' proof' end;
+  in make_deriv ps' oracles' thms' boxes' zproof' proof' end;
 
 fun deriv_rule1 zproof proof = deriv_rule2 (K zproof) (K proof) empty_deriv;
 
@@ -1081,12 +1081,12 @@ fun solve_constraints (thm as Thm (der, args)) =
         raise THEORY ("solve_constraints: bad theories for theorem\n" ^
           Syntax.string_of_term_global (hd bad_thys) (prop_of thm), bad_thys);
 
-    val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+    val Deriv {promises, body = PBody {oracles, thms, boxes, zproof, proof}} = der;
     val (oracles', thms') = (oracles, thms)
       |> fold (fold union_digest o constraint_digest) constraints;
     val zproof' = Pure_Logic.beta_norm_prooft zproof;
   in
-    Thm (make_deriv promises oracles' thms' zboxes zproof' proof,
+    Thm (make_deriv promises oracles' thms' boxes zproof' proof,
       {constraints = [], cert = cert, tags = tags, maxidx = maxidx,
         shyps = shyps, hyps = hyps, tpairs = tpairs, prop = prop})
   end;
@@ -1103,7 +1103,7 @@ fun strip_shyps thm =
     Thm (_, {shyps = [], ...}) => thm
   | Thm (der, {cert, tags, maxidx, constraints, shyps, hyps, tpairs, prop}) =>
       let
-        val Deriv {promises, body = PBody {oracles, thms, zboxes, zproof, proof}} = der;
+        val Deriv {promises, body = PBody {oracles, thms, boxes, zproof, proof}} = der;
 
         val thy = theory_of_thm thm;
         val algebra = Sign.classes_of thy;
@@ -1149,7 +1149,7 @@ fun strip_shyps thm =
         val zproof' = Pure_Logic.map_proof_types {hyps = true} map_ztyp zproof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;
       in
-        Thm (make_deriv promises oracles thms zboxes zproof' proof',
+        Thm (make_deriv promises oracles thms boxes zproof' proof',
          {cert = cert, tags = tags, maxidx = maxidx, constraints = constraints',
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end)
@@ -2167,20 +2167,20 @@ fun get_zproof thy =
   Inttab.lookup (get_zproofs thy) #> Option.map (fn {name, thm} =>
     let
       val thm' = transfer thy thm;
-      val PBody {zboxes, zproof, ...} = proof_body_of thm';
-    in {name = name, thm = thm', zboxes = zboxes, zproof = zproof} end);
+      val PBody {boxes, zproof, ...} = proof_body_of thm';
+    in {name = name, thm = thm', boxes = boxes, zproof = zproof} end);
 
 fun store_zproof name thm thy =
   let
     val Thm (Deriv {promises, body = PBody body}, args as {hyps, prop, ...}) = thm;
-    val {oracles, thms, zboxes, zproof, proof} = body;
+    val {oracles, thms, boxes, zproof, proof} = body;
     fun deriv a b = make_deriv promises oracles thms a b proof;
 
     val _ = null promises orelse
       raise THM ("store_zproof: theorem may not use promises", 0, [thm]);
 
     val ((i, (_, zproof1)), zproof2) = Pure_Logic.thm_proof thy name hyps prop zproof;
-    val der1 = if Options.default_bool "prune_proofs" then deriv [] ZNop else deriv zboxes zproof1;
+    val der1 = if Options.default_bool "prune_proofs" then deriv [] ZNop else deriv boxes zproof1;
     val der2 = deriv [] zproof2;
 
     val thm' = trim_context (Thm (der1, args));
