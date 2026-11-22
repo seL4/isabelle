@@ -325,7 +325,7 @@ fun fold_proof_types hyps typ =
 exception BAD_INST of ((indexname * ztyp) * zterm) list
 
 fun make_inst inst =
-  ZVars.build (inst |> fold (ZVars.insert Pure_Term.aconv_zterm))
+  ZVars.build (inst |> fold (ZVars.insert Pure_Term.alpha_eq))
     handle ZVars.DUP _ => raise BAD_INST inst;
 
 fun map_insts_same typ term (instT, inst) =
@@ -818,7 +818,7 @@ fun trivial_proof thy A =
 
 fun implies_intr_proof' h prf =
   let
-    fun proof lev (ZHyp t) = if Pure_Term.aconv_zterm (h, t) then ZBoundp lev else raise Same.SAME
+    fun proof lev (ZHyp t) = if Pure_Term.alpha_eq (h, t) then ZBoundp lev else raise Same.SAME
       | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
       | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
       | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
@@ -837,7 +837,7 @@ fun forall_intr_proof thy T (a, x) prf =
     val z = zterm x;
 
     fun term i b =
-      if Pure_Term.aconv_zterm (b, z) then ZBound i
+      if Pure_Term.alpha_eq (b, z) then ZBound i
       else
         (case b of
           ZAbs (x, T, t) => ZAbs (x, T, term (i + 1) t)

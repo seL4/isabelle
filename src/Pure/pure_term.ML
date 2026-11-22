@@ -40,7 +40,7 @@ sig
   val map_types: (ztyp -> ztyp) -> zterm -> zterm
   val ztyp_ord: ztyp ord
   val fast_zterm_ord: zterm ord
-  val aconv_zterm: zterm * zterm -> bool
+  val alpha_eq: zterm * zterm -> bool
 end;
 
 structure Pure_Term: PURE_TERM =
@@ -212,11 +212,11 @@ val fast_zterm_ord = struct_ord ||| atoms_ord ||| types_ord;
 
 end;
 
-fun aconv_zterm (tm1, tm2) =
+fun alpha_eq (tm1, tm2) =
   pointer_eq (tm1, tm2) orelse
     (case (tm1, tm2) of
-      (ZApp (t1, u1), ZApp (t2, u2)) => aconv_zterm (t1, t2) andalso aconv_zterm (u1, u2)
-    | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => aconv_zterm (t1, t2) andalso T1 = T2
+      (ZApp (t1, u1), ZApp (t2, u2)) => alpha_eq (t1, t2) andalso alpha_eq (u1, u2)
+    | (ZAbs (_, T1, t1), ZAbs (_, T2, t2)) => alpha_eq (t1, t2) andalso T1 = T2
     | (a1, a2) => a1 = a2);
 
 end;
