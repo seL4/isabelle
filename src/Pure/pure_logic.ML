@@ -192,8 +192,7 @@ fun incr_bv_same inc =
   if inc = 0 then fn _ => Same.same
   else
     let
-      fun term lev (BV i) =
-            if i >= lev then BV (i + inc) else raise Same.SAME
+      fun term lev (BV i) = if i >= lev then BV (i + inc) else raise Same.SAME
         | term lev (ABS (a, T, t)) = ABS (a, T, term (lev + 1) t)
         | term lev (APP (t, u)) =
             (APP (term lev t, Same.commit (term lev) u)
@@ -207,8 +206,7 @@ fun incr_proof_bv_same incp inct =
     let
       val term = incr_bv_same inct;
 
-      fun proof plev _ (BVp i) =
-            if i >= plev then BVp (i + incp) else raise Same.SAME
+      fun proof plev _ (BVp i) = if i >= plev then BVp (i + incp) else raise Same.SAME
         | proof plev tlev (Absp (a, t, p)) =
             (Absp (a, term tlev t, Same.commit (proof (plev + 1) tlev) p)
               handle Same.SAME => Absp (a, t, proof (plev + 1) tlev p))
@@ -634,7 +632,8 @@ fun norm_term_same {pure_type, pure_term} (envir as Envir.Envir {tyenv, tenv, ..
     val lookup =
       if Vartab.is_empty tenv then K NONE
       else
-        Pure_Vars.apply_unsynchronized_cache (apsnd typ_of #> Envir.lookup envir #> Option.map pure_term);
+        Pure_Vars.apply_unsynchronized_cache
+          (apsnd typ_of #> Envir.lookup envir #> Option.map pure_term);
 
     val normT = norm_type_same pure_type tyenv;
 
@@ -767,7 +766,8 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val {pure_term, ...} = pure_term_cache thy;
 
     val present_set_prf =
-      Pure_TVars.build ((fold_proof_types {hyps = true} o Pure_Term.fold_tvars) Pure_TVars.add_set prf);
+      Pure_TVars.build
+        ((fold_proof_types {hyps = true} o Pure_Term.fold_tvars) Pure_TVars.add_set prf);
     val present_set =
       Types.build (Types.add_atyps concl #> fold Types.add_atyps hyps #>
         Pure_TVars.fold (Types.add_set o typ_of_tvar o #1) present_set_prf);
@@ -1009,7 +1009,8 @@ fun instantiate_proof thy (Ts, ts) prf =
   let
     val {pure_type, pure_term} = pure_term_cache thy;
     val instT = Pure_TVars.build (Ts |> fold (fn (v, T) => Pure_TVars.add (v, pure_type T)));
-    val inst = Pure_Vars.build (ts |> fold (fn ((v, T), t) => Pure_Vars.add ((v, pure_type T), pure_term t)));
+    val inst =
+      Pure_Vars.build (ts |> fold (fn ((v, T), t) => Pure_Vars.add ((v, pure_type T), pure_term t)));
     val typ = instantiate_type_same instT;
     val term = instantiate_term_same typ inst;
   in map_proof {hyps = false} typ term prf end;
