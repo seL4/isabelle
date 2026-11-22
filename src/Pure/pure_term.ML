@@ -4,8 +4,6 @@
 The pure logic behind Isabelle/Pure: basic datatypes for term language.
 *)
 
-(* types and terms *)
-
 datatype ztyp =
     ZTVar of indexname * sort      (*free: index ~1*)
   | ZFun of ztyp * ztyp
@@ -24,8 +22,33 @@ datatype zterm =
   | ZApp of zterm * zterm
   | OFCLASS of ztyp * class
 
-structure ZTerm =
+signature PURE_TERM =
+sig
+  datatype ztyp = datatype ztyp
+  datatype zterm = datatype zterm
+  val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
+  val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
+  val map_tvars_same: (indexname * sort -> ztyp) -> ztyp Same.operation
+  val map_tvars: (indexname * sort -> ztyp) -> ztyp -> ztyp
+  val map_aterms_same: zterm Same.operation -> zterm Same.operation
+  val map_aterms: (zterm -> zterm) -> zterm -> zterm
+  val map_vars_same: (indexname * ztyp -> zterm) -> zterm Same.operation
+  val map_vars: (indexname * ztyp -> zterm) -> zterm -> zterm
+  val map_types_same: ztyp Same.operation -> zterm Same.operation
+  val map_types: (ztyp -> ztyp) -> zterm -> zterm
+  val ztyp_ord: ztyp ord
+  val fast_zterm_ord: zterm ord
+  val aconv_zterm: zterm * zterm -> bool
+end;
+
+structure Pure_Term: PURE_TERM =
 struct
+
+datatype ztyp = datatype ztyp;
+datatype zterm = datatype zterm;
+
 
 (* fold *)
 
@@ -201,8 +224,8 @@ end;
 
 (* tables and term items *)
 
-structure ZTypes = Table(type key = ztyp val ord = ZTerm.ztyp_ord);
-structure ZTerms = Table(type key = zterm val ord = ZTerm.fast_zterm_ord);
+structure ZTypes = Table(type key = ztyp val ord = Pure_Term.ztyp_ord);
+structure ZTerms = Table(type key = zterm val ord = Pure_Term.fast_zterm_ord);
 
 structure ZTVars:
 sig
@@ -212,8 +235,8 @@ sig
 end =
 struct
   open TVars;
-  val add_tvarsT = ZTerm.fold_tvars add_set;
-  val add_tvars = ZTerm.fold_types add_tvarsT;
+  val add_tvarsT = Pure_Term.fold_tvars add_set;
+  val add_tvars = Pure_Term.fold_types add_tvarsT;
 end;
 
 structure ZVars:
@@ -226,10 +249,10 @@ struct
 structure Term_Items = Term_Items
 (
   type key = indexname * ztyp;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord ZTerm.ztyp_ord);
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Pure_Term.ztyp_ord);
 );
 open Term_Items;
 
-val add_vars = ZTerm.fold_vars add_set;
+val add_vars = Pure_Term.fold_vars add_set;
 
 end;

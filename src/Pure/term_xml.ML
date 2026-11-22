@@ -77,7 +77,7 @@ fun ztyp T = T |> variant
   fn ZTVar (a, b) => (indexname a, sort b)];
 
 fun zvar_type {typed_vars} T =
-  if typed_vars andalso T <> ZTerm.ztyp_dummy then ztyp T else [];
+  if typed_vars andalso T <> Pure_Logic.ztyp_dummy then ztyp T else [];
 
 fun zterm flag t = t |> variant
  [fn ZConst0 a => ([a], [])
@@ -98,12 +98,12 @@ fun zproof flag prf = prf |> variant
   fn ZAppt a => ([], pair (zproof flag) (zterm flag) a),
   fn ZAppp a => ([], pair (zproof flag) (zproof flag) a),
   fn ZHyp a => ([], zterm flag a),
-  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (ZTerm.zproof_const_typargs c)),
+  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (Pure_Logic.zproof_const_typargs c)),
   fn OFCLASSp (a, b) => ([b], ztyp a),
-  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (ZTerm.zproof_const_typargs c)),
+  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (Pure_Logic.zproof_const_typargs c)),
   fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
     ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
-      list (ztyp o #2) (ZTerm.zproof_const_typargs c))];
+      list (ztyp o #2) (Pure_Logic.zproof_const_typargs c))];
 
 end;
 

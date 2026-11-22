@@ -142,8 +142,8 @@ val _ = (Theory.setup o Thy_Presentation.add_hook) (fn context => fn thy =>
 
     val thy_cache = thy;  (* FIXME tmp *)
 
-    val ztyp_of = ZTerm.ztyp_cache thy_cache;
-    val zterm_of = ZTerm.zterm_of thy_cache;
+    val ztyp_of = Pure_Logic.ztyp_cache thy_cache;
+    val zterm_of = Pure_Logic.zterm_of thy_cache;
     val zproof_of = Proofterm.proof_to_zproof thy_cache;
 
     val encode_ztyp = Term_XML.Encode.ztyp;
@@ -246,7 +246,8 @@ val _ = (Theory.setup o Thy_Presentation.add_hook) (fn context => fn thy =>
               val U = Logic.unvarifyT_global T;
               val U0 = Term.strip_sortsT U;
               fun trim_abbrev t =
-                ZTerm.standard_vars Name.context (zterm_of t, NONE) |> #prop |> ZTerm.strip_sorts;
+                Pure_Logic.standard_vars Name.context (zterm_of t, NONE)
+                |> #prop |> Pure_Logic.strip_sorts;
               val abbrev' = Option.map trim_abbrev abbrev;
               val args = map (#1 o dest_TFree) (Consts.typargs consts (c, U0));
               val propositional = Object_Logic.is_propositional thy_ctxt (Term.body_type U0);
@@ -258,7 +259,7 @@ val _ = (Theory.setup o Thy_Presentation.add_hook) (fn context => fn thy =>
     fun standard_prop used extra_shyps raw_prop raw_proof =
       let
         val {typargs, args, prop, proof} =
-          ZTerm.standard_vars used (zterm_of raw_prop, Option.map zproof_of raw_proof);
+          Pure_Logic.standard_vars used (zterm_of raw_prop, Option.map zproof_of raw_proof);
         val is_free = not o Name.is_declared used;
         val args' = args |> filter (is_free o #1);
         val typargs' = typargs |> filter (is_free o #1);

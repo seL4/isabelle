@@ -28,7 +28,7 @@ sig
   and proof_body = PBody of
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
-     zboxes: ZTerm.zboxes,
+     zboxes: Pure_Logic.zboxes,
      zproof: zproof,
      proof: proof}
   type oracle = (string * Position.T) * term option
@@ -222,7 +222,7 @@ datatype proof =
 and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
-   zboxes: ZTerm.zboxes,
+   zboxes: Pure_Logic.zboxes,
    zproof: zproof,
    proof: proof}
 and thm_body =
@@ -373,7 +373,7 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 fun proof_to_zproof thy =
   let
-    val {ztyp, zterm} = ZTerm.zterm_cache thy;
+    val {ztyp, zterm} = Pure_Logic.zterm_cache thy;
     val ztvar = ztyp #> (fn ZTVar v => v);
 
     fun zproof_const name prop typargs =
@@ -398,7 +398,7 @@ fun proof_to_zproof thy =
           in zproof_const proof_name prop Ts end;
   in zproof end;
 
-fun encode_standard_term thy = ZTerm.zterm_of thy #> Term_XML.Encode.zterm {typed_vars = false};
+fun encode_standard_term thy = Pure_Logic.zterm_of thy #> Term_XML.Encode.zterm {typed_vars = false};
 fun encode_standard_proof thy = proof_to_zproof thy #> Term_XML.Encode.zproof {typed_vars = false};
 
 
@@ -2010,7 +2010,7 @@ fun fulfill_norm_proof thy ps body0 =
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
     val zboxes =
-      ZTerm.unions_zboxes
+      Pure_Logic.unions_zboxes
         (fold (fn (_, PBody {zboxes, ...}) => not (null zboxes) ? cons zboxes) ps [zboxes0]);
     val proof = rew_proof thy proof0;
   in
@@ -2070,8 +2070,8 @@ local
 fun export_proof thy i prop0 proof0 =
   let
     val {typargs, args, prop, proof} =
-      ZTerm.standard_vars Name.context
-        (ZTerm.zterm_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
+      Pure_Logic.standard_vars Name.context
+        (Pure_Logic.zterm_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
     val xml = (typargs, (args, (prop, the proof))) |>
       let
         open XML.Encode Term_XML.Encode;
@@ -2103,7 +2103,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val proofs = get_proofs_level ();
     val (zproof1, zboxes1) =
       if zproof_enabled proofs then
-        ZTerm.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 zboxes0
+        Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 zboxes0
       else (ZNop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
