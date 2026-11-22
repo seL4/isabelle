@@ -316,7 +316,9 @@ fun subst_term_same typ var =
 
 fun instantiate_type_same instT =
   if Pure_TVars.is_empty instT then Same.same
-  else Pure_Types.apply_unsynchronized_cache (subst_type_same (Same.function (Pure_TVars.lookup instT)));
+  else
+    Pure_Types.apply_unsynchronized_cache
+      (subst_type_same (Same.function (Pure_TVars.lookup instT)));
 
 fun instantiate_term_same typ inst =
   subst_term_same typ (Same.function (Pure_Vars.lookup inst));
@@ -344,7 +346,7 @@ fun fold_proof_types hyps typ =
 
 (* map types/terms within proof *)
 
-exception BAD_INST of ((indexname * T) * t) list
+exception BAD_INST of ((indexname * T) * t) list;
 
 fun make_inst inst =
   Pure_Vars.build (inst |> fold (Pure_Vars.insert Pure_Term.alpha_eq))
