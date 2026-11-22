@@ -4,28 +4,29 @@
 The pure logic behind Isabelle/Pure: basic datatypes for term language.
 *)
 
-datatype ztyp =
-    ZTVar of indexname * sort      (*free: index ~1*)
-  | ZFun of ztyp * ztyp
-  | ZProp
-  | ZType0 of string               (*type constant*)
-  | ZType1 of string * ztyp        (*type constructor: 1 argument*)
-  | ZType of string * ztyp list    (*type constructor: >= 2 arguments*)
-
-datatype zterm =
-    ZVar of indexname * ztyp       (*free: index ~1*)
-  | ZBound of int
-  | ZConst0 of string              (*monomorphic constant*)
-  | ZConst1 of string * ztyp       (*polymorphic constant: 1 type argument*)
-  | ZConst of string * ztyp list   (*polymorphic constant: >= 2 type arguments*)
-  | ZAbs of string * ztyp * zterm
-  | ZApp of zterm * zterm
-  | OFCLASS of ztyp * class
+signature BASIC_PURE_TERM =
+sig
+  datatype ztyp =
+      ZTVar of indexname * sort
+    | ZFun of ztyp * ztyp
+    | ZProp
+    | ZType0 of string
+    | ZType1 of string * ztyp
+    | ZType of string * ztyp list
+  datatype zterm =
+      ZVar of indexname * ztyp
+    | ZBound of int
+    | ZConst0 of string
+    | ZConst1 of string * ztyp
+    | ZConst of string * ztyp list
+    | ZAbs of string * ztyp * zterm
+    | ZApp of zterm * zterm
+    | OFCLASS of ztyp * class
+end
 
 signature PURE_TERM =
 sig
-  datatype ztyp = datatype ztyp
-  datatype zterm = datatype zterm
+  include BASIC_PURE_TERM
   val ZFuns: ztyp list * ztyp -> ztyp
   val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
   val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
@@ -47,8 +48,25 @@ end;
 structure Pure_Term: PURE_TERM =
 struct
 
-datatype ztyp = datatype ztyp;
-datatype zterm = datatype zterm;
+(* datatypes *)
+
+datatype ztyp =
+    ZTVar of indexname * sort      (*free: index ~1*)
+  | ZFun of ztyp * ztyp
+  | ZProp
+  | ZType0 of string               (*type constant*)
+  | ZType1 of string * ztyp        (*type constructor: 1 argument*)
+  | ZType of string * ztyp list    (*type constructor: >= 2 arguments*)
+
+datatype zterm =
+    ZVar of indexname * ztyp       (*free: index ~1*)
+  | ZBound of int
+  | ZConst0 of string              (*monomorphic constant*)
+  | ZConst1 of string * ztyp       (*polymorphic constant: 1 type argument*)
+  | ZConst of string * ztyp list   (*polymorphic constant: >= 2 type arguments*)
+  | ZAbs of string * ztyp * zterm
+  | ZApp of zterm * zterm
+  | OFCLASS of ztyp * class
 
 val ZFuns = Library.foldr ZFun;
 
@@ -224,17 +242,19 @@ fun alpha_eq (tm1, tm2) =
 
 end;
 
+structure Basic_Pure_Term: BASIC_PURE_TERM = Pure_Term;
+
 
 (* tables and term items *)
 
-structure ZTypes = Table(type key = ztyp val ord = Pure_Term.ztyp_ord);
-structure ZTerms = Table(type key = zterm val ord = Pure_Term.fast_zterm_ord);
+structure ZTypes = Table(type key = Pure_Term.ztyp val ord = Pure_Term.ztyp_ord);
+structure ZTerms = Table(type key = Pure_Term.zterm val ord = Pure_Term.fast_zterm_ord);
 
 structure ZTVars:
 sig
   include TERM_ITEMS
-  val add_tvarsT: ztyp -> set -> set
-  val add_tvars: zterm -> set -> set
+  val add_tvarsT: Pure_Term.ztyp -> set -> set
+  val add_tvars: Pure_Term.zterm -> set -> set
 end =
 struct
   open TVars;
@@ -245,13 +265,13 @@ end;
 structure ZVars:
 sig
   include TERM_ITEMS
-  val add_vars: zterm -> set -> set
+  val add_vars: Pure_Term.zterm -> set -> set
 end =
 struct
 
 structure Term_Items = Term_Items
 (
-  type key = indexname * ztyp;
+  type key = indexname * Pure_Term.ztyp;
   val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Pure_Term.ztyp_ord);
 );
 open Term_Items;

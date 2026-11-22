@@ -188,7 +188,7 @@ fun make_proof_body prf =
        {oracles = Ord_List.make Proofterm.oracle_ord oracles,
         thms = Ord_List.make Proofterm.thm_ord thms,
         boxes = [],
-        zproof = ZNop,
+        zproof = Pure_Logic.ZNop,
         proof = prf};
   in Proofterm.thm_body body end;
 

@@ -20,9 +20,9 @@ sig
   structure Encode:
   sig
     include TERM_XML_OPS
-    val ztyp: ztyp T
-    val zterm: {typed_vars: bool} -> zterm T
-    val zproof: {typed_vars: bool} -> zproof T
+    val ztyp: Pure_Term.ztyp T
+    val zterm: {typed_vars: bool} -> Pure_Term.zterm T
+    val zproof: {typed_vars: bool} -> Pure_Logic.zproof T
   end
   structure Decode: TERM_XML_OPS
 end;
@@ -33,7 +33,7 @@ struct
 structure Encode =
 struct
 
-open XML.Encode;
+open XML.Encode Basic_Pure_Term Basic_Pure_Logic;
 
 fun indexname (a, b) = if b = 0 then [a] else [a, int_atom b];
 

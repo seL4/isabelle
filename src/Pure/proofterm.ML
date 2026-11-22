@@ -29,12 +29,12 @@ sig
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      boxes: Pure_Logic.boxes,
-     zproof: zproof,
+     zproof: Pure_Logic.zproof,
      proof: proof}
   type oracle = (string * Position.T) * term option
   type thm = serial * thm_node
   exception MIN_PROOF of unit
-  val zproof_of: proof_body -> zproof
+  val zproof_of: proof_body -> Pure_Logic.zproof
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -60,12 +60,12 @@ sig
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val union_thms: thm Ord_List.T -> thm Ord_List.T -> thm Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
-  val no_proof_body: zproof -> proof -> proof_body
+  val no_proof_body: Pure_Logic.zproof -> proof -> proof_body
   val no_thm_names: proof -> proof
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
-  val proof_to_zproof: theory -> proof -> zproof
+  val proof_to_zproof: theory -> proof -> Pure_Logic.zproof
   val encode_standard_term: theory -> term XML.Encode.T
   val encode_standard_proof: theory -> proof XML.Encode.T
   val encode: theory -> proof XML.Encode.T
@@ -223,7 +223,7 @@ and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
    boxes: Pure_Logic.boxes,
-   zproof: zproof,
+   zproof: Pure_Logic.zproof,
    proof: proof}
 and thm_body =
   Thm_Body of {open_proof: proof -> proof, body: proof_body future}
@@ -336,7 +336,7 @@ val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body zproof proof =
   PBody {oracles = [], thms = [], boxes = [], zproof = zproof, proof = proof};
-val no_thm_body = thm_body (no_proof_body ZNop MinProof);
+val no_thm_body = thm_body (no_proof_body Pure_Logic.ZNop MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
   | no_thm_names (AbsP (x, t, prf)) = AbsP (x, t, no_thm_names prf)
@@ -371,6 +371,8 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 (* encode as zterm/zproof *)
 
+local open Basic_Pure_Term Basic_Pure_Logic in
+
 fun proof_to_zproof thy =
   let
     val {ztyp, zterm} = Pure_Logic.zterm_cache thy;
@@ -397,6 +399,8 @@ fun proof_to_zproof thy =
             ZThm {theory_name = theory_name, thm_name = thm_name, serial = serial};
           in zproof_const proof_name prop Ts end;
   in zproof end;
+
+end;
 
 fun encode_standard_term thy = Pure_Logic.zterm_of thy #> Term_XML.Encode.zterm {typed_vars = false};
 fun encode_standard_proof thy = proof_to_zproof thy #> Term_XML.Encode.zproof {typed_vars = false};
@@ -446,7 +450,7 @@ end;
 
 local
 
-open XML.Decode Term_XML.Decode;
+open XML.Decode Term_XML.Decode Basic_Pure_Logic;
 
 fun proof consts prf = prf |> variant
  [fn ([], []) => MinProof,
@@ -2104,7 +2108,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val (zproof1, boxes1) =
       if zproof_enabled proofs then
         Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 boxes0
-      else (ZNop, []);
+      else (Pure_Logic.ZNop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
       else MinProof;
@@ -2115,7 +2119,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
-          {oracles = oracles0, thms = thms0, boxes = [], zproof = ZNop, proof = proof1};
+          {oracles = oracles0, thms = thms0, boxes = [], zproof = Pure_Logic.ZNop, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =

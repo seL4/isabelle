@@ -4,87 +4,91 @@
 The pure logic behind Isabelle/Pure: types, terms, and proofs.
 *)
 
-(* proofs *)
-
-datatype zproof_name =
-    ZAxiom of string
-  | ZOracle of string
-  | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
-
-type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
-
-datatype zproof =
-    ZNop
-  | ZConstp of zproof_const
-  | ZBoundp of int
-  | ZAbst of string * ztyp * zproof
-  | ZAbsp of string * zterm * zproof
-  | ZAppt of zproof * zterm
-  | ZAppp of zproof * zproof
-  | ZHyp of zterm
-  | OFCLASSp of ztyp * class;      (*OFCLASS proof from sorts algebra*)
+signature BASIC_PURE_LOGIC =
+sig
+  datatype zproof_name =
+      ZAxiom of string
+    | ZOracle of string
+    | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial}
+  type zproof_const =
+    (zproof_name * Pure_Term.zterm) * (Pure_Term.ztyp ZTVars.table * Pure_Term.zterm ZVars.table);
+  datatype zproof =
+      ZNop
+    | ZConstp of zproof_const
+    | ZBoundp of int
+    | ZAbst of string * Pure_Term.ztyp * zproof
+    | ZAbsp of string * Pure_Term.zterm * zproof
+    | ZAppt of zproof * Pure_Term.zterm
+    | ZAppp of zproof * zproof
+    | ZHyp of Pure_Term.zterm
+    | OFCLASSp of Pure_Term.ztyp * class
+end;
 
 signature PURE_LOGIC =
 sig
-  datatype zproof = datatype zproof
-  exception ZTERM of string * ztyp list * zterm list * zproof list
-  val ZAbsts: (string * ztyp) list -> zproof -> zproof
-  val ZAbsps: zterm list -> zproof -> zproof
-  val ZAppts: zproof * zterm list -> zproof
+  include BASIC_PURE_LOGIC
+  exception ZTERM of string * Pure_Term.ztyp list * Pure_Term.zterm list * zproof list
+  val ZAbsts: (string * Pure_Term.ztyp) list -> zproof -> zproof
+  val ZAbsps: Pure_Term.zterm list -> zproof -> zproof
+  val ZAppts: zproof * Pure_Term.zterm list -> zproof
   val ZAppps: zproof * zproof list -> zproof
-  val strip_sortsT: ztyp -> ztyp
-  val strip_sorts: zterm -> zterm
-  val incr_bv_same: int -> int -> zterm Same.operation
+  val strip_sortsT: Pure_Term.ztyp -> Pure_Term.ztyp
+  val strip_sorts: Pure_Term.zterm -> Pure_Term.zterm
+  val incr_bv_same: int -> int -> Pure_Term.zterm Same.operation
   val incr_proof_bv_same: int -> int -> int -> int -> zproof Same.operation
-  val incr_bv: int -> int -> zterm -> zterm
-  val incr_boundvars: int -> zterm -> zterm
+  val incr_bv: int -> int -> Pure_Term.zterm -> Pure_Term.zterm
+  val incr_boundvars: int -> Pure_Term.zterm -> Pure_Term.zterm
   val incr_proof_bv: int -> int -> int -> int -> zproof -> zproof
   val incr_proof_boundvars: int -> int -> zproof -> zproof
-  val subst_term_bound_same: zterm -> int -> zterm Same.operation
-  val subst_proof_bound_same: zterm -> int -> zproof Same.operation
+  val subst_term_bound_same: Pure_Term.zterm -> int -> Pure_Term.zterm Same.operation
+  val subst_proof_bound_same: Pure_Term.zterm -> int -> zproof Same.operation
   val subst_proof_boundp_same: zproof -> int -> int -> zproof Same.operation
-  val subst_term_bound: zterm -> zterm -> zterm
-  val subst_proof_bound: zterm -> zproof -> zproof
+  val subst_term_bound: Pure_Term.zterm -> Pure_Term.zterm -> Pure_Term.zterm
+  val subst_proof_bound: Pure_Term.zterm -> zproof -> zproof
   val subst_proof_boundp: zproof -> zproof -> zproof
-  val subst_type_same: (indexname * sort, ztyp) Same.function -> ztyp Same.operation
+  val subst_type_same: (indexname * sort, Pure_Term.ztyp) Same.function ->
+    Pure_Term.ztyp Same.operation
   val subst_term_same:
-    ztyp Same.operation -> (indexname * ztyp, zterm) Same.function -> zterm Same.operation
-  exception BAD_INST of ((indexname * ztyp) * zterm) list
-  val fold_proof: {hyps: bool} -> (ztyp -> 'a -> 'a) -> (zterm -> 'a -> 'a) -> zproof -> 'a -> 'a
-  val fold_proof_types: {hyps: bool} -> (ztyp -> 'a -> 'a) -> zproof -> 'a -> 'a
-  val map_proof: {hyps: bool} -> ztyp Same.operation -> zterm Same.operation -> zproof -> zproof
-  val map_proof_types: {hyps: bool} -> ztyp Same.operation -> zproof -> zproof
-  val map_class_proof: (ztyp * class, zproof) Same.function -> zproof -> zproof
-  val maxidx_type: ztyp -> int -> int
-  val maxidx_term: zterm -> int -> int
+    Pure_Term.ztyp Same.operation -> (indexname * Pure_Term.ztyp, Pure_Term.zterm) Same.function ->
+      Pure_Term.zterm Same.operation
+  exception BAD_INST of ((indexname * Pure_Term.ztyp) * Pure_Term.zterm) list
+  val fold_proof: {hyps: bool} -> (Pure_Term.ztyp -> 'a -> 'a) -> (Pure_Term.zterm -> 'a -> 'a) ->
+    zproof -> 'a -> 'a
+  val fold_proof_types: {hyps: bool} -> (Pure_Term.ztyp -> 'a -> 'a) -> zproof -> 'a -> 'a
+  val map_proof: {hyps: bool} -> Pure_Term.ztyp Same.operation -> Pure_Term.zterm Same.operation ->
+    zproof -> zproof
+  val map_proof_types: {hyps: bool} -> Pure_Term.ztyp Same.operation -> zproof -> zproof
+  val map_class_proof: (Pure_Term.ztyp * class, zproof) Same.function -> zproof -> zproof
+  val maxidx_type: Pure_Term.ztyp -> int -> int
+  val maxidx_term: Pure_Term.zterm -> int -> int
   val maxidx_proof: zproof -> int -> int
-  val ztyp_of: typ -> ztyp
-  val ztyp_dummy: ztyp
+  val ztyp_of: typ -> Pure_Term.ztyp
+  val ztyp_dummy: Pure_Term.ztyp
   val typ_of_tvar: indexname * sort -> typ
-  val typ_of: ztyp -> typ
+  val typ_of: Pure_Term.ztyp -> typ
   val init_cache: theory -> theory option
   val exit_cache: theory -> theory option
   val reset_cache: theory -> theory
   val check_cache: theory -> {ztyp: int, typ: int} option
-  val ztyp_cache: theory -> typ -> ztyp
-  val typ_cache: theory -> ztyp -> typ
-  val zterm_cache: theory -> {zterm: term -> zterm, ztyp: typ -> ztyp}
-  val zterm_of: theory -> term -> zterm
-  val zterm_dummy_pattern: ztyp -> zterm
-  val zterm_type: ztyp -> zterm
-  val term_of: theory -> zterm -> term
-  val beta_norm_term_same: zterm Same.operation
+  val ztyp_cache: theory -> typ -> Pure_Term.ztyp
+  val typ_cache: theory -> Pure_Term.ztyp -> typ
+  val zterm_cache: theory -> {zterm: term -> Pure_Term.zterm, ztyp: typ -> Pure_Term.ztyp}
+  val zterm_of: theory -> term -> Pure_Term.zterm
+  val zterm_dummy_pattern: Pure_Term.ztyp -> Pure_Term.zterm
+  val zterm_type: Pure_Term.ztyp -> Pure_Term.zterm
+  val term_of: theory -> Pure_Term.zterm -> term
+  val beta_norm_term_same: Pure_Term.zterm Same.operation
   val beta_norm_proof_same: zproof Same.operation
   val beta_norm_prooft_same: zproof -> zproof
-  val beta_norm_term: zterm -> zterm
+  val beta_norm_term: Pure_Term.zterm -> Pure_Term.zterm
   val beta_norm_proof: zproof -> zproof
   val beta_norm_prooft: zproof -> zproof
-  val norm_type: theory -> Type.tyenv -> ztyp -> ztyp
-  val norm_term: theory -> Envir.env -> zterm -> zterm
+  val norm_type: theory -> Type.tyenv -> Pure_Term.ztyp -> Pure_Term.ztyp
+  val norm_term: theory -> Envir.env -> Pure_Term.zterm -> Pure_Term.zterm
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
-  val zproof_const_typargs: zproof_const -> ((indexname * sort) * ztyp) list
-  val zproof_const_args: zproof_const -> ((indexname * ztyp) * zterm) list
-  type box = serial * (zterm * zproof)
+  val zproof_const_typargs: zproof_const -> ((indexname * sort) * Pure_Term.ztyp) list
+  val zproof_const_args: zproof_const -> ((indexname * Pure_Term.ztyp) * Pure_Term.zterm) list
+  type box = serial * (Pure_Term.zterm * zproof)
   val box_ord: box ord
   type boxes = box Ord_List.T
   val union_boxes: boxes -> boxes -> boxes
@@ -96,7 +100,7 @@ sig
   val oracle_proof:  theory -> string -> term -> zproof
   val assume_proof: theory -> term -> zproof
   val trivial_proof: theory -> term -> zproof
-  val implies_intr_proof': zterm -> zproof -> zproof
+  val implies_intr_proof': Pure_Term.zterm -> zproof -> zproof
   val implies_intr_proof: theory -> term -> zproof -> zproof
   val forall_intr_proof: theory -> typ -> string * term -> zproof -> zproof
   val forall_elim_proof: theory -> term -> zproof -> zproof
@@ -127,16 +131,38 @@ sig
   val of_sort_proof: Sorts.algebra -> sorts_proof -> (typ * class -> zproof) ->
     typ * sort -> zproof list
   val unconstrainT_proof: theory -> sorts_proof -> Logic.unconstrain_context -> zproof -> zproof
-  val standard_vars: Name.context -> zterm * zproof option ->
-    {typargs: (string * sort) list, args: (string * ztyp) list, prop: zterm, proof: zproof option}
+  val standard_vars: Name.context -> Pure_Term.zterm * zproof option ->
+    {typargs: (string * sort) list, args: (string * Pure_Term.ztyp) list, prop: Pure_Term.zterm,
+     proof: zproof option}
 end;
 
 structure Pure_Logic: PURE_LOGIC =
 struct
 
-datatype zproof = datatype zproof;
+open Basic_Pure_Term;
 
-exception ZTERM of string * ztyp list * zterm list * zproof list;
+
+(* datatypes *)
+
+datatype zproof_name =
+    ZAxiom of string
+  | ZOracle of string
+  | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
+
+type zproof_const = (zproof_name * zterm) * (ztyp ZTVars.table * zterm ZVars.table);
+
+datatype zproof =
+    ZNop
+  | ZConstp of zproof_const
+  | ZBoundp of int
+  | ZAbst of string * ztyp * zproof
+  | ZAbsp of string * zterm * zproof
+  | ZAppt of zproof * zterm
+  | ZAppp of zproof * zproof
+  | ZHyp of Pure_Term.zterm
+  | OFCLASSp of Pure_Term.ztyp * class;      (*OFCLASS proof from sorts algebra*)
+
+exception ZTERM of string * Pure_Term.ztyp list * Pure_Term.zterm list * zproof list;
 
 
 (* derived operations *)
@@ -1338,3 +1364,5 @@ fun standard_vars used (prop, opt_prf) =
 end;
 
 end;
+
+structure Basic_Pure_Logic: BASIC_PURE_LOGIC = Pure_Logic;
