@@ -1142,12 +1142,12 @@ fun strip_shyps thm =
               (case get_type (Type.sort_of_atyp T) of
                 SOME T' => T'
               | NONE => raise Fail "strip_shyps: bad type variable in proof term"));
-        val map_ztyp =
-          ZTypes.apply_unsynchronized_cache
+        val map_pure_type =
+          Pure_Types.apply_unsynchronized_cache
             (Pure_Logic.subst_type_same
-              (Pure_Logic.ztyp_of o map_atyp o Pure_Logic.typ_of o Pure_Term.TV));
+              (Pure_Logic.pure_type_of o map_atyp o Pure_Logic.typ_of o Pure_Term.TV));
 
-        val zproof' = Pure_Logic.map_proof_types {hyps = true} map_ztyp zproof;
+        val zproof' = Pure_Logic.map_proof_types {hyps = true} map_pure_type zproof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;
       in
         Thm (make_deriv promises oracles thms boxes zproof' proof',

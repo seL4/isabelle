@@ -369,30 +369,30 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 (** XML data representation **)
 
-(* encode as zterm/zproof *)
+(* encode as pure term/proof *)
 
 local open Basic_Pure_Term Basic_Pure_Logic in
 
 fun proof_to_zproof thy =
   let
-    val {ztyp, zterm} = Pure_Logic.zterm_cache thy;
-    val ztvar = ztyp #> (fn TV v => v);
+    val {pure_type, pure_term} = Pure_Logic.pure_term_cache thy;
+    val pure_tvar = pure_type #> (fn TV v => v);
 
     fun zproof_const name prop typargs =
       let
-        val vs = rev ((fold_types o fold_atyps) (insert (op =) o ztvar) prop []);
-        val Ts = map ztyp typargs
-      in ZConstp ((name, zterm prop), (ZTVars.make (vs ~~ Ts), ZVars.empty)) end;
+        val vs = rev ((fold_types o fold_atyps) (insert (op =) o pure_tvar) prop []);
+        val Ts = map pure_type typargs
+      in ZConstp ((name, pure_term prop), (Pure_TVars.make (vs ~~ Ts), Pure_Vars.empty)) end;
 
     fun zproof MinProof = ZNop
       | zproof (PBound i) = ZBoundp i
-      | zproof (Abst (a, SOME T, p)) = ZAbst (a, ztyp T, zproof p)
-      | zproof (AbsP (a, SOME t, p)) = ZAbsp (a, zterm t, zproof p)
-      | zproof (p % SOME t) = ZAppt (zproof p, zterm t)
+      | zproof (Abst (a, SOME T, p)) = ZAbst (a, pure_type T, zproof p)
+      | zproof (AbsP (a, SOME t, p)) = ZAbsp (a, pure_term t, zproof p)
+      | zproof (p % SOME t) = ZAppt (zproof p, pure_term t)
       | zproof (p %% q) = ZAppp (zproof p, zproof q)
-      | zproof (Hyp t) = ZHyp (zterm t)
+      | zproof (Hyp t) = ZHyp (pure_term t)
       | zproof (PAxm (a, prop, SOME Ts)) = zproof_const (ZAxiom a) prop Ts
-      | zproof (PClass (T, c)) = OFCLASSp (ztyp T, c)
+      | zproof (PClass (T, c)) = OFCLASSp (pure_type T, c)
       | zproof (Oracle (a, prop, SOME Ts)) = zproof_const (ZOracle a) prop Ts
       | zproof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
@@ -402,8 +402,11 @@ fun proof_to_zproof thy =
 
 end;
 
-fun encode_standard_term thy = Pure_Logic.zterm_of thy #> Term_XML.Encode.zterm {typed_vars = false};
-fun encode_standard_proof thy = proof_to_zproof thy #> Term_XML.Encode.zproof {typed_vars = false};
+fun encode_standard_term thy =
+  Pure_Logic.pure_term_of thy #> Term_XML.Encode.pure_term {typed_vars = false};
+
+fun encode_standard_proof thy =
+  proof_to_zproof thy #> Term_XML.Encode.pure_proof {typed_vars = false};
 
 
 (* encode *)
@@ -2075,14 +2078,14 @@ fun export_proof thy i prop0 proof0 =
   let
     val {typargs, args, prop, proof} =
       Pure_Logic.standard_vars Name.context
-        (Pure_Logic.zterm_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
+        (Pure_Logic.pure_term_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
     val xml = (typargs, (args, (prop, the proof))) |>
       let
         open XML.Encode Term_XML.Encode;
         val encode_tfrees = list (pair string sort);
-        val encode_frees = list (pair string Term_XML.Encode.ztyp);
-        val encode_term = Term_XML.Encode.zterm {typed_vars = false};
-        val encode_proof = Term_XML.Encode.zproof {typed_vars = false};
+        val encode_frees = list (pair string Term_XML.Encode.pure_type);
+        val encode_term = Term_XML.Encode.pure_term {typed_vars = false};
+        val encode_proof = Term_XML.Encode.pure_proof {typed_vars = false};
       in pair encode_tfrees (pair encode_frees (pair encode_term encode_proof)) end;
   in
     Export.export_params (Context.Theory thy)

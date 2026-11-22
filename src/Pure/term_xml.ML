@@ -20,9 +20,9 @@ sig
   structure Encode:
   sig
     include TERM_XML_OPS
-    val ztyp: Pure_Term.ztyp T
-    val zterm: {typed_vars: bool} -> Pure_Term.zterm T
-    val zproof: {typed_vars: bool} -> Pure_Logic.zproof T
+    val pure_type: Pure_Term.T T
+    val pure_term: {typed_vars: bool} -> Pure_Term.t T
+    val pure_proof: {typed_vars: bool} -> Pure_Logic.zproof T
   end
   structure Decode: TERM_XML_OPS
 end;
@@ -33,7 +33,7 @@ struct
 structure Encode =
 struct
 
-open XML.Encode Basic_Pure_Term Basic_Pure_Logic;
+open Basic_Pure_Term Basic_Pure_Logic XML.Encode;
 
 fun indexname (a, b) = if b = 0 then [a] else [a, int_atom b];
 
@@ -67,43 +67,45 @@ fun term consts t = t |> variant
     let val (T, c) = Logic.match_of_class t
     in ([c], typ T) end];
 
-fun ztyp T = T |> variant
- [fn FUN args => (["fun"], pair ztyp ztyp args)
+fun pure_type T = T |> variant
+ [fn FUN args => (["fun"], pair pure_type pure_type args)
    | PROP => (["prop"], [])
    | CON0 a => ([a], [])
-   | CON1 (a, b) => ([a], list ztyp [b])
-   | CONN (a, b) => ([a], list ztyp b),
+   | CON1 (a, b) => ([a], list pure_type [b])
+   | CONN (a, b) => ([a], list pure_type b),
   fn TV ((a, ~1), b) => ([a], sort b),
   fn TV (a, b) => (indexname a, sort b)];
 
-fun zvar_type {typed_vars} T =
-  if typed_vars andalso T <> Pure_Logic.ztyp_dummy then ztyp T else [];
+fun pure_var_type {typed_vars} T =
+  if typed_vars andalso T <> Pure_Logic.pure_type_dummy then pure_type T else [];
 
-fun zterm flag t = t |> variant
+fun pure_term flag t = t |> variant
  [fn CONST0 a => ([a], [])
-   | CONST1 (a, b) => ([a], list ztyp [b])
-   | CONSTN (a, b) => ([a], list ztyp b),
-  fn FV ((a, ~1), b) => ([a], zvar_type flag b),
-  fn FV (a, b) => (indexname a, zvar_type flag b),
+   | CONST1 (a, b) => ([a], list pure_type [b])
+   | CONSTN (a, b) => ([a], list pure_type b),
+  fn FV ((a, ~1), b) => ([a], pure_var_type flag b),
+  fn FV (a, b) => (indexname a, pure_var_type flag b),
   fn BV a => ([], int a),
-  fn ABS (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
-  fn APP a => ([], pair (zterm flag) (zterm flag) a),
-  fn OFCLASS (a, b) => ([b], ztyp a)];
+  fn ABS (a, b, c) => ([a], pair pure_type (pure_term flag) (b, c)),
+  fn APP a => ([], pair (pure_term flag) (pure_term flag) a),
+  fn OFCLASS (a, b) => ([b], pure_type a)];
 
-fun zproof flag prf = prf |> variant
+fun pure_proof flag prf = prf |> variant
  [fn ZNop => ([], []),
   fn ZBoundp a => ([], int a),
-  fn ZAbst (a, b, c) => ([a], pair ztyp (zproof flag) (b, c)),
-  fn ZAbsp (a, b, c) => ([a], pair (zterm flag) (zproof flag) (b, c)),
-  fn ZAppt a => ([], pair (zproof flag) (zterm flag) a),
-  fn ZAppp a => ([], pair (zproof flag) (zproof flag) a),
-  fn ZHyp a => ([], zterm flag a),
-  fn ZConstp (c as ((ZAxiom a, b), _)) => ([a], list (ztyp o #2) (Pure_Logic.zproof_const_typargs c)),
-  fn OFCLASSp (a, b) => ([b], ztyp a),
-  fn ZConstp (c as ((ZOracle a, b), _)) => ([a], list (ztyp o #2) (Pure_Logic.zproof_const_typargs c)),
+  fn ZAbst (a, b, c) => ([a], pair pure_type (pure_proof flag) (b, c)),
+  fn ZAbsp (a, b, c) => ([a], pair (pure_term flag) (pure_proof flag) (b, c)),
+  fn ZAppt a => ([], pair (pure_proof flag) (pure_term flag) a),
+  fn ZAppp a => ([], pair (pure_proof flag) (pure_proof flag) a),
+  fn ZHyp a => ([], pure_term flag a),
+  fn ZConstp (c as ((ZAxiom a, b), _)) =>
+    ([a], list (pure_type o #2) (Pure_Logic.zproof_const_typargs c)),
+  fn OFCLASSp (a, b) => ([b], pure_type a),
+  fn ZConstp (c as ((ZOracle a, b), _)) =>
+    ([a], list (pure_type o #2) (Pure_Logic.zproof_const_typargs c)),
   fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
     ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
-      list (ztyp o #2) (Pure_Logic.zproof_const_typargs c))];
+      list (pure_type o #2) (Pure_Logic.zproof_const_typargs c))];
 
 end;
 

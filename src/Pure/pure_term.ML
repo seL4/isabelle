@@ -6,43 +6,43 @@ The pure logic behind Isabelle/Pure: basic datatypes for term language.
 
 signature BASIC_PURE_TERM =
 sig
-  datatype ztyp =
+  datatype T =
       TV of indexname * sort
-    | FUN of ztyp * ztyp
+    | FUN of T * T
     | PROP
     | CON0 of string
-    | CON1 of string * ztyp
-    | CONN of string * ztyp list
-  datatype zterm =
-      FV of indexname * ztyp
+    | CON1 of string * T
+    | CONN of string * T list
+  datatype t =
+      FV of indexname * T
     | BV of int
     | CONST0 of string
-    | CONST1 of string * ztyp
-    | CONSTN of string * ztyp list
-    | ABS of string * ztyp * zterm
-    | APP of zterm * zterm
-    | OFCLASS of ztyp * class
+    | CONST1 of string * T
+    | CONSTN of string * T list
+    | ABS of string * T * t
+    | APP of t * t
+    | OFCLASS of T * class
 end
 
 signature PURE_TERM =
 sig
   include BASIC_PURE_TERM
-  val FUNs: ztyp list * ztyp -> ztyp
-  val fold_tvars: (indexname * sort -> 'a -> 'a) -> ztyp -> 'a -> 'a
-  val fold_aterms: (zterm -> 'a -> 'a) -> zterm -> 'a -> 'a
-  val fold_vars: (indexname * ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
-  val fold_types: (ztyp -> 'a -> 'a) -> zterm -> 'a -> 'a
-  val map_tvars_same: (indexname * sort -> ztyp) -> ztyp Same.operation
-  val map_tvars: (indexname * sort -> ztyp) -> ztyp -> ztyp
-  val map_aterms_same: zterm Same.operation -> zterm Same.operation
-  val map_aterms: (zterm -> zterm) -> zterm -> zterm
-  val map_vars_same: (indexname * ztyp -> zterm) -> zterm Same.operation
-  val map_vars: (indexname * ztyp -> zterm) -> zterm -> zterm
-  val map_types_same: ztyp Same.operation -> zterm Same.operation
-  val map_types: (ztyp -> ztyp) -> zterm -> zterm
-  val ztyp_ord: ztyp ord
-  val fast_zterm_ord: zterm ord
-  val alpha_eq: zterm * zterm -> bool
+  val FUNs: T list * T -> T
+  val fold_tvars: (indexname * sort -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_aterms: (t -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_vars: (indexname * T -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_types: (T -> 'a -> 'a) -> t -> 'a -> 'a
+  val map_tvars_same: (indexname * sort -> T) -> T Same.operation
+  val map_tvars: (indexname * sort -> T) -> T -> T
+  val map_aterms_same: t Same.operation -> t Same.operation
+  val map_aterms: (t -> t) -> t -> t
+  val map_vars_same: (indexname * T -> t) -> t Same.operation
+  val map_vars: (indexname * T -> t) -> t -> t
+  val map_types_same: T Same.operation -> t Same.operation
+  val map_types: (T -> T) -> t -> t
+  val type_ord: T ord
+  val fast_term_ord: t ord
+  val alpha_eq: t * t -> bool
 end;
 
 structure Pure_Term: PURE_TERM =
@@ -50,23 +50,23 @@ struct
 
 (* datatypes *)
 
-datatype ztyp =
-    TV of indexname * sort        (*free: index ~1*)
-  | FUN of ztyp * ztyp
+datatype T =  (* type *)
+    TV of indexname * sort     (*free: index ~1*)
+  | FUN of T * T
   | PROP
-  | CON0 of string                (*type constant*)
-  | CON1 of string * ztyp         (*type constructor: 1 argument*)
-  | CONN of string * ztyp list    (*type constructor: >= 2 arguments*)
+  | CON0 of string             (*type constant*)
+  | CON1 of string * T         (*type constructor: 1 argument*)
+  | CONN of string * T list    (*type constructor: >= 2 arguments*)
 
-datatype zterm =
-    FV of indexname * ztyp        (*free: index ~1*)
+datatype t =  (* term *)
+    FV of indexname * T        (*free: index ~1*)
   | BV of int
-  | CONST0 of string              (*monomorphic constant*)
-  | CONST1 of string * ztyp       (*polymorphic constant: 1 type argument*)
-  | CONSTN of string * ztyp list  (*polymorphic constant: >= 2 type arguments*)
-  | ABS of string * ztyp * zterm
-  | APP of zterm * zterm
-  | OFCLASS of ztyp * class
+  | CONST0 of string           (*monomorphic constant*)
+  | CONST1 of string * T       (*polymorphic constant: 1 type argument*)
+  | CONSTN of string * T list  (*polymorphic constant: >= 2 type arguments*)
+  | ABS of string * T * t
+  | APP of t * t
+  | OFCLASS of T * class
 
 val FUNs = Library.foldr FUN;
 
@@ -157,20 +157,20 @@ val sort_ord = Term_Ord.sort_ord;
 
 in
 
-fun ztyp_ord TU =
+fun type_ord TU =
   if pointer_eq TU then EQUAL
   else
     (case TU of
       (TV (a, A), TV (b, B)) =>
         (case fast_indexname_ord (a, b) of EQUAL => sort_ord (A, B) | ord => ord)
     | (FUN (T, T'), FUN (U, U')) =>
-        (case ztyp_ord (T, U) of EQUAL => ztyp_ord (T', U') | ord => ord)
+        (case type_ord (T, U) of EQUAL => type_ord (T', U') | ord => ord)
     | (PROP, PROP) => EQUAL
     | (CON0 a, CON0 b) => fast_string_ord (a, b)
     | (CON1 (a, T), CON1 (b, U)) =>
-        (case fast_string_ord (a, b) of EQUAL => ztyp_ord (T, U) | ord => ord)
+        (case fast_string_ord (a, b) of EQUAL => type_ord (T, U) | ord => ord)
     | (CONN (a, Ts), CONN (b, Us)) =>
-        (case fast_string_ord (a, b) of EQUAL => dict_ord ztyp_ord (Ts, Us) | ord => ord)
+        (case fast_string_ord (a, b) of EQUAL => dict_ord type_ord (Ts, Us) | ord => ord)
     | (T, U) => int_ord (cons_nr T, cons_nr U));
 
 end;
@@ -218,18 +218,18 @@ fun types_ord tu =
   else
     (case tu of
       (ABS (_, T, t), ABS (_, U, u)) =>
-        (case ztyp_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
+        (case type_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
     | (APP (t1, t2), APP (u1, u2)) =>
         (case types_ord (t1, u1) of EQUAL => types_ord (t2, u2) | ord => ord)
-    | (CONST1 (_, T), CONST1 (_, U)) => ztyp_ord (T, U)
-    | (CONSTN (_, Ts), CONSTN (_, Us)) => dict_ord ztyp_ord (Ts, Us)
-    | (FV (_, T), FV (_, U)) => ztyp_ord (T, U)
-    | (OFCLASS (T, _), OFCLASS (U, _)) => ztyp_ord (T, U)
+    | (CONST1 (_, T), CONST1 (_, U)) => type_ord (T, U)
+    | (CONSTN (_, Ts), CONSTN (_, Us)) => dict_ord type_ord (Ts, Us)
+    | (FV (_, T), FV (_, U)) => type_ord (T, U)
+    | (OFCLASS (T, _), OFCLASS (U, _)) => type_ord (T, U)
     | _ => EQUAL);
 
 in
 
-val fast_zterm_ord = struct_ord ||| atoms_ord ||| types_ord;
+val fast_term_ord = struct_ord ||| atoms_ord ||| types_ord;
 
 end;
 
@@ -247,14 +247,14 @@ structure Basic_Pure_Term: BASIC_PURE_TERM = Pure_Term;
 
 (* tables and term items *)
 
-structure ZTypes = Table(type key = Pure_Term.ztyp val ord = Pure_Term.ztyp_ord);
-structure ZTerms = Table(type key = Pure_Term.zterm val ord = Pure_Term.fast_zterm_ord);
+structure Pure_Types = Table(type key = Pure_Term.T val ord = Pure_Term.type_ord);
+structure Pure_Terms = Table(type key = Pure_Term.t val ord = Pure_Term.fast_term_ord);
 
-structure ZTVars:
+structure Pure_TVars:
 sig
   include TERM_ITEMS
-  val add_tvarsT: Pure_Term.ztyp -> set -> set
-  val add_tvars: Pure_Term.zterm -> set -> set
+  val add_tvarsT: Pure_Term.T -> set -> set
+  val add_tvars: Pure_Term.t -> set -> set
 end =
 struct
   open TVars;
@@ -262,17 +262,17 @@ struct
   val add_tvars = Pure_Term.fold_types add_tvarsT;
 end;
 
-structure ZVars:
+structure Pure_Vars:
 sig
   include TERM_ITEMS
-  val add_vars: Pure_Term.zterm -> set -> set
+  val add_vars: Pure_Term.t -> set -> set
 end =
 struct
 
 structure Term_Items = Term_Items
 (
-  type key = indexname * Pure_Term.ztyp;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Pure_Term.ztyp_ord);
+  type key = indexname * Pure_Term.T;
+  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Pure_Term.type_ord);
 );
 open Term_Items;
 
