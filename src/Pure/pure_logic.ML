@@ -7,20 +7,20 @@ The pure logic behind Isabelle/Pure: types, terms, and proofs.
 signature BASIC_PURE_LOGIC =
 sig
   datatype proof_name =
-      ZAxiom of string
-    | ZOracle of string
-    | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial}
+      Axiom of string
+    | Oracle of string
+    | Thm of {theory_name: string, thm_name: Thm_Name.P, serial: serial}
   type proof_const =
     (proof_name * Pure_Term.t) * (Pure_Term.T Pure_TVars.table * Pure_Term.t Pure_Vars.table);
   datatype proof =
-      ZNop
-    | ZConstp of proof_const
-    | ZBoundp of int
-    | ZAbst of string * Pure_Term.T * proof
-    | ZAbsp of string * Pure_Term.t * proof
-    | ZAppt of proof * Pure_Term.t
-    | ZAppp of proof * proof
-    | ZHyp of Pure_Term.t
+      Nop
+    | Constp of proof_const
+    | BVp of int
+    | Abst of string * Pure_Term.T * proof
+    | Absp of string * Pure_Term.t * proof
+    | Appt of proof * Pure_Term.t
+    | Appp of proof * proof
+    | Hypp of Pure_Term.t
     | OFCLASSp of Pure_Term.T * class
 end;
 
@@ -28,10 +28,10 @@ signature PURE_LOGIC =
 sig
   include BASIC_PURE_LOGIC
   exception ZTERM of string * Pure_Term.T list * Pure_Term.t list * proof list
-  val ZAbsts: (string * Pure_Term.T) list -> proof -> proof
-  val ZAbsps: Pure_Term.t list -> proof -> proof
-  val ZAppts: proof * Pure_Term.t list -> proof
-  val ZAppps: proof * proof list -> proof
+  val Absts: (string * Pure_Term.T) list -> proof -> proof
+  val Absps: Pure_Term.t list -> proof -> proof
+  val Appts: proof * Pure_Term.t list -> proof
+  val Appps: proof * proof list -> proof
   val strip_sortsT: Pure_Term.T -> Pure_Term.T
   val strip_sorts: Pure_Term.t -> Pure_Term.t
   val incr_bv_same: int -> int -> Pure_Term.t Same.operation
@@ -145,21 +145,21 @@ open Basic_Pure_Term;
 (* datatypes *)
 
 datatype proof_name =
-    ZAxiom of string
-  | ZOracle of string
-  | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
+    Axiom of string
+  | Oracle of string
+  | Thm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
 
 type proof_const = (proof_name * t) * (T Pure_TVars.table * t Pure_Vars.table);
 
 datatype proof =
-    ZNop
-  | ZConstp of proof_const
-  | ZBoundp of int
-  | ZAbst of string * T * proof
-  | ZAbsp of string * t * proof
-  | ZAppt of proof * t
-  | ZAppp of proof * proof
-  | ZHyp of Pure_Term.t
+    Nop
+  | Constp of proof_const
+  | BVp of int
+  | Abst of string * T * proof
+  | Absp of string * t * proof
+  | Appt of proof * t
+  | Appp of proof * proof
+  | Hypp of Pure_Term.t
   | OFCLASSp of Pure_Term.T * class;      (*OFCLASS proof from sorts algebra*)
 
 exception ZTERM of string * Pure_Term.T list * Pure_Term.t list * proof list;
@@ -167,11 +167,11 @@ exception ZTERM of string * Pure_Term.T list * Pure_Term.t list * proof list;
 
 (* derived operations *)
 
-val ZAbsts = fold_rev (fn (x, T) => fn prf => ZAbst (x, T, prf));
-val ZAbsps = fold_rev (fn t => fn prf => ZAbsp ("H", t, prf));
+val Absts = fold_rev (fn (x, T) => fn prf => Abst (x, T, prf));
+val Absps = fold_rev (fn t => fn prf => Absp ("H", t, prf));
 
-val ZAppts = Library.foldl ZAppt;
-val ZAppps = Library.foldl ZAppp;
+val Appts = Library.foldl Appt;
+val Appps = Library.foldl Appp;
 
 fun combound (t, n, k) =
   if k > 0 then APP (combound (t, n + 1, k - 1), BV n) else t;
@@ -207,18 +207,18 @@ fun incr_proof_bv_same incp inct =
     let
       val term = incr_bv_same inct;
 
-      fun proof plev _ (ZBoundp i) =
-            if i >= plev then ZBoundp (i + incp) else raise Same.SAME
-        | proof plev tlev (ZAbsp (a, t, p)) =
-            (ZAbsp (a, term tlev t, Same.commit (proof (plev + 1) tlev) p)
-              handle Same.SAME => ZAbsp (a, t, proof (plev + 1) tlev p))
-        | proof plev tlev (ZAbst (a, T, p)) = ZAbst (a, T, proof plev (tlev + 1) p)
-        | proof plev tlev (ZAppp (p, q)) =
-            (ZAppp (proof plev tlev p, Same.commit (proof plev tlev) q)
-              handle Same.SAME => ZAppp (p, proof plev tlev q))
-        | proof plev tlev (ZAppt (p, t)) =
-            (ZAppt (proof plev tlev p, Same.commit (term tlev) t)
-              handle Same.SAME => ZAppt (p, term tlev t))
+      fun proof plev _ (BVp i) =
+            if i >= plev then BVp (i + incp) else raise Same.SAME
+        | proof plev tlev (Absp (a, t, p)) =
+            (Absp (a, term tlev t, Same.commit (proof (plev + 1) tlev) p)
+              handle Same.SAME => Absp (a, t, proof (plev + 1) tlev p))
+        | proof plev tlev (Abst (a, T, p)) = Abst (a, T, proof plev (tlev + 1) p)
+        | proof plev tlev (Appp (p, q)) =
+            (Appp (proof plev tlev p, Same.commit (proof plev tlev) q)
+              handle Same.SAME => Appp (p, proof plev tlev q))
+        | proof plev tlev (Appt (p, t)) =
+            (Appt (proof plev tlev p, Same.commit (term tlev) t)
+              handle Same.SAME => Appt (p, term tlev t))
         | proof _ _ _ = raise Same.SAME;
     in proof end;
 
@@ -248,31 +248,31 @@ fun subst_proof_bound_same arg =
   let
     val term = subst_term_bound_same arg;
 
-    fun proof lev (ZAbsp (a, t, p)) =
-          (ZAbsp (a, term lev t, Same.commit (proof lev) p)
-            handle Same.SAME => ZAbsp (a, t, proof lev p))
-      | proof lev (ZAbst (a, T, p)) = ZAbst (a, T, proof (lev + 1) p)
-      | proof lev (ZAppp (p, q)) =
-          (ZAppp (proof lev p, Same.commit (proof lev) q)
-            handle Same.SAME => ZAppp (p, proof lev q))
-      | proof lev (ZAppt (p, t)) =
-          (ZAppt (proof lev p, Same.commit (term lev) t)
-            handle Same.SAME => ZAppt (p, term lev t))
+    fun proof lev (Absp (a, t, p)) =
+          (Absp (a, term lev t, Same.commit (proof lev) p)
+            handle Same.SAME => Absp (a, t, proof lev p))
+      | proof lev (Abst (a, T, p)) = Abst (a, T, proof (lev + 1) p)
+      | proof lev (Appp (p, q)) =
+          (Appp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => Appp (p, proof lev q))
+      | proof lev (Appt (p, t)) =
+          (Appt (proof lev p, Same.commit (term lev) t)
+            handle Same.SAME => Appt (p, term lev t))
       | proof _ _ = raise Same.SAME;
   in proof end;
 
 fun subst_proof_boundp_same arg =
   let
-    fun proof plev tlev (ZBoundp i) =
+    fun proof plev tlev (BVp i) =
           if i < plev then raise Same.SAME   (*var is locally bound*)
           else if i = plev then incr_proof_boundvars plev tlev arg
-          else ZBoundp (i - 1)   (*loose: change it*)
-      | proof plev tlev (ZAbsp (a, t, p)) = ZAbsp (a, t, proof (plev + 1) tlev p)
-      | proof plev tlev (ZAbst (a, T, p)) = ZAbst (a, T, proof plev (tlev + 1) p)
-      | proof plev tlev (ZAppp (p, q)) =
-          (ZAppp (proof plev tlev p, Same.commit (proof plev tlev) q)
-            handle Same.SAME => ZAppp (p, proof plev tlev q))
-      | proof plev tlev (ZAppt (p, t)) = ZAppt (proof plev tlev p, t)
+          else BVp (i - 1)   (*loose: change it*)
+      | proof plev tlev (Absp (a, t, p)) = Absp (a, t, proof (plev + 1) tlev p)
+      | proof plev tlev (Abst (a, T, p)) = Abst (a, T, proof plev (tlev + 1) p)
+      | proof plev tlev (Appp (p, q)) =
+          (Appp (proof plev tlev p, Same.commit (proof plev tlev) q)
+            handle Same.SAME => Appp (p, proof plev tlev q))
+      | proof plev tlev (Appt (p, t)) = Appt (proof plev tlev p, t)
       | proof _ _ _ = raise Same.SAME;
   in proof end;
 
@@ -328,15 +328,15 @@ fun instantiate_term_same typ inst =
 
 fun fold_proof {hyps} typ term =
   let
-    fun proof ZNop acc = acc
-      | proof (ZConstp (_, (instT, inst))) acc =
+    fun proof Nop acc = acc
+      | proof (Constp (_, (instT, inst))) acc =
           acc |> Pure_TVars.fold (typ o #2) instT |> Pure_Vars.fold (term o #2) inst
-      | proof (ZBoundp _) acc = acc
-      | proof (ZAbst (_, T, p)) acc = acc |> typ T |> proof p
-      | proof (ZAbsp (_, t, p)) acc = acc |> term t |> proof p
-      | proof (ZAppt (p, t)) acc = acc |> proof p |> term t
-      | proof (ZAppp (p, q)) acc = acc |> proof p |> proof q
-      | proof (ZHyp h) acc = acc |> hyps ? term h
+      | proof (BVp _) acc = acc
+      | proof (Abst (_, T, p)) acc = acc |> typ T |> proof p
+      | proof (Absp (_, t, p)) acc = acc |> term t |> proof p
+      | proof (Appt (p, t)) acc = acc |> proof p |> term t
+      | proof (Appp (p, q)) acc = acc |> proof p |> proof q
+      | proof (Hypp h) acc = acc |> hyps ? term h
       | proof (OFCLASSp (T, _)) acc = acc |> hyps ? typ T;
   in proof end;
 
@@ -386,23 +386,23 @@ fun map_insts_same typ term (instT, inst) =
 
 fun map_proof_same {hyps} typ term =
   let
-    fun proof ZNop = raise Same.SAME
-      | proof (ZConstp (a, (instT, inst))) =
-          ZConstp (a, map_insts_same typ term (instT, inst))
-      | proof (ZBoundp _) = raise Same.SAME
-      | proof (ZAbst (a, T, p)) =
-          (ZAbst (a, typ T, Same.commit proof p)
-            handle Same.SAME => ZAbst (a, T, proof p))
-      | proof (ZAbsp (a, t, p)) =
-          (ZAbsp (a, term t, Same.commit proof p)
-            handle Same.SAME => ZAbsp (a, t, proof p))
-      | proof (ZAppt (p, t)) =
-          (ZAppt (proof p, Same.commit term t)
-            handle Same.SAME => ZAppt (p, term t))
-      | proof (ZAppp (p, q)) =
-          (ZAppp (proof p, Same.commit proof q)
-            handle Same.SAME => ZAppp (p, proof q))
-      | proof (ZHyp h) = if hyps then ZHyp (term h) else raise Same.SAME
+    fun proof Nop = raise Same.SAME
+      | proof (Constp (a, (instT, inst))) =
+          Constp (a, map_insts_same typ term (instT, inst))
+      | proof (BVp _) = raise Same.SAME
+      | proof (Abst (a, T, p)) =
+          (Abst (a, typ T, Same.commit proof p)
+            handle Same.SAME => Abst (a, T, proof p))
+      | proof (Absp (a, t, p)) =
+          (Absp (a, term t, Same.commit proof p)
+            handle Same.SAME => Absp (a, t, proof p))
+      | proof (Appt (p, t)) =
+          (Appt (proof p, Same.commit term t)
+            handle Same.SAME => Appt (p, term t))
+      | proof (Appp (p, q)) =
+          (Appp (proof p, Same.commit proof q)
+            handle Same.SAME => Appp (p, proof q))
+      | proof (Hypp h) = if hyps then Hypp (term h) else raise Same.SAME
       | proof (OFCLASSp (T, c)) = if hyps then OFCLASSp (typ T, c) else raise Same.SAME;
   in proof end;
 
@@ -415,12 +415,12 @@ fun map_proof_types hyps typ = map_proof hyps typ (subst_term_same typ Same.same
 fun map_class_proof class =
   let
     fun proof (OFCLASSp C) = class C
-      | proof (ZAbst (a, T, p)) = ZAbst (a, T, proof p)
-      | proof (ZAbsp (a, t, p)) = ZAbsp (a, t, proof p)
-      | proof (ZAppt (p, t)) = ZAppt (proof p, t)
-      | proof (ZAppp (p, q)) =
-          (ZAppp (proof p, Same.commit proof q)
-            handle Same.SAME => ZAppp (p, proof q))
+      | proof (Abst (a, T, p)) = Abst (a, T, proof p)
+      | proof (Absp (a, t, p)) = Absp (a, t, proof p)
+      | proof (Appt (p, t)) = Appt (proof p, t)
+      | proof (Appp (p, q)) =
+          (Appp (proof p, Same.commit proof q)
+            handle Same.SAME => Appp (p, proof q))
       | proof _ = raise Same.SAME;
   in Same.commit proof end;
 
@@ -572,13 +572,13 @@ val beta_norm_prooft_same =
   let
     val term = beta_norm_term_same;
 
-    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
-      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
-      | norm (ZAppt (f, t)) =
+    fun norm (Abst (a, T, p)) = Abst (a, T, norm p)
+      | norm (Appt (Abst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (Appt (f, t)) =
           ((case norm f of
-             ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
-           | nf => ZAppt (nf, Same.commit term t))
-          handle Same.SAME => ZAppt (f, term t))
+             Abst (_, _, body) => Same.commit norm (subst_proof_bound t body)
+           | nf => Appt (nf, Same.commit term t))
+          handle Same.SAME => Appt (f, term t))
       | norm _ = raise Same.SAME;
   in norm end;
 
@@ -586,22 +586,22 @@ val beta_norm_proof_same =
   let
     val term = beta_norm_term_same;
 
-    fun norm (ZAbst (a, T, p)) = ZAbst (a, T, norm p)
-      | norm (ZAbsp (a, t, p)) =
-          (ZAbsp (a, term t, Same.commit norm p)
-            handle Same.SAME => ZAbsp (a, t, norm p))
-      | norm (ZAppt (ZAbst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
-      | norm (ZAppp (ZAbsp (_, _, body), p)) = Same.commit norm (subst_proof_boundp p body)
-      | norm (ZAppt (f, t)) =
+    fun norm (Abst (a, T, p)) = Abst (a, T, norm p)
+      | norm (Absp (a, t, p)) =
+          (Absp (a, term t, Same.commit norm p)
+            handle Same.SAME => Absp (a, t, norm p))
+      | norm (Appt (Abst (_, _, body), t)) = Same.commit norm (subst_proof_bound t body)
+      | norm (Appp (Absp (_, _, body), p)) = Same.commit norm (subst_proof_boundp p body)
+      | norm (Appt (f, t)) =
           ((case norm f of
-             ZAbst (_, _, body) => Same.commit norm (subst_proof_bound t body)
-           | nf => ZAppt (nf, Same.commit term t))
-          handle Same.SAME => ZAppt (f, term t))
-      | norm (ZAppp (f, p)) =
+             Abst (_, _, body) => Same.commit norm (subst_proof_bound t body)
+           | nf => Appt (nf, Same.commit term t))
+          handle Same.SAME => Appt (f, term t))
+      | norm (Appp (f, p)) =
           ((case norm f of
-             ZAbsp (_, _, body) => Same.commit norm (subst_proof_boundp p body)
-           | nf => ZAppp (nf, Same.commit norm p))
-          handle Same.SAME => ZAppp (f, norm p))
+             Absp (_, _, body) => Same.commit norm (subst_proof_boundp p body)
+           | nf => Appp (nf, Same.commit norm p))
+          handle Same.SAME => Appp (f, norm p))
       | norm _ = raise Same.SAME;
   in norm end;
 
@@ -721,7 +721,7 @@ fun make_const_proof (f, g) ((a, insts): proof_const) =
   let
     val typ = subst_type_same (Same.function (fn ((x, _), _) => try f x));
     val term = Same.function (fn FV ((x, _), _) => try g x | _ => NONE);
-  in ZConstp (a, Same.commit (map_insts_same typ term) insts) end;
+  in Constp (a, Same.commit (map_insts_same typ term) insts) end;
 
 
 (* closed proof boxes *)
@@ -743,9 +743,9 @@ fun close_proof prems prf =
   let
     val m = length prems - 1;
     val bounds = Pure_Terms.build (prems |> fold_index (fn (i, h) => Pure_Terms.update (h, m - i)));
-    fun get_bound lev t = Pure_Terms.lookup bounds t |> Option.map (fn i => ZBoundp (lev + i));
+    fun get_bound lev t = Pure_Terms.lookup bounds t |> Option.map (fn i => BVp (lev + i));
 
-    fun proof lev (ZHyp t) =
+    fun proof lev (Hypp t) =
           (case get_bound lev t of
             SOME p => p
           | NONE => raise ZTERM ("Loose bound in proof term", [], [t], [prf]))
@@ -753,14 +753,14 @@ fun close_proof prems prf =
           (case get_bound lev (OFCLASS C) of
             SOME p => p
           | NONE => raise Same.SAME)
-      | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
-      | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
-      | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
-      | proof lev (ZAppp (p, q)) =
-          (ZAppp (proof lev p, Same.commit (proof lev) q)
-            handle Same.SAME => ZAppp (p, proof lev q))
+      | proof lev (Abst (x, T, p)) = Abst (x, T, proof lev p)
+      | proof lev (Absp (x, t, p)) = Absp (x, t, proof (lev + 1) p)
+      | proof lev (Appt (p, t)) = Appt (proof lev p, t)
+      | proof lev (Appp (p, q)) =
+          (Appp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => Appp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
-  in ZAbsps prems (Same.commit (proof 0) prf) end;
+  in Absps prems (Same.commit (proof 0) prf) end;
 
 fun box_proof {unconstrain} thy thm_name hyps concl prf =
   let
@@ -805,14 +805,14 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val box: box = (i, (prop', prf'));
 
     val proof_name =
-      ZThm {theory_name = Context.theory_long_name thy, thm_name = thm_name, serial = i};
+      Thm {theory_name = Context.theory_long_name thy, thm_name = thm_name, serial = i};
 
-    val const = constrain_proof (ZConstp (proof_const (proof_name, prop')));
+    val const = constrain_proof (Constp (proof_const (proof_name, prop')));
     val args1 =
       outer_constraints |> map (fn (T, c) =>
         OFCLASSp (pure_type_of (if unconstrain then unconstrain_typ T else T), c));
-    val args2 = if unconstrain then map ZHyp hyps' else map (ZHyp o pure_term) hyps;
-  in (box, ZAppps (ZAppps (const, args1), args2)) end;
+    val args2 = if unconstrain then map Hypp hyps' else map (Hypp o pure_term) hyps;
+  in (box, Appps (Appps (const, args1), args2)) end;
 
 in
 
@@ -829,29 +829,29 @@ end;
 
 (* basic logic *)
 
-fun proof_axiom thy name A = proof_const (ZAxiom name, pure_term_of thy A);
-val axiom_proof = ZConstp ooo proof_axiom;
+fun proof_axiom thy name A = proof_const (Axiom name, pure_term_of thy A);
+val axiom_proof = Constp ooo proof_axiom;
 
 fun oracle_proof thy name A =
-  ZConstp (proof_const (ZOracle name, pure_term_of thy A));
+  Constp (proof_const (Oracle name, pure_term_of thy A));
 
 fun assume_proof thy A =
-  ZHyp (pure_term_of thy A);
+  Hypp (pure_term_of thy A);
 
 fun trivial_proof thy A =
-  ZAbsp ("H", pure_term_of thy A, ZBoundp 0);
+  Absp ("H", pure_term_of thy A, BVp 0);
 
 fun implies_intr_proof' h prf =
   let
-    fun proof lev (ZHyp t) = if Pure_Term.alpha_eq (h, t) then ZBoundp lev else raise Same.SAME
-      | proof lev (ZAbst (x, T, p)) = ZAbst (x, T, proof lev p)
-      | proof lev (ZAbsp (x, t, p)) = ZAbsp (x, t, proof (lev + 1) p)
-      | proof lev (ZAppt (p, t)) = ZAppt (proof lev p, t)
-      | proof lev (ZAppp (p, q)) =
-          (ZAppp (proof lev p, Same.commit (proof lev) q)
-            handle Same.SAME => ZAppp (p, proof lev q))
+    fun proof lev (Hypp t) = if Pure_Term.alpha_eq (h, t) then BVp lev else raise Same.SAME
+      | proof lev (Abst (x, T, p)) = Abst (x, T, proof lev p)
+      | proof lev (Absp (x, t, p)) = Absp (x, t, proof (lev + 1) p)
+      | proof lev (Appt (p, t)) = Appt (proof lev p, t)
+      | proof lev (Appp (p, q)) =
+          (Appp (proof lev p, Same.commit (proof lev) q)
+            handle Same.SAME => Appp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
-  in ZAbsp ("H", h, Same.commit (proof 0) prf) end;
+  in Absp ("H", h, Same.commit (proof 0) prf) end;
 
 fun implies_intr_proof thy = implies_intr_proof' o pure_term_of thy;
 
@@ -871,21 +871,21 @@ fun forall_intr_proof thy T (a, x) prf =
               handle Same.SAME => APP (t, term i u))
         | _ => raise Same.SAME);
 
-    fun proof i (ZAbst (x, T, prf)) = ZAbst (x, T, proof (i + 1) prf)
-      | proof i (ZAbsp (x, t, prf)) =
-          (ZAbsp (x, term i t, Same.commit (proof i) prf)
-            handle Same.SAME => ZAbsp (x, t, proof i prf))
-      | proof i (ZAppt (p, t)) =
-          (ZAppt (proof i p, Same.commit (term i) t)
-            handle Same.SAME => ZAppt (p, term i t))
-      | proof i (ZAppp (p, q)) =
-          (ZAppp (proof i p, Same.commit (proof i) q)
-            handle Same.SAME => ZAppp (p, proof i q))
+    fun proof i (Abst (x, T, prf)) = Abst (x, T, proof (i + 1) prf)
+      | proof i (Absp (x, t, prf)) =
+          (Absp (x, term i t, Same.commit (proof i) prf)
+            handle Same.SAME => Absp (x, t, proof i prf))
+      | proof i (Appt (p, t)) =
+          (Appt (proof i p, Same.commit (term i) t)
+            handle Same.SAME => Appt (p, term i t))
+      | proof i (Appp (p, q)) =
+          (Appp (proof i p, Same.commit (proof i) q)
+            handle Same.SAME => Appp (p, proof i q))
       | proof _ _ = raise Same.SAME;
 
-  in ZAbst (a, Z, Same.commit (proof 0) prf) end;
+  in Abst (a, Z, Same.commit (proof 0) prf) end;
 
-fun forall_elim_proof thy t p = ZAppt (p, pure_term_of thy t);
+fun forall_elim_proof thy t p = Appt (p, pure_term_of thy t);
 
 fun of_class_proof (T, c) = OFCLASSp (pure_type_of T, c);
 
@@ -910,7 +910,7 @@ val [reflexive_axiom, symmetric_axiom, transitive_axiom, equal_intr_axiom, equal
 in
 
 val is_reflexive_proof =
-  fn ZConstp ((ZAxiom "Pure.reflexive", _), _) => true | _ => false;
+  fn Constp ((Axiom "Pure.reflexive", _), _) => true | _ => false;
 
 fun reflexive_proof thy T t =
   let
@@ -928,7 +928,7 @@ fun symmetric_proof thy T t u prf =
       val x = pure_term t;
       val y = pure_term u;
       val ax = make_const_proof (fn "'a" => A, fn "x" => x | "y" => y) symmetric_axiom;
-    in ZAppp (ax, prf) end;
+    in Appp (ax, prf) end;
 
 fun transitive_proof thy T t u v prf1 prf2 =
   if is_reflexive_proof prf1 then prf2
@@ -941,7 +941,7 @@ fun transitive_proof thy T t u v prf1 prf2 =
       val y = pure_term u;
       val z = pure_term v;
       val ax = make_const_proof (fn "'a" => A, fn "x" => x | "y" => y | "z" => z) transitive_axiom;
-    in ZAppp (ZAppp (ax, prf1), prf2) end;
+    in Appp (Appp (ax, prf1), prf2) end;
 
 fun equal_intr_proof thy t u prf1 prf2 =
   let
@@ -949,7 +949,7 @@ fun equal_intr_proof thy t u prf1 prf2 =
     val A = pure_term t;
     val B = pure_term u;
     val ax = make_const_proof (undefined, fn "A" => A | "B" => B) equal_intr_axiom;
-  in ZAppp (ZAppp (ax, prf1), prf2) end;
+  in Appp (Appp (ax, prf1), prf2) end;
 
 fun equal_elim_proof thy t u prf1 prf2 =
   let
@@ -957,7 +957,7 @@ fun equal_elim_proof thy t u prf1 prf2 =
     val A = pure_term t;
     val B = pure_term u;
     val ax = make_const_proof (undefined, fn "A" => A | "B" => B) equal_elim_axiom;
-  in ZAppp (ZAppp (ax, prf1), prf2) end;
+  in Appp (Appp (ax, prf1), prf2) end;
 
 fun abstract_rule_proof thy T U x t u prf =
   let
@@ -969,7 +969,7 @@ fun abstract_rule_proof thy T U x t u prf =
     val ax =
       make_const_proof (fn "'a" => A | "'b" => B, fn "f" => f | "g" => g)
         abstract_rule_axiom;
-  in ZAppp (ax, forall_intr_proof thy T x prf) end;
+  in Appp (ax, forall_intr_proof thy T x prf) end;
 
 fun combination_proof thy T U f g t u prf1 prf2 =
   let
@@ -983,7 +983,7 @@ fun combination_proof thy T U f g t u prf1 prf2 =
     val ax =
       make_const_proof (fn "'a" => A | "'b" => B, fn "f" => f' | "g" => g' | "x" => x | "y" => y)
         combination_axiom;
-  in ZAppp (ZAppp (ax, prf1), prf2) end;
+  in Appp (Appp (ax, prf1), prf2) end;
 
 end;
 
@@ -1044,10 +1044,10 @@ fun rotate_proof thy Bs Bi' params asms m prf =
     val i = length asms;
     val j = length Bs;
   in
-    ZAbsps (map pure_term Bs @ [pure_term Bi']) (ZAppps (prf, map ZBoundp
-      (j downto 1) @ [ZAbsts (map (apsnd pure_type) params) (ZAbsps (map pure_term asms)
-        (ZAppps (ZAppts (ZBoundp i, map BV ((length params - 1) downto 0)),
-          map ZBoundp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
+    Absps (map pure_term Bs @ [pure_term Bi']) (Appps (prf, map BVp
+      (j downto 1) @ [Absts (map (apsnd pure_type) params) (Absps (map pure_term asms)
+        (Appps (Appts (BVp i, map BV ((length params - 1) downto 0)),
+          map BVp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
   end;
 
 fun permute_prems_proof thy prems' j k prf =
@@ -1055,8 +1055,8 @@ fun permute_prems_proof thy prems' j k prf =
     val {pure_term, ...} = pure_term_cache thy;
     val n = length prems';
   in
-    ZAbsps (map pure_term prems')
-      (ZAppps (prf, map ZBoundp ((n - 1 downto n - j) @ (k - 1 downto 0) @ (n - j - 1 downto k))))
+    Absps (map pure_term prems')
+      (Appps (prf, map BVp ((n - 1 downto n - j) @ (k - 1 downto 0) @ (n - j - 1 downto k))))
   end;
 
 
@@ -1103,47 +1103,47 @@ fun lift_proof thy gprop inc prems prf =
             | incr _ (OFCLASS (T, c)) = OFCLASS (typ T, c);
         in incr lev end;
 
-    fun proof Ts lev (ZAbst (a, T, p)) =
-          (ZAbst (a, typ T, Same.commit (proof Ts (lev + 1)) p)
-            handle Same.SAME => ZAbst (a, T, proof Ts (lev + 1) p))
-      | proof Ts lev (ZAbsp (a, t, p)) =
-          (ZAbsp (a, term Ts lev t, Same.commit (proof Ts lev) p)
-            handle Same.SAME => ZAbsp (a, t, proof Ts lev p))
-      | proof Ts lev (ZAppt (p, t)) =
-          (ZAppt (proof Ts lev p, Same.commit (term Ts lev) t)
-            handle Same.SAME => ZAppt (p, term Ts lev t))
-      | proof Ts lev (ZAppp (p, q)) =
-          (ZAppp (proof Ts lev p, Same.commit (proof Ts lev) q)
-            handle Same.SAME => ZAppp (p, proof Ts lev q))
-      | proof Ts lev (ZConstp (a, insts)) =
-          ZConstp (a, map_insts_same typ (term Ts lev) insts)
+    fun proof Ts lev (Abst (a, T, p)) =
+          (Abst (a, typ T, Same.commit (proof Ts (lev + 1)) p)
+            handle Same.SAME => Abst (a, T, proof Ts (lev + 1) p))
+      | proof Ts lev (Absp (a, t, p)) =
+          (Absp (a, term Ts lev t, Same.commit (proof Ts lev) p)
+            handle Same.SAME => Absp (a, t, proof Ts lev p))
+      | proof Ts lev (Appt (p, t)) =
+          (Appt (proof Ts lev p, Same.commit (term Ts lev) t)
+            handle Same.SAME => Appt (p, term Ts lev t))
+      | proof Ts lev (Appp (p, q)) =
+          (Appp (proof Ts lev p, Same.commit (proof Ts lev) q)
+            handle Same.SAME => Appp (p, proof Ts lev q))
+      | proof Ts lev (Constp (a, insts)) =
+          Constp (a, map_insts_same typ (term Ts lev) insts)
       | proof _ _ (OFCLASSp (T, c)) = OFCLASSp (typ T, c)
       | proof _ _ _ = raise Same.SAME;
 
     val k = length prems;
 
     fun mk_app b (i, j, p) =
-      if b then (i - 1, j, ZAppp (p, ZBoundp i)) else (i, j - 1, ZAppt (p, BV j));
+      if b then (i - 1, j, Appp (p, BVp i)) else (i, j - 1, Appt (p, BV j));
 
     fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
-          ZAbsp ("H", Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
+          Absp ("H", Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
       | lift Ts bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
           let val T' = pure_type T
-          in ZAbst (a, T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
+          in Abst (a, T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
       | lift Ts bs i j _ =
-          ZAppps (Same.commit (proof (rev Ts) 0) prf,
-            map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, ZBoundp k)))) (i + k - 1 downto i));
-  in ZAbsps (map pure_term prems) (lift [] [] 0 0 gprop) end;
+          Appps (Same.commit (proof (rev Ts) 0) prf,
+            map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, BVp k)))) (i + k - 1 downto i));
+  in Absps (map pure_term prems) (lift [] [] 0 0 gprop) end;
 
 
 (* higher-order resolution *)
 
 fun mk_asm_prf C i m =
   let
-    fun imp _ i 0 = ZBoundp i
-      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = ZAbsp ("H", A, imp B (i + 1) (m - 1))
-      | imp _ i _ = ZBoundp i;
-    fun all (APP (CONST1 ("Pure.all", _), ABS (a, T, t))) = ZAbst (a, T, all t)
+    fun imp _ i 0 = BVp i
+      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = Absp ("H", A, imp B (i + 1) (m - 1))
+      | imp _ i _ = BVp i;
+    fun all (APP (CONST1 ("Pure.all", _), ABS (a, T, t))) = Abst (a, T, all t)
       | all t = imp t (~ i) m
   in all C end;
 
@@ -1152,18 +1152,18 @@ fun assumption_proof thy envir Bs Bi n visible prf =
     val cache as {pure_term, ...} = pure_term_cache thy;
     val normt = pure_term #> Same.commit (norm_term_same cache envir);
   in
-    ZAbsps (map normt Bs)
-      (ZAppps (prf, map ZBoundp (length Bs - 1 downto 0) @ [mk_asm_prf (normt Bi) n ~1]))
+    Absps (map normt Bs)
+      (Appps (prf, map BVp (length Bs - 1 downto 0) @ [mk_asm_prf (normt Bi) n ~1]))
     |> norm_proof_cache cache envir visible
   end;
 
 fun flatten_params_proof i j n (APP (APP (CONST0 "Pure.imp", A), B), k) =
-      ZAbsp ("H", A, flatten_params_proof (i + 1) j n (B, k))
+      Absp ("H", A, flatten_params_proof (i + 1) j n (B, k))
   | flatten_params_proof i j n (APP (CONST1 ("Pure.all", _), ABS (a, T, t)), k) =
-      ZAbst (a, T, flatten_params_proof i (j + 1) n (t, k))
+      Abst (a, T, flatten_params_proof i (j + 1) n (t, k))
   | flatten_params_proof i j n (_, k) =
-      ZAppps (ZAppts (ZBoundp (k + i),
-        map BV (j - 1 downto 0)), map ZBoundp (remove (op =) (i - n) (i - 1 downto 0)));
+      Appps (Appts (BVp (k + i),
+        map BV (j - 1 downto 0)), map BVp (remove (op =) (i - n) (i - 1 downto 0)));
 
 fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
   let
@@ -1175,10 +1175,10 @@ fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
     val la = length As;
 
     fun proof p q =
-      ZAbsps (map normt (Bs @ As))
-        (ZAppp (ZAppps (q, map ZBoundp (lb + la - 1 downto la)),
-          ZAppps (p, (if n > 0 then [mk_asm_prf (normt (the A)) n m] else []) @
-            map (if flatten then flatten_params_proof 0 0 n else ZBoundp o snd)
+      Absps (map normt (Bs @ As))
+        (Appp (Appps (q, map BVp (lb + la - 1 downto la)),
+          Appps (p, (if n > 0 then [mk_asm_prf (normt (the A)) n m] else []) @
+            map (if flatten then flatten_params_proof 0 0 n else BVp o snd)
               (map normt oldAs ~~ (la - 1 downto 0)))));
   in
     if Envir.is_empty env then proof rprf sprf
@@ -1193,10 +1193,10 @@ type sorts_proof = (class * class -> proof) * (string * class list list * class 
 fun of_sort_proof algebra (classrel_proof, arity_proof) hyps =
   Sorts.of_sort_derivation algebra
    {class_relation = fn _ => fn _ => fn (prf, c1) => fn c2 =>
-      if c1 = c2 then prf else ZAppp (classrel_proof (c1, c2), prf),
+      if c1 = c2 then prf else Appp (classrel_proof (c1, c2), prf),
     type_constructor = fn (a, _) => fn dom => fn c =>
       let val Ss = map (map snd) dom and prfs = maps (map fst) dom
-      in ZAppps (arity_proof (a, Ss, c), prfs) end,
+      in Appps (arity_proof (a, Ss, c), prfs) end,
     type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
 fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
@@ -1214,7 +1214,7 @@ fun unconstrainT_proof thy sorts_proof (ucontext: Logic.unconstrain_context) =
 
     fun hyps T =
       (case AList.lookup (op =) (#constraints ucontext) T of
-        SOME t => ZHyp (#pure_term cache t)
+        SOME t => Hypp (#pure_term cache t)
       | NONE => raise Fail "unconstrainT_proof: missing constraint");
 
     fun class (T, c) =
@@ -1245,24 +1245,24 @@ val (variant_abs_term, variant_abs_proof) =
             handle Same.SAME => APP (t, term bs u))
       | term _ _ = raise Same.SAME;
 
-    fun proof bs (ZAbst (x, T, p)) =
+    fun proof bs (Abst (x, T, p)) =
           let
             val x' = #1 (Name.variant x (declare_frees_proof p bs));
             val bs' = Name.declare x' bs;
-          in ZAbst (x', T, Same.commit_if (x <> x') (proof bs') p) end
-      | proof bs (ZAbsp (x, t, p)) =
+          in Abst (x', T, Same.commit_if (x <> x') (proof bs') p) end
+      | proof bs (Absp (x, t, p)) =
           let
             val x' = #1 (Name.variant x (declare_frees_term t (declare_frees_proof p bs)));
             val (t', term_eq) = Same.commit_id (term bs) t;
             val bs' = Name.declare x' bs;
-          in ZAbsp (x', t', Same.commit_if (x <> x' orelse not term_eq) (proof bs') p) end
-      | proof bs (ZAppt (p, t)) =
-          (ZAppt (proof bs p, Same.commit (term bs) t)
-            handle Same.SAME => ZAppt (p, term bs t))
-      | proof bs (ZAppp (p, q)) =
-          (ZAppp (proof bs p, Same.commit (proof bs) q)
-            handle Same.SAME => ZAppp (p, proof bs q))
-      | proof bs (ZHyp t) = ZHyp (term bs t)
+          in Absp (x', t', Same.commit_if (x <> x' orelse not term_eq) (proof bs') p) end
+      | proof bs (Appt (p, t)) =
+          (Appt (proof bs p, Same.commit (term bs) t)
+            handle Same.SAME => Appt (p, term bs t))
+      | proof bs (Appp (p, q)) =
+          (Appp (proof bs p, Same.commit (proof bs) q)
+            handle Same.SAME => Appp (p, proof bs q))
+      | proof bs (Hypp t) = Hypp (term bs t)
       | proof _ _ = raise Same.SAME;
   in (term Name.context, proof Name.context) end;
 
@@ -1342,10 +1342,10 @@ in
 
 fun standard_vars used (prop, opt_prf) =
   let
-    val prf = the_default ZNop opt_prf
+    val prf = the_default Nop opt_prf
       |> standard_hidden_types prop
       |> standard_hidden_terms prop;
-    val prop_prf = ZAppp (ZHyp prop, prf);
+    val prop_prf = Appp (Hypp prop, prf);
 
     val used' = used |> used_frees_proof prop_prf;
     val inst_type = standard_inst_type used' prop_prf;

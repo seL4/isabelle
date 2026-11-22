@@ -781,7 +781,7 @@ fun make_deriv promises oracles thms boxes pure_proof proof =
   make_deriv0 promises
     (PBody {oracles = oracles, thms = thms, boxes = boxes, pure_proof = pure_proof, proof = proof});
 
-val empty_deriv = make_deriv [] [] [] [] Pure_Logic.ZNop MinProof;
+val empty_deriv = make_deriv [] [] [] [] Pure_Logic.Nop MinProof;
 
 
 (* inference rules *)
@@ -803,7 +803,7 @@ fun deriv_rule2 pure_proof proof
 
     val proofs = Proofterm.get_proofs_level ();
     val pure_proof' =
-      if Proofterm.pure_proof_enabled proofs then pure_proof pprf1 pprf2 else Pure_Logic.ZNop;
+      if Proofterm.pure_proof_enabled proofs then pure_proof pprf1 pprf2 else Pure_Logic.Nop;
     val proof' = if Proofterm.proof_enabled proofs then proof prf1 prf2 else MinProof;
   in make_deriv ps' oracles' thms' boxes' pure_proof' proof' end;
 
@@ -813,7 +813,7 @@ fun deriv_rule0 pure_proof proof =
   let val proofs = Proofterm.get_proofs_level () in
     if Proofterm.proof_enabled proofs orelse Proofterm.pure_proof_enabled proofs then
       deriv_rule1 I I (make_deriv [] [] [] []
-       (if Proofterm.pure_proof_enabled proofs then pure_proof () else Pure_Logic.ZNop)
+       (if Proofterm.pure_proof_enabled proofs then pure_proof () else Pure_Logic.Nop)
        (if Proofterm.proof_enabled proofs then proof () else MinProof))
     else empty_deriv
   end;
@@ -878,7 +878,7 @@ fun future future_thm ct =
     val i = serial ();
     val future = future_thm |> Future.map (future_result i cert sorts prop);
   in
-    Thm (make_deriv [(i, future)] [] [] [] Pure_Logic.ZNop MinProof,
+    Thm (make_deriv [(i, future)] [] [] [] Pure_Logic.Nop MinProof,
      {cert = cert,
       tags = [],
       maxidx = maxidx,
@@ -1263,7 +1263,7 @@ fun add_oracle (b, oracle_fn) thy1 =
                   val thy = Context.certificate_theory cert handle ERROR msg =>
                     raise CONTEXT (msg, [], [ct], [], NONE);
                 in Pure_Logic.oracle_proof thy name prop end
-              else Pure_Logic.ZNop;
+              else Pure_Logic.Nop;
           in
             Thm (make_deriv [] [oracle] [] [] pure_proof proof,
              {cert = cert,
@@ -1377,7 +1377,7 @@ fun implies_elim thAB thA =
     (case prop of
       Const ("Pure.imp", _) $ A $ B =>
         if A aconv propA then
-          Thm (deriv_rule2 (curry Pure_Logic.ZAppp) (curry Proofterm.%%) der derA,
+          Thm (deriv_rule2 (curry Pure_Logic.Appp) (curry Proofterm.%%) der derA,
            {cert = join_certificate2 (thAB, thA),
             tags = [],
             maxidx = Int.max (maxidx1, maxidx2),
@@ -2184,7 +2184,7 @@ fun store_pure_proof name thm thy =
     val ((i, (_, pure_proof1)), pure_proof2) = Pure_Logic.thm_proof thy name hyps prop pure_proof;
     val der1 =
       if Options.default_bool "prune_proofs"
-      then deriv [] Pure_Logic.ZNop
+      then deriv [] Pure_Logic.Nop
       else deriv boxes pure_proof1;
     val der2 = deriv [] pure_proof2;
 

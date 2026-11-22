@@ -336,7 +336,7 @@ val unions_thms = Ord_List.unions thm_ord;
 
 fun no_proof_body pure_proof proof =
   PBody {oracles = [], thms = [], boxes = [], pure_proof = pure_proof, proof = proof};
-val no_thm_body = thm_body (no_proof_body Pure_Logic.ZNop MinProof);
+val no_thm_body = thm_body (no_proof_body Pure_Logic.Nop MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
   | no_thm_names (AbsP (x, t, prf)) = AbsP (x, t, no_thm_names prf)
@@ -371,7 +371,7 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 (* encode as pure term/proof *)
 
-local open Basic_Pure_Term Basic_Pure_Logic in
+local open Basic_Pure_Term in
 
 fun proof_to_pure_proof thy =
   let
@@ -382,21 +382,24 @@ fun proof_to_pure_proof thy =
       let
         val vs = rev ((fold_types o fold_atyps) (insert (op =) o pure_tvar) prop []);
         val Ts = map pure_type typargs
-      in ZConstp ((name, pure_term prop), (Pure_TVars.make (vs ~~ Ts), Pure_Vars.empty)) end;
+      in
+        Basic_Pure_Logic.Constp
+          ((name, pure_term prop), (Pure_TVars.make (vs ~~ Ts), Pure_Vars.empty))
+      end;
 
-    fun pure_proof MinProof = ZNop
-      | pure_proof (PBound i) = ZBoundp i
-      | pure_proof (Abst (a, SOME T, p)) = ZAbst (a, pure_type T, pure_proof p)
-      | pure_proof (AbsP (a, SOME t, p)) = ZAbsp (a, pure_term t, pure_proof p)
-      | pure_proof (p % SOME t) = ZAppt (pure_proof p, pure_term t)
-      | pure_proof (p %% q) = ZAppp (pure_proof p, pure_proof q)
-      | pure_proof (Hyp t) = ZHyp (pure_term t)
-      | pure_proof (PAxm (a, prop, SOME Ts)) = proof_const (ZAxiom a) prop Ts
-      | pure_proof (PClass (T, c)) = OFCLASSp (pure_type T, c)
-      | pure_proof (Oracle (a, prop, SOME Ts)) = proof_const (ZOracle a) prop Ts
+    fun pure_proof MinProof = Basic_Pure_Logic.Nop
+      | pure_proof (PBound i) = Basic_Pure_Logic.BVp i
+      | pure_proof (Abst (a, SOME T, p)) = Basic_Pure_Logic.Abst (a, pure_type T, pure_proof p)
+      | pure_proof (AbsP (a, SOME t, p)) = Basic_Pure_Logic.Absp (a, pure_term t, pure_proof p)
+      | pure_proof (p % SOME t) = Basic_Pure_Logic.Appt (pure_proof p, pure_term t)
+      | pure_proof (p %% q) = Basic_Pure_Logic.Appp (pure_proof p, pure_proof q)
+      | pure_proof (Hyp t) = Basic_Pure_Logic.Hypp (pure_term t)
+      | pure_proof (PAxm (a, prop, SOME Ts)) = proof_const (Basic_Pure_Logic.Axiom a) prop Ts
+      | pure_proof (PClass (T, c)) = Basic_Pure_Logic.OFCLASSp (pure_type T, c)
+      | pure_proof (Oracle (a, prop, SOME Ts)) = proof_const (Basic_Pure_Logic.Oracle a) prop Ts
       | pure_proof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
-            ZThm {theory_name = theory_name, thm_name = thm_name, serial = serial};
+            Basic_Pure_Logic.Thm {theory_name = theory_name, thm_name = thm_name, serial = serial};
           in proof_const proof_name prop Ts end;
   in pure_proof end;
 
@@ -453,7 +456,7 @@ end;
 
 local
 
-open XML.Decode Term_XML.Decode Basic_Pure_Logic;
+open XML.Decode Term_XML.Decode;
 
 fun proof consts prf = prf |> variant
  [fn ([], []) => MinProof,
@@ -479,7 +482,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, boxes = [], pure_proof = ZNop, proof = c} end
+  in PBody {oracles = a, thms = b, boxes = [], pure_proof = Basic_Pure_Logic.Nop, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -2111,7 +2114,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val (pure_proof1, boxes1) =
       if pure_proof_enabled proofs then
         Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl pure_proof0 boxes0
-      else (Pure_Logic.ZNop, []);
+      else (Pure_Logic.Nop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
       else MinProof;
@@ -2122,7 +2125,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
-          {oracles = oracles0, thms = thms0, boxes = [], pure_proof = Pure_Logic.ZNop, proof = proof1};
+          {oracles = oracles0, thms = thms0, boxes = [], pure_proof = Pure_Logic.Nop, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =

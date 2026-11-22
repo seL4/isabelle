@@ -91,19 +91,19 @@ fun pure_term flag t = t |> variant
   fn OFCLASS (a, b) => ([b], pure_type a)];
 
 fun pure_proof flag prf = prf |> variant
- [fn ZNop => ([], []),
-  fn ZBoundp a => ([], int a),
-  fn ZAbst (a, b, c) => ([a], pair pure_type (pure_proof flag) (b, c)),
-  fn ZAbsp (a, b, c) => ([a], pair (pure_term flag) (pure_proof flag) (b, c)),
-  fn ZAppt a => ([], pair (pure_proof flag) (pure_term flag) a),
-  fn ZAppp a => ([], pair (pure_proof flag) (pure_proof flag) a),
-  fn ZHyp a => ([], pure_term flag a),
-  fn ZConstp (c as ((ZAxiom a, b), _)) =>
+ [fn Nop => ([], []),
+  fn BVp a => ([], int a),
+  fn Abst (a, b, c) => ([a], pair pure_type (pure_proof flag) (b, c)),
+  fn Absp (a, b, c) => ([a], pair (pure_term flag) (pure_proof flag) (b, c)),
+  fn Appt a => ([], pair (pure_proof flag) (pure_term flag) a),
+  fn Appp a => ([], pair (pure_proof flag) (pure_proof flag) a),
+  fn Hypp a => ([], pure_term flag a),
+  fn Constp (c as ((Axiom a, b), _)) =>
     ([a], list (pure_type o #2) (Pure_Logic.proof_const_typargs c)),
   fn OFCLASSp (a, b) => ([b], pure_type a),
-  fn ZConstp (c as ((ZOracle a, b), _)) =>
+  fn Constp (c as ((Oracle a, b), _)) =>
     ([a], list (pure_type o #2) (Pure_Logic.proof_const_typargs c)),
-  fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
+  fn Constp (c as ((Thm {theory_name, thm_name = (name, _), serial}, b), _)) =>
     ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
       list (pure_type o #2) (Pure_Logic.proof_const_typargs c))];
 
