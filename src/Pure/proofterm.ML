@@ -29,12 +29,12 @@ sig
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
      boxes: Pure_Logic.boxes,
-     zproof: Pure_Logic.zproof,
+     pure_proof: Pure_Logic.proof,
      proof: proof}
   type oracle = (string * Position.T) * term option
   type thm = serial * thm_node
   exception MIN_PROOF of unit
-  val zproof_of: proof_body -> Pure_Logic.zproof
+  val pure_proof_of: proof_body -> Pure_Logic.proof
   val proof_of: proof_body -> proof
   val join_proof: proof_body future -> proof
   val map_proof_of: (proof -> proof) -> proof_body -> proof_body
@@ -60,12 +60,12 @@ sig
   val unions_oracles: oracle Ord_List.T list -> oracle Ord_List.T
   val union_thms: thm Ord_List.T -> thm Ord_List.T -> thm Ord_List.T
   val unions_thms: thm Ord_List.T list -> thm Ord_List.T
-  val no_proof_body: Pure_Logic.zproof -> proof -> proof_body
+  val no_proof_body: Pure_Logic.proof -> proof -> proof_body
   val no_thm_names: proof -> proof
   val no_thm_proofs: proof -> proof
   val no_body_proofs: proof -> proof
 
-  val proof_to_zproof: theory -> proof -> Pure_Logic.zproof
+  val proof_to_pure_proof: theory -> proof -> Pure_Logic.proof
   val encode_standard_term: theory -> term XML.Encode.T
   val encode_standard_proof: theory -> proof XML.Encode.T
   val encode: theory -> proof XML.Encode.T
@@ -76,7 +76,7 @@ sig
   val %> : proof * term -> proof
 
   (*primitive operations*)
-  val zproof_enabled: int -> bool
+  val pure_proof_enabled: int -> bool
   val proof_enabled: int -> bool
   val oracle_enabled: int -> bool
   val get_proofs_level: unit -> int
@@ -223,7 +223,7 @@ and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
    boxes: Pure_Logic.boxes,
-   zproof: Pure_Logic.zproof,
+   pure_proof: Pure_Logic.proof,
    proof: proof}
 and thm_body =
   Thm_Body of {open_proof: proof -> proof, body: proof_body future}
@@ -242,14 +242,14 @@ val thm_ord: thm ord = fn ((i, _), (j, _)) => int_ord (j, i);
 exception MIN_PROOF of unit;
 
 fun proof_of (PBody {proof, ...}) = proof;
-fun zproof_of (PBody {zproof, ...}) = zproof;
+fun pure_proof_of (PBody {pure_proof, ...}) = pure_proof;
 val join_proof = Future.join #> proof_of;
 
-fun map_proof_of f (PBody {oracles, thms, boxes, zproof, proof}) =
-  PBody {oracles = oracles, thms = thms, boxes = boxes, zproof = zproof, proof = f proof};
+fun map_proof_of f (PBody {oracles, thms, boxes, pure_proof, proof}) =
+  PBody {oracles = oracles, thms = thms, boxes = boxes, pure_proof = pure_proof, proof = f proof};
 
-fun no_proof (PBody {oracles, thms, boxes, zproof, ...}) =
-  PBody {oracles = oracles, thms = thms, boxes = boxes, zproof = zproof, proof = MinProof};
+fun no_proof (PBody {oracles, thms, boxes, pure_proof, ...}) =
+  PBody {oracles = oracles, thms = thms, boxes = boxes, pure_proof = pure_proof, proof = MinProof};
 
 fun thm_header serial command_pos theory_name thm_name prop types : thm_header =
   {serial = serial, command_pos = command_pos, theory_name = theory_name, thm_name = thm_name,
@@ -334,8 +334,8 @@ val unions_oracles = Ord_List.unions oracle_ord;
 val union_thms = Ord_List.union thm_ord;
 val unions_thms = Ord_List.unions thm_ord;
 
-fun no_proof_body zproof proof =
-  PBody {oracles = [], thms = [], boxes = [], zproof = zproof, proof = proof};
+fun no_proof_body pure_proof proof =
+  PBody {oracles = [], thms = [], boxes = [], pure_proof = pure_proof, proof = proof};
 val no_thm_body = thm_body (no_proof_body Pure_Logic.ZNop MinProof);
 
 fun no_thm_names (Abst (x, T, prf)) = Abst (x, T, no_thm_names prf)
@@ -359,8 +359,8 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
   | no_body_proofs (prf1 %% prf2) = no_body_proofs prf1 %% no_body_proofs prf2
   | no_body_proofs (PThm (header, Thm_Body {open_proof, body})) =
       let
-        val PBody {zproof, proof, ...} = Future.join body;
-        val body' = Future.value (no_proof_body zproof proof);
+        val PBody {pure_proof, proof, ...} = Future.join body;
+        val body' = Future.value (no_proof_body pure_proof proof);
         val thm_body' = Thm_Body {open_proof = open_proof, body = body'};
       in PThm (header, thm_body') end
   | no_body_proofs a = a;
@@ -373,7 +373,7 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 local open Basic_Pure_Term Basic_Pure_Logic in
 
-fun proof_to_zproof thy =
+fun proof_to_pure_proof thy =
   let
     val {pure_type, pure_term} = Pure_Logic.pure_term_cache thy;
     val pure_tvar = pure_type #> (fn TV v => v);
@@ -384,21 +384,21 @@ fun proof_to_zproof thy =
         val Ts = map pure_type typargs
       in ZConstp ((name, pure_term prop), (Pure_TVars.make (vs ~~ Ts), Pure_Vars.empty)) end;
 
-    fun zproof MinProof = ZNop
-      | zproof (PBound i) = ZBoundp i
-      | zproof (Abst (a, SOME T, p)) = ZAbst (a, pure_type T, zproof p)
-      | zproof (AbsP (a, SOME t, p)) = ZAbsp (a, pure_term t, zproof p)
-      | zproof (p % SOME t) = ZAppt (zproof p, pure_term t)
-      | zproof (p %% q) = ZAppp (zproof p, zproof q)
-      | zproof (Hyp t) = ZHyp (pure_term t)
-      | zproof (PAxm (a, prop, SOME Ts)) = proof_const (ZAxiom a) prop Ts
-      | zproof (PClass (T, c)) = OFCLASSp (pure_type T, c)
-      | zproof (Oracle (a, prop, SOME Ts)) = proof_const (ZOracle a) prop Ts
-      | zproof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
+    fun pure_proof MinProof = ZNop
+      | pure_proof (PBound i) = ZBoundp i
+      | pure_proof (Abst (a, SOME T, p)) = ZAbst (a, pure_type T, pure_proof p)
+      | pure_proof (AbsP (a, SOME t, p)) = ZAbsp (a, pure_term t, pure_proof p)
+      | pure_proof (p % SOME t) = ZAppt (pure_proof p, pure_term t)
+      | pure_proof (p %% q) = ZAppp (pure_proof p, pure_proof q)
+      | pure_proof (Hyp t) = ZHyp (pure_term t)
+      | pure_proof (PAxm (a, prop, SOME Ts)) = proof_const (ZAxiom a) prop Ts
+      | pure_proof (PClass (T, c)) = OFCLASSp (pure_type T, c)
+      | pure_proof (Oracle (a, prop, SOME Ts)) = proof_const (ZOracle a) prop Ts
+      | pure_proof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
             ZThm {theory_name = theory_name, thm_name = thm_name, serial = serial};
           in proof_const proof_name prop Ts end;
-  in zproof end;
+  in pure_proof end;
 
 end;
 
@@ -406,7 +406,7 @@ fun encode_standard_term thy =
   Pure_Logic.pure_term_of thy #> Term_XML.Encode.pure_term {typed_vars = false};
 
 fun encode_standard_proof thy =
-  proof_to_zproof thy #> Term_XML.Encode.pure_proof {typed_vars = false};
+  proof_to_pure_proof thy #> Term_XML.Encode.pure_proof {typed_vars = false};
 
 
 (* encode *)
@@ -433,7 +433,7 @@ fun proof consts prf = prf |> variant
             (pair (term consts)
               (pair (option (list typ)) (proof_body consts))))
         (command_pos, (thm_name, (prop, (types, map_proof_of open_proof (Future.join body))))))]
-and proof_body consts (PBody {oracles, thms, boxes = _, zproof = _, proof = prf}) =
+and proof_body consts (PBody {oracles, thms, boxes = _, pure_proof = _, proof = prf}) =
   triple (list (pair (pair string (properties o Position.properties_of))
       (option (term consts)))) (list (thm consts)) (proof consts) (oracles, thms, prf)
 and thm consts (a, thm_node) =
@@ -479,7 +479,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, boxes = [], zproof = ZNop, proof = c} end
+  in PBody {oracles = a, thms = b, boxes = [], pure_proof = ZNop, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
@@ -496,7 +496,7 @@ end;
 
 (** proof objects with different levels of detail **)
 
-fun zproof_enabled proofs = proofs = 4 orelse proofs = 5 orelse proofs = 6;
+fun pure_proof_enabled proofs = proofs = 4 orelse proofs = 5 orelse proofs = 6;
 fun proof_enabled proofs = proofs = 2 orelse proofs = 6;
 fun oracle_enabled proofs = not (proofs = 0 orelse proofs = 4);
 
@@ -510,7 +510,7 @@ fun get_proofs_level () =
 
 fun any_proofs_enabled () =
   let val proofs = get_proofs_level ()
-  in zproof_enabled proofs orelse proof_enabled proofs end;
+  in pure_proof_enabled proofs orelse proof_enabled proofs end;
 
 fun (p %> t) = p % SOME t;
 
@@ -2010,7 +2010,7 @@ end;
 fun fulfill_norm_proof thy ps body0 =
   let
     val _ = consolidate_bodies (map #2 ps @ [body0]);
-    val PBody {oracles = oracles0, thms = thms0, boxes = boxes0, zproof, proof = proof0} = body0;
+    val PBody {oracles = oracles0, thms = thms0, boxes = boxes0, pure_proof, proof = proof0} = body0;
     val oracles =
       unions_oracles
         (fold (fn (_, PBody {oracles, ...}) => not (null oracles) ? cons oracles) ps [oracles0]);
@@ -2021,7 +2021,7 @@ fun fulfill_norm_proof thy ps body0 =
         (fold (fn (_, PBody {boxes, ...}) => not (null boxes) ? cons boxes) ps [boxes0]);
     val proof = rew_proof thy proof0;
   in
-    PBody {oracles = oracles, thms = thms, boxes = boxes, zproof = zproof, proof = proof}
+    PBody {oracles = oracles, thms = thms, boxes = boxes, pure_proof = pure_proof, proof = proof}
   end;
 
 fun fulfill_proof_future thy promises (postproc: proof_body -> proof_body) body =
@@ -2078,7 +2078,7 @@ fun export_proof thy i prop0 proof0 =
   let
     val {typargs, args, prop, proof} =
       Pure_Logic.standard_vars Name.context
-        (Pure_Logic.pure_term_of thy prop0, SOME (proof_to_zproof thy (no_thm_names proof0)));
+        (Pure_Logic.pure_term_of thy prop0, SOME (proof_to_pure_proof thy (no_thm_names proof0)));
     val xml = (typargs, (args, (prop, the proof))) |>
       let
         open XML.Encode Term_XML.Encode;
@@ -2098,7 +2098,7 @@ fun export_proof thy i prop0 proof0 =
 
 fun prepare_thm_proof unconstrain thy sorts_proof
     (name, pos) shyps hyps concl promises
-    (PBody {oracles = oracles0, thms = thms0, boxes = boxes0, zproof = zproof0, proof = proof0}) =
+    (PBody {oracles = oracles0, thms = thms0, boxes = boxes0, pure_proof = pure_proof0, proof = proof0}) =
   let
     val named = not (Thm_Name.is_empty name);
 
@@ -2108,9 +2108,9 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val (ucontext as {typ_operation, ...}, prop1) = Logic.unconstrainT shyps prop;
 
     val proofs = get_proofs_level ();
-    val (zproof1, boxes1) =
-      if zproof_enabled proofs then
-        Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl zproof0 boxes0
+    val (pure_proof1, boxes1) =
+      if pure_proof_enabled proofs then
+        Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl pure_proof0 boxes0
       else (Pure_Logic.ZNop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
@@ -2122,7 +2122,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
         val unconstrainT = unconstrainT_proof (Sign.classes_of thy) sorts_proof ucontext;
         val postproc = map_proof_of (unconstrainT #> named ? rew_proof thy);
         val body1 =
-          {oracles = oracles0, thms = thms0, boxes = [], zproof = Pure_Logic.ZNop, proof = proof1};
+          {oracles = oracles0, thms = thms0, boxes = [], pure_proof = Pure_Logic.ZNop, proof = proof1};
       in (i, fulfill_proof_future thy promises postproc (Future.value (PBody body1))) end;
 
     val (i, body') =
@@ -2175,7 +2175,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
       else map PClass (#outer_constraints ucontext) @ map Hyp hyps;
     val proof2 = proof_combP (proof_combt' (head, argst), argsP);
 
-    val body2 = {oracles = [], thms = [thm], boxes = boxes1, zproof = zproof1, proof = proof2};
+    val body2 = {oracles = [], thms = [thm], boxes = boxes1, pure_proof = pure_proof1, proof = proof2};
   in (prop1, PBody body2) end;
 
 in

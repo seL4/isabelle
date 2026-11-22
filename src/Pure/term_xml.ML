@@ -22,7 +22,7 @@ sig
     include TERM_XML_OPS
     val pure_type: Pure_Term.T T
     val pure_term: {typed_vars: bool} -> Pure_Term.t T
-    val pure_proof: {typed_vars: bool} -> Pure_Logic.zproof T
+    val pure_proof: {typed_vars: bool} -> Pure_Logic.proof T
   end
   structure Decode: TERM_XML_OPS
 end;
