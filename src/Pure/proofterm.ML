@@ -378,7 +378,7 @@ fun proof_to_zproof thy =
     val {pure_type, pure_term} = Pure_Logic.pure_term_cache thy;
     val pure_tvar = pure_type #> (fn TV v => v);
 
-    fun zproof_const name prop typargs =
+    fun proof_const name prop typargs =
       let
         val vs = rev ((fold_types o fold_atyps) (insert (op =) o pure_tvar) prop []);
         val Ts = map pure_type typargs
@@ -391,13 +391,13 @@ fun proof_to_zproof thy =
       | zproof (p % SOME t) = ZAppt (zproof p, pure_term t)
       | zproof (p %% q) = ZAppp (zproof p, zproof q)
       | zproof (Hyp t) = ZHyp (pure_term t)
-      | zproof (PAxm (a, prop, SOME Ts)) = zproof_const (ZAxiom a) prop Ts
+      | zproof (PAxm (a, prop, SOME Ts)) = proof_const (ZAxiom a) prop Ts
       | zproof (PClass (T, c)) = OFCLASSp (pure_type T, c)
-      | zproof (Oracle (a, prop, SOME Ts)) = zproof_const (ZOracle a) prop Ts
+      | zproof (Oracle (a, prop, SOME Ts)) = proof_const (ZOracle a) prop Ts
       | zproof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
             ZThm {theory_name = theory_name, thm_name = thm_name, serial = serial};
-          in zproof_const proof_name prop Ts end;
+          in proof_const proof_name prop Ts end;
   in zproof end;
 
 end;

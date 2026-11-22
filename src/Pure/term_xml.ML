@@ -99,13 +99,13 @@ fun pure_proof flag prf = prf |> variant
   fn ZAppp a => ([], pair (pure_proof flag) (pure_proof flag) a),
   fn ZHyp a => ([], pure_term flag a),
   fn ZConstp (c as ((ZAxiom a, b), _)) =>
-    ([a], list (pure_type o #2) (Pure_Logic.zproof_const_typargs c)),
+    ([a], list (pure_type o #2) (Pure_Logic.proof_const_typargs c)),
   fn OFCLASSp (a, b) => ([b], pure_type a),
   fn ZConstp (c as ((ZOracle a, b), _)) =>
-    ([a], list (pure_type o #2) (Pure_Logic.zproof_const_typargs c)),
+    ([a], list (pure_type o #2) (Pure_Logic.proof_const_typargs c)),
   fn ZConstp (c as ((ZThm {theory_name, thm_name = (name, _), serial}, b), _)) =>
     ([int_atom serial, theory_name, #1 name, int_atom (#2 name)],
-      list (pure_type o #2) (Pure_Logic.zproof_const_typargs c))];
+      list (pure_type o #2) (Pure_Logic.proof_const_typargs c))];
 
 end;
 

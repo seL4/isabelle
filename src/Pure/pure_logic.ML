@@ -6,15 +6,15 @@ The pure logic behind Isabelle/Pure: types, terms, and proofs.
 
 signature BASIC_PURE_LOGIC =
 sig
-  datatype zproof_name =
+  datatype proof_name =
       ZAxiom of string
     | ZOracle of string
     | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial}
-  type zproof_const =
-    (zproof_name * Pure_Term.t) * (Pure_Term.T Pure_TVars.table * Pure_Term.t Pure_Vars.table);
+  type proof_const =
+    (proof_name * Pure_Term.t) * (Pure_Term.T Pure_TVars.table * Pure_Term.t Pure_Vars.table);
   datatype zproof =
       ZNop
-    | ZConstp of zproof_const
+    | ZConstp of proof_const
     | ZBoundp of int
     | ZAbst of string * Pure_Term.T * zproof
     | ZAbsp of string * Pure_Term.t * zproof
@@ -86,8 +86,8 @@ sig
   val norm_type: theory -> Type.tyenv -> Pure_Term.T -> Pure_Term.T
   val norm_term: theory -> Envir.env -> Pure_Term.t -> Pure_Term.t
   val norm_proof: theory -> Envir.env -> term list -> zproof -> zproof
-  val zproof_const_typargs: zproof_const -> ((indexname * sort) * Pure_Term.T) list
-  val zproof_const_args: zproof_const -> ((indexname * Pure_Term.T) * Pure_Term.t) list
+  val proof_const_typargs: proof_const -> ((indexname * sort) * Pure_Term.T) list
+  val proof_const_args: proof_const -> ((indexname * Pure_Term.T) * Pure_Term.t) list
   type box = serial * (Pure_Term.t * zproof)
   val box_ord: box ord
   type boxes = box Ord_List.T
@@ -144,16 +144,16 @@ open Basic_Pure_Term;
 
 (* datatypes *)
 
-datatype zproof_name =
+datatype proof_name =
     ZAxiom of string
   | ZOracle of string
   | ZThm of {theory_name: string, thm_name: Thm_Name.P, serial: serial};
 
-type zproof_const = (zproof_name * t) * (T Pure_TVars.table * t Pure_Vars.table);
+type proof_const = (proof_name * t) * (T Pure_TVars.table * t Pure_Vars.table);
 
 datatype zproof =
     ZNop
-  | ZConstp of zproof_const
+  | ZConstp of proof_const
   | ZBoundp of int
   | ZAbst of string * T * zproof
   | ZAbsp of string * t * zproof
@@ -699,7 +699,7 @@ fun norm_proof thy envir = norm_proof_cache (pure_term_cache thy) envir;
 
 (* constants *)
 
-fun zproof_const (a, A) : zproof_const =
+fun proof_const (a, A) : proof_const =
   let
     val instT =
       Pure_TVars.build (A |> (Pure_Term.fold_types o Pure_Term.fold_tvars) (fn v => fn tab =>
@@ -709,15 +709,15 @@ fun zproof_const (a, A) : zproof_const =
         if Pure_Vars.defined tab v then tab else Pure_Vars.update (v, FV v) tab));
   in ((a, A), (instT, inst)) end;
 
-fun zproof_const_typargs (((_, A), (instT, _)): zproof_const) =
+fun proof_const_typargs (((_, A), (instT, _)): proof_const) =
   Pure_TVars.build (A |> Pure_TVars.add_tvars) |> Pure_TVars.list_set
   |> map (fn v => (v, the_default (TV v) (Pure_TVars.lookup instT v)));
 
-fun zproof_const_args (((_, A), (_, inst)): zproof_const) =
+fun proof_const_args (((_, A), (_, inst)): proof_const) =
   Pure_Vars.build (A |> Pure_Vars.add_vars) |> Pure_Vars.list_set
   |> map (fn v => (v, the_default (FV v) (Pure_Vars.lookup inst v)));
 
-fun make_const_proof (f, g) ((a, insts): zproof_const) =
+fun make_const_proof (f, g) ((a, insts): proof_const) =
   let
     val typ = subst_type_same (Same.function (fn ((x, _), _) => try f x));
     val term = Same.function (fn FV ((x, _), _) => try g x | _ => NONE);
@@ -807,7 +807,7 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
     val proof_name =
       ZThm {theory_name = Context.theory_long_name thy, thm_name = thm_name, serial = i};
 
-    val const = constrain_proof (ZConstp (zproof_const (proof_name, prop')));
+    val const = constrain_proof (ZConstp (proof_const (proof_name, prop')));
     val args1 =
       outer_constraints |> map (fn (T, c) =>
         OFCLASSp (pure_type_of (if unconstrain then unconstrain_typ T else T), c));
@@ -829,11 +829,11 @@ end;
 
 (* basic logic *)
 
-fun zproof_axiom thy name A = zproof_const (ZAxiom name, pure_term_of thy A);
+fun zproof_axiom thy name A = proof_const (ZAxiom name, pure_term_of thy A);
 val axiom_proof = ZConstp ooo zproof_axiom;
 
 fun oracle_proof thy name A =
-  ZConstp (zproof_const (ZOracle name, pure_term_of thy A));
+  ZConstp (proof_const (ZOracle name, pure_term_of thy A));
 
 fun assume_proof thy A =
   ZHyp (pure_term_of thy A);
