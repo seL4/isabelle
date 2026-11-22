@@ -376,7 +376,7 @@ local open Basic_Pure_Term Basic_Pure_Logic in
 fun proof_to_zproof thy =
   let
     val {ztyp, zterm} = Pure_Logic.zterm_cache thy;
-    val ztvar = ztyp #> (fn ZTVar v => v);
+    val ztvar = ztyp #> (fn TV v => v);
 
     fun zproof_const name prop typargs =
       let

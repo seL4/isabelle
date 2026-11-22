@@ -1145,7 +1145,7 @@ fun strip_shyps thm =
         val map_ztyp =
           ZTypes.apply_unsynchronized_cache
             (Pure_Logic.subst_type_same
-              (Pure_Logic.ztyp_of o map_atyp o Pure_Logic.typ_of o Pure_Term.ZTVar));
+              (Pure_Logic.ztyp_of o map_atyp o Pure_Logic.typ_of o Pure_Term.TV));
 
         val zproof' = Pure_Logic.map_proof_types {hyps = true} map_ztyp zproof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;

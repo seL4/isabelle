@@ -68,26 +68,26 @@ fun term consts t = t |> variant
     in ([c], typ T) end];
 
 fun ztyp T = T |> variant
- [fn ZFun args => (["fun"], pair ztyp ztyp args)
-   | ZProp => (["prop"], [])
-   | ZType0 a => ([a], [])
-   | ZType1 (a, b) => ([a], list ztyp [b])
-   | ZType (a, b) => ([a], list ztyp b),
-  fn ZTVar ((a, ~1), b) => ([a], sort b),
-  fn ZTVar (a, b) => (indexname a, sort b)];
+ [fn FUN args => (["fun"], pair ztyp ztyp args)
+   | PROP => (["prop"], [])
+   | CON0 a => ([a], [])
+   | CON1 (a, b) => ([a], list ztyp [b])
+   | CONN (a, b) => ([a], list ztyp b),
+  fn TV ((a, ~1), b) => ([a], sort b),
+  fn TV (a, b) => (indexname a, sort b)];
 
 fun zvar_type {typed_vars} T =
   if typed_vars andalso T <> Pure_Logic.ztyp_dummy then ztyp T else [];
 
 fun zterm flag t = t |> variant
- [fn ZConst0 a => ([a], [])
-   | ZConst1 (a, b) => ([a], list ztyp [b])
-   | ZConst (a, b) => ([a], list ztyp b),
-  fn ZVar ((a, ~1), b) => ([a], zvar_type flag b),
-  fn ZVar (a, b) => (indexname a, zvar_type flag b),
-  fn ZBound a => ([], int a),
-  fn ZAbs (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
-  fn ZApp a => ([], pair (zterm flag) (zterm flag) a),
+ [fn CONST0 a => ([a], [])
+   | CONST1 (a, b) => ([a], list ztyp [b])
+   | CONSTN (a, b) => ([a], list ztyp b),
+  fn FV ((a, ~1), b) => ([a], zvar_type flag b),
+  fn FV (a, b) => (indexname a, zvar_type flag b),
+  fn BV a => ([], int a),
+  fn ABS (a, b, c) => ([a], pair ztyp (zterm flag) (b, c)),
+  fn APP a => ([], pair (zterm flag) (zterm flag) a),
   fn OFCLASS (a, b) => ([b], ztyp a)];
 
 fun zproof flag prf = prf |> variant

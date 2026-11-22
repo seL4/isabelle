@@ -174,11 +174,11 @@ val ZAppts = Library.foldl ZAppt;
 val ZAppps = Library.foldl ZAppp;
 
 fun combound (t, n, k) =
-  if k > 0 then ZApp (combound (t, n + 1, k - 1), ZBound n) else t;
+  if k > 0 then APP (combound (t, n + 1, k - 1), BV n) else t;
 
 val strip_sortsT_same =
   Pure_Term.map_tvars_same
-    (fn (_, []) => raise Same.SAME | (a, _) => ZTVar (a, []));
+    (fn (_, []) => raise Same.SAME | (a, _) => TV (a, []));
 
 val strip_sorts_same = Pure_Term.map_types_same strip_sortsT_same;
 
@@ -192,12 +192,12 @@ fun incr_bv_same inc =
   if inc = 0 then fn _ => Same.same
   else
     let
-      fun term lev (ZBound i) =
-            if i >= lev then ZBound (i + inc) else raise Same.SAME
-        | term lev (ZAbs (a, T, t)) = ZAbs (a, T, term (lev + 1) t)
-        | term lev (ZApp (t, u)) =
-            (ZApp (term lev t, Same.commit (term lev) u)
-              handle Same.SAME => ZApp (t, term lev u))
+      fun term lev (BV i) =
+            if i >= lev then BV (i + inc) else raise Same.SAME
+        | term lev (ABS (a, T, t)) = ABS (a, T, term (lev + 1) t)
+        | term lev (APP (t, u)) =
+            (APP (term lev t, Same.commit (term lev) u)
+              handle Same.SAME => APP (t, term lev u))
         | term _ _ = raise Same.SAME;
     in term end;
 
@@ -233,14 +233,14 @@ fun incr_proof_boundvars incp inct = incr_proof_bv incp inct 0 0;
 
 fun subst_term_bound_same arg =
   let
-    fun term lev (ZBound i) =
+    fun term lev (BV i) =
           if i < lev then raise Same.SAME   (*var is locally bound*)
           else if i = lev then incr_boundvars lev arg
-          else ZBound (i - 1)   (*loose: change it*)
-      | term lev (ZAbs (a, T, t)) = ZAbs (a, T, term (lev + 1) t)
-      | term lev (ZApp (t, u)) =
-          (ZApp (term lev t, Same.commit (term lev) u)
-            handle Same.SAME => ZApp (t, term lev u))
+          else BV (i - 1)   (*loose: change it*)
+      | term lev (ABS (a, T, t)) = ABS (a, T, term (lev + 1) t)
+      | term lev (APP (t, u)) =
+          (APP (term lev t, Same.commit (term lev) u)
+            handle Same.SAME => APP (t, term lev u))
       | term _ _ = raise Same.SAME;
   in term end;
 
@@ -285,34 +285,34 @@ fun subst_proof_boundp arg body = Same.commit (subst_proof_boundp_same arg 0 0) 
 
 fun subst_type_same tvar =
   let
-    fun typ (ZTVar x) = tvar x
-      | typ (ZFun (T, U)) =
-          (ZFun (typ T, Same.commit typ U)
-            handle Same.SAME => ZFun (T, typ U))
-      | typ ZProp = raise Same.SAME
-      | typ (ZType0 _) = raise Same.SAME
-      | typ (ZType1 (a, T)) = ZType1 (a, typ T)
-      | typ (ZType (a, Ts)) = ZType (a, Same.map typ Ts);
+    fun typ (TV x) = tvar x
+      | typ (FUN (T, U)) =
+          (FUN (typ T, Same.commit typ U)
+            handle Same.SAME => FUN (T, typ U))
+      | typ PROP = raise Same.SAME
+      | typ (CON0 _) = raise Same.SAME
+      | typ (CON1 (a, T)) = CON1 (a, typ T)
+      | typ (CONN (a, Ts)) = CONN (a, Same.map typ Ts);
   in typ end;
 
 fun subst_term_same typ var =
   let
-    fun term (ZVar (x, T)) =
+    fun term (FV (x, T)) =
           let val (T', same) = Same.commit_id typ T in
             (case Same.catch var (x, T') of
-              NONE => if same then raise Same.SAME else ZVar (x, T')
+              NONE => if same then raise Same.SAME else FV (x, T')
             | SOME t' => t')
           end
-      | term (ZBound _) = raise Same.SAME
-      | term (ZConst0 _) = raise Same.SAME
-      | term (ZConst1 (a, T)) = ZConst1 (a, typ T)
-      | term (ZConst (a, Ts)) = ZConst (a, Same.map typ Ts)
-      | term (ZAbs (a, T, t)) =
-          (ZAbs (a, typ T, Same.commit term t)
-            handle Same.SAME => ZAbs (a, T, term t))
-      | term (ZApp (t, u)) =
-          (ZApp (term t, Same.commit term u)
-            handle Same.SAME => ZApp (t, term u))
+      | term (BV _) = raise Same.SAME
+      | term (CONST0 _) = raise Same.SAME
+      | term (CONST1 (a, T)) = CONST1 (a, typ T)
+      | term (CONSTN (a, Ts)) = CONSTN (a, Same.map typ Ts)
+      | term (ABS (a, T, t)) =
+          (ABS (a, typ T, Same.commit term t)
+            handle Same.SAME => ABS (a, T, term t))
+      | term (APP (t, u)) =
+          (APP (term t, Same.commit term u)
+            handle Same.SAME => APP (t, term u))
       | term (OFCLASS (T, c)) = OFCLASS (typ T, c);
   in term end;
 
@@ -431,32 +431,32 @@ val maxidx_type = Pure_Term.fold_tvars (fn ((_, i), _) => Integer.max i);
 
 fun maxidx_term t =
   Pure_Term.fold_types maxidx_type t #>
-  Pure_Term.fold_aterms (fn ZVar ((_, i), _) => Integer.max i | _ => I) t;
+  Pure_Term.fold_aterms (fn FV ((_, i), _) => Integer.max i | _ => I) t;
 
 val maxidx_proof = fold_proof {hyps = false} maxidx_type maxidx_term;
 
 
 (* convert ztyp vs. regular typ *)
 
-fun ztyp_of (TFree (a, S)) = ZTVar ((a, ~1), S)
-  | ztyp_of (TVar v) = ZTVar v
-  | ztyp_of (Type ("fun", [T, U])) = ZFun (ztyp_of T, ztyp_of U)
-  | ztyp_of (Type ("prop", [])) = ZProp
-  | ztyp_of (Type (c, [])) = ZType0 c
-  | ztyp_of (Type (c, [T])) = ZType1 (c, ztyp_of T)
-  | ztyp_of (Type (c, ts)) = ZType (c, map ztyp_of ts);
+fun ztyp_of (TFree (a, S)) = TV ((a, ~1), S)
+  | ztyp_of (TVar v) = TV v
+  | ztyp_of (Type ("fun", [T, U])) = FUN (ztyp_of T, ztyp_of U)
+  | ztyp_of (Type ("prop", [])) = PROP
+  | ztyp_of (Type (c, [])) = CON0 c
+  | ztyp_of (Type (c, [T])) = CON1 (c, ztyp_of T)
+  | ztyp_of (Type (c, ts)) = CONN (c, map ztyp_of ts);
 
 val ztyp_dummy = ztyp_of dummyT;
 
 fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
   | typ_of_tvar v = TVar v;
 
-fun typ_of (ZTVar v) = typ_of_tvar v
-  | typ_of (ZFun (T, U)) = typ_of T --> typ_of U
-  | typ_of ZProp = propT
-  | typ_of (ZType0 c) = Type (c, [])
-  | typ_of (ZType1 (c, T)) = Type (c, [typ_of T])
-  | typ_of (ZType (c, Ts)) = Type (c, map typ_of Ts);
+fun typ_of (TV v) = typ_of_tvar v
+  | typ_of (FUN (T, U)) = typ_of T --> typ_of U
+  | typ_of PROP = propT
+  | typ_of (CON0 c) = Type (c, [])
+  | typ_of (CON1 (c, T)) = Type (c, [typ_of T])
+  | typ_of (CONN (c, Ts)) = Type (c, map typ_of Ts);
 
 
 (* cache within theory context *)
@@ -516,25 +516,25 @@ fun zterm_cache thy =
 
     val ztyp = ztyp_cache thy;
 
-    fun zterm (Free (x, T)) = ZVar ((x, ~1), ztyp T)
-      | zterm (Var (xi, T)) = ZVar (xi, ztyp T)
-      | zterm (Bound i) = ZBound i
+    fun zterm (Free (x, T)) = FV ((x, ~1), ztyp T)
+      | zterm (Var (xi, T)) = FV (xi, ztyp T)
+      | zterm (Bound i) = BV i
       | zterm (Const (c, T)) =
           (case typargs (c, T) of
-            [] => ZConst0 c
-          | [T] => ZConst1 (c, ztyp T)
-          | Ts => ZConst (c, map ztyp Ts))
-      | zterm (Abs (a, T, b)) = ZAbs (a, ztyp T, zterm b)
+            [] => CONST0 c
+          | [T] => CONST1 (c, ztyp T)
+          | Ts => CONSTN (c, map ztyp Ts))
+      | zterm (Abs (a, T, b)) = ABS (a, ztyp T, zterm b)
       | zterm (tm as t $ u) =
           (case try Logic.match_of_class tm of
             SOME (T, c) => OFCLASS (ztyp T, c)
-          | NONE => ZApp (zterm t, zterm u));
+          | NONE => APP (zterm t, zterm u));
   in {ztyp = ztyp, zterm = zterm} end;
 
 val zterm_of = #zterm o zterm_cache;
 
-fun zterm_dummy_pattern T = ZConst1 ("Pure.dummy_pattern", T);
-fun zterm_type T = ZConst1 ("Pure.type", T);
+fun zterm_dummy_pattern T = CONST1 ("Pure.dummy_pattern", T);
+fun zterm_type T = CONST1 ("Pure.type", T);
 
 fun term_of thy =
   let
@@ -542,14 +542,14 @@ fun term_of thy =
 
     fun const (c, Ts) = Const (c, instance (c, Ts));
 
-    fun term (ZVar ((x, ~1), T)) = Free (x, typ_of T)
-      | term (ZVar (xi, T)) = Var (xi, typ_of T)
-      | term (ZBound i) = Bound i
-      | term (ZConst0 c) = const (c, [])
-      | term (ZConst1 (c, T)) = const (c, [typ_of T])
-      | term (ZConst (c, Ts)) = const (c, map typ_of Ts)
-      | term (ZAbs (a, T, b)) = Abs (a, typ_of T, term b)
-      | term (ZApp (t, u)) = term t $ term u
+    fun term (FV ((x, ~1), T)) = Free (x, typ_of T)
+      | term (FV (xi, T)) = Var (xi, typ_of T)
+      | term (BV i) = Bound i
+      | term (CONST0 c) = const (c, [])
+      | term (CONST1 (c, T)) = const (c, [typ_of T])
+      | term (CONSTN (c, Ts)) = const (c, map typ_of Ts)
+      | term (ABS (a, T, b)) = Abs (a, typ_of T, term b)
+      | term (APP (t, u)) = term t $ term u
       | term (OFCLASS (T, c)) = Logic.mk_of_class (typ_of T, c);
   in term end;
 
@@ -558,13 +558,13 @@ fun term_of thy =
 
 val beta_norm_term_same =
   let
-    fun norm (ZAbs (a, T, t)) = ZAbs (a, T, Same.commit norm t)
-      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
-      | norm (ZApp (f, t)) =
+    fun norm (ABS (a, T, t)) = ABS (a, T, Same.commit norm t)
+      | norm (APP (ABS (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
+      | norm (APP (f, t)) =
           ((case norm f of
-             ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
-           | nf => ZApp (nf, Same.commit norm t))
-          handle Same.SAME => ZApp (f, norm t))
+             ABS (_, _, body) => Same.commit norm (subst_term_bound t body)
+           | nf => APP (nf, Same.commit norm t))
+          handle Same.SAME => APP (f, norm t))
       | norm _ = raise Same.SAME;
   in norm end;
 
@@ -616,17 +616,17 @@ fun norm_type_same ztyp tyenv =
   if Vartab.is_empty tyenv then Same.same
   else
     let
-      fun norm (ZTVar v) =
+      fun norm (TV v) =
             (case Type.lookup tyenv v of
               SOME U => Same.commit norm (ztyp U)
             | NONE => raise Same.SAME)
-        | norm (ZFun (T, U)) =
-            (ZFun (norm T, Same.commit norm U)
-              handle Same.SAME => ZFun (T, norm U))
-        | norm ZProp = raise Same.SAME
-        | norm (ZType0 _) = raise Same.SAME
-        | norm (ZType1 (a, T)) = ZType1 (a, norm T)
-        | norm (ZType (a, Ts)) = ZType (a, Same.map norm Ts);
+        | norm (FUN (T, U)) =
+            (FUN (norm T, Same.commit norm U)
+              handle Same.SAME => FUN (T, norm U))
+        | norm PROP = raise Same.SAME
+        | norm (CON0 _) = raise Same.SAME
+        | norm (CON1 (a, T)) = CON1 (a, norm T)
+        | norm (CONN (a, Ts)) = CONN (a, Same.map norm Ts);
     in norm end;
 
 fun norm_term_same {ztyp, zterm} (envir as Envir.Envir {tyenv, tenv, ...}) =
@@ -637,30 +637,30 @@ fun norm_term_same {ztyp, zterm} (envir as Envir.Envir {tyenv, tenv, ...}) =
 
     val normT = norm_type_same ztyp tyenv;
 
-    fun norm (ZVar (xi, T)) =
+    fun norm (FV (xi, T)) =
           (case lookup (xi, T) of
             SOME u => Same.commit norm u
-          | NONE => ZVar (xi, normT T))
-      | norm (ZBound _) = raise Same.SAME
-      | norm (ZConst0 _) = raise Same.SAME
-      | norm (ZConst1 (a, T)) = ZConst1 (a, normT T)
-      | norm (ZConst (a, Ts)) = ZConst (a, Same.map normT Ts)
-      | norm (ZAbs (a, T, t)) =
-          (ZAbs (a, normT T, Same.commit norm t)
-            handle Same.SAME => ZAbs (a, T, norm t))
-      | norm (ZApp (ZAbs (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
-      | norm (ZApp (f, t)) =
+          | NONE => FV (xi, normT T))
+      | norm (BV _) = raise Same.SAME
+      | norm (CONST0 _) = raise Same.SAME
+      | norm (CONST1 (a, T)) = CONST1 (a, normT T)
+      | norm (CONSTN (a, Ts)) = CONSTN (a, Same.map normT Ts)
+      | norm (ABS (a, T, t)) =
+          (ABS (a, normT T, Same.commit norm t)
+            handle Same.SAME => ABS (a, T, norm t))
+      | norm (APP (ABS (_, _, body), t)) = Same.commit norm (subst_term_bound t body)
+      | norm (APP (f, t)) =
           ((case norm f of
-             ZAbs (_, _, body) => Same.commit norm (subst_term_bound t body)
-           | nf => ZApp (nf, Same.commit norm t))
-          handle Same.SAME => ZApp (f, norm t))
+             ABS (_, _, body) => Same.commit norm (subst_term_bound t body)
+           | nf => APP (nf, Same.commit norm t))
+          handle Same.SAME => APP (f, norm t))
       | norm _ = raise Same.SAME;
   in fn t => if Envir.is_empty envir then beta_norm_term_same t else norm t end;
 
 fun norm_proof_cache (cache as {ztyp, ...}) (envir as Envir.Envir {tyenv, ...}) =
   let
-    val norm_tvar = ZTVar #> Same.commit (norm_type_same ztyp tyenv);
-    val norm_var = ZVar #> Same.commit (norm_term_same cache envir);
+    val norm_tvar = TV #> Same.commit (norm_type_same ztyp tyenv);
+    val norm_var = FV #> Same.commit (norm_term_same cache envir);
   in
     fn visible => fn prf =>
       if Envir.is_empty envir orelse null visible then beta_norm_prooft prf
@@ -702,24 +702,24 @@ fun zproof_const (a, A) : zproof_const =
   let
     val instT =
       ZTVars.build (A |> (Pure_Term.fold_types o Pure_Term.fold_tvars) (fn v => fn tab =>
-        if ZTVars.defined tab v then tab else ZTVars.update (v, ZTVar v) tab));
+        if ZTVars.defined tab v then tab else ZTVars.update (v, TV v) tab));
     val inst =
       ZVars.build (A |> Pure_Term.fold_vars (fn v => fn tab =>
-        if ZVars.defined tab v then tab else ZVars.update (v, ZVar v) tab));
+        if ZVars.defined tab v then tab else ZVars.update (v, FV v) tab));
   in ((a, A), (instT, inst)) end;
 
 fun zproof_const_typargs (((_, A), (instT, _)): zproof_const) =
   ZTVars.build (A |> ZTVars.add_tvars) |> ZTVars.list_set
-  |> map (fn v => (v, the_default (ZTVar v) (ZTVars.lookup instT v)));
+  |> map (fn v => (v, the_default (TV v) (ZTVars.lookup instT v)));
 
 fun zproof_const_args (((_, A), (_, inst)): zproof_const) =
   ZVars.build (A |> ZVars.add_vars) |> ZVars.list_set
-  |> map (fn v => (v, the_default (ZVar v) (ZVars.lookup inst v)));
+  |> map (fn v => (v, the_default (FV v) (ZVars.lookup inst v)));
 
 fun make_const_proof (f, g) ((a, insts): zproof_const) =
   let
     val typ = subst_type_same (Same.function (fn ((x, _), _) => try f x));
-    val term = Same.function (fn ZVar ((x, _), _) => try g x | _ => NONE);
+    val term = Same.function (fn FV ((x, _), _) => try g x | _ => NONE);
   in ZConstp (a, Same.commit (map_insts_same typ term) insts) end;
 
 
@@ -736,7 +736,7 @@ val add_boxes = Ord_List.insert box_ord;
 local
 
 fun close_prop prems prop =
-  fold_rev (fn A => fn B => ZApp (ZApp (ZConst0 "Pure.imp", A), B)) prems prop;
+  fold_rev (fn A => fn B => APP (APP (CONST0 "Pure.imp", A), B)) prems prop;
 
 fun close_proof prems prf =
   let
@@ -786,8 +786,8 @@ fun box_proof {unconstrain} thy thm_name hyps concl prf =
       else
         ZTVars.build (present_set |> Types.fold (fn (T, _) =>
           let
-            val ZTVar v = ztyp_of (unconstrain_typ T) and U = ztyp_of T;
-            val equal = (case U of ZTVar u => u = v | _ => false);
+            val TV v = ztyp_of (unconstrain_typ T) and U = ztyp_of T;
+            val equal = (case U of TV u => u = v | _ => false);
           in not equal ? ZTVars.add (v, U) end));
     val constrain_proof =
       if ZTVars.is_empty constrain_instT then I
@@ -861,13 +861,13 @@ fun forall_intr_proof thy T (a, x) prf =
     val z = zterm x;
 
     fun term i b =
-      if Pure_Term.alpha_eq (b, z) then ZBound i
+      if Pure_Term.alpha_eq (b, z) then BV i
       else
         (case b of
-          ZAbs (x, T, t) => ZAbs (x, T, term (i + 1) t)
-        | ZApp (t, u) =>
-            (ZApp (term i t, Same.commit (term i) u)
-              handle Same.SAME => ZApp (t, term i u))
+          ABS (x, T, t) => ABS (x, T, term (i + 1) t)
+        | APP (t, u) =>
+            (APP (term i t, Same.commit (term i) u)
+              handle Same.SAME => APP (t, term i u))
         | _ => raise Same.SAME);
 
     fun proof i (ZAbst (x, T, prf)) = ZAbst (x, T, proof (i + 1) prf)
@@ -996,11 +996,11 @@ fun generalize_proof (tfrees, frees) idx prf =
       else
         ZTypes.apply_unsynchronized_cache
           (subst_type_same (fn ((a, i), S) =>
-            if i = ~1 andalso Names.defined tfrees a then ZTVar ((a, idx), S)
+            if i = ~1 andalso Names.defined tfrees a then TV ((a, idx), S)
             else raise Same.SAME));
     val term =
       subst_term_same typ (fn ((x, i), T) =>
-        if i = ~1 andalso Names.defined frees x then ZVar ((x, idx), T)
+        if i = ~1 andalso Names.defined frees x then FV ((x, idx), T)
         else raise Same.SAME);
   in map_proof {hyps = false} typ term prf end;
 
@@ -1022,7 +1022,7 @@ fun varifyT_proof names prf =
         ZTypes.apply_unsynchronized_cache (subst_type_same (fn v =>
           (case ZTVars.lookup tab v of
             NONE => raise Same.SAME
-          | SOME w => ZTVar w)));
+          | SOME w => TV w)));
     in map_proof_types {hyps = false} typ prf end;
 
 fun legacy_freezeT_proof t prf =
@@ -1045,7 +1045,7 @@ fun rotate_proof thy Bs Bi' params asms m prf =
   in
     ZAbsps (map zterm Bs @ [zterm Bi']) (ZAppps (prf, map ZBoundp
       (j downto 1) @ [ZAbsts (map (apsnd ztyp) params) (ZAbsps (map zterm asms)
-        (ZAppps (ZAppts (ZBoundp i, map ZBound ((length params - 1) downto 0)),
+        (ZAppps (ZAppts (ZBoundp i, map BV ((length params - 1) downto 0)),
           map ZBoundp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
   end;
 
@@ -1064,13 +1064,13 @@ fun permute_prems_proof thy prems' j k prf =
 fun incr_tvar_same inc =
   if inc = 0 then Same.same
   else
-    let fun tvar ((a, i), S) = if i >= 0 then ZTVar ((a, i + inc), S) else raise Same.SAME
+    let fun tvar ((a, i), S) = if i >= 0 then TV ((a, i + inc), S) else raise Same.SAME
     in ZTypes.apply_unsynchronized_cache (subst_type_same tvar) end;
 
 fun incr_indexes_proof inc prf =
   let
     val typ = incr_tvar_same inc;
-    fun var ((x, i), T) = if i >= 0 then ZVar ((x, i + inc), T) else raise Same.SAME;
+    fun var ((x, i), T) = if i >= 0 then FV ((x, i + inc), T) else raise Same.SAME;
     val term = subst_term_same typ var;
   in map_proof {hyps = false} typ term prf end;
 
@@ -1085,20 +1085,20 @@ fun lift_proof thy gprop inc prems prf =
       else
         let
           val n = length Ts;
-          fun incr lev (ZVar ((x, i), T)) =
+          fun incr lev (FV ((x, i), T)) =
                 if i >= 0
-                then combound (ZVar ((x, i + inc), Pure_Term.ZFuns (Ts, Same.commit typ T)), lev, n)
+                then combound (FV ((x, i + inc), Pure_Term.FUNs (Ts, Same.commit typ T)), lev, n)
                 else raise Same.SAME
-            | incr _ (ZBound _) = raise Same.SAME
-            | incr _ (ZConst0 _) = raise Same.SAME
-            | incr _ (ZConst1 (c, T)) = ZConst1 (c, typ T)
-            | incr _ (ZConst (c, Ts)) = ZConst (c, Same.map typ Ts)
-            | incr lev (ZAbs (x, T, t)) =
-                (ZAbs (x, typ T, Same.commit (incr (lev + 1)) t)
-                  handle Same.SAME => ZAbs (x, T, incr (lev + 1) t))
-            | incr lev (ZApp (t, u)) =
-                (ZApp (incr lev t, Same.commit (incr lev) u)
-                  handle Same.SAME => ZApp (t, incr lev u))
+            | incr _ (BV _) = raise Same.SAME
+            | incr _ (CONST0 _) = raise Same.SAME
+            | incr _ (CONST1 (c, T)) = CONST1 (c, typ T)
+            | incr _ (CONSTN (c, Ts)) = CONSTN (c, Same.map typ Ts)
+            | incr lev (ABS (x, T, t)) =
+                (ABS (x, typ T, Same.commit (incr (lev + 1)) t)
+                  handle Same.SAME => ABS (x, T, incr (lev + 1) t))
+            | incr lev (APP (t, u)) =
+                (APP (incr lev t, Same.commit (incr lev) u)
+                  handle Same.SAME => APP (t, incr lev u))
             | incr _ (OFCLASS (T, c)) = OFCLASS (typ T, c);
         in incr lev end;
 
@@ -1122,7 +1122,7 @@ fun lift_proof thy gprop inc prems prf =
     val k = length prems;
 
     fun mk_app b (i, j, p) =
-      if b then (i - 1, j, ZAppp (p, ZBoundp i)) else (i, j - 1, ZAppt (p, ZBound j));
+      if b then (i - 1, j, ZAppp (p, ZBoundp i)) else (i, j - 1, ZAppt (p, BV j));
 
     fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
           ZAbsp ("H", Same.commit (term Ts 0) (zterm A), lift Ts (true :: bs) (i + 1) j B)
@@ -1140,9 +1140,9 @@ fun lift_proof thy gprop inc prems prf =
 fun mk_asm_prf C i m =
   let
     fun imp _ i 0 = ZBoundp i
-      | imp (ZApp (ZApp (ZConst0 "Pure.imp", A), B)) i m = ZAbsp ("H", A, imp B (i + 1) (m - 1))
+      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = ZAbsp ("H", A, imp B (i + 1) (m - 1))
       | imp _ i _ = ZBoundp i;
-    fun all (ZApp (ZConst1 ("Pure.all", _), ZAbs (a, T, t))) = ZAbst (a, T, all t)
+    fun all (APP (CONST1 ("Pure.all", _), ABS (a, T, t))) = ZAbst (a, T, all t)
       | all t = imp t (~ i) m
   in all C end;
 
@@ -1156,13 +1156,13 @@ fun assumption_proof thy envir Bs Bi n visible prf =
     |> norm_proof_cache cache envir visible
   end;
 
-fun flatten_params_proof i j n (ZApp (ZApp (ZConst0 "Pure.imp", A), B), k) =
+fun flatten_params_proof i j n (APP (APP (CONST0 "Pure.imp", A), B), k) =
       ZAbsp ("H", A, flatten_params_proof (i + 1) j n (B, k))
-  | flatten_params_proof i j n (ZApp (ZConst1 ("Pure.all", _), ZAbs (a, T, t)), k) =
+  | flatten_params_proof i j n (APP (CONST1 ("Pure.all", _), ABS (a, T, t)), k) =
       ZAbst (a, T, flatten_params_proof i (j + 1) n (t, k))
   | flatten_params_proof i j n (_, k) =
       ZAppps (ZAppts (ZBoundp (k + i),
-        map ZBound (j - 1 downto 0)), map ZBoundp (remove (op =) (i - n) (i - 1 downto 0)));
+        map BV (j - 1 downto 0)), map ZBoundp (remove (op =) (i - n) (i - 1 downto 0)));
 
 fun bicompose_proof thy env smax flatten Bs As A oldAs n m visible rprf sprf =
   let
@@ -1234,14 +1234,14 @@ val declare_frees_proof = fold_proof {hyps = true} (K I) declare_frees_term;
 
 val (variant_abs_term, variant_abs_proof) =
   let
-    fun term bs (ZAbs (x, T, t)) =
+    fun term bs (ABS (x, T, t)) =
           let
             val x' = #1 (Name.variant x (declare_frees_term t bs));
             val bs' = Name.declare x' bs;
-          in ZAbs (x', T, Same.commit_if (x <> x') (term bs') t) end
-      | term bs (ZApp (t, u)) =
-          (ZApp (term bs t, Same.commit (term bs) u)
-            handle Same.SAME => ZApp (t, term bs u))
+          in ABS (x', T, Same.commit_if (x <> x') (term bs') t) end
+      | term bs (APP (t, u)) =
+          (APP (term bs t, Same.commit (term bs) u)
+            handle Same.SAME => APP (t, term bs u))
       | term _ _ = raise Same.SAME;
 
     fun proof bs (ZAbst (x, T, p)) =
@@ -1282,13 +1282,13 @@ fun standard_hidden_types prop proof =
     fun zvar (v as (_, S)) =
       if not (member (op =) hidden v) then raise Same.SAME
       else if null S then ztyp_dummy
-      else ZTVar (("'", idx), S);
+      else TV (("'", idx), S);
     val typ = Pure_Term.map_tvars_same zvar;
   in proof |> not (null hidden) ? map_proof {hyps = true} typ (Pure_Term.map_types typ) end;
 
 fun standard_hidden_terms prop proof =
   let
-    fun add_unless excluded (ZVar v) = not (member (op =) excluded v) ? insert (op =) v
+    fun add_unless excluded (FV v) = not (member (op =) excluded v) ? insert (op =) v
       | add_unless _ _ = I;
     val visible = Pure_Term.fold_aterms (add_unless []) prop [];
     val hidden = fold_proof {hyps = true} (K I) (Pure_Term.fold_aterms (add_unless visible)) proof [];
@@ -1307,7 +1307,7 @@ fun standard_inst_type used prf =
   let
     val add_tvars = Pure_Term.fold_tvars (fn v => ZTVars.add (v, ()));
     val (instT, _) =
-      (ZTVars.empty, used) |> ZTVars.fold (standard_inst ZTVars.add ZTVar o #1)
+      (ZTVars.empty, used) |> ZTVars.fold (standard_inst ZTVars.add TV o #1)
         (TVars.build (prf |> fold_proof {hyps = true} add_tvars (Pure_Term.fold_types add_tvars)));
   in instantiate_type_same instT end;
 
@@ -1315,7 +1315,7 @@ fun standard_inst_term used inst_type prf =
   let
     val add_vars = Pure_Term.fold_vars (fn (x, T) => ZVars.add ((x, Same.commit inst_type T), ()));
     val (inst, _) =
-      (ZVars.empty, used) |> ZVars.fold (standard_inst ZVars.add ZVar o #1)
+      (ZVars.empty, used) |> ZVars.fold (standard_inst ZVars.add FV o #1)
         (ZVars.build (prf |> fold_proof {hyps = true} (K I) add_vars));
   in instantiate_term_same inst_type inst end;
 
@@ -1324,7 +1324,7 @@ val typargs_term = Pure_Term.fold_types typargs_type;
 val typargs_proof = fold_proof {hyps = true} typargs_type typargs_term;
 
 val add_standard_vars_term = Pure_Term.fold_aterms
-  (fn ZVar ((x, ~1), T) =>
+  (fn FV ((x, ~1), T) =>
       (fn env =>
         (case AList.lookup (op =) env x of
           NONE => (x, T) :: env
