@@ -727,7 +727,7 @@ fun run_sledgehammer (params as {verbose, spy, provers, falsify, induction_rules
                     | _ => launch_slice prover slice)
                 prover_slices
             else
-              (learn chained_thms;
+              (if #learn params then learn chained_thms else ();
                Par_List.map (fn (prover, slice) =>
                    if Synchronized.value found_proofs_and_falsifications < max_proofs
                       andalso Timer.checkRealTimer timer < timeout then
