@@ -11,9 +11,6 @@ import scala.language.unsafeNulls
 import isabelle._
 
 import java.awt.{Point, Frame, Rectangle}
-import java.awt.event.{ActionEvent, ActionListener}
-
-import javax.swing.{JMenu, JMenuItem}
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer, EditBus}
 import org.gjt.sp.jedit.msg.ViewUpdate
@@ -534,29 +531,6 @@ object Isabelle {
           select_enter = true,
           select_tab = true)
       }
-    }
-  }
-
-  def links_context_menu(text_area: JEditTextArea, offset: Text.Offset): List[JMenuItem] = {
-    val editor_context = JEdit_Editor.Context(text_area)
-    val range = JEdit_Lib.point_range(text_area.getBuffer, offset)
-    val links =
-      Document_View.get_rendering(text_area) match {
-        case Some(rendering) => rendering.hyperlinks(range)
-        case None => Nil
-      }
-    if (links.isEmpty) Nil
-    else {
-      val menu = new JMenu("Hyperlinks")
-      for (info <- links) {
-        val link = new Selection_Popup.Hyperlink(editor_context, info)
-        val item = new JMenuItem(link.toString)
-        item.addActionListener(new ActionListener {
-          def actionPerformed(evt: ActionEvent): Unit = link.select()
-        })
-        menu.add(item)
-      }
-      List(menu)
     }
   }
 

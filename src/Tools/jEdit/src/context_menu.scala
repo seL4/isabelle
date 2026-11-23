@@ -29,7 +29,6 @@ class Context_Menu extends DynamicContextMenuService {
         if (evt != null && evt.getSource == text_area.getPainter) {
           val offset = text_area.xyToOffset(evt.getX, evt.getY)
           if (offset >= 0)
-            Isabelle.links_context_menu(text_area, offset) :::
             JEdit_Spell_Checker.context_menu(text_area, offset) :::
             Debugger_Dockable.context_menu(text_area, offset)
           else Nil
