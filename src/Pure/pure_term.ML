@@ -251,3 +251,45 @@ structure Basic_Pure_Term: BASIC_PURE_TERM = Pure_Term;
 
 structure Pure_Types = Table(type key = Pure_Term.T val ord = Pure_Term.type_ord);
 structure Pure_Terms = Table(type key = Pure_Term.t val ord = Pure_Term.fast_term_ord);
+
+
+
+
+structure Pure_TVars:
+sig
+  include PURE_ITEMS
+  val add_tvarsT: Pure_Term.T -> set -> set
+  val add_tvars: Pure_Term.t -> set -> set
+end =
+struct
+
+structure Pure_Items = Pure_Items
+(
+  type key = Var_Name.T * Pure_Term.sort;
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Pure_Term.sort_ord);
+);
+open Pure_Items;
+
+val add_tvarsT = Pure_Term.fold_tvars add_set;
+val add_tvars = Pure_Term.fold_types add_tvarsT;
+
+end;
+
+
+structure Pure_Vars:
+sig
+  include PURE_ITEMS
+  val add_vars: Pure_Term.t -> set -> set
+end =
+struct
+
+structure Pure_Items = Pure_Items
+(
+  type key = Var_Name.T * Pure_Term.T;
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Pure_Term.type_ord);
+);
+open Pure_Items;
+
+val add_vars = Pure_Term.fold_vars add_set;
+
+end;

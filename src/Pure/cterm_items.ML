@@ -24,18 +24,18 @@ structure Ctermset = Set(Ctermtab.Key);
 
 structure Cterms:
 sig
-  include TERM_ITEMS
+  include PURE_ITEMS
   val add_vars: thm -> set -> set
   val add_frees: thm -> set -> set
 end =
 struct
 
-structure Term_Items = Term_Items
+structure Pure_Items = Pure_Items
 (
   type key = cterm;
   val ord = Thm.fast_term_ord;
 );
-open Term_Items;
+open Pure_Items;
 
 val add_vars = Thm.fold_atomic_cterms {hyps = false} (K Term.is_Var) add_set;
 val add_frees = Thm.fold_atomic_cterms {hyps = true} (K Term.is_Free) add_set;

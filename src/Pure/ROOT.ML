@@ -112,6 +112,7 @@ ML_file "PIDE/interactive.ML";
 subsection "Fundamental structures";
 
 ML_file "var_name.ML";
+ML_file "pure_items.ML";
 ML_file "pure_term.ML";
 
 ML_file "name.ML";
@@ -164,7 +165,6 @@ ML_file "Syntax/syntax.ML";
 subsection "Core of tactical proof system";
 
 ML_file "term_ord.ML";
-ML_file "term_items.ML";
 ML_file "term_subst.ML";
 ML_file "sorts.ML";
 ML_file "type.ML";
