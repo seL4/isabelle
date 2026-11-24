@@ -46,12 +46,12 @@ sig
   val subst_term_bound: Pure_Term.t -> Pure_Term.t -> Pure_Term.t
   val subst_proof_bound: Pure_Term.t -> proof -> proof
   val subst_proof_boundp: proof -> proof -> proof
-  val subst_type_same: (indexname * sort, Pure_Term.T) Same.function ->
+  val subst_type_same: (Var_Name.T * sort, Pure_Term.T) Same.function ->
     Pure_Term.T Same.operation
   val subst_term_same:
-    Pure_Term.T Same.operation -> (indexname * Pure_Term.T, Pure_Term.t) Same.function ->
+    Pure_Term.T Same.operation -> (Var_Name.T * Pure_Term.T, Pure_Term.t) Same.function ->
       Pure_Term.t Same.operation
-  exception BAD_INST of ((indexname * Pure_Term.T) * Pure_Term.t) list
+  exception BAD_INST of ((Var_Name.T * Pure_Term.T) * Pure_Term.t) list
   val fold_proof: {hyps: bool} -> (Pure_Term.T -> 'a -> 'a) -> (Pure_Term.t -> 'a -> 'a) ->
     proof -> 'a -> 'a
   val fold_proof_types: {hyps: bool} -> (Pure_Term.T -> 'a -> 'a) -> proof -> 'a -> 'a
@@ -64,7 +64,7 @@ sig
   val maxidx_proof: proof -> int -> int
   val pure_type_of: typ -> Pure_Term.T
   val pure_type_dummy: Pure_Term.T
-  val typ_of_tvar: indexname * sort -> typ
+  val typ_of_tvar: Var_Name.T * sort -> typ
   val typ_of: Pure_Term.T -> typ
   val init_cache: theory -> theory option
   val exit_cache: theory -> theory option
@@ -86,8 +86,8 @@ sig
   val norm_type: theory -> Type.tyenv -> Pure_Term.T -> Pure_Term.T
   val norm_term: theory -> Envir.env -> Pure_Term.t -> Pure_Term.t
   val norm_proof: theory -> Envir.env -> term list -> proof -> proof
-  val proof_const_typargs: proof_const -> ((indexname * sort) * Pure_Term.T) list
-  val proof_const_args: proof_const -> ((indexname * Pure_Term.T) * Pure_Term.t) list
+  val proof_const_typargs: proof_const -> ((Var_Name.T * sort) * Pure_Term.T) list
+  val proof_const_args: proof_const -> ((Var_Name.T * Pure_Term.T) * Pure_Term.t) list
   type box = serial * (Pure_Term.t * proof)
   val box_ord: box ord
   type boxes = box Ord_List.T
@@ -115,8 +115,8 @@ sig
     proof -> proof -> proof
   val generalize_proof: Names.set * Names.set -> int -> proof -> proof
   val instantiate_proof: theory ->
-    ((indexname * sort) * typ) list * ((indexname * typ) * term) list -> proof -> proof
-  val varifyT_proof: ((string * sort) * (indexname * sort)) list -> proof -> proof
+    ((Var_Name.T * sort) * typ) list * ((Var_Name.T * typ) * term) list -> proof -> proof
+  val varifyT_proof: ((string * sort) * (Var_Name.T * sort)) list -> proof -> proof
   val legacy_freezeT_proof: term -> proof -> proof
   val rotate_proof: theory -> term list -> term -> (string * typ) list ->
     term list -> int -> proof -> proof
@@ -346,7 +346,7 @@ fun fold_proof_types hyps typ =
 
 (* map types/terms within proof *)
 
-exception BAD_INST of ((indexname * T) * t) list;
+exception BAD_INST of ((Var_Name.T * T) * t) list;
 
 fun make_inst inst =
   Pure_Vars.build (inst |> fold (Pure_Vars.insert Pure_Term.alpha_eq))
