@@ -6,15 +6,17 @@ The pure logic behind Isabelle/Pure: basic datatypes for term language.
 
 signature BASIC_PURE_TERM =
 sig
+  type class = string
+  type sort = string list
   datatype T =
-      TV of indexname * sort
+      TV of Var_Name.T * sort
     | FUN of T * T
     | PROP
     | CON0 of string
     | CON1 of string * T
     | CONN of string * T list
   datatype t =
-      FV of indexname * T
+      FV of Var_Name.T * T
     | BV of int
     | CONST0 of string
     | CONST1 of string * T
@@ -28,18 +30,19 @@ signature PURE_TERM =
 sig
   include BASIC_PURE_TERM
   val FUNs: T list * T -> T
-  val fold_tvars: (indexname * sort -> 'a -> 'a) -> T -> 'a -> 'a
+  val fold_tvars: (Var_Name.T * sort -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_aterms: (t -> 'a -> 'a) -> t -> 'a -> 'a
-  val fold_vars: (indexname * T -> 'a -> 'a) -> t -> 'a -> 'a
+  val fold_vars: (Var_Name.T * T -> 'a -> 'a) -> t -> 'a -> 'a
   val fold_types: (T -> 'a -> 'a) -> t -> 'a -> 'a
-  val map_tvars_same: (indexname * sort -> T) -> T Same.operation
-  val map_tvars: (indexname * sort -> T) -> T -> T
+  val map_tvars_same: (Var_Name.T * sort -> T) -> T Same.operation
+  val map_tvars: (Var_Name.T * sort -> T) -> T -> T
   val map_aterms_same: t Same.operation -> t Same.operation
   val map_aterms: (t -> t) -> t -> t
-  val map_vars_same: (indexname * T -> t) -> t Same.operation
-  val map_vars: (indexname * T -> t) -> t -> t
+  val map_vars_same: (Var_Name.T * T -> t) -> t Same.operation
+  val map_vars: (Var_Name.T * T -> t) -> t -> t
   val map_types_same: T Same.operation -> t Same.operation
   val map_types: (T -> T) -> t -> t
+  val sort_ord: sort ord
   val type_ord: T ord
   val fast_term_ord: t ord
   val alpha_eq: t * t -> bool
@@ -50,8 +53,11 @@ struct
 
 (* datatypes *)
 
+type class = string;
+type sort = string list;
+
 datatype T =  (* type *)
-    TV of indexname * sort
+    TV of Var_Name.T * sort
   | FUN of T * T
   | PROP
   | CON0 of string             (*type constant*)
@@ -59,7 +65,7 @@ datatype T =  (* type *)
   | CONN of string * T list    (*type constructor: >= 2 type arguments*)
 
 datatype t =  (* term *)
-    FV of indexname * T
+    FV of Var_Name.T * T
   | BV of int
   | CONST0 of string           (*monomorphic term constant*)
   | CONST1 of string * T       (*polymorphic term constant: 1 type argument*)
@@ -143,6 +149,8 @@ val map_types = Same.commit o map_types_same;
 
 (* type ordering *)
 
+val sort_ord = pointer_eq_ord (dict_ord fast_string_ord);
+
 local
 
 fun cons_nr (TV _) = 0
@@ -152,9 +160,6 @@ fun cons_nr (TV _) = 0
   | cons_nr (CON1 _) = 4
   | cons_nr (CONN _) = 5;
 
-val fast_indexname_ord = Term_Ord.fast_indexname_ord;
-val sort_ord = Term_Ord.sort_ord;
-
 in
 
 fun type_ord TU =
@@ -162,7 +167,7 @@ fun type_ord TU =
   else
     (case TU of
       (TV (a, A), TV (b, B)) =>
-        (case fast_indexname_ord (a, b) of EQUAL => sort_ord (A, B) | ord => ord)
+        (case Var_Name.ord (a, b) of EQUAL => sort_ord (A, B) | ord => ord)
     | (FUN (T, T'), FUN (U, U')) =>
         (case type_ord (T, U) of EQUAL => type_ord (T', U') | ord => ord)
     | (PROP, PROP) => EQUAL
@@ -208,7 +213,7 @@ fun atoms_ord tu =
     | (CONST0 a, CONST0 b) => fast_string_ord (a, b)
     | (CONST1 (a, _), CONST1 (b, _)) => fast_string_ord (a, b)
     | (CONSTN (a, _), CONSTN (b, _)) => fast_string_ord (a, b)
-    | (FV (xi, _), FV (yj, _)) => Term_Ord.fast_indexname_ord (xi, yj)
+    | (FV (xi, _), FV (yj, _)) => Var_Name.ord (xi, yj)
     | (BV i, BV j) => int_ord (i, j)
     | (OFCLASS (_, a), OFCLASS (_, b)) => fast_string_ord (a, b)
     | _ => EQUAL);
@@ -244,38 +249,5 @@ end;
 
 structure Basic_Pure_Term: BASIC_PURE_TERM = Pure_Term;
 
-
-(* tables and term items *)
-
 structure Pure_Types = Table(type key = Pure_Term.T val ord = Pure_Term.type_ord);
 structure Pure_Terms = Table(type key = Pure_Term.t val ord = Pure_Term.fast_term_ord);
-
-structure Pure_TVars:
-sig
-  include TERM_ITEMS
-  val add_tvarsT: Pure_Term.T -> set -> set
-  val add_tvars: Pure_Term.t -> set -> set
-end =
-struct
-  open TVars;
-  val add_tvarsT = Pure_Term.fold_tvars add_set;
-  val add_tvars = Pure_Term.fold_types add_tvarsT;
-end;
-
-structure Pure_Vars:
-sig
-  include TERM_ITEMS
-  val add_vars: Pure_Term.t -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items
-(
-  type key = indexname * Pure_Term.T;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Pure_Term.type_ord);
-);
-open Term_Items;
-
-val add_vars = Pure_Term.fold_vars add_set;
-
-end;

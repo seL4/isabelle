@@ -640,7 +640,7 @@ fun cluster_ord p =
   prod_ord int_ord (prod_ord int_ord (prod_ord bool_ord int_ord)) (apply2 cluster_key p)
 
 val tysubst_ord =
-  list_ord (prod_ord Term_Ord.fast_indexname_ord (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))
+  list_ord (prod_ord Var_Name.ord (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))
 
 structure Int_Tysubst_Table = Table
 (

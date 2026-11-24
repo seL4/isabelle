@@ -7,7 +7,6 @@ Term orderings.
 
 signature TERM_ORD =
 sig
-  val fast_indexname_ord: indexname ord
   val sort_ord: sort ord
   val typ_ord: typ ord
   val fast_term_ord: term ord
@@ -25,11 +24,7 @@ struct
 
 (* fast syntactic ordering -- tuned for inequalities *)
 
-val fast_indexname_ord =
-  pointer_eq_ord (int_ord o apply2 snd ||| fast_string_ord o apply2 fst);
-
-val sort_ord =
-  pointer_eq_ord (dict_ord fast_string_ord);
+val sort_ord = Pure_Term.sort_ord;
 
 local
 
@@ -48,7 +43,7 @@ fun typ_ord TU =
     | (TFree (a, S), TFree (b, S')) =>
         (case fast_string_ord (a, b) of EQUAL => sort_ord (S, S') | ord => ord)
     | (TVar (xi, S), TVar (yj, S')) =>
-        (case fast_indexname_ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
+        (case Var_Name.ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
     | (T, U) => int_ord (cons_nr T, cons_nr U));
 
 end;
@@ -80,7 +75,7 @@ fun atoms_ord tu =
         (case atoms_ord (t1, u1) of EQUAL => atoms_ord (t2, u2) | ord => ord)
     | (Const (a, _), Const (b, _)) => fast_string_ord (a, b)
     | (Free (x, _), Free (y, _)) => fast_string_ord (x, y)
-    | (Var (xi, _), Var (yj, _)) => fast_indexname_ord (xi, yj)
+    | (Var (xi, _), Var (yj, _)) => Var_Name.ord (xi, yj)
     | (Bound i, Bound j) => int_ord (i, j)
     | _ => EQUAL);
 
@@ -220,7 +215,6 @@ end;
 
 (* scalable collections *)
 
-structure Vartab = Table(type key = indexname val ord = Term_Ord.fast_indexname_ord);
 structure Sorttab = Table(type key = sort val ord = Term_Ord.sort_ord);
 structure Typtab = Table(type key = typ val ord = Term_Ord.typ_ord);
 
@@ -241,6 +235,5 @@ end;
 structure Typset = Set(Typtab.Key);
 structure Termset = Set(Termtab.Key);
 
-structure Var_Graph = Graph(Vartab.Key);
 structure Typ_Graph = Graph(Typtab.Key);
 structure Term_Graph = Graph(Termtab.Key);

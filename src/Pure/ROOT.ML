@@ -111,6 +111,9 @@ ML_file "PIDE/interactive.ML";
 
 subsection "Fundamental structures";
 
+ML_file "var_name.ML";
+ML_file "pure_term.ML";
+
 ML_file "name.ML";
 ML_file "term.ML";
 ML_file "context.ML";
@@ -178,7 +181,6 @@ ML_file "pattern.ML";
 ML_file "unify.ML";
 ML_file "theory.ML";
 ML_file "thm_name.ML";
-ML_file "pure_term.ML";
 ML_file "pure_logic.ML";
 ML_file "term_sharing.ML";
 ML_file "term_xml.ML";

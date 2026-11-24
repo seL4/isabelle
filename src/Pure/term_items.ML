@@ -120,6 +120,44 @@ fun fold_rev f (Table tab) = Table.fold_rev f tab;
 end;
 
 
+structure Pure_TVars:
+sig
+  include TERM_ITEMS
+  val add_tvarsT: Pure_Term.T -> set -> set
+  val add_tvars: Pure_Term.t -> set -> set
+end =
+struct
+
+structure Term_Items = Term_Items(
+  type key = indexname * sort;
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Term_Ord.sort_ord);
+);
+open Term_Items;
+
+val add_tvarsT = Pure_Term.fold_tvars add_set;
+val add_tvars = Pure_Term.fold_types add_tvarsT;
+
+end;
+
+structure Pure_Vars:
+sig
+  include TERM_ITEMS
+  val add_vars: Pure_Term.t -> set -> set
+end =
+struct
+
+structure Term_Items = Term_Items
+(
+  type key = Var_Name.T * Pure_Term.T;
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Pure_Term.type_ord);
+);
+open Term_Items;
+
+val add_vars = Pure_Term.fold_vars add_set;
+
+end;
+
+
 structure TFrees:
 sig
   include TERM_ITEMS
@@ -154,11 +192,7 @@ sig
 end =
 struct
 
-structure Term_Items = Term_Items(
-  type key = indexname * sort;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.sort_ord);
-);
-open Term_Items;
+open Pure_TVars;
 
 val add_tvarsT = fold_atyps (fn TVar v => add_set v | _ => I);
 val add_tvars = fold_types add_tvarsT;
@@ -195,7 +229,7 @@ struct
 structure Term_Items = Term_Items
 (
   type key = indexname * typ;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord);
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Term_Ord.typ_ord);
 );
 open Term_Items;
 
@@ -230,7 +264,7 @@ end;
 structure Indexnames: TERM_ITEMS = Term_Items
 (
   type key = indexname;
-  val ord = Term_Ord.fast_indexname_ord;
+  val ord = Var_Name.ord;
 );
 
 

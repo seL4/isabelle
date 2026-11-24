@@ -55,7 +55,7 @@ val cost_ord = prod_ord int_ord (prod_ord int_ord int_ord)
 
 structure Var_Set_Tab = Table(
   type key = indexname list
-  val ord = list_ord Term_Ord.fast_indexname_ord)
+  val ord = list_ord Var_Name.ord)
 
 fun generalize_types ctxt t =
   let
@@ -93,8 +93,8 @@ fun handle_trivial_tfrees ctxt t' subst =
           | _ => I)
         subst
         []
-      |> sort Term_Ord.fast_indexname_ord
-    val tvar_name_trivial = Ord_List.member Term_Ord.fast_indexname_ord trivial_tvar_names
+      |> sort Var_Name.ord
+    val tvar_name_trivial = Ord_List.member Var_Name.ord trivial_tvar_names
 
     val t' =
       t' |> map_types
@@ -113,7 +113,7 @@ fun handle_trivial_tfrees ctxt t' subst =
     (t', subst)
   end
 
-fun key_of_atype (TVar (z, _)) = Ord_List.insert Term_Ord.fast_indexname_ord z
+fun key_of_atype (TVar (z, _)) = Ord_List.insert Var_Name.ord z
   | key_of_atype _ = I
 fun key_of_type T = fold_atyps key_of_atype T []
 
