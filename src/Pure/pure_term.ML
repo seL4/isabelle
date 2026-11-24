@@ -253,8 +253,6 @@ structure Pure_Types = Table(type key = Pure_Term.T val ord = Pure_Term.type_ord
 structure Pure_Terms = Table(type key = Pure_Term.t val ord = Pure_Term.fast_term_ord);
 
 
-
-
 structure Pure_TVars:
 sig
   include PURE_ITEMS
