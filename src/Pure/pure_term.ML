@@ -24,12 +24,12 @@ sig
     | ABS of Var_Name.T * T * t
     | APP of t * t
     | OFCLASS of T * class
+  val FUNs: T list * T -> T
 end
 
 signature PURE_TERM =
 sig
   include BASIC_PURE_TERM
-  val FUNs: T list * T -> T
   val dummyT: T
   val fold_tvars: (Var_Name.T * sort -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_aterms: (t -> 'a -> 'a) -> t -> 'a -> 'a

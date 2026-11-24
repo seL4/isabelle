@@ -695,8 +695,7 @@ fun lift_proof thy gprop inc prems prf =
         let
           val n = length Ts;
           fun incr lev (FV ((x, i), T)) =
-                if i >= 0
-                then combound (FV ((x, i + inc), Pure_Term.FUNs (Ts, Same.commit typ T)), lev, n)
+                if i >= 0 then combound (FV ((x, i + inc), FUNs (Ts, Same.commit typ T)), lev, n)
                 else raise Same.SAME
             | incr _ (BV _) = raise Same.SAME
             | incr _ (CONST0 _) = raise Same.SAME
