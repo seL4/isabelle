@@ -162,7 +162,7 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
     Bytes.empty
     |> add_slice_line
     |> add_fact_lines input_facts output_facts
-    |> Bytes.write (dir + Path.basic file_name)
+    |> Bytes.write (dir + Path.ext "log" (Path.basic file_name))
   end
 
 end
