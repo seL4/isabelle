@@ -74,6 +74,8 @@ fun meth_of "algebra" = Algebra_Method
   | meth_of "simp" = Simp_Method
   | meth_of _ = Metis_Method (NONE, NONE, [])
 
+local
+
 fun collapse_whitespace (s : string) : string = implode_space (String.tokens Char.isSpace s)
 
 fun string_of_tactic_outcome (outcome : atp_failure option) : string =
@@ -97,26 +99,38 @@ fun dest_facts ({unclassified, classified} : Try0.xref Try0.facts) :
     |> Symtab.fold_rev (uncurry add_usings_directs) classified
   end
 
-fun make_fact_lines (input_facts : Try0.xref Try0.facts) (output_facts : Try0.xref Try0.facts) :
-    string list =
+fun add_column (width : int) (str : string) : Bytes.T -> Bytes.T =
+  if size str > width then
+    Bytes.add " " o Bytes.add str
+  else
+    Bytes.add (StringCvt.padRight #" " (width + 1) str)
+
+fun add_fact_lines (input_facts : Try0.xref Try0.facts) (output_facts : Try0.xref Try0.facts)
+    (bytes : Bytes.T) : Bytes.T =
   let
     val inputs = dest_facts input_facts
     val outputs = dest_facts output_facts
     fun make_names facts = Symtab.build (fold (fn (_, _, name) => Symtab.insert_set name) facts)
     val input_names = make_names inputs
     val output_names = make_names outputs
-    fun add_fact_line in_mark out_mark (class, kind, name) =
-      cons (implode_space [StringCvt.padRight #" " 2 in_mark, StringCvt.padRight #" " 3 out_mark,
-        StringCvt.padRight #" " class_width class, StringCvt.padRight #" " 6 kind, name])
+    fun add_fact_line marks (class, kind, name) bytes =
+      bytes
+      |> Bytes.add marks
+      |> add_column class_width class
+      |> add_column 6 kind
+      |> Bytes.add name
+      |> Bytes.add "\n"
     fun add_output_line (fact as (_, _, name)) =
-      add_fact_line (if Symtab.defined input_names name then "in" else "-") "out" fact
+      add_fact_line (if Symtab.defined input_names name then "in out " else "-  out ") fact
     fun add_removed_input_line (fact as (_, _, name)) =
-      if Symtab.defined output_names name then I else add_fact_line "in" "-" fact
+      if Symtab.defined output_names name then I else add_fact_line "in -   " fact
   in
-    []
-    |> fold_rev add_removed_input_line inputs
-    |> fold_rev add_output_line outputs
+    bytes
+    |> fold add_output_line outputs
+    |> fold add_removed_input_line inputs
   end
+
+in
 
 fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode : mode)
     (max_facts : int) (classifier_time : Time.time) (method_time : Time.time)
@@ -124,21 +138,32 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
     (output_facts : Try0.xref Try0.facts) : unit =
   let
     val command = collapse_whitespace (Protocol_Message.clean_output command)
-    val slice_fields =
-      [Context.theory_long_name (Proof_Context.theory_of ctxt), prover, str_of_mode mode,
-       string_of_int max_facts, string_of_int (Time.toMicroseconds classifier_time),
-       string_of_int (Time.toMicroseconds method_time), string_of_tactic_outcome outcome] @
-      (if command = "" then [] else [command])
+    fun add_field field bytes = bytes |> Bytes.add " " |> Bytes.add field
+    fun add_slice_line bytes =
+      bytes
+      |> Bytes.add "slice"
+      |> add_field (Context.theory_long_name (Proof_Context.theory_of ctxt))
+      |> add_field prover
+      |> add_field (str_of_mode mode)
+      |> add_field (string_of_int max_facts)
+      |> add_field (string_of_int (Time.toMicroseconds classifier_time))
+      |> add_field (string_of_int (Time.toMicroseconds method_time))
+      |> add_field (string_of_tactic_outcome outcome)
+      |> (if command = "" then I else add_field command)
+      |> Bytes.add "\n"
     val file_name =
       Config.get ctxt fact_classification_prefix ^ "__" ^ prover ^ "_" ^ string_of_int max_facts ^
       "__" ^ serial_string ()
     val dir =
       Isabelle_System.make_directory (Path.explode (Config.get ctxt fact_classification_dest_dir))
-    val lines =
-      implode_space ("slice" :: slice_fields) :: make_fact_lines input_facts output_facts
   in
-    File.write (dir + Path.basic file_name) (cat_lines lines ^ "\n")
+    Bytes.empty
+    |> add_slice_line
+    |> add_fact_lines input_facts output_facts
+    |> Bytes.write (dir + Path.basic file_name)
   end
+
+end
 
 local
 
