@@ -21,7 +21,7 @@ sig
     | CONST0 of string
     | CONST1 of string * T
     | CONSTN of string * T list
-    | ABS of string * T * t
+    | ABS of Var_Name.T * T * t
     | APP of t * t
     | OFCLASS of T * class
 end
@@ -70,7 +70,7 @@ datatype t =  (* term *)
   | CONST0 of string           (*monomorphic term constant*)
   | CONST1 of string * T       (*polymorphic term constant: 1 type argument*)
   | CONSTN of string * T list  (*polymorphic term constant: >= 2 type arguments*)
-  | ABS of string * T * t
+  | ABS of Var_Name.T * T * t
   | APP of t * t
   | OFCLASS of T * class
 

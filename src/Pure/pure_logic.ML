@@ -16,8 +16,8 @@ sig
       Nop
     | Constp of proof_const
     | BVp of int
-    | Abst of string * Pure_Term.T * proof
-    | Absp of string * Pure_Term.t * proof
+    | Abst of Var_Name.T * Pure_Term.T * proof
+    | Absp of Var_Name.T * Pure_Term.t * proof
     | Appt of proof * Pure_Term.t
     | Appp of proof * proof
     | Hypp of Pure_Term.t
@@ -28,7 +28,7 @@ signature PURE_LOGIC =
 sig
   include BASIC_PURE_LOGIC
   exception PURE_LOGIC of string * Pure_Term.T list * Pure_Term.t list * proof list
-  val Absts: (string * Pure_Term.T) list -> proof -> proof
+  val Absts: (Var_Name.T * Pure_Term.T) list -> proof -> proof
   val Absps: Pure_Term.t list -> proof -> proof
   val Appts: proof * Pure_Term.t list -> proof
   val Appps: proof * proof list -> proof
@@ -155,8 +155,8 @@ datatype proof =
     Nop
   | Constp of proof_const
   | BVp of int
-  | Abst of string * T * proof
-  | Absp of string * t * proof
+  | Abst of Var_Name.T * T * proof
+  | Absp of Var_Name.T * t * proof
   | Appt of proof * t
   | Appp of proof * proof
   | Hypp of Pure_Term.t
@@ -168,7 +168,7 @@ exception PURE_LOGIC of string * Pure_Term.T list * Pure_Term.t list * proof lis
 (* derived operations *)
 
 val Absts = fold_rev (fn (x, T) => fn prf => Abst (x, T, prf));
-val Absps = fold_rev (fn t => fn prf => Absp ("H", t, prf));
+val Absps = fold_rev (fn t => fn prf => Absp (("H", 0), t, prf));
 
 val Appts = Library.foldl Appt;
 val Appps = Library.foldl Appp;
@@ -524,7 +524,7 @@ fun pure_term_cache thy =
             [] => CONST0 c
           | [T] => CONST1 (c, pure_type T)
           | Ts => CONSTN (c, map pure_type Ts))
-      | pure_term (Abs (a, T, b)) = ABS (a, pure_type T, pure_term b)
+      | pure_term (Abs (a, T, b)) = ABS ((a, 0), pure_type T, pure_term b)
       | pure_term (tm as t $ u) =
           (case try Logic.match_of_class tm of
             SOME (T, c) => OFCLASS (pure_type T, c)
@@ -548,7 +548,7 @@ fun term_of thy =
       | term (CONST0 c) = const (c, [])
       | term (CONST1 (c, T)) = const (c, [typ_of T])
       | term (CONSTN (c, Ts)) = const (c, map typ_of Ts)
-      | term (ABS (a, T, b)) = Abs (a, typ_of T, term b)
+      | term (ABS ((a, _), T, b)) = Abs (a, typ_of T, term b)
       | term (APP (t, u)) = term t $ term u
       | term (OFCLASS (T, c)) = Logic.mk_of_class (typ_of T, c);
   in term end;
@@ -841,7 +841,7 @@ fun assume_proof thy A =
   Hypp (pure_term_of thy A);
 
 fun trivial_proof thy A =
-  Absp ("H", pure_term_of thy A, BVp 0);
+  Absp (("H", 0), pure_term_of thy A, BVp 0);
 
 fun implies_intr_proof' h prf =
   let
@@ -853,7 +853,7 @@ fun implies_intr_proof' h prf =
           (Appp (proof lev p, Same.commit (proof lev) q)
             handle Same.SAME => Appp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
-  in Absp ("H", h, Same.commit (proof 0) prf) end;
+  in Absp (("H", 0), h, Same.commit (proof 0) prf) end;
 
 fun implies_intr_proof thy = implies_intr_proof' o pure_term_of thy;
 
@@ -885,7 +885,7 @@ fun forall_intr_proof thy T (a, x) prf =
             handle Same.SAME => Appp (p, proof i q))
       | proof _ _ = raise Same.SAME;
 
-  in Abst (a, Z, Same.commit (proof 0) prf) end;
+  in Abst ((a, 0), Z, Same.commit (proof 0) prf) end;
 
 fun forall_elim_proof thy t p = Appt (p, pure_term_of thy t);
 
@@ -1048,9 +1048,10 @@ fun rotate_proof thy Bs Bi' params asms m prf =
     val j = length Bs;
   in
     Absps (map pure_term Bs @ [pure_term Bi']) (Appps (prf, map BVp
-      (j downto 1) @ [Absts (map (apsnd pure_type) params) (Absps (map pure_term asms)
-        (Appps (Appts (BVp i, map BV ((length params - 1) downto 0)),
-          map BVp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
+      (j downto 1) @
+        [Absts (map (fn (x, T) => ((x, 0), pure_type T)) params) (Absps (map pure_term asms)
+          (Appps (Appts (BVp i, map BV ((length params - 1) downto 0)),
+            map BVp (((i - m - 1) downto 0) @ ((i - 1) downto (i - m))))))]))
   end;
 
 fun permute_prems_proof thy prems' j k prf =
@@ -1129,10 +1130,10 @@ fun lift_proof thy gprop inc prems prf =
       if b then (i - 1, j, Appp (p, BVp i)) else (i, j - 1, Appt (p, BV j));
 
     fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
-          Absp ("H", Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
+          Absp (("H", 0), Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
       | lift Ts bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
           let val T' = pure_type T
-          in Abst (a, T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
+          in Abst ((a, 0), T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
       | lift Ts bs i j _ =
           Appps (Same.commit (proof (rev Ts) 0) prf,
             map (fn k => (#3 (fold_rev mk_app bs (i - 1, j - 1, BVp k)))) (i + k - 1 downto i));
@@ -1144,7 +1145,7 @@ fun lift_proof thy gprop inc prems prf =
 fun mk_asm_prf C i m =
   let
     fun imp _ i 0 = BVp i
-      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = Absp ("H", A, imp B (i + 1) (m - 1))
+      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = Absp (("H", 0), A, imp B (i + 1) (m - 1))
       | imp _ i _ = BVp i;
     fun all (APP (CONST1 ("Pure.all", _), ABS (a, T, t))) = Abst (a, T, all t)
       | all t = imp t (~ i) m
@@ -1161,7 +1162,7 @@ fun assumption_proof thy envir Bs Bi n visible prf =
   end;
 
 fun flatten_params_proof i j n (APP (APP (CONST0 "Pure.imp", A), B), k) =
-      Absp ("H", A, flatten_params_proof (i + 1) j n (B, k))
+      Absp (("H", 0), A, flatten_params_proof (i + 1) j n (B, k))
   | flatten_params_proof i j n (APP (CONST1 ("Pure.all", _), ABS (a, T, t)), k) =
       Abst (a, T, flatten_params_proof i (j + 1) n (t, k))
   | flatten_params_proof i j n (_, k) =
@@ -1238,27 +1239,27 @@ val declare_frees_proof = fold_proof {hyps = true} (K I) declare_frees_term;
 
 val (variant_abs_term, variant_abs_proof) =
   let
-    fun term bs (ABS (x, T, t)) =
+    fun term bs (ABS ((x, i), T, t)) =
           let
             val x' = #1 (Name.variant x (declare_frees_term t bs));
             val bs' = Name.declare x' bs;
-          in ABS (x', T, Same.commit_if (x <> x') (term bs') t) end
+          in ABS ((x', i), T, Same.commit_if (x <> x') (term bs') t) end
       | term bs (APP (t, u)) =
           (APP (term bs t, Same.commit (term bs) u)
             handle Same.SAME => APP (t, term bs u))
       | term _ _ = raise Same.SAME;
 
-    fun proof bs (Abst (x, T, p)) =
+    fun proof bs (Abst ((x, i), T, p)) =
           let
             val x' = #1 (Name.variant x (declare_frees_proof p bs));
             val bs' = Name.declare x' bs;
-          in Abst (x', T, Same.commit_if (x <> x') (proof bs') p) end
-      | proof bs (Absp (x, t, p)) =
+          in Abst ((x', i), T, Same.commit_if (x <> x') (proof bs') p) end
+      | proof bs (Absp ((x, i), t, p)) =
           let
             val x' = #1 (Name.variant x (declare_frees_term t (declare_frees_proof p bs)));
             val (t', term_eq) = Same.commit_id (term bs) t;
             val bs' = Name.declare x' bs;
-          in Absp (x', t', Same.commit_if (x <> x' orelse not term_eq) (proof bs') p) end
+          in Absp ((x', i), t', Same.commit_if (x <> x' orelse not term_eq) (proof bs') p) end
       | proof bs (Appt (p, t)) =
           (Appt (proof bs p, Same.commit (term bs) t)
             handle Same.SAME => Appt (p, term bs t))

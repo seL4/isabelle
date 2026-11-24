@@ -389,8 +389,8 @@ fun proof_to_pure_proof thy =
 
     fun pure_proof MinProof = Basic_Pure_Logic.Nop
       | pure_proof (PBound i) = Basic_Pure_Logic.BVp i
-      | pure_proof (Abst (a, SOME T, p)) = Basic_Pure_Logic.Abst (a, pure_type T, pure_proof p)
-      | pure_proof (AbsP (a, SOME t, p)) = Basic_Pure_Logic.Absp (a, pure_term t, pure_proof p)
+      | pure_proof (Abst (a, SOME T, p)) = Basic_Pure_Logic.Abst ((a, 0), pure_type T, pure_proof p)
+      | pure_proof (AbsP (a, SOME t, p)) = Basic_Pure_Logic.Absp ((a, 0), pure_term t, pure_proof p)
       | pure_proof (p % SOME t) = Basic_Pure_Logic.Appt (pure_proof p, pure_term t)
       | pure_proof (p %% q) = Basic_Pure_Logic.Appp (pure_proof p, pure_proof q)
       | pure_proof (Hyp t) = Basic_Pure_Logic.Hypp (pure_term t)
