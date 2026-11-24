@@ -51,7 +51,7 @@ struct
 (* datatypes *)
 
 datatype T =  (* type *)
-    TV of indexname * sort     (*free: index ~1*)
+    TV of indexname * sort
   | FUN of T * T
   | PROP
   | CON0 of string             (*type constant*)
@@ -59,7 +59,7 @@ datatype T =  (* type *)
   | CONN of string * T list    (*type constructor: >= 2 arguments*)
 
 datatype t =  (* term *)
-    FV of indexname * T        (*free: index ~1*)
+    FV of indexname * T
   | BV of int
   | CONST0 of string           (*monomorphic constant*)
   | CONST1 of string * T       (*polymorphic constant: 1 type argument*)
