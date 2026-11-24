@@ -12,6 +12,7 @@ sig
   type T = string * int
   val eq: T * T -> bool
   val ord: T ord
+  val H: T
 end;
 
 structure Var_Name: VAR_NAME =
@@ -30,6 +31,9 @@ fun ord (a: T, b: T) =
     (case int_ord (#2 a, #2 b) of
       EQUAL => fast_string_ord (#1 a, #1 b)
     | ord => ord);
+
+
+val H = ("H", 0);
 
 end;
 

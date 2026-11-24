@@ -168,7 +168,7 @@ exception PURE_LOGIC of string * Pure_Term.T list * Pure_Term.t list * proof lis
 (* derived operations *)
 
 val Absts = fold_rev (fn (x, T) => fn prf => Abst (x, T, prf));
-val Absps = fold_rev (fn t => fn prf => Absp (("H", 0), t, prf));
+val Absps = fold_rev (fn t => fn prf => Absp (Var_Name.H, t, prf));
 
 val Appts = Library.foldl Appt;
 val Appps = Library.foldl Appp;
@@ -841,7 +841,7 @@ fun assume_proof thy A =
   Hypp (pure_term_of thy A);
 
 fun trivial_proof thy A =
-  Absp (("H", 0), pure_term_of thy A, BVp 0);
+  Absp (Var_Name.H, pure_term_of thy A, BVp 0);
 
 fun implies_intr_proof' h prf =
   let
@@ -853,7 +853,7 @@ fun implies_intr_proof' h prf =
           (Appp (proof lev p, Same.commit (proof lev) q)
             handle Same.SAME => Appp (p, proof lev q))
       | proof _ _ = raise Same.SAME;
-  in Absp (("H", 0), h, Same.commit (proof 0) prf) end;
+  in Absp (Var_Name.H, h, Same.commit (proof 0) prf) end;
 
 fun implies_intr_proof thy = implies_intr_proof' o pure_term_of thy;
 
@@ -1130,7 +1130,7 @@ fun lift_proof thy gprop inc prems prf =
       if b then (i - 1, j, Appp (p, BVp i)) else (i, j - 1, Appt (p, BV j));
 
     fun lift Ts bs i j (Const ("Pure.imp", _) $ A $ B) =
-          Absp (("H", 0), Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
+          Absp (Var_Name.H, Same.commit (term Ts 0) (pure_term A), lift Ts (true :: bs) (i + 1) j B)
       | lift Ts bs i j (Const ("Pure.all", _) $ Abs (a, T, t)) =
           let val T' = pure_type T
           in Abst ((a, 0), T', lift (T' :: Ts) (false :: bs) i (j + 1) t) end
@@ -1145,7 +1145,7 @@ fun lift_proof thy gprop inc prems prf =
 fun mk_asm_prf C i m =
   let
     fun imp _ i 0 = BVp i
-      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = Absp (("H", 0), A, imp B (i + 1) (m - 1))
+      | imp (APP (APP (CONST0 "Pure.imp", A), B)) i m = Absp (Var_Name.H, A, imp B (i + 1) (m - 1))
       | imp _ i _ = BVp i;
     fun all (APP (CONST1 ("Pure.all", _), ABS (a, T, t))) = Abst (a, T, all t)
       | all t = imp t (~ i) m
@@ -1162,7 +1162,7 @@ fun assumption_proof thy envir Bs Bi n visible prf =
   end;
 
 fun flatten_params_proof i j n (APP (APP (CONST0 "Pure.imp", A), B), k) =
-      Absp (("H", 0), A, flatten_params_proof (i + 1) j n (B, k))
+      Absp (Var_Name.H, A, flatten_params_proof (i + 1) j n (B, k))
   | flatten_params_proof i j n (APP (CONST1 ("Pure.all", _), ABS (a, T, t)), k) =
       Abst (a, T, flatten_params_proof i (j + 1) n (t, k))
   | flatten_params_proof i j n (_, k) =
