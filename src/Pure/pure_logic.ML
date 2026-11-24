@@ -6,10 +6,11 @@ The pure logic behind Isabelle/Pure: types, terms, and proofs.
 
 signature BASIC_PURE_LOGIC =
 sig
+  type thm_name = string * int
   datatype proof_name =
       Axiom of string
     | Oracle of string
-    | Thm of {theory_name: string, thm_name: Var_Name.T * Position.T, serial: serial}
+    | Thm of {theory_name: string, thm_name: thm_name * Position.T, serial: serial}
   type proof_const =
     (proof_name * Pure_Term.t) * (Pure_Term.T Pure_TVars.table * Pure_Term.t Pure_Vars.table);
   datatype proof =
@@ -17,7 +18,7 @@ sig
     | Constp of proof_const
     | BVp of int
     | Abst of Var_Name.T * Pure_Term.T * proof
-    | Absp of Var_Name.T * Pure_Term.t * proof
+    | Absp of thm_name * Pure_Term.t * proof
     | Appt of proof * Pure_Term.t
     | Appp of proof * proof
     | Hypp of Pure_Term.t
@@ -85,10 +86,12 @@ open Basic_Pure_Term;
 
 (* datatypes *)
 
+type thm_name = string * int;
+
 datatype proof_name =
     Axiom of string
   | Oracle of string
-  | Thm of {theory_name: string, thm_name: Var_Name.T * Position.T, serial: serial};
+  | Thm of {theory_name: string, thm_name: thm_name * Position.T, serial: serial};
 
 type proof_const = (proof_name * t) * (T Pure_TVars.table * t Pure_Vars.table);
 
@@ -97,7 +100,7 @@ datatype proof =
   | Constp of proof_const
   | BVp of int
   | Abst of Var_Name.T * T * proof
-  | Absp of Var_Name.T * t * proof
+  | Absp of thm_name * t * proof
   | Appt of proof * t
   | Appp of proof * proof
   | Hypp of Pure_Term.t
