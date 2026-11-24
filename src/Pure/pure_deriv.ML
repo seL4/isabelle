@@ -980,5 +980,3 @@ fun standard_vars used (prop, opt_prf) =
 end;
 
 end;
-
-structure Basic_Pure_Logic: BASIC_PURE_LOGIC = Pure_Logic;
