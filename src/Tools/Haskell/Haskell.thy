@@ -457,8 +457,7 @@ generate_file "Isabelle/Symbol.hs" = \<open>
 
 Isabelle text symbols.
 
-See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol.ML\<close>
-and \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol_explode.ML\<close>.
+See \<^file>\<open>$ISABELLE_HOME/src/Pure/General/symbol.ML\<close>.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
