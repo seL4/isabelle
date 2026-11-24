@@ -371,39 +371,35 @@ fun no_body_proofs (Abst (x, T, prf)) = Abst (x, T, no_body_proofs prf)
 
 (* encode as pure term/proof *)
 
-local open Basic_Pure_Term in
-
 fun proof_to_pure_proof thy =
   let
     val {pure_type, pure_term} = Pure_Deriv.pure_term_cache thy;
-    val pure_tvar = pure_type #> (fn TV v => v);
+    val pure_tvar = pure_type #> (fn Pure_Term.TV v => v);
 
     fun proof_const name prop typargs =
       let
         val vs = rev ((fold_types o fold_atyps) (insert (op =) o pure_tvar) prop []);
         val Ts = map pure_type typargs
       in
-        Basic_Pure_Logic.Constp
+        Pure_Logic.Constp
           ((name, pure_term prop), (Pure_TVars.make (vs ~~ Ts), Pure_Vars.empty))
       end;
 
-    fun pure_proof MinProof = Basic_Pure_Logic.Nop
-      | pure_proof (PBound i) = Basic_Pure_Logic.BVp i
-      | pure_proof (Abst (a, SOME T, p)) = Basic_Pure_Logic.Abst ((a, 0), pure_type T, pure_proof p)
-      | pure_proof (AbsP (a, SOME t, p)) = Basic_Pure_Logic.Absp ((a, 0), pure_term t, pure_proof p)
-      | pure_proof (p % SOME t) = Basic_Pure_Logic.Appt (pure_proof p, pure_term t)
-      | pure_proof (p %% q) = Basic_Pure_Logic.Appp (pure_proof p, pure_proof q)
-      | pure_proof (Hyp t) = Basic_Pure_Logic.Hypp (pure_term t)
-      | pure_proof (PAxm (a, prop, SOME Ts)) = proof_const (Basic_Pure_Logic.Axiom a) prop Ts
-      | pure_proof (PClass (T, c)) = Basic_Pure_Logic.OFCLASSp (pure_type T, c)
-      | pure_proof (Oracle (a, prop, SOME Ts)) = proof_const (Basic_Pure_Logic.Oracle a) prop Ts
+    fun pure_proof MinProof = Pure_Logic.Nop
+      | pure_proof (PBound i) = Pure_Logic.BVp i
+      | pure_proof (Abst (a, SOME T, p)) = Pure_Logic.Abst ((a, 0), pure_type T, pure_proof p)
+      | pure_proof (AbsP (a, SOME t, p)) = Pure_Logic.Absp ((a, 0), pure_term t, pure_proof p)
+      | pure_proof (p % SOME t) = Pure_Logic.Appt (pure_proof p, pure_term t)
+      | pure_proof (p %% q) = Pure_Logic.Appp (pure_proof p, pure_proof q)
+      | pure_proof (Hyp t) = Pure_Logic.Hypp (pure_term t)
+      | pure_proof (PAxm (a, prop, SOME Ts)) = proof_const (Pure_Logic.Axiom a) prop Ts
+      | pure_proof (PClass (T, c)) = Pure_Logic.OFCLASSp (pure_type T, c)
+      | pure_proof (Oracle (a, prop, SOME Ts)) = proof_const (Pure_Logic.Oracle a) prop Ts
       | pure_proof (PThm ({serial, theory_name, thm_name, prop, types = SOME Ts, ...}, _)) =
           let val proof_name =
-            Basic_Pure_Logic.Thm {theory_name = theory_name, thm_name = thm_name, serial = serial};
+            Pure_Logic.Thm {theory_name = theory_name, thm_name = thm_name, serial = serial};
           in proof_const proof_name prop Ts end;
   in pure_proof end;
-
-end;
 
 fun encode_standard_term thy =
   Pure_Deriv.pure_term_of thy #> Term_XML.Encode.pure_term {typed_vars = false};
@@ -482,7 +478,7 @@ and proof_body consts x =
     val (a, b, c) =
       triple (list (pair (pair string (Position.of_properties o properties))
         (option (term consts)))) (list (thm consts)) (proof consts) x;
-  in PBody {oracles = a, thms = b, boxes = [], pure_proof = Basic_Pure_Logic.Nop, proof = c} end
+  in PBody {oracles = a, thms = b, boxes = [], pure_proof = Pure_Logic.Nop, proof = c} end
 and thm consts x =
   let
     val (a, (b, (c, (d, e)))) =
