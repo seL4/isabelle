@@ -63,7 +63,6 @@ sig
   val maxidx_term: Pure_Term.t -> int -> int
   val maxidx_proof: proof -> int -> int
   val pure_type_of: typ -> Pure_Term.T
-  val pure_type_dummy: Pure_Term.T
   val typ_of_tvar: Var_Name.T * sort -> typ
   val typ_of: Pure_Term.T -> typ
   val init_cache: theory -> theory option
@@ -445,8 +444,6 @@ fun pure_type_of (TFree (a, S)) = TV ((a, ~1), S)
   | pure_type_of (Type (c, [])) = CON0 c
   | pure_type_of (Type (c, [T])) = CON1 (c, pure_type_of T)
   | pure_type_of (Type (c, ts)) = CONN (c, map pure_type_of ts);
-
-val pure_type_dummy = pure_type_of dummyT;
 
 fun typ_of_tvar ((a, ~1), S) = TFree (a, S)
   | typ_of_tvar v = TVar v;
@@ -1286,7 +1283,7 @@ fun standard_hidden_types prop proof =
     val idx = maxidx_term prop (maxidx_proof proof ~1) + 1;
     fun zvar (v as (_, S)) =
       if not (member (op =) hidden v) then raise Same.SAME
-      else if null S then pure_type_dummy
+      else if null S then Pure_Term.dummyT
       else TV (("'", idx), S);
     val typ = Pure_Term.map_tvars_same zvar;
   in proof |> not (null hidden) ? map_proof {hyps = true} typ (Pure_Term.map_types typ) end;

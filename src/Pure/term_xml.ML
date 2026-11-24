@@ -77,7 +77,7 @@ fun pure_type T = T |> variant
   fn TV (a, b) => (indexname a, sort b)];
 
 fun pure_var_type {typed_vars} T =
-  if typed_vars andalso T <> Pure_Logic.pure_type_dummy then pure_type T else [];
+  if typed_vars andalso T <> Pure_Term.dummyT then pure_type T else [];
 
 fun pure_term flag t = t |> variant
  [fn CONST0 a => ([a], [])

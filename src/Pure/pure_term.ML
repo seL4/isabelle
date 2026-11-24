@@ -30,6 +30,7 @@ signature PURE_TERM =
 sig
   include BASIC_PURE_TERM
   val FUNs: T list * T -> T
+  val dummyT: T
   val fold_tvars: (Var_Name.T * sort -> 'a -> 'a) -> T -> 'a -> 'a
   val fold_aterms: (t -> 'a -> 'a) -> t -> 'a -> 'a
   val fold_vars: (Var_Name.T * T -> 'a -> 'a) -> t -> 'a -> 'a
@@ -75,6 +76,8 @@ datatype t =  (* term *)
   | OFCLASS of T * class
 
 val FUNs = Library.foldr FUN;
+
+val dummyT = CON0 "dummy";
 
 
 (* fold *)
