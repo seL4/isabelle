@@ -94,7 +94,7 @@ fun fold_vars f = fold_aterms (fn FV v => f v | _ => I);
 fun fold_types f (FV (_, T)) acc = acc |> f T
   | fold_types f (CONST1 (_, T)) acc = acc |> f T
   | fold_types f (CONSTN (_, As)) acc = acc |> fold f As
-  | fold_types f (ABS (_, T, b)) acc = acc |> f T |> fold_types f b
+  | fold_types f (ABS (_, T, t)) acc = acc |> f T |> fold_types f t
   | fold_types f (APP (t, u)) acc = acc |> fold_types f t |> fold_types f u
   | fold_types f (OFCLASS (T, _)) acc = acc |> f T
   | fold_types _ _ acc = acc;
@@ -116,7 +116,7 @@ fun map_tvars_same f =
 
 fun map_aterms_same f =
   let
-    fun term (ABS (x, T, t)) = ABS (x, T, term t)
+    fun term (ABS (a, T, t)) = ABS (a, T, term t)
       | term (APP (t, u)) =
           (APP (term t, Same.commit term u)
             handle Same.SAME => APP (t, term u))
@@ -127,14 +127,14 @@ fun map_vars_same f = map_aterms_same (fn FV v => f v | _ => raise Same.SAME);
 
 fun map_types_same f =
   let
-    fun term (FV (xi, T)) = FV (xi, f T)
+    fun term (FV (a, T)) = FV (a, f T)
       | term (BV _) = raise Same.SAME
       | term (CONST0 _) = raise Same.SAME
       | term (CONST1 (c, T)) = CONST1 (c, f T)
       | term (CONSTN (c, Ts)) = CONSTN (c, Same.map f Ts)
-      | term (ABS (x, T, t)) =
-          (ABS (x, f T, Same.commit term t)
-            handle Same.SAME => ABS (x, T, term t))
+      | term (ABS (a, T, t)) =
+          (ABS (a, f T, Same.commit term t)
+            handle Same.SAME => ABS (a, T, term t))
       | term (APP (t, u)) =
           (APP (term t, Same.commit term u)
             handle Same.SAME => APP (t, term u))
@@ -213,7 +213,7 @@ fun atoms_ord tu =
     | (CONST0 a, CONST0 b) => fast_string_ord (a, b)
     | (CONST1 (a, _), CONST1 (b, _)) => fast_string_ord (a, b)
     | (CONSTN (a, _), CONSTN (b, _)) => fast_string_ord (a, b)
-    | (FV (xi, _), FV (yj, _)) => Var_Name.ord (xi, yj)
+    | (FV (a, _), FV (b, _)) => Var_Name.ord (a, b)
     | (BV i, BV j) => int_ord (i, j)
     | (OFCLASS (_, a), OFCLASS (_, b)) => fast_string_ord (a, b)
     | _ => EQUAL);
