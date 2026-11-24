@@ -11,11 +11,9 @@ Pure within Pure: it does not affect the running logic session.
 
 chapter "Isabelle/Pure bootstrap";
 
-ML_file "ML/ml_name_space.ML";
-
-
 section "Bootstrap phase 0: Poly/ML setup";
 
+ML_file "ML/ml_name_space.ML";
 ML_file "ML/ml_init.ML";
 ML_file "ML/ml_system.ML";
 
@@ -44,7 +42,6 @@ section "Bootstrap phase 1: towards ML within position context";
 subsection "Library of general tools";
 
 ML_file "library.ML";
-ML_file "General/print_mode.ML";
 ML_file "General/integer.ML";
 ML_file "General/alist.ML";
 ML_file "General/table.ML";
@@ -55,11 +52,12 @@ ML_file "General/random.ML";
 ML_file "General/value.ML";
 ML_file "General/properties.ML";
 ML_file "General/output.ML";
-ML_file "PIDE/markup.ML";
 ML_file "General/utf8.ML";
 ML_file "General/scan.ML";
 ML_file "General/source.ML";
 ML_file "General/symbol.ML";
+ML_file "General/print_mode.ML";
+ML_file "PIDE/markup.ML";
 ML_file "General/position.ML";
 ML_file "General/symbol_pos.ML";
 ML_file "General/input.ML";
@@ -96,34 +94,24 @@ ML_file "General/long_name.ML";
 ML_file "General/binding.ML";
 ML_file "General/seq.ML";
 ML_file "General/timing.ML";
-
-ML_file "ML/ml_process.ML";
-ML_file "ML/ml_profiling.ML";
-ML_file "PIDE/byte_message.ML";
-ML_file "PIDE/protocol_message.ML";
-ML_file "PIDE/document_id.ML";
-
 ML_file "General/graph.ML";
 
+
+subsection "Options and context";
+
 ML_file "System/options.ML";
+ML_file "context.ML";
+ML_file "config.ML";
+ML_file "context_position.ML";
 ML_file "PIDE/interactive.ML";
+ML_file "ML/ml_profiling.ML";
 
 
-subsection "Fundamental structures";
+subsection "The pure logic behind Isabelle/Pure";
 
 ML_file "var_name.ML";
 ML_file "pure_items.ML";
 ML_file "pure_term.ML";
-
-ML_file "name.ML";
-ML_file "term.ML";
-ML_file "context.ML";
-ML_file "config.ML";
-ML_file "context_position.ML";
-ML_file "General/completion.ML";
-ML_file "General/name_space.ML";
-ML_file "PIDE/markup_kind.ML";
-ML_file "soft_type_system.ML";
 
 
 subsection "Concurrency within the ML runtime";
@@ -148,6 +136,18 @@ ML_file "PIDE/active.ML";
 ML_file "Build/export.ML";
 
 
+subsection "Fundamental structures";
+
+ML_file "name.ML";
+ML_file "term.ML";
+ML_file "term_ord.ML";
+ML_file "term_subst.ML";
+ML_file "General/completion.ML";
+ML_file "General/name_space.ML";
+ML_file "PIDE/markup_kind.ML";
+ML_file "soft_type_system.ML";
+
+
 subsection "Inner syntax";
 
 ML_file "Syntax/type_annotation.ML";
@@ -164,8 +164,6 @@ ML_file "Syntax/syntax.ML";
 
 subsection "Core of tactical proof system";
 
-ML_file "term_ord.ML";
-ML_file "term_subst.ML";
 ML_file "sorts.ML";
 ML_file "type.ML";
 ML_file "logic.ML";
@@ -211,11 +209,13 @@ ML_file "assumption.ML";
 subsection "Isar -- Intelligible Semi-Automated Reasoning";
 
 (*ML support and global execution*)
+ML_file "ML/ml_process.ML";
 ML_file "ML/ml_syntax.ML";
 ML_file "ML/ml_env.ML";
 ML_file "ML/ml_options.ML";
 ML_file "ML/ml_print_depth.ML";
 ML_file_no_debug "Isar/runtime.ML";
+ML_file "PIDE/document_id.ML";
 ML_file "PIDE/execution.ML";
 ML_file "ML/ml_compiler.ML";
 
@@ -309,6 +309,8 @@ ML_file "Proof/proof_checker.ML";
 ML_file "Proof/extraction.ML";
 
 (*Isabelle system*)
+ML_file "PIDE/byte_message.ML";
+ML_file "PIDE/protocol_message.ML";
 ML_file "General/socket_io.ML";
 ML_file "PIDE/protocol_command.ML";
 ML_file "System/java.ML";
