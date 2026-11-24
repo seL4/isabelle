@@ -55,15 +55,15 @@ datatype T =  (* type *)
   | FUN of T * T
   | PROP
   | CON0 of string             (*type constant*)
-  | CON1 of string * T         (*type constructor: 1 argument*)
-  | CONN of string * T list    (*type constructor: >= 2 arguments*)
+  | CON1 of string * T         (*type constructor: 1 type argument*)
+  | CONN of string * T list    (*type constructor: >= 2 type arguments*)
 
 datatype t =  (* term *)
     FV of indexname * T
   | BV of int
-  | CONST0 of string           (*monomorphic constant*)
-  | CONST1 of string * T       (*polymorphic constant: 1 type argument*)
-  | CONSTN of string * T list  (*polymorphic constant: >= 2 type arguments*)
+  | CONST0 of string           (*monomorphic term constant*)
+  | CONST1 of string * T       (*polymorphic term constant: 1 type argument*)
+  | CONSTN of string * T list  (*polymorphic term constant: >= 2 type arguments*)
   | ABS of string * T * t
   | APP of t * t
   | OFCLASS of T * class
