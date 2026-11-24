@@ -139,6 +139,8 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
   let
     val command = collapse_whitespace (Protocol_Message.clean_output command)
     fun add_field field bytes = bytes |> Bytes.add " " |> Bytes.add field
+    fun add_time_field time bytes =
+      bytes |> add_field (string_of_int (Time.toMicroseconds time)) |> Bytes.add "\194\181s" (*µs*)
     fun add_slice_line bytes =
       bytes
       |> Bytes.add "slice"
@@ -146,8 +148,8 @@ fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode
       |> add_field prover
       |> add_field (str_of_mode mode)
       |> add_field (string_of_int max_facts)
-      |> add_field (string_of_int (Time.toMicroseconds classifier_time))
-      |> add_field (string_of_int (Time.toMicroseconds method_time))
+      |> add_time_field classifier_time
+      |> add_time_field method_time
       |> add_field (string_of_tactic_outcome outcome)
       |> (if command = "" then I else add_field command)
       |> Bytes.add "\n"
