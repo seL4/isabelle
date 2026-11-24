@@ -21,9 +21,15 @@ struct
 
 type T = string * int;
 
-fun eq ((x, i): T, (y, j): T) = i = j andalso x = y;
+fun eq (a: T, b: T) =
+  pointer_eq (a, b) orelse #2 a = #2 b andalso #1 a = #1 b;
 
-val ord = pointer_eq_ord (int_ord o apply2 snd ||| fast_string_ord o apply2 fst);
+fun ord (a: T, b: T) =
+  if pointer_eq (a, b) then EQUAL
+  else
+    (case int_ord (#2 a, #2 b) of
+      EQUAL => fast_string_ord (#1 a, #1 b)
+    | ord => ord);
 
 end;
 
