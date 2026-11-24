@@ -111,6 +111,7 @@ subsection "The pure logic behind Isabelle/Pure";
 ML_file "var_name.ML";
 ML_file "pure_items.ML";
 ML_file "pure_term.ML";
+ML_file "pure_logic.ML";
 
 
 subsection "Concurrency within the ML runtime";
@@ -178,7 +179,7 @@ ML_file "pattern.ML";
 ML_file "unify.ML";
 ML_file "theory.ML";
 ML_file "thm_name.ML";
-ML_file "pure_logic.ML";
+ML_file "pure_deriv.ML";
 ML_file "term_sharing.ML";
 ML_file "term_xml.ML";
 ML_file "proofterm.ML";

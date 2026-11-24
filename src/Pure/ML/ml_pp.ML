@@ -68,7 +68,7 @@ val _ =
 
 val _ =
   ML_system_pp (fn depth => fn _ => fn T =>
-    ML_Pretty.prune depth (Pretty.to_ML (pp_typ (toplevel_context ()) (Pure_Logic.typ_of T))));
+    ML_Pretty.prune depth (Pretty.to_ML (pp_typ (toplevel_context ()) (Pure_Deriv.typ_of T))));
 
 
 (* ML term and proofterm *)

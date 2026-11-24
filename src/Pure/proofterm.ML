@@ -28,7 +28,7 @@ sig
   and proof_body = PBody of
     {oracles: ((string * Position.T) * term option) Ord_List.T,
      thms: (serial * thm_node) Ord_List.T,
-     boxes: Pure_Logic.boxes,
+     boxes: Pure_Deriv.boxes,
      pure_proof: Pure_Logic.proof,
      proof: proof}
   type oracle = (string * Position.T) * term option
@@ -222,7 +222,7 @@ datatype proof =
 and proof_body = PBody of
   {oracles: ((string * Position.T) * term option) Ord_List.T,
    thms: (serial * thm_node) Ord_List.T,
-   boxes: Pure_Logic.boxes,
+   boxes: Pure_Deriv.boxes,
    pure_proof: Pure_Logic.proof,
    proof: proof}
 and thm_body =
@@ -375,7 +375,7 @@ local open Basic_Pure_Term in
 
 fun proof_to_pure_proof thy =
   let
-    val {pure_type, pure_term} = Pure_Logic.pure_term_cache thy;
+    val {pure_type, pure_term} = Pure_Deriv.pure_term_cache thy;
     val pure_tvar = pure_type #> (fn TV v => v);
 
     fun proof_const name prop typargs =
@@ -406,7 +406,7 @@ fun proof_to_pure_proof thy =
 end;
 
 fun encode_standard_term thy =
-  Pure_Logic.pure_term_of thy #> Term_XML.Encode.pure_term {typed_vars = false};
+  Pure_Deriv.pure_term_of thy #> Term_XML.Encode.pure_term {typed_vars = false};
 
 fun encode_standard_proof thy =
   proof_to_pure_proof thy #> Term_XML.Encode.pure_proof {typed_vars = false};
@@ -2020,7 +2020,7 @@ fun fulfill_norm_proof thy ps body0 =
     val thms =
       unions_thms (fold (fn (_, PBody {thms, ...}) => not (null thms) ? cons thms) ps [thms0]);
     val boxes =
-      Pure_Logic.unions_boxes
+      Pure_Deriv.unions_boxes
         (fold (fn (_, PBody {boxes, ...}) => not (null boxes) ? cons boxes) ps [boxes0]);
     val proof = rew_proof thy proof0;
   in
@@ -2080,8 +2080,8 @@ local
 fun export_proof thy i prop0 proof0 =
   let
     val {typargs, args, prop, proof} =
-      Pure_Logic.standard_vars Name.context
-        (Pure_Logic.pure_term_of thy prop0, SOME (proof_to_pure_proof thy (no_thm_names proof0)));
+      Pure_Deriv.standard_vars Name.context
+        (Pure_Deriv.pure_term_of thy prop0, SOME (proof_to_pure_proof thy (no_thm_names proof0)));
     val xml = (typargs, (args, (prop, the proof))) |>
       let
         open XML.Encode Term_XML.Encode;
@@ -2113,7 +2113,7 @@ fun prepare_thm_proof unconstrain thy sorts_proof
     val proofs = get_proofs_level ();
     val (pure_proof1, boxes1) =
       if pure_proof_enabled proofs then
-        Pure_Logic.add_box_proof {unconstrain = unconstrain} thy hyps concl pure_proof0 boxes0
+        Pure_Deriv.add_box_proof {unconstrain = unconstrain} thy hyps concl pure_proof0 boxes0
       else (Pure_Logic.Nop, []);
     val proof1 =
       if proof_enabled proofs then fold_rev implies_intr_proof hyps proof0
