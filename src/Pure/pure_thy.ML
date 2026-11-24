@@ -239,7 +239,8 @@ val _ = Theory.setup
     (qualify (Binding.make ("PClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("MinProof", \<^here>)), typ "Pure.proof", NoSyn)]
   #> fold Theory.add_deps_const
-   ["Pure.eq", "Pure.imp", "Pure.all", "Pure.type", "Pure.dummy_pattern"]
+   ["Pure.eq", "Pure.imp", "Pure.all", "Pure.type", "Pure.dummy_pattern", "Pure.Appt", "Pure.AppP",
+    "Pure.Abst", "Pure.AbsP", "Pure.Hyp", "Pure.Oracle", "Pure.PClass", "Pure.MinProof"]
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation
