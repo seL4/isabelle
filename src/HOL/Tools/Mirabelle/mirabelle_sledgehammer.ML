@@ -23,6 +23,7 @@ val check_trivialK = "check_trivial" (*=BOOL: check if goals are "trivial"*)
 val exhaustive_preplayK = "exhaustive_preplay" (*=BOOL: show exhaustive preplay data*)
 val keep_probsK = "keep_probs" (*=BOOL: keep temporary problem files created by sledgehammer*)
 val keep_proofsK = "keep_proofs" (*=BOOL: keep temporary proof files created by ATPs*)
+val keep_statesK = "keep_states" (*=BOOL: keep the proof state of each goal in a file*)
 val log_classificationsK = "log_classifications" (*=BOOL: log tactic provers' fact classifications*)
 
 (*defaults used in this Mirabelle action*)
@@ -30,6 +31,7 @@ val check_trivial_default = false
 val exhaustive_preplay_default = false
 val keep_probs_default = false
 val keep_proofs_default = false
+val keep_states_default = false
 val log_classifications_default = false
 
 datatype sh_data = ShData of {
@@ -129,14 +131,16 @@ end
 
 local
 
+fun goal_position_of pos =
+  StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
+  StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
+
 fun run_sh params keep pos state =
   \<^try>\<open>
     let
       fun set_file_name (SOME (dir, keep_probs, keep_proofs, log_classifications)) =
           let
-            val goal_position =
-              StringCvt.padLeft #"0" 5 (str0 (Position.line_of pos)) ^ "_" ^
-              StringCvt.padLeft #"0" 6 (str0 (Position.offset_of pos))
+            val goal_position = goal_position_of pos
             val prob_prefix = "prob_" ^ goal_position
             val fact_prefix = "fact_classification_" ^ goal_position
             fun mk_smt_file () = dir ^ "/" ^ prob_prefix ^ "__" ^ serial_string ()
@@ -166,12 +170,12 @@ fun run_sh params keep pos state =
 
 in
 
-fun run_sledgehammer params output_dir keep_probs keep_proofs log_classifications
+fun run_sledgehammer params output_dir keep_probs keep_proofs keep_states log_classifications
     exhaustive_preplay thy_index trivial pos st =
   let
     val triv_str = if trivial then "[T] " else ""
     val keep =
-      if keep_probs orelse keep_proofs orelse log_classifications then
+      if keep_probs orelse keep_proofs orelse keep_states orelse log_classifications then
         let
           val thy_long_name = Context.theory_long_name (Proof.theory_of st)
           val session_name = Long_Name.qualifier thy_long_name
@@ -185,6 +189,19 @@ fun run_sledgehammer params output_dir keep_probs keep_proofs log_classification
         end
       else
         NONE
+    val () =
+      (case keep of
+        SOME (dir, _, _, _) =>
+          if keep_states then
+            Proof.pretty_state st
+            |> Pretty.chunks
+            |> Pretty.output (Pretty.pure_output_ops NONE)
+            |> Bytes.add "\n"
+            |> Bytes.write
+              (Path.explode dir + Path.ext "txt" (Path.basic ("state_" ^ goal_position_of pos)))
+          else
+            ()
+      | NONE => ())
     val (sledgehamer_outcome, msg, cpu_time) = run_sh params keep pos st
     val (time_prover, change_data, exhaustive_preplay_msg) =
       (case sledgehamer_outcome of
@@ -234,6 +251,7 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
       Mirabelle.get_bool_argument arguments (check_trivialK, check_trivial_default)
     val keep_probs = Mirabelle.get_bool_argument arguments (keep_probsK, keep_probs_default)
     val keep_proofs = Mirabelle.get_bool_argument arguments (keep_proofsK, keep_proofs_default)
+    val keep_states = Mirabelle.get_bool_argument arguments (keep_statesK, keep_states_default)
     val log_classifications =
       Mirabelle.get_bool_argument arguments (log_classificationsK, log_classifications_default)
     val exhaustive_preplay =
@@ -253,8 +271,8 @@ fun make_action ({arguments, timeout, output_dir, ...} : Mirabelle.action_contex
           let
             val trivial = check_trivial andalso try0 pre handle Timeout.TIMEOUT _ => false
             val (outcome, log, change_data) =
-              run_sledgehammer params output_dir keep_probs keep_proofs log_classifications
-                exhaustive_preplay theory_index trivial pos pre
+              run_sledgehammer params output_dir keep_probs keep_proofs keep_states
+                log_classifications exhaustive_preplay theory_index trivial pos pre
             val () = Synchronized.change data
               (change_data #> inc_sh_calls #> not trivial ? inc_sh_nontriv_calls)
           in
