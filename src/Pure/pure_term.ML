@@ -79,8 +79,8 @@ fun fold_tvars f (TV v) acc = acc |> f v
   | fold_tvars f (CONN (_, Ts)) acc = acc |> fold (fold_tvars f) Ts
   | fold_tvars _ _ acc = acc;
 
-fun fold_aterms f (APP (t, u)) acc = acc |> fold_aterms f t |> fold_aterms f u
-  | fold_aterms f (ABS (_, _, t)) acc = acc |> fold_aterms f t
+fun fold_aterms f (ABS (_, _, t)) acc = acc |> fold_aterms f t
+  | fold_aterms f (APP (t, u)) acc = acc |> fold_aterms f t |> fold_aterms f u
   | fold_aterms f a acc = acc |> f a;
 
 fun fold_vars f = fold_aterms (fn FV v => f v | _ => I);
@@ -236,8 +236,8 @@ end;
 fun alpha_eq (tm1, tm2) =
   pointer_eq (tm1, tm2) orelse
     (case (tm1, tm2) of
-      (APP (t1, u1), APP (t2, u2)) => alpha_eq (t1, t2) andalso alpha_eq (u1, u2)
-    | (ABS (_, T1, t1), ABS (_, T2, t2)) => alpha_eq (t1, t2) andalso T1 = T2
+      (ABS (_, T1, t1), ABS (_, T2, t2)) => alpha_eq (t1, t2) andalso T1 = T2
+    | (APP (t1, u1), APP (t2, u2)) => alpha_eq (t1, t2) andalso alpha_eq (u1, u2)
     | (a1, a2) => a1 = a2);
 
 end;
