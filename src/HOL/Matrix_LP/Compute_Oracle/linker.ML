@@ -70,7 +70,7 @@ fun merge_subst (A:Type.tyenv) (B:Type.tyenv) =
     handle Type.TYPE_MATCH => NONE
 
 fun subst_ord (A:Type.tyenv, B:Type.tyenv) =
-    (list_ord (prod_ord Term_Ord.fast_indexname_ord (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))) (Vartab.dest A, Vartab.dest B)
+    (list_ord (prod_ord Var_Name.ord (prod_ord Term_Ord.sort_ord Term_Ord.typ_ord))) (Vartab.dest A, Vartab.dest B)
 
 structure Substtab = Table(type key = Type.tyenv val ord = subst_ord);
 

@@ -165,7 +165,6 @@ sig
   val strip_sortsT_same: typ Same.operation
   val strip_sortsT: typ -> typ
   val strip_sorts: term -> term
-  val eq_ix: indexname * indexname -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
   val aconv_untyped: term * term -> bool
@@ -206,7 +205,7 @@ struct
 
 (*Indexnames can be quickly renamed by adding an offset to the integer part,
   for resolution.*)
-type indexname = string * int;
+type indexname = Var_Name.T;
 
 (*Types are classified by sorts.*)
 type class = string;
@@ -617,10 +616,8 @@ val strip_sorts = map_types strip_sortsT_same;
 
 (* variables *)
 
-fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
-
-fun eq_tvar ((xi, S: sort), (xi', S')) = eq_ix (xi, xi') andalso S = S';
-fun eq_var ((xi, T: typ), (xi', T')) = eq_ix (xi, xi') andalso T = T';
+fun eq_tvar ((xi, S: sort), (xi', S')) = Var_Name.eq (xi, xi') andalso S = S';
+fun eq_var ((xi, T: typ), (xi', T')) = Var_Name.eq (xi, xi') andalso T = T';
 
 
 (* alpha equivalence *)

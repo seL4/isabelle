@@ -1,13 +1,13 @@
-(*  Title:      Pure/term_items.ML
+(*  Title:      Pure/pure_items.ML
     Author:     Makarius
 
-Scalable collections of term items:
+Scalable collections of logical items:
   - table: e.g. for instantiation
   - set with order of addition, e.g. occurrences within term
     (assuming that there were no remove operations)
 *)
 
-signature TERM_ITEMS =
+signature PURE_ITEMS =
 sig
   structure Key: KEY
   type key
@@ -50,7 +50,7 @@ sig
   val eq_set: set * set -> bool
 end;
 
-functor Term_Items(Key: KEY): TERM_ITEMS =
+functor Pure_Items(Key: KEY): PURE_ITEMS =
 struct
 
 (* keys *)
@@ -116,134 +116,5 @@ val list_set_rev = list_set_ord (rev_order o int_ord);
 fun map f (Table tab) = Table (Table.map f tab);
 fun fold f (Table tab) = Table.fold f tab;
 fun fold_rev f (Table tab) = Table.fold_rev f tab;
-
-end;
-
-
-structure TFrees:
-sig
-  include TERM_ITEMS
-  val add_tfreesT: typ -> set -> set
-  val add_tfrees: term -> set -> set
-  val add_tfreesT_unless: (string * sort -> bool) -> typ -> set -> set
-  val add_tfrees_unless: (string * sort -> bool) -> term -> set -> set
-end =
-struct
-
-structure Items = Term_Items
-(
-  type key = string * sort;
-  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.sort_ord);
-);
-open Items;
-
-val add_tfreesT = fold_atyps (fn TFree v => add_set v | _ => I);
-val add_tfrees = fold_types add_tfreesT;
-
-fun add_tfreesT_unless pred = Term.fold_atyps (fn TFree v => not (pred v) ? add_set v | _ => I);
-fun add_tfrees_unless pred = fold_types (add_tfreesT_unless pred);
-
-end;
-
-
-structure TVars:
-sig
-  include TERM_ITEMS
-  val add_tvarsT: typ -> set -> set
-  val add_tvars: term -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items(
-  type key = indexname * sort;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.sort_ord);
-);
-open Term_Items;
-
-val add_tvarsT = fold_atyps (fn TVar v => add_set v | _ => I);
-val add_tvars = fold_types add_tvarsT;
-
-end;
-
-
-structure Frees:
-sig
-  include TERM_ITEMS
-  val add_frees: term -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items
-(
-  type key = string * typ;
-  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.typ_ord);
-);
-open Term_Items;
-
-val add_frees = fold_aterms (fn Free v => add_set v | _ => I);
-
-end;
-
-
-structure Vars:
-sig
-  include TERM_ITEMS
-  val add_vars: term -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items
-(
-  type key = indexname * typ;
-  val ord = pointer_eq_ord (prod_ord Term_Ord.fast_indexname_ord Term_Ord.typ_ord);
-);
-open Term_Items;
-
-val add_vars = fold_aterms (fn Var v => add_set v | _ => I);
-
-end;
-
-
-structure Names:
-sig
-  include TERM_ITEMS
-  val add_tfree_namesT: typ -> set -> set
-  val add_tfree_names: term -> set -> set
-  val add_free_names: term -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items
-(
-  type key = string;
-  val ord = fast_string_ord;
-);
-open Term_Items;
-
-val add_tfree_namesT = fold_atyps (fn TFree (a, _) => add_set a | _ => I);
-val add_tfree_names = fold_types add_tfree_namesT;
-val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
-
-end;
-
-
-structure Indexnames: TERM_ITEMS = Term_Items
-(
-  type key = indexname;
-  val ord = Term_Ord.fast_indexname_ord;
-);
-
-
-structure Types:
-sig
-  include TERM_ITEMS
-  val add_atyps: term -> set -> set
-end =
-struct
-
-structure Term_Items = Term_Items(type key = typ val ord = Term_Ord.typ_ord);
-open Term_Items;
-
-val add_atyps = (fold_types o fold_atyps) add_set;
 
 end;

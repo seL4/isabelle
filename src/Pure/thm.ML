@@ -140,7 +140,7 @@ sig
   (*type classes*)
   val the_classrel: theory -> class * class -> thm
   val the_arity: theory -> string * sort list * class -> thm
-  val sorts_pure_proof: theory -> Pure_Logic.sorts_proof
+  val sorts_pure_proof: theory -> Pure_Deriv.sorts_proof
   val sorts_proof: theory -> Proofterm.sorts_proof
   (*forked proofs*)
   val register_proofs: thm list lazy -> theory -> theory
@@ -187,7 +187,7 @@ sig
   val plain_prop_of: thm -> term
   val get_pure_proof_serials: theory -> serial list
   val get_pure_proof: theory -> serial ->
-    {name: Thm_Name.P, thm: thm, boxes: Pure_Logic.boxes, pure_proof: Pure_Logic.proof} option
+    {name: Thm_Name.P, thm: thm, boxes: Pure_Deriv.boxes, pure_proof: Pure_Logic.proof} option
   val store_pure_proof: Thm_Name.P -> thm -> theory -> thm * theory
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
@@ -799,7 +799,7 @@ fun deriv_rule2 pure_proof proof
 
     val oracles' = Proofterm.union_oracles oracles1 oracles2;
     val thms' = Proofterm.union_thms thms1 thms2;
-    val boxes' = Pure_Logic.union_boxes boxes1 boxes2;
+    val boxes' = Pure_Deriv.union_boxes boxes1 boxes2;
 
     val proofs = Proofterm.get_proofs_level ();
     val pure_proof' =
@@ -897,7 +897,7 @@ fun axiom thy name =
   (case Name_Space.lookup (Theory.axiom_table thy) name of
     SOME prop =>
       let
-        fun pure_proof () = Pure_Logic.axiom_proof thy name prop;
+        fun pure_proof () = Pure_Deriv.axiom_proof thy name prop;
         fun proof () = Proofterm.axiom_proof name prop;
         val cert = Context.Certificate thy;
         val maxidx = maxidx_of_term prop;
@@ -1146,7 +1146,7 @@ fun strip_shyps thm =
         val map_pure_type =
           Pure_Types.apply_unsynchronized_cache
             (Pure_Logic.subst_type_same
-              (Pure_Logic.pure_type_of o map_atyp o Pure_Logic.typ_of o Pure_Term.TV));
+              (Pure_Deriv.pure_type_of o map_atyp o Pure_Deriv.typ_of o Pure_Term.TV));
 
         val pure_proof' = Pure_Logic.map_proof_types {hyps = true} map_pure_type pure_proof;
         val proof' = Proofterm.map_proof_types (Term.map_atyps_same map_atyp) proof;
@@ -1262,7 +1262,7 @@ fun add_oracle (b, oracle_fn) thy1 =
                 let
                   val thy = Context.certificate_theory cert handle ERROR msg =>
                     raise CONTEXT (msg, [], [ct], [], NONE);
-                in Pure_Logic.oracle_proof thy name prop end
+                in Pure_Deriv.oracle_proof thy name prop end
               else Pure_Logic.Nop;
           in
             Thm (make_deriv [] [oracle] [] [] pure_proof proof,
@@ -1308,7 +1308,7 @@ fun assume raw_ct =
           let
             val thy = Context.certificate_theory cert handle ERROR msg =>
               raise CONTEXT (msg, [], [ct], [], NONE);
-          in Pure_Logic.assume_proof thy prop end;
+          in Pure_Deriv.assume_proof thy prop end;
         fun proof () = Proofterm.Hyp prop;
       in
         Thm (deriv_rule0 pure_proof proof,
@@ -1346,7 +1346,7 @@ fun implies_intr
         let
           val thy = Context.certificate_theory cert handle ERROR msg =>
             raise CONTEXT (msg, [], [ct], [th], NONE);
-        in Pure_Logic.implies_intr_proof thy A p end
+        in Pure_Deriv.implies_intr_proof thy A p end
       fun proof p = Proofterm.implies_intr_proof A p;
     in
       Thm (deriv_rule1 pure_proof proof der,
@@ -1415,7 +1415,7 @@ fun forall_intr
             let
               val thy = Context.certificate_theory cert handle ERROR msg =>
                 raise CONTEXT (msg, [], [ct], [th], NONE);
-            in Pure_Logic.forall_intr_proof thy T (a, x) p end;
+            in Pure_Deriv.forall_intr_proof thy T (a, x) p end;
           fun proof p = Proofterm.forall_intr_proof (a, x) NONE p;
         in
           Thm (deriv_rule1 pure_proof proof der,
@@ -1454,7 +1454,7 @@ fun forall_elim
             let
               val thy = Context.certificate_theory cert handle ERROR msg =>
                 raise CONTEXT (msg, [], [ct], [th], NONE);
-            in Pure_Logic.forall_elim_proof thy t p end;
+            in Pure_Deriv.forall_elim_proof thy t p end;
           fun proof p = p % SOME t;
         in
           Thm (deriv_rule1 pure_proof proof der,
@@ -1481,7 +1481,7 @@ fun reflexive (ct as Cterm {cert, t, T, maxidx, sorts}) =
       let
         val thy = Context.certificate_theory cert handle ERROR msg =>
           raise CONTEXT (msg, [], [ct], [], NONE);
-      in Pure_Logic.reflexive_proof thy T t end;
+      in Pure_Deriv.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 pure_proof proof,
@@ -1508,7 +1508,7 @@ fun symmetric (th as Thm (der, {cert, maxidx, constraints, shyps, hyps, tpairs, 
           let
             val thy = Context.certificate_theory cert handle ERROR msg =>
               raise CONTEXT (msg, [], [], [th], NONE);
-          in Pure_Logic.symmetric_proof thy T t u p end;
+          in Pure_Deriv.symmetric_proof thy T t u p end;
       in
         Thm (deriv_rule1 pure_proof Proofterm.symmetric_proof der,
          {cert = cert,
@@ -1545,7 +1545,7 @@ fun transitive th1 th2 =
               let
                 val thy = Context.certificate_theory cert handle ERROR msg =>
                   raise CONTEXT (msg, [], [], [th1, th2], NONE);
-              in Pure_Logic.transitive_proof thy T t1 u t2 p q end;
+              in Pure_Deriv.transitive_proof thy T t1 u t2 p q end;
             fun proof p = Proofterm.transitive_proof T u p;
           in
             Thm (deriv_rule2 pure_proof proof der1 der2,
@@ -1576,7 +1576,7 @@ fun beta_conversion full (ct as Cterm {cert, t, T, maxidx, sorts}) =
       let
         val thy = Context.certificate_theory cert handle ERROR msg =>
           raise CONTEXT (msg, [], [ct], [], NONE);
-      in Pure_Logic.reflexive_proof thy T t end;
+      in Pure_Deriv.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 pure_proof proof,
@@ -1596,7 +1596,7 @@ fun eta_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
       let
         val thy = Context.certificate_theory cert handle ERROR msg =>
           raise CONTEXT (msg, [], [ct], [], NONE);
-      in Pure_Logic.reflexive_proof thy T t end;
+      in Pure_Deriv.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 pure_proof proof,
@@ -1616,7 +1616,7 @@ fun eta_long_conversion (ct as Cterm {cert, t, T, maxidx, sorts}) =
       let
         val thy = Context.certificate_theory cert handle ERROR msg =>
           raise CONTEXT (msg, [], [ct], [], NONE);
-      in Pure_Logic.reflexive_proof thy T t end;
+      in Pure_Deriv.reflexive_proof thy T t end;
     fun proof () = Proofterm.reflexive_proof;
   in
     Thm (deriv_rule0 pure_proof proof,
@@ -1656,7 +1656,7 @@ fun abstract_rule b
             let
               val thy = Context.certificate_theory cert handle ERROR msg =>
                 raise CONTEXT (msg, [], [ct], [th], NONE);
-            in Pure_Logic.abstract_rule_proof thy T U (b, x) f g p end;
+            in Pure_Deriv.abstract_rule_proof thy T U (b, x) f g p end;
           fun proof p = Proofterm.abstract_rule_proof (b, x) p
         in
           Thm (deriv_rule1 pure_proof proof der,
@@ -1703,7 +1703,7 @@ fun combination th1 th2 =
             let
               val thy = Context.certificate_theory cert handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th1, th2], NONE);
-            in Pure_Logic.combination_proof thy fT U f g t u p q end;
+            in Pure_Deriv.combination_proof thy fT U f g t u p q end;
           fun proof p q = Proofterm.combination_proof f g t u p q;
         in
           Thm (deriv_rule2 pure_proof proof der1 der2,
@@ -1742,7 +1742,7 @@ fun equal_intr th1 th2 =
               let
                 val thy = Context.certificate_theory cert handle ERROR msg =>
                   raise CONTEXT (msg, [], [], [th1, th2], NONE);
-              in Pure_Logic.equal_intr_proof thy A B p q end;
+              in Pure_Deriv.equal_intr_proof thy A B p q end;
           in
             Thm (deriv_rule2 pure_proof proof der1 der2,
              {cert = cert,
@@ -1781,7 +1781,7 @@ fun equal_elim th1 th2 =
               let
                 val thy = Context.certificate_theory cert handle ERROR msg =>
                   raise CONTEXT (msg, [], [], [th1, th2], NONE);
-              in Pure_Logic.equal_elim_proof thy A B p q end;
+              in Pure_Deriv.equal_elim_proof thy A B p q end;
           in
             Thm (deriv_rule2 pure_proof proof der1 der2,
              {cert = cert,
@@ -1823,7 +1823,7 @@ fun flexflex_rule opt_ctxt =
               val thy' = Context.certificate_theory cert' handle ERROR msg =>
                 raise CONTEXT (msg, [], [], [th], Option.map Context.Proof opt_ctxt);
 
-              fun pure_proof p = Pure_Logic.norm_proof thy' env [full_prop_of th] p;
+              fun pure_proof p = Pure_Deriv.norm_proof thy' env [full_prop_of th] p;
               fun proof p = Proofterm.norm_proof_remove_types env p;
             in
               Thm (deriv_rule1 pure_proof proof der,
@@ -1869,7 +1869,7 @@ fun generalize (tfrees, frees) idx th =
       val tpairs' = map (apply2 generalize) tpairs;
       val maxidx' = maxidx_tpairs tpairs' (maxidx_of_term prop');
 
-      val pure_proof = Pure_Logic.generalize_proof (tfrees, frees) idx;
+      val pure_proof = Pure_Deriv.generalize_proof (tfrees, frees) idx;
       val proof = Proofterm.generalize_proof (tfrees, frees) idx prop;
     in
       Thm (deriv_rule1 pure_proof proof der,
@@ -1977,7 +1977,7 @@ fun gen_instantiate inst_fn (instT, inst) th =
           instT' constraints;
 
       fun pure_proof p =
-        Pure_Logic.instantiate_proof thy'
+        Pure_Deriv.instantiate_proof thy'
           (TVars.fold (fn (v, (T, _)) => cons (v, T)) instT' [],
            Vars.fold (fn (v, (t, _)) => cons (v, t)) inst' []) p;
       fun proof p =
@@ -2029,7 +2029,7 @@ fun trivial (ct as Cterm {cert, t = A, T, maxidx, sorts}) =
         let
           val thy = Context.certificate_theory cert handle ERROR msg =>
             raise CONTEXT (msg, [], [ct], [], NONE);
-        in Pure_Logic.trivial_proof thy A end;
+        in Pure_Deriv.trivial_proof thy A end;
       fun proof () = Proofterm.trivial_proof;
     in
       Thm (deriv_rule0 pure_proof proof,
@@ -2058,7 +2058,7 @@ fun of_class (cT, raw_c) =
     val prop = Logic.mk_of_class (T, c);
     val Cterm {t = prop', maxidx, sorts, ...} = global_cterm_of thy prop;
 
-    fun pure_proof () = Pure_Logic.of_class_proof (T, c);
+    fun pure_proof () = Pure_Deriv.of_class_proof (T, c);
     fun proof () = Proofterm.PClass (T, c);
   in
     if prop <> prop' then raise THM ("of_class: bad proposition via cterm_of", 0, [])
@@ -2110,7 +2110,7 @@ fun varifyT_global' fixed (Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify_global tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
-    fun pure_proof p = Pure_Logic.varifyT_proof al p;
+    fun pure_proof p = Pure_Deriv.varifyT_proof al p;
     fun proof p = Proofterm.varifyT_proof al p;
   in
     (al, Thm (deriv_rule1 pure_proof proof der,
@@ -2132,7 +2132,7 @@ fun legacy_freezeT (Thm (der, {cert, constraints, shyps, hyps, tpairs, prop, ...
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
-    fun pure_proof p = Pure_Logic.legacy_freezeT_proof prop1 p;
+    fun pure_proof p = Pure_Deriv.legacy_freezeT_proof prop1 p;
     fun proof p = Proofterm.legacy_freezeT prop1 p;
   in
     Thm (deriv_rule1 pure_proof proof der,
@@ -2181,7 +2181,7 @@ fun store_pure_proof name thm thy =
     val _ = null promises orelse
       raise THM ("store_pure_proof: theorem may not use promises", 0, [thm]);
 
-    val ((i, (_, pure_proof1)), pure_proof2) = Pure_Logic.thm_proof thy name hyps prop pure_proof;
+    val ((i, (_, pure_proof1)), pure_proof2) = Pure_Deriv.thm_proof thy name hyps prop pure_proof;
     val der1 =
       if Options.default_bool "prune_proofs"
       then deriv [] Pure_Logic.Nop
@@ -2223,7 +2223,7 @@ fun lift_rule goal orule =
           let
             val thy = Context.certificate_theory cert
               handle ERROR msg => raise CONTEXT (msg, [], [goal], [orule], NONE);
-          in Pure_Logic.lift_proof thy gprop inc prems p end;
+          in Pure_Deriv.lift_proof thy gprop inc prems p end;
         fun proof p = Proofterm.lift_proof gprop inc prems p;
       in
         Thm (deriv_rule1 pure_proof proof der,
@@ -2243,7 +2243,7 @@ fun incr_indexes i (thm as Thm (der, {cert, maxidx, constraints, shyps, hyps, tp
   else if i = 0 then thm
   else
     let
-      fun pure_proof p = Pure_Logic.incr_indexes_proof i p;
+      fun pure_proof p = Pure_Deriv.incr_indexes_proof i p;
       fun proof p = Proofterm.incr_indexes i p;
     in
       Thm (deriv_rule1 pure_proof proof der,
@@ -2268,7 +2268,7 @@ fun assumption opt_ctxt i state =
         val thy' = Context.certificate_theory cert' handle ERROR msg =>
           raise CONTEXT (msg, [], [], [state], Option.map Context.Proof opt_ctxt);
         val normt = Envir.norm_term env;
-        fun pure_proof p = Pure_Logic.assumption_proof thy' env Bs Bi n [full_prop_of state] p;
+        fun pure_proof p = Pure_Deriv.assumption_proof thy' env Bs Bi n [full_prop_of state] p;
         fun proof p =
           Proofterm.assumption_proof (map normt Bs) (normt Bi) n p
           |> not (Envir.is_empty env) ? Proofterm.norm_proof_remove_types env;
@@ -2314,7 +2314,7 @@ fun eq_assumption i state =
             let
               val thy = Context.certificate_theory cert
                 handle ERROR msg => raise CONTEXT (msg, [], [], [state], NONE);
-            in Pure_Logic.assumption_proof thy Envir.init Bs Bi (n + 1) [] p end;
+            in Pure_Deriv.assumption_proof thy Envir.init Bs Bi (n + 1) [] p end;
           fun proof p = Proofterm.assumption_proof Bs Bi (n + 1) p;
         in
           Thm (deriv_rule1 pure_proof proof der,
@@ -2352,7 +2352,7 @@ fun rotate_rule k i state =
       let
         val thy = Context.certificate_theory cert
           handle ERROR msg => raise CONTEXT (msg, [], [], [state], NONE);
-      in Pure_Logic.rotate_proof thy Bs Bi' params asms m p end;
+      in Pure_Deriv.rotate_proof thy Bs Bi' params asms m p end;
     fun proof p = Proofterm.rotate_proof Bs Bi' params asms m p;
   in
     Thm (deriv_rule1 pure_proof proof der,
@@ -2393,7 +2393,7 @@ fun permute_prems j k rl =
       let
         val thy = Context.certificate_theory cert
           handle ERROR msg => raise CONTEXT (msg, [], [], [rl], NONE);
-      in Pure_Logic.permute_prems_proof thy prems' j m p end;
+      in Pure_Deriv.permute_prems_proof thy prems' j m p end;
     fun proof p = Proofterm.permute_prems_proof prems' j m p;
   in
     Thm (deriv_rule1 pure_proof proof der,
@@ -2562,7 +2562,7 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
           union_constraints constraints1 constraints2
           |> insert_constraints_env thy' env;
         fun pure_proof p q =
-          Pure_Logic.bicompose_proof thy' env smax flatten Bs As A oldAs n (nlift + 1)
+          Pure_Deriv.bicompose_proof thy' env smax flatten Bs As A oldAs n (nlift + 1)
             [full_prop_of state, full_prop_of orule] p q;
         fun proof p q =
           Proofterm.bicompose_proof env smax flatten Bs As A oldAs n (nlift + 1) p q;

@@ -77,11 +77,7 @@ val _ = Theory.setup
     (Binding.make ("itself", \<^here>), 1, NoSyn),
     (Binding.make ("dummy", \<^here>), 0, NoSyn),
     (qualify (Binding.make ("proof", \<^here>)), 0, NoSyn)]
-  #> Theory.add_deps_type "fun"
-  #> Theory.add_deps_type "prop"
-  #> Theory.add_deps_type "itself"
-  #> Theory.add_deps_type "dummy"
-  #> Theory.add_deps_type "Pure.proof"
+  #> fold Theory.add_deps_type ["fun", "prop", "itself", "dummy", "Pure.proof"]
   #> Sign.add_nonterminals_global
     (map (fn name => Binding.make (name, \<^here>))
       (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
@@ -242,11 +238,9 @@ val _ = Theory.setup
     (qualify (Binding.make ("Oracle", \<^here>)), typ "prop \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("PClass", \<^here>)), typ "('a itself \<Rightarrow> prop) \<Rightarrow> Pure.proof", NoSyn),
     (qualify (Binding.make ("MinProof", \<^here>)), typ "Pure.proof", NoSyn)]
-  #> Theory.add_deps_const "Pure.eq"
-  #> Theory.add_deps_const "Pure.imp"
-  #> Theory.add_deps_const "Pure.all"
-  #> Theory.add_deps_const "Pure.type"
-  #> Theory.add_deps_const "Pure.dummy_pattern"
+  #> fold Theory.add_deps_const
+   ["Pure.eq", "Pure.imp", "Pure.all", "Pure.type", "Pure.dummy_pattern", "Pure.Appt", "Pure.AppP",
+    "Pure.Abst", "Pure.AbsP", "Pure.Hyp", "Pure.Oracle", "Pure.PClass", "Pure.MinProof"]
   #> Sign.parse_ast_translation Syntax_Trans.pure_parse_ast_translation
   #> Sign.parse_translation Syntax_Trans.pure_parse_translation
   #> Sign.print_ast_translation Syntax_Trans.pure_print_ast_translation

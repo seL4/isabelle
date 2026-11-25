@@ -1319,7 +1319,7 @@ fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
   | is_ground_term _ = false
 
 fun special_bounds ts =
-  fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o apply2 fst)
+  fold Term.add_vars ts [] |> sort (Var_Name.ord o apply2 fst)
 
 fun is_funky_typedef_name ctxt s =
   member (op =) [\<^type_name>\<open>unit\<close>, \<^type_name>\<open>prod\<close>, \<^type_name>\<open>set\<close>,

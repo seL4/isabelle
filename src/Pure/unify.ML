@@ -76,7 +76,7 @@ fun eta_norm env =
   in eta_nm end;
 
 
-structure Seen = Set(type key = indexname val ord = Term_Ord.fast_indexname_ord);
+structure Seen = Set(type key = indexname val ord = Var_Name.ord);
 type seen = Seen.T Unsynchronized.ref;
 fun init_seen () : seen = Unsynchronized.ref Seen.empty;
 fun member_seen seen v = Seen.member (! seen) v;
@@ -98,7 +98,7 @@ fun occurs_term (seen: seen, env: Envir.env, v: indexname, t: term) : bool =
       | occur (Free _) = false
       | occur (Var (w, T)) =
           if member_seen seen w then false
-          else if Term.eq_ix (v, w) then true
+          else if Var_Name.eq (v, w) then true
             (*no need to lookup: v has no assignment*)
           else
             (insert_seen seen w;
@@ -161,7 +161,7 @@ fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
       | occur (Free _) = NoOcc
       | occur (Var (w, T)) =
           if member_seen seen w then NoOcc
-          else if Term.eq_ix (v, w) then Rigid
+          else if Var_Name.eq (v, w) then Rigid
           else
             (insert_seen seen w;
              case Envir.lookup env (w, T) of
@@ -171,7 +171,7 @@ fun rigid_occurs_term (seen: seen, env, v: indexname, t) =
       | occur (t as f $ _) =  (*switch to nonrigid search?*)
           (case head_of_in env f of
             Var (w,_) => (*w is not assigned*)
-              if Term.eq_ix (v, w) then Rigid
+              if Var_Name.eq (v, w) then Rigid
               else nonrigid t
           | Abs _ => nonrigid t (*not in normal form*)
           | _ => occomb t)
@@ -558,7 +558,7 @@ fun add_ffpair context (rbinder,t0,u0) (env,tpairs) : Envir.env * (term * term) 
   in
     (case (head_of t, head_of u) of
       (Var (v, T), Var (w, U)) =>  (*Check for identical variables...*)
-        if Term.eq_ix (v, w) then     (*...occur check would falsely return true!*)
+        if Var_Name.eq (v, w) then     (*...occur check would falsely return true!*)
           if T = U then (env, add_tpair (rbinder, (t, u), tpairs))
           else raise TERM ("add_ffpair: Var name confusion", [t, u])
         else if Term_Ord.indexname_ord (v, w) = LESS then (*prefer to update the LARGER variable*)

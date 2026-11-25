@@ -7,7 +7,6 @@ Term orderings.
 
 signature TERM_ORD =
 sig
-  val fast_indexname_ord: indexname ord
   val sort_ord: sort ord
   val typ_ord: typ ord
   val fast_term_ord: term ord
@@ -25,11 +24,7 @@ struct
 
 (* fast syntactic ordering -- tuned for inequalities *)
 
-val fast_indexname_ord =
-  pointer_eq_ord (int_ord o apply2 snd ||| fast_string_ord o apply2 fst);
-
-val sort_ord =
-  pointer_eq_ord (dict_ord fast_string_ord);
+val sort_ord = Pure_Term.sort_ord;
 
 local
 
@@ -48,7 +43,7 @@ fun typ_ord TU =
     | (TFree (a, S), TFree (b, S')) =>
         (case fast_string_ord (a, b) of EQUAL => sort_ord (S, S') | ord => ord)
     | (TVar (xi, S), TVar (yj, S')) =>
-        (case fast_indexname_ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
+        (case Var_Name.ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
     | (T, U) => int_ord (cons_nr T, cons_nr U));
 
 end;
@@ -80,7 +75,7 @@ fun atoms_ord tu =
         (case atoms_ord (t1, u1) of EQUAL => atoms_ord (t2, u2) | ord => ord)
     | (Const (a, _), Const (b, _)) => fast_string_ord (a, b)
     | (Free (x, _), Free (y, _)) => fast_string_ord (x, y)
-    | (Var (xi, _), Var (yj, _)) => fast_indexname_ord (xi, yj)
+    | (Var (xi, _), Var (yj, _)) => Var_Name.ord (xi, yj)
     | (Bound i, Bound j) => int_ord (i, j)
     | _ => EQUAL);
 
@@ -220,7 +215,6 @@ end;
 
 (* scalable collections *)
 
-structure Vartab = Table(type key = indexname val ord = Term_Ord.fast_indexname_ord);
 structure Sorttab = Table(type key = sort val ord = Term_Ord.sort_ord);
 structure Typtab = Table(type key = typ val ord = Term_Ord.typ_ord);
 
@@ -241,6 +235,130 @@ end;
 structure Typset = Set(Typtab.Key);
 structure Termset = Set(Termtab.Key);
 
-structure Var_Graph = Graph(Vartab.Key);
 structure Typ_Graph = Graph(Typtab.Key);
 structure Term_Graph = Graph(Termtab.Key);
+
+
+structure TFrees:
+sig
+  include PURE_ITEMS
+  val add_tfreesT: typ -> set -> set
+  val add_tfrees: term -> set -> set
+  val add_tfreesT_unless: (string * sort -> bool) -> typ -> set -> set
+  val add_tfrees_unless: (string * sort -> bool) -> term -> set -> set
+end =
+struct
+
+structure Term_Items = Pure_Items
+(
+  type key = string * sort;
+  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.sort_ord);
+);
+open Term_Items;
+
+val add_tfreesT = fold_atyps (fn TFree v => add_set v | _ => I);
+val add_tfrees = fold_types add_tfreesT;
+
+fun add_tfreesT_unless pred = Term.fold_atyps (fn TFree v => not (pred v) ? add_set v | _ => I);
+fun add_tfrees_unless pred = fold_types (add_tfreesT_unless pred);
+
+end;
+
+
+structure TVars:
+sig
+  include PURE_ITEMS
+  val add_tvarsT: typ -> set -> set
+  val add_tvars: term -> set -> set
+end =
+struct
+
+open Pure_TVars;
+
+val add_tvarsT = fold_atyps (fn TVar v => add_set v | _ => I);
+val add_tvars = fold_types add_tvarsT;
+
+end;
+
+
+structure Frees:
+sig
+  include PURE_ITEMS
+  val add_frees: term -> set -> set
+end =
+struct
+
+structure Term_Items = Pure_Items
+(
+  type key = string * typ;
+  val ord = pointer_eq_ord (prod_ord fast_string_ord Term_Ord.typ_ord);
+);
+open Term_Items;
+
+val add_frees = fold_aterms (fn Free v => add_set v | _ => I);
+
+end;
+
+
+structure Vars:
+sig
+  include PURE_ITEMS
+  val add_vars: term -> set -> set
+end =
+struct
+
+structure Term_Items = Pure_Items
+(
+  type key = indexname * typ;
+  val ord = pointer_eq_ord (prod_ord Var_Name.ord Term_Ord.typ_ord);
+);
+open Term_Items;
+
+val add_vars = fold_aterms (fn Var v => add_set v | _ => I);
+
+end;
+
+
+structure Names:
+sig
+  include PURE_ITEMS
+  val add_tfree_namesT: typ -> set -> set
+  val add_tfree_names: term -> set -> set
+  val add_free_names: term -> set -> set
+end =
+struct
+
+structure Term_Items = Pure_Items
+(
+  type key = string;
+  val ord = fast_string_ord;
+);
+open Term_Items;
+
+val add_tfree_namesT = fold_atyps (fn TFree (a, _) => add_set a | _ => I);
+val add_tfree_names = fold_types add_tfree_namesT;
+val add_free_names = fold_aterms (fn Free (x, _) => add_set x | _ => I);
+
+end;
+
+
+structure Indexnames: PURE_ITEMS = Pure_Items
+(
+  type key = indexname;
+  val ord = Var_Name.ord;
+);
+
+
+structure Types:
+sig
+  include PURE_ITEMS
+  val add_atyps: term -> set -> set
+end =
+struct
+
+structure Term_Items = Pure_Items(type key = typ val ord = Term_Ord.typ_ord);
+open Term_Items;
+
+val add_atyps = (fold_types o fold_atyps) add_set;
+
+end;

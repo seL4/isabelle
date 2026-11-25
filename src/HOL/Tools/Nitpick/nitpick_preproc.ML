@@ -747,7 +747,7 @@ fun specialize_consts_in_term
                 val _ = not (null fixed_js) orelse raise SAME ()
                 val fixed_args = filter_indices fixed_js args
                 val vars = fold Term.add_vars fixed_args []
-                           |> sort (Term_Ord.fast_indexname_ord o apply2 fst)
+                           |> sort (Var_Name.ord o apply2 fst)
                 val bound_js = fold (fn t => fn js => add_loose_bnos (t, 0, js))
                                     fixed_args []
                                |> sort int_ord

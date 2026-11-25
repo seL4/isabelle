@@ -77,7 +77,7 @@ fun pure_type T = T |> variant
   fn TV (a, b) => (indexname a, sort b)];
 
 fun pure_var_type {typed_vars} T =
-  if typed_vars andalso T <> Pure_Logic.pure_type_dummy then pure_type T else [];
+  if typed_vars andalso T <> Pure_Term.dummyT then pure_type T else [];
 
 fun pure_term flag t = t |> variant
  [fn CONST0 a => ([a], [])
@@ -86,15 +86,15 @@ fun pure_term flag t = t |> variant
   fn FV ((a, ~1), b) => ([a], pure_var_type flag b),
   fn FV (a, b) => (indexname a, pure_var_type flag b),
   fn BV a => ([], int a),
-  fn ABS (a, b, c) => ([a], pair pure_type (pure_term flag) (b, c)),
+  fn ABS ((a, _), b, c) => ([a], pair pure_type (pure_term flag) (b, c)),
   fn APP a => ([], pair (pure_term flag) (pure_term flag) a),
   fn OFCLASS (a, b) => ([b], pure_type a)];
 
 fun pure_proof flag prf = prf |> variant
  [fn Nop => ([], []),
   fn BVp a => ([], int a),
-  fn Abst (a, b, c) => ([a], pair pure_type (pure_proof flag) (b, c)),
-  fn Absp (a, b, c) => ([a], pair (pure_term flag) (pure_proof flag) (b, c)),
+  fn Abst ((a, _), b, c) => ([a], pair pure_type (pure_proof flag) (b, c)),
+  fn Absp ((a, _), b, c) => ([a], pair (pure_term flag) (pure_proof flag) (b, c)),
   fn Appt a => ([], pair (pure_proof flag) (pure_term flag) a),
   fn Appp a => ([], pair (pure_proof flag) (pure_proof flag) a),
   fn Hypp a => ([], pure_term flag a),
