@@ -704,6 +704,10 @@ qed "The_split_eq";
 lemma case_prod_beta: "case_prod f p = f (fst p) (snd p)"
   by (fact prod.case_eq_if)
 
+lemma case_prod_cong:
+  "(\<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y) \<Longrightarrow> p = q \<Longrightarrow> case_prod f p = case_prod g q"
+  by (auto simp: case_prod_unfold)
+
 lemma prod_cases3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
 proof (cases y)
@@ -1106,6 +1110,13 @@ lemma UN_Times_distrib: "(\<Union>(a, b)\<in>A \<times> B. E a \<times> F b) = \
   \<comment> \<open>Suggested by Pierre Chartier\<close>
   by blast
 
+lemma UN_UN_case_prod_case_prod_eq:
+  "(\<Union>(x1, x2) \<in> X. \<Union>(y1, y2) \<in> Y. A x1 x2 y1 y2) =
+    (\<Union>x \<in> X. \<Union>y \<in> Y. (\<lambda>(x1, x2). (\<lambda>(y1, y2). A x1 x2 y1 y2) y) x)"
+  \<comment> \<open>Allows a natural expression of binary operators,\<close>
+  \<comment> \<open>without explicit calls to \<open>case_prod\<close>\<close>
+  by auto
+
 lemma split_paired_Ball_Sigma [simp, no_atp]: "(\<forall>z\<in>Sigma A B. P z) \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>B x. P (x, y))"
   by blast
 
@@ -1425,6 +1436,8 @@ lemmas split_part = case_prod_part
 lemmas split_comp_eq = case_prod_comp_eq
 lemmas The_split_eq = The_case_prod_eq
 lemmas Collect_split_mono_strong = Collect_case_prod_mono_strong
+lemmas split_cong = case_prod_cong
+lemmas UN_UN_split_split_eq = UN_UN_case_prod_case_prod_eq
 
 hide_const (open) prod
 

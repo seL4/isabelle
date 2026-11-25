@@ -84,11 +84,13 @@ no class target syntax is applied.  Minor INCOMPATIBILITY.
       The_split_eq ~> The_case_prod_eq
 
 * Theory "HOL.Fun_Def":
-  - Renamed lemmas. The old names are still available as legacy bindings.
+  - Moved lemma to theory "HOL.Product_Type" and renamed it. The old name
+    is still available as a legacy binding. Minor INCOMPATIBILITY.
       split_cong ~> case_prod_cong
 
 * Theory "HOL.Equiv_Relations":
-  - Renamed lemmas. The old names are still available as legacy bindings.
+  - Moved lemma to theory "HOL.Product_Type" and renamed it. The old name
+    is still available as a legacy binding. Minor INCOMPATIBILITY.
       UN_UN_split_split_eq ~> UN_UN_case_prod_case_prod_eq
 
 * Theory "HOL.List":
