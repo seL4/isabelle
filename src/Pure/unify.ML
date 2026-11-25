@@ -327,25 +327,28 @@ fun type_abs (env, T, t) = types_abs (Envir.binder_types env T, t);
   Returns long sequence of every way of copying u, for backtracking
   For example, projection in ?b'(?a) may be wrong if other dpairs constrain ?a.
   The order for trying projections is crucial in ?b'(?a)
-  NB "vname" is only used in the call to make_args!!   *)
-fun matchcopy context vname =
+  "vname" is used to preserve the string of original Var's indexname on the way down.
+  As in Huet's procedure, each variable X is assigned before SIMPL is called;
+  u is normalized in the environment env0 before the copy.   *)
+fun matchcopy context vname env0 =
   let
-    fun mc (rbinder, targs, u, ed as (env, dpairs)) : (term * (Envir.env * dpair list)) Seq.seq =
+    fun mc X (rbinder, targs, u, ed as (env, dpairs)) : (Envir.env * dpair list) Seq.seq =
+      if is_some (Envir.lookup env X) then Seq.single (env, (rbinder, list_comb (Var X, targs), u) :: dpairs)
+      else
       let
         val unify_trace_types = Config.get_generic context unify_trace_types;
-        (*Produce copies of uarg and cons them in front of uargs*)
-        fun copycons uarg (uargs, (env, dpairs)) =
-          Seq.map (fn (uarg', ed') => (uarg' :: uargs, ed'))
-            (mc (rbinder, targs,eta_norm env (rbinder, Envir.head_norm env uarg),
-              (env, dpairs)));
+        (*Copy uarg into the new variable G*)
+        fun copycons (G, uarg) (env, dpairs) =
+          mc (dest_Var G) (rbinder, targs, eta_norm env (rbinder, Envir.head_norm env0 uarg),
+            (env, dpairs));
         (*Produce sequence of all possible ways of copying the arg list*)
-        fun copyargs [] = Seq.cons ([], ed) Seq.empty
-          | copyargs (uarg :: uargs) = Seq.maps (copycons uarg) (copyargs uargs);
+        fun copyargs [] ed = Seq.single ed
+          | copyargs (arg :: args) ed = Seq.maps (copycons arg) (copyargs args ed);
         val (uhead, uargs) = strip_comb u;
         val base = Envir.body_type env (fastype env (rbinder, uhead));
-        fun joinargs (uargs', ed') = (list_comb (uhead, uargs'), ed');
         (*attempt projection on argument with given typ*)
         val Ts = map (curry (fastype env) rbinder) targs;
+        fun assign t env = Envir.update (X, types_abs (Ts, t)) env;
         fun projenv (head, (Us, bary), targ, tail) =
           let
             val env =
@@ -358,12 +361,19 @@ fun matchcopy context vname =
                 (*higher-order projection: plug in targs for bound vars*)
                 fun plugin arg = list_comb (head_of arg, targs);
                 val dp = (rbinder, list_comb (targ, map plugin args), u);
-                val (env2, frigid, fflex) = SIMPL context (env', dp :: dpairs);
+                val (env2, frigid, fflex) =
+                  SIMPL context (assign (list_comb (head, args)) env', dp :: dpairs);
                 (*may raise exception CANTUNIFY*)
               in
-                SOME ((list_comb (head, args), (env2, frigid @ fflex)), tail)
+                SOME ((env2, frigid @ fflex), tail)
               end handle CANTUNIFY => Seq.pull tail)
           end handle CANTUNIFY => tail;
+        (*imitation, with new variables for the arguments*)
+        fun imitate () =
+          let val (env', args) = make_args vname (Ts, env, map (curry (fastype env) rbinder) uargs) in
+            copyargs (map head_of args ~~ uargs)
+              (assign (list_comb (uhead, args)) env', dpairs)
+          end;
         (*make a list of projections*)
         fun make_projs (T::Ts, targ::targs) =
             (Bound(length Ts), T, targ) :: make_projs (Ts,targs)
@@ -374,39 +384,48 @@ fun matchcopy context vname =
              (projenv(bvar, Envir.strip_type env T, targ, matchfun projs))
           | matchfun [] = (*imitation last of all*)
             (case uhead of
-         Const _ => Seq.map joinargs (copyargs uargs)
-             | Free _  => Seq.map joinargs (copyargs uargs)
+         Const _ => imitate ()
+             | Free _  => imitate ()
              | _ => Seq.empty)  (*if Var, would be a loop!*)
     in
       (case uhead of
         Abs (a, T, body) =>
-          Seq.map (fn (body', ed') => (Abs (a, T, body'), ed'))
-            (mc ((a, T) :: rbinder, (map (incr_boundvars 1) targs) @ [Bound 0], body, ed))
+          let
+            val (env', Y) =
+              Envir.genvar vname (env, (Ts @ [T]) ---> fastype env ((a, T) :: rbinder, body));
+          in
+            mc (dest_Var Y)
+              ((a, T) :: rbinder, (map (incr_boundvars 1) targs) @ [Bound 0], body,
+                (assign (Abs (a, T, Logic.combound (Y, 0, length Ts + 1))) env', dpairs))
+          end
       | Var (w, _) =>
           (*a flex-flex dpair: make variable for t*)
           let
             val (env', newhd) = Envir.genvar (#1 w) (env, Ts ---> base);
             val tabs = Logic.combound (newhd, 0, length Ts);
             val tsub = list_comb (newhd, targs);
-          in Seq.single (tabs, (env', (rbinder, tsub, u) :: dpairs)) end
+          in Seq.single (assign tabs env', (rbinder, tsub, u) :: dpairs) end
       | _ => matchfun (rev (make_projs (Ts, targs))))
     end;
   in mc end;
 
+(*force eta-expansion even if a type variable has been instantiated with a function type*)
+fun eta_expand_dpair Es (rbinder, t, u) =
+  let val j = length Es;
+      val bs = map Bound (j - 1 downto 0);
+  in
+     (rev (map (pair "") Es) @ rbinder, list_comb (incr_boundvars j t, bs),
+      list_comb (incr_boundvars j u, bs))
+  end;
 
 (*Call matchcopy to produce assignments to the variable in the dpair*)
 fun MATCH context (env, (rbinder, t, u), dpairs) : (Envir.env * dpair list) Seq.seq =
   let
-    val (Var (vT as (v, T)), targs) = strip_comb t;
-    val Ts = Envir.binder_types env T;
-    fun new_dset (u', (env', dpairs')) =
-      (*if v was updated to s, must unify s with u' *)
-      (case Envir.lookup env' vT of
-        NONE => (Envir.update (vT, types_abs (Ts, u')) env', dpairs')
-      | SOME s => (env', ([], s, types_abs (Ts, u')) :: dpairs'));
-  in
-    Seq.map new_dset (matchcopy context (#1 v) (rbinder, targs, u, (env, dpairs)))
-  end;
+    val (Var (_, T0), targs0) = strip_comb t;
+    val (rbinder, t, u) =
+      eta_expand_dpair (drop (length targs0) (Envir.binder_types env T0)) (rbinder, t, u);
+    val (Var (vT as (v, _)), targs) = strip_comb t;
+  in matchcopy context (#1 v) env vT (rbinder, targs, u, (env, dpairs)) end;
 
 
 

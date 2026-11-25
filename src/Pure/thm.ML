@@ -2583,10 +2583,10 @@ fun bicompose_aux opt_ctxt {flatten, match, incremented} (state, (stpairs, Bs, B
     fun newAs (As0, n, dpairs, tpairs) =
       let val (As1, rder') =
         if lifted then
-          (case rename_bvars dpairs tpairs B As0 of
+          (case rename_bvars dpairs (rtpairs @ tpairs) Bi As0 of
             SOME term =>
               let fun proof p = Same.commit (Proofterm.map_proof_terms_same term I) p;
-              in (map (strip_apply (Same.commit term) B) As0, deriv_rule1 I proof rder) end
+              in (map (strip_apply (Same.commit term) Bi) As0, deriv_rule1 I proof rder) end
           | NONE => (As0, rder))
         else (As0, rder);
       in

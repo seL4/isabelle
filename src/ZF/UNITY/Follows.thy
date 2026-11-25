@@ -120,8 +120,8 @@ apply (rule PSP_Stable [THEN LeadsTo_weaken], blast, blast)
 apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
-apply (drule_tac x = "f1 (x)" and x1 = "f (sa) " and P2 = "\<lambda>x y. \<forall>u\<in>B. P (x,y,u)" for P in bspec [THEN bspec])
-apply (drule_tac [3] x = "g (x) " and x1 = "g (sa) " and P2 = "\<lambda>x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
+apply (drule_tac x = "f1 (x)" and x1 = "f (sa)" and P4 = "\<lambda>x y. \<forall>u\<in>B. P(x,y,u)" for P in bspec [THEN bspec])
+apply (drule_tac [3] x = "g (x) " and x1 = "g (sa)" and P4 = "\<lambda>x y. P(x,y) \<longrightarrow> d(x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -143,8 +143,8 @@ apply (rule PSP_Stable [THEN LeadsTo_weaken], blast, blast)
 apply auto
 apply (force simp add: part_order_def refl_def)
 apply (force simp add: part_order_def refl_def)
-apply (drule_tac x = "f (x) " and x1 = "f (sa) " in bspec [THEN bspec])
-apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa) " and P2 = "\<lambda>x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
+apply (drule_tac x = "f (x) " and x1 = "f (sa)" in bspec [THEN bspec])
+apply (drule_tac [3] x = "g1 (x) " and x1 = "g (sa)" and P4 = "\<lambda>x y. P (x,y) \<longrightarrow> d (x,y) \<in> t" for P d in bspec [THEN bspec])
 apply auto
 apply (rule_tac b = "h (f (sa), g (sa))" and A = C in trans_onD)
 apply (auto simp add: part_order_def)
@@ -421,9 +421,8 @@ lemma munion_mono:
 "\<lbrakk>\<langle>M, N\<rangle> \<in> MultLe(A, r); \<langle>K, L\<rangle> \<in> MultLe(A, r)\<rbrakk> \<Longrightarrow>
   <M +# K, N +# L> \<in> MultLe(A, r)"
   unfolding MultLe_def
-apply (auto intro: munion_multirel_mono1 munion_multirel_mono2
+  by (auto intro: munion_multirel_mono1 munion_multirel_mono2
        munion_multirel_mono multiset_into_Mult simp add: Mult_iff_multiset)
-done
 
 lemma increasing_munion:
      "\<lbrakk>F \<in> Increasing.increasing(Mult(A), MultLe(A,r), f);
@@ -467,9 +466,7 @@ apply (drule Finite_into_Fin)
 apply (erule Fin_induct)
 apply (simp (no_asm_simp))
 apply (rule Follows_constantI)
-apply (simp_all (no_asm_simp) add: FiniteFun.intros)
-apply auto
-apply (rule Follows_munion, auto)
+apply (simp_all add: Follows_munion FiniteFun.intros)
 done
 
 end
