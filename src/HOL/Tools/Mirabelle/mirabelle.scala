@@ -151,7 +151,9 @@ Usage: isabelle mirabelle [OPTIONS] [SESSIONS ...]
     -c           """ + mirabelle_print_command.description +
         " (default " + mirabelle_print_command.default_value + """)
     -d DIR       include session directory
-    -e FILE      evaluate ML FILE before initializing the actions
+    -e FILE      evaluate ML FILE for side effects before initializing
+                 the actions (e.g., via Mirabelle.add_goal_setup or
+                 Mirabelle.register_action)
     -g NAME      select session group NAME
     -j INT       maximum number of parallel jobs (default 1)
     -m INT       """ + mirabelle_max_calls.description +
