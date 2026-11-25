@@ -659,13 +659,13 @@ end;
    to quite time-consuming computations (in particular for nested tuples) *)
 setup \<open>map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", split_conv_tac))\<close>
 
-lemma split_eta_SetCompr [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P (x, y)) = P"
+lemma case_prod_eta_SetCompr [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P (x, y)) = P"
   by (rule ext) fast
 
-lemma split_eta_SetCompr2 [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P x y) = case_prod P"
+lemma case_prod_eta_SetCompr2 [simp, no_atp]: "(\<lambda>u. \<exists>x y. u = (x, y) \<and> P x y) = case_prod P"
   by (rule ext) fast
 
-lemma split_part [simp]: "(\<lambda>(a,b). P \<and> Q a b) = (\<lambda>ab. P \<and> case_prod Q ab)"
+lemma case_prod_part [simp]: "(\<lambda>(a,b). P \<and> Q a b) = (\<lambda>ab. P \<and> case_prod Q ab)"
   \<comment> \<open>Allows simplifications of nested splits in case of independent predicates.\<close>
   by (rule ext) blast
 
@@ -673,7 +673,7 @@ lemma split_part [simp]: "(\<lambda>(a,b). P \<and> Q a b) = (\<lambda>ab. P \<a
    a) only helps in special situations
    b) can lead to nontermination in the presence of split_def
 *)
-lemma split_comp_eq:
+lemma case_prod_comp_eq:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c"
     and g :: "'d \<Rightarrow> 'a"
   shows "(\<lambda>u. f (g (fst u)) (snd u)) = case_prod (\<lambda>x. f (g x))"
@@ -685,7 +685,7 @@ lemma pair_imageI [intro]: "(a, b) \<in> A \<Longrightarrow> f a b \<in> (\<lamb
 lemma Collect_const_case_prod[simp]: "{(a,b). P} = (if P then UNIV else {})"
 by auto
 
-lemma The_split_eq [simp]: "(THE (x',y'). x = x' \<and> y = y') = (x, y)"
+lemma The_case_prod_eq [simp]: "(THE (x',y'). x = x' \<and> y = y') = (x, y)"
   by blast
 
 (*
@@ -1097,7 +1097,7 @@ lemma Collect_case_prodD: "x \<in> Collect (case_prod A) \<Longrightarrow> A (fs
 lemma Collect_case_prod_mono: "A \<le> B \<Longrightarrow> Collect (case_prod A) \<subseteq> Collect (case_prod B)"
   by auto (auto elim!: le_funE)
 
-lemma Collect_split_mono_strong:
+lemma Collect_case_prod_mono_strong:
   "X = fst ` A \<Longrightarrow> Y = snd ` A \<Longrightarrow> \<forall>a\<in>X. \<forall>b \<in> Y. P a b \<longrightarrow> Q a b
     \<Longrightarrow> A \<subseteq> Collect (case_prod P) \<Longrightarrow> A \<subseteq> Collect (case_prod Q)"
   by fastforce
@@ -1419,6 +1419,12 @@ lemmas split_beta' = case_prod_beta'
 lemmas split_beta = prod.case_eq_if
 lemmas split_conv = case_prod_conv
 lemmas split = case_prod_conv
+lemmas split_eta_SetCompr = case_prod_eta_SetCompr
+lemmas split_eta_SetCompr2 = case_prod_eta_SetCompr2
+lemmas split_part = case_prod_part
+lemmas split_comp_eq = case_prod_comp_eq
+lemmas The_split_eq = The_case_prod_eq
+lemmas Collect_split_mono_strong = Collect_case_prod_mono_strong
 
 hide_const (open) prod
 

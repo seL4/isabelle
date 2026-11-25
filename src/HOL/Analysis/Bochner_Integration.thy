@@ -2949,7 +2949,7 @@ lemma (in pair_sigma_finite) integrable_product_swap:
   fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
   assumes "integrable (M1 \<Otimes>\<^sub>M M2) f"
   shows "integrable (M2 \<Otimes>\<^sub>M M1) (\<lambda>(x,y). f (y,x))"
-  by (smt (verit) assms distr_pair_swap integrable_cong integrable_distr measurable_pair_swap' prod.case_distrib split_cong)
+  by (smt (verit) assms distr_pair_swap integrable_cong integrable_distr measurable_pair_swap' prod.case_distrib case_prod_cong)
 
 lemma (in pair_sigma_finite) integrable_product_swap_iff:
   fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
@@ -2964,7 +2964,7 @@ lemma (in pair_sigma_finite) integral_product_swap:
   fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^sub>M M2)"
   shows "(\<integral>(x,y). f (y,x) \<partial>(M2 \<Otimes>\<^sub>M M1)) = integral\<^sup>L (M1 \<Otimes>\<^sub>M M2) f"
-  by (smt (verit) distr_pair_swap f integral_cong integral_distr measurable_pair_swap' prod.case_distrib split_cong)
+  by (smt (verit) distr_pair_swap f integral_cong integral_distr measurable_pair_swap' prod.case_distrib case_prod_cong)
 
 theorem (in pair_sigma_finite) Fubini_integrable:
   fixes f :: "_ \<Rightarrow> _::{banach, second_countable_topology}"

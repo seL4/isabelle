@@ -348,12 +348,14 @@ lemma UN_equiv_class_type2:
                    congruent2_implies_congruent quotientI)
 
 
-lemma UN_UN_split_split_eq:
+lemma UN_UN_case_prod_case_prod_eq:
   "(\<Union>(x1, x2) \<in> X. \<Union>(y1, y2) \<in> Y. A x1 x2 y1 y2) =
     (\<Union>x \<in> X. \<Union>y \<in> Y. (\<lambda>(x1, x2). (\<lambda>(y1, y2). A x1 x2 y1 y2) y) x)"
   \<comment> \<open>Allows a natural expression of binary operators,\<close>
-  \<comment> \<open>without explicit calls to \<open>split\<close>\<close>
+  \<comment> \<open>without explicit calls to \<open>case_prod\<close>\<close>
   by auto
+
+lemmas UN_UN_split_split_eq = UN_UN_case_prod_case_prod_eq (* legacy *)
 
 lemma congruent2I:
   "equiv A1 r1 \<Longrightarrow> equiv A2 r2

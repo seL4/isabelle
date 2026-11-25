@@ -10,7 +10,7 @@ lemma SIGMA_image_vimage:
   "snd ` (SIGMA x:f`X. f -` {x} \<inter> X) = X"
   by (auto simp: image_iff)
 
-declare inj_split_Cons[simp]
+declare inj_case_prod_Cons[simp]
 
 definition extensionalD :: "'b \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) set" where
   "extensionalD d A = {f. \<forall>x. x \<notin> A \<longrightarrow> f x = d}"

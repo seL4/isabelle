@@ -852,8 +852,10 @@ lemma list_nonempty_induct [consumes 1, case_names single cons]:
   "\<lbrakk> xs \<noteq> []; \<And>x. P [x]; \<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)\<rbrakk> \<Longrightarrow> P xs"
 by(induction xs rule: induct_list012) auto
 
-lemma inj_split_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
+lemma inj_case_prod_Cons: "inj_on (\<lambda>(xs, n). n#xs) X"
   by (auto intro!: inj_onI)
+
+lemmas inj_split_Cons = inj_case_prod_Cons (* legacy *)
 
 lemma inj_on_Cons1 [simp]: "inj_on ((#) x) A"
 by(simp add: inj_on_def)
@@ -5824,7 +5826,7 @@ lemma
   and card_lists_length_eq: "card {xs. set xs \<subseteq> A \<and> length xs = n} = (card A)^n"
   using \<open>finite A\<close>
   by (induct n)
-     (auto simp: card_image inj_split_Cons lists_length_Suc_eq cong: conj_cong)
+     (auto simp: card_image inj_case_prod_Cons lists_length_Suc_eq cong: conj_cong)
 
 lemma finite_lists_length_le:
   assumes "finite A" shows "finite {xs. set xs \<subseteq> A \<and> length xs \<le> n}"

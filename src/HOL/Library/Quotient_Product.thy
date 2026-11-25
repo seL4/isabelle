@@ -80,11 +80,13 @@ lemma case_prod_rsp [quot_respect]:
   shows "((R1 ===> R2 ===> (=)) ===> (rel_prod R1 R2) ===> (=)) case_prod case_prod"
   by (rule case_prod_transfer)
 
-lemma split_prs [quot_preserve]:
+lemma case_prod_prs [quot_preserve]:
   assumes q1: "Quotient3 R1 Abs1 Rep1"
   and     q2: "Quotient3 R2 Abs2 Rep2"
   shows "(((Abs1 ---> Abs2 ---> id) ---> map_prod Rep1 Rep2 ---> id) case_prod) = case_prod"
   by (simp add: fun_eq_iff Quotient3_abs_rep[OF q1] Quotient3_abs_rep[OF q2])
+
+lemmas split_prs = case_prod_prs (* legacy *)
 
 lemma [quot_respect]:
   shows "((R2 ===> R2 ===> (=)) ===> (R1 ===> R1 ===> (=)) ===>

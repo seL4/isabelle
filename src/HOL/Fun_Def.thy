@@ -130,9 +130,11 @@ lemmas [fundef_cong] =
   if_cong image_cong
   bex_cong ball_cong imp_cong map_option_cong Option.bind_cong
 
-lemma split_cong [fundef_cong]:
+lemma case_prod_cong [fundef_cong]:
   "(\<And>x y. (x, y) = q \<Longrightarrow> f x y = g x y) \<Longrightarrow> p = q \<Longrightarrow> case_prod f p = case_prod g q"
   by (auto simp: split_def)
+
+lemmas split_cong = case_prod_cong (* legacy *)
 
 lemma comp_cong [fundef_cong]: "f (g x) = f' (g' x') \<Longrightarrow> (f \<circ> g) x = (f' \<circ> g') x'"
   by (simp only: o_apply)
