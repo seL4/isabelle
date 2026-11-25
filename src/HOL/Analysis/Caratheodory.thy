@@ -892,7 +892,7 @@ proof -
       "(\<Union>i. case A i of (a, b) \<Rightarrow> G a b) = (case j of (a, b) \<Rightarrow> G a b)"
     then show "(\<Sum>n. case A n of (a, b) \<Rightarrow> \<mu> a b) = (case j of (a, b) \<Rightarrow> \<mu> a b)"
       using add[of "\<lambda>i. fst (A i)" "\<lambda>i. snd (A i)" "fst j" "snd j"]
-      by (simp add: split_beta' comp_def Pi_iff)
+      by (simp add: case_prod_beta' comp_def Pi_iff)
   qed (auto split: prod.splits intro: assms)
   then show ?thesis by simp
 qed

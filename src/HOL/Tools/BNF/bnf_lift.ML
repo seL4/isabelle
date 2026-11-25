@@ -1471,7 +1471,7 @@ fun quotient_bnf (equiv_thm, quot_thm) wits specs map_b rel_b pred_b opts lthy =
                   REPEAT_DETERM_N 6 (HEADGOAL (etac ctxt Drule.thin_rl)),
                   REPEAT_DETERM_N (live-1) (HEADGOAL (etac ctxt conjE)),
                   HEADGOAL (EVERY' [dtac ctxt @{thm subsetD}, assume_tac ctxt, etac ctxt @{thm CollectE}]),
-                  unfold_thms_tac ctxt @{thms split_beta},
+                  unfold_thms_tac ctxt @{thms case_prod_beta},
                   HEADGOAL (etac ctxt conjunct2)] end;
 
               fun REL_preimage_eq_tac ctxt = HEADGOAL (EVERY'

@@ -693,11 +693,11 @@ proof(cases rule: rel_pmf.cases[consumes 1, case_names rel_pmf])
   moreover
   have "\<And>x. (x, None) \<in> set_pmf pq \<Longrightarrow> x = None" by(auto dest!: rel_pmf(1))
   then have "p = map_spmf fst ?pq" using rel_pmf(2)
-    by(auto simp: pmf.map_comp split_beta intro!: pmf.map_cong split: option.split)
+    by(auto simp: pmf.map_comp case_prod_beta intro!: pmf.map_cong split: option.split)
   moreover
   have "\<And>y. (None, y) \<in> set_pmf pq \<Longrightarrow> y = None" by(auto dest!: rel_pmf(1))
   then have "q = map_spmf snd ?pq" using rel_pmf(3)
-    by(auto simp: pmf.map_comp split_beta intro!: pmf.map_cong split: option.split)
+    by(auto simp: pmf.map_comp case_prod_beta intro!: pmf.map_cong split: option.split)
   ultimately show thesis ..
 qed
 

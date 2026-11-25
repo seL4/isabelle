@@ -347,7 +347,7 @@ definition
 lemma RefVar_def2 [simp]: "(vf ..; P) Y s =  
   P (Var (fst (vf s))) (snd (vf s))"
 apply (unfold RefVar_def Let_def)
-apply (simp (no_asm) add: split_beta)
+apply (simp (no_asm) add: case_prod_beta)
 done
 
 subsection "allocation"

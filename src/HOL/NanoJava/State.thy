@@ -150,11 +150,11 @@ by (simp add: new_obj_def)
 
 lemma upd_obj_lupd [simp]: 
   "upd_obj a f v (lupd(x\<mapsto>y) s) = lupd(x\<mapsto>y) (upd_obj a f v s)"
-by (simp add: upd_obj_def Let_def split_beta)
+by (simp add: upd_obj_def Let_def case_prod_beta)
 
 lemma upd_obj_del_locs [simp]: 
   "upd_obj a f v (del_locs s) = del_locs (upd_obj a f v s)"
-by (simp add: upd_obj_def Let_def split_beta)
+by (simp add: upd_obj_def Let_def case_prod_beta)
 
 lemma get_field_hupd_same [simp]:
  "get_field (hupd(a\<mapsto>(C, fs)) s) a = the \<circ> fs"

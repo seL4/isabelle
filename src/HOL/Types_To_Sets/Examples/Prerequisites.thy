@@ -38,7 +38,7 @@ definition "rep = fst (SOME (Rep::'s \<Rightarrow> 'b, Abs). type_definition Rep
 definition "Abs = snd (SOME (Rep::'s \<Rightarrow> 'b, Abs). type_definition Rep Abs S)"
 
 lemma type_definition_S: "type_definition rep Abs S"
-  unfolding Abs_def rep_def split_beta'
+  unfolding Abs_def rep_def case_prod_beta'
   by (rule someI_ex) (use Ex_type_definition_S in auto)
 
 lemma rep_in_S[simp]: "rep x \<in> S"

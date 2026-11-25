@@ -1046,7 +1046,7 @@ proof (safe intro!: pmf_eqI)
 qed
 
 lemma map_pair: "map_pmf (\<lambda>(a, b). (f a, g b)) (pair_pmf A B) = pair_pmf (map_pmf f A) (map_pmf g B)"
-  by (simp add: pair_map_pmf2 pair_map_pmf1 map_pmf_comp split_beta')
+  by (simp add: pair_map_pmf2 pair_map_pmf1 map_pmf_comp case_prod_beta')
 
 end
 
@@ -1409,15 +1409,15 @@ proof -
       proof (rule rel_pmf.intros)
         fix x z assume "(x, z) \<in> pr"
         then have "\<exists>y. (x, y) \<in> pq \<and> (y, z) \<in> qr"
-          by (auto simp: q pr_welldefined pr_def split_beta)
+          by (auto simp: q pr_welldefined pr_def case_prod_beta)
         with pq qr show "(R OO S) x z"
           by blast
       next
         have "map_pmf snd pr = map_pmf snd (bind_pmf q (\<lambda>y. cond_pmf qr {yz. fst yz = y}))"
-          by (simp add: pr_def q split_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_pmf_comp)
+          by (simp add: pr_def q case_prod_beta bind_map_pmf map_pmf_def[symmetric] map_bind_pmf map_pmf_comp)
         then show "map_pmf snd pr = r"
           unfolding r q' bind_map_pmf by (subst (asm) bind_cond_pmf_cancel) (auto simp: eq_commute)
-      qed (simp add: pr_def map_bind_pmf split_beta map_pmf_def[symmetric] p map_pmf_comp)
+      qed (simp add: pr_def map_bind_pmf case_prod_beta map_pmf_def[symmetric] p map_pmf_comp)
     }
     then show ?thesis
       by(auto simp add: le_fun_def)

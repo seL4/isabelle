@@ -254,21 +254,21 @@ by (simp add: assign_def Let_def)
 lemma assign_Norm_Some [simp]: 
   "\<lbrakk>abrupt (f v \<lparr>abrupt=None,store=s\<rparr>) = Some y\<rbrakk> 
    \<Longrightarrow> assign f v \<lparr>abrupt=None,store=s\<rparr> = \<lparr>abrupt=Some y,store =s\<rparr>"
-by (simp add: assign_def Let_def split_beta)
+by (simp add: assign_def Let_def case_prod_beta)
 *)
 
 lemma assign_Norm_Some [simp]: 
   "\<lbrakk>abrupt (f v (Norm s)) = Some y\<rbrakk> 
    \<Longrightarrow> assign f v (Norm s) = (Some y,s)"
-by (simp add: assign_def Let_def split_beta)
+by (simp add: assign_def Let_def case_prod_beta)
 
 
 lemma assign_Some [simp]: 
 "assign f v (Some x,s) = (Some x,s)" 
-by (simp add: assign_def Let_def split_beta)
+by (simp add: assign_def Let_def case_prod_beta)
 
 lemma assign_Some1 [simp]:  "\<not> normal s \<Longrightarrow> assign f v s = s" 
-by (auto simp add: assign_def Let_def split_beta)
+by (auto simp add: assign_def Let_def case_prod_beta)
 
 lemma assign_supd [simp]: 
 "assign (\<lambda>v. supd (f v)) v (x,s)  
@@ -423,7 +423,7 @@ lemma fvar_def2: \<comment> \<open>better suited for simplification\<close>
   ,abupd (if stat then id else np a') s)
   "
 apply (unfold fvar_def)
-apply (simp (no_asm) add: Let_def split_beta)
+apply (simp (no_asm) add: Let_def case_prod_beta)
 done
 
 lemma avar_def2: \<comment> \<open>better suited for simplification\<close> 
@@ -439,7 +439,7 @@ lemma avar_def2: \<comment> \<open>better suited for simplification\<close>
                    (Heap (the_Addr a'))))))) IndOutBound \<circ> np a')
           s)"
 apply (unfold avar_def)
-apply (simp (no_asm) add: Let_def split_beta)
+apply (simp (no_asm) add: Let_def case_prod_beta)
 done
 
 definition

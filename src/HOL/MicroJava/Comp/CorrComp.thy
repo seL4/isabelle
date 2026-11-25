@@ -74,7 +74,7 @@ theorem exec_all_one_step: "
   (None, hp1, (stk1,lvars1,C,S, Suc pc0)#frs)"
   apply (unfold exec_all_def)
   apply (rule r_into_rtrancl)
-  apply (simp add: gis_def gmb_def split_beta)
+  apply (simp add: gis_def gmb_def case_prod_beta)
   done
 
 
@@ -269,7 +269,7 @@ definition env_of_jmb :: "java_mb prog \<Rightarrow> cname \<Rightarrow> sig \<R
   (G,(map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C)))"
 
 lemma env_of_jmb_fst [simp]: "fst (env_of_jmb G C S) = G"
-by (simp add: env_of_jmb_def split_beta)
+by (simp add: env_of_jmb_def case_prod_beta)
 
 
 (**********************************************************************)
@@ -591,7 +591,7 @@ lemma state_ok_init:
   apply (frule wf_prog_ws_prog)
   apply (frule method_in_md [THEN conjunct2], assumption+)
   apply (frule method_yields_wf_java_mdecl, assumption, assumption)
-  apply (simp add: env_of_jmb_def gs_def conforms_def split_beta)
+  apply (simp add: env_of_jmb_def gs_def conforms_def case_prod_beta)
   apply (simp add: wf_java_mdecl_def)
   apply (rule conjI)
    apply (rule lconf_ext)

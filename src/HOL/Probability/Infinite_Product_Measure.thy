@@ -344,7 +344,7 @@ proof (rule PiM_eq)
                split: split_comb_seq split_comb_seq_asm)
   then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^sub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr[OF measurable_comb_seq])
-       (auto intro!: sets_PiM_I simp: split_beta' J)
+       (auto intro!: sets_PiM_I simp: case_prod_beta' J)
   also have "\<dots> = emeasure S ?E * emeasure S ?F"
     using J by (intro P.emeasure_pair_measure_Times)  (auto intro!: sets_PiM_I finite_vimageI simp: inj_on_def)
   also have "emeasure S ?F = (\<Prod>j\<in>((+) i) -` J. emeasure M (E (i + j)))"
@@ -375,7 +375,7 @@ proof (rule PiM_eq)
       split: nat.split nat.split_asm)
   then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^sub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr)
-       (auto intro!: sets_PiM_I simp: split_beta' J)
+       (auto intro!: sets_PiM_I simp: case_prod_beta' J)
   also have "\<dots> = emeasure M ?E * emeasure S ?F"
     using J by (intro P.emeasure_pair_measure_Times) (auto intro!: sets_PiM_I finite_vimageI)
   also have "emeasure S ?F = (\<Prod>j\<in>Suc -` J. emeasure M (E (Suc j)))"

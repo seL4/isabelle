@@ -146,7 +146,7 @@ lemma lower_Interval: "lower (Interval x) = fst x"
   and upper_Interval: "upper (Interval x) = snd x"
   if "fst x \<le> snd x"
   using that
-  by (auto simp: lower_def upper_def Interval_inverse split_beta')
+  by (auto simp: lower_def upper_def Interval_inverse case_prod_beta')
 
 definition all_in_i :: "'a::preorder list \<Rightarrow> 'a interval list \<Rightarrow> bool"
   (infix \<open>(all'_in\<^sub>i)\<close> 50)

@@ -110,7 +110,7 @@ text \<open>
   Evaluation of monadic expressions by force:
 \<close>
 
-lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
+lemmas monad_collapse = monad_simp fcomp_apply scomp_apply case_prod_beta
 
 end
 

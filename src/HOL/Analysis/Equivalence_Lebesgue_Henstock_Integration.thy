@@ -289,10 +289,10 @@ proof (rule cld_measure.borel_measurable_cld)
         using p(1) by (auto simp: emeasure_lborel_cbox_eq intro!: measure_subadditive_finite
                             dest!: p(1)[THEN tagged_division_ofD(4)])
       finally show "M - 3 * e \<le> (\<Sum>(x, y)\<in>p \<inter> s. content y)"
-        using \<open>0 < e\<close> by (simp add: split_beta)
+        using \<open>0 < e\<close> by (simp add: case_prod_beta)
     qed (use \<open>a < b\<close> in auto)
     also have "\<dots> = (\<Sum>(x,k) \<in> p \<inter> s. content k * (b - a))"
-      by (simp add: sum_distrib_right split_beta')
+      by (simp add: sum_distrib_right case_prod_beta')
     also have "\<dots> \<le> (\<Sum>(x,k) \<in> p \<inter> s. content k * (f (T ?F k) - f (T ?E k)))"
       using parts(3) by (auto intro!: sum_mono mult_left_mono diff_mono)
     also have "\<dots> = (\<Sum>(x,k) \<in> p \<inter> s. content k * f (T ?F k)) - (\<Sum>(x,k) \<in> p \<inter> s. content k * f (T ?E k))"

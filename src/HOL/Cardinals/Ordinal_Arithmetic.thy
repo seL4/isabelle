@@ -209,7 +209,7 @@ proof(intro allI impI, elim conjE)
   then obtain x where x: "x \<in> ?A" and "\<forall>x'\<in> ?A. (x', x) \<notin> r"
     using spec[OF WF[unfolded wf_eq_minimal2], of "?A"] by auto
   with y have "\<forall>a'\<in>A. (a', (x, y)) \<notin> r *o r'"
-    unfolding oprod_def mem_Collect_eq split_beta fst_conv snd_conv Id_def by auto
+    unfolding oprod_def mem_Collect_eq case_prod_beta fst_conv snd_conv Id_def by auto
   moreover from x have "(x, y) \<in> A" by auto
   ultimately show "\<exists>a\<in>A. \<forall>a'\<in>A. (a', a) \<notin> r *o r'" by blast
 qed

@@ -784,7 +784,7 @@ proof -
       apply (intro measure_eqI)
       apply (simp_all add: emeasure_distr[OF 2] emeasure_density[OF 1])
       apply (subst nn_integral_distr)
-      apply (auto intro!: * simp: comp_def split_beta)
+      apply (auto intro!: * simp: comp_def case_prod_beta)
       done
   qed
 qed

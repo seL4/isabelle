@@ -115,7 +115,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
             val SOME rew_eq = find_first param_rewrite prems'
             val param_prem' = rewrite_rule ctxt'
               (map (fn th => th RS @{thm eq_reflection})
-                [rew_eq RS @{thm sym}, @{thm split_beta}, @{thm fst_conv}, @{thm snd_conv}])
+                [rew_eq RS @{thm sym}, @{thm case_prod_beta}, @{thm fst_conv}, @{thm snd_conv}])
               param_prem
           in
             resolve_tac ctxt' [param_prem'] 1

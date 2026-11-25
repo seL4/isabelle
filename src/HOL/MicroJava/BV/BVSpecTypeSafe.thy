@@ -50,7 +50,7 @@ lemma exec_instr_xcpt:
   "(fst (exec_instr i G hp stk vars Cl sig pc frs) = Some xcp)
   = (\<exists>stk'. exec_instr i G hp stk vars Cl sig pc frs = 
             (Some xcp, hp, (stk', vars, Cl, sig, pc)#frs))"
-  by (cases i, auto simp add: split_beta split: if_split_asm)
+  by (cases i, auto simp add: case_prod_beta split: if_split_asm)
 
 
 text \<open>
@@ -255,7 +255,7 @@ lemma exec_instr_xcpt_hp:
   \<Longrightarrow> \<exists>adr T. xcp = Addr adr \<and> hp adr = Some T" 
   (is "\<lbrakk> ?xcpt; ?wt; ?correct \<rbrakk> \<Longrightarrow> ?thesis")
 proof -
-  note [simp] = split_beta raise_system_xcpt_def
+  note [simp] = case_prod_beta raise_system_xcpt_def
   note [split] = if_split_asm option.split_asm 
   
   assume wt: ?wt ?correct
@@ -316,7 +316,7 @@ proof -
   with xp'
   have "match_exception_table G (cname_of hp xcp) pc et = None \<Longrightarrow> ?thesis" 
     (is "?m (cname_of hp xcp) = _ \<Longrightarrow> _" is "?match = _ \<Longrightarrow> _")
-    by (clarsimp simp add: exec_instr_xcpt split_beta)
+    by (clarsimp simp add: exec_instr_xcpt case_prod_beta)
   moreover
   { fix handler
     assume some_handler: "?match = Some handler"
@@ -346,7 +346,7 @@ proof -
     from some_handler xp'
     have state': 
       "state' = (None, hp, ([xcp], loc, C, sig, handler)#frs)"
-      by (cases "ins!pc") (auto simp add: raise_system_xcpt_def split_beta 
+      by (cases "ins!pc") (auto simp add: raise_system_xcpt_def case_prod_beta 
                                split: if_split_asm) (* takes long! *)
 
     let ?f' = "([xcp], loc, C, sig, handler)"
@@ -356,13 +356,13 @@ proof -
       frame': "correct_frame G hp (ST',LT') maxl ins ?f'" 
     proof (cases "ins!pc")
       case Return \<comment> \<open>can't generate exceptions:\<close>
-      with xp' have False by (simp add: split_beta split: if_split_asm)
+      with xp' have False by (simp add: case_prod_beta split: if_split_asm)
       thus ?thesis ..
     next
       case New
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef OutOfMemory)"
-        by (simp add: raise_system_xcpt_def split_beta new_Addr_OutOfMemory)
+        by (simp add: raise_system_xcpt_def case_prod_beta new_Addr_OutOfMemory)
       with prehp have "cname_of hp xcp = Xcpt OutOfMemory" ..
       with New some_handler phi_pc eff 
       obtain ST' LT' where
@@ -392,7 +392,7 @@ proof -
       case Getfield
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
-        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
+        by (simp add: raise_system_xcpt_def case_prod_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Getfield some_handler phi_pc eff 
       obtain ST' LT' where
@@ -422,7 +422,7 @@ proof -
       case Putfield
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef NullPointer)"
-        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
+        by (simp add: raise_system_xcpt_def case_prod_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt NullPointer" ..
       with Putfield some_handler phi_pc eff 
       obtain ST' LT' where
@@ -452,7 +452,7 @@ proof -
       case Checkcast
       with some_handler xp'
       have xcp: "xcp = Addr (XcptRef ClassCast)"
-        by (simp add: raise_system_xcpt_def split_beta split: if_split_asm)
+        by (simp add: raise_system_xcpt_def case_prod_beta split: if_split_asm)
       with prehp have "cname_of hp xcp = Xcpt ClassCast" ..
       with Checkcast some_handler phi_pc eff 
       obtain ST' LT' where
@@ -668,7 +668,7 @@ lemma Getfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 wt_jvm_prog_def split_beta
+apply (clarsimp simp add: defs2 wt_jvm_prog_def case_prod_beta
                 split: option.split if_split_asm)
 apply (frule conf_widen)
 apply assumption+
@@ -701,7 +701,7 @@ lemma Putfield_correct:
   G,phi \<turnstile>JVM (None, hp, (stk,loc,C,sig,pc)#frs)\<surd>;
   fst (exec_instr (ins!pc) G hp stk loc C sig pc frs) = None \<rbrakk> 
 \<Longrightarrow> G,phi \<turnstile>JVM state'\<surd>"
-apply (clarsimp simp add: defs2 split_beta split: option.split list.split if_split_asm)
+apply (clarsimp simp add: defs2 case_prod_beta split: option.split list.split if_split_asm)
 apply (frule conf_widen)
 prefer 2
   apply assumption
@@ -1288,7 +1288,7 @@ done
 
 lemma L0:
   "\<lbrakk> xp=None; frs\<noteq>[] \<rbrakk> \<Longrightarrow> (\<exists>state'. exec (G,xp,hp,frs) = Some state')"
-by (clarsimp simp add: neq_Nil_conv split_beta)
+by (clarsimp simp add: neq_Nil_conv case_prod_beta)
 
 lemma L1:
   "\<lbrakk>wt_jvm_prog G phi; G,phi \<turnstile>JVM (xp,hp,frs)\<surd>; xp=None; frs\<noteq>[]\<rbrakk> 

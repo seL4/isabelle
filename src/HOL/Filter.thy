@@ -2048,11 +2048,11 @@ proof(intro rel_funI; elim rel_filter.cases; hypsubst)
   proof
     let ?Z = "filtermap (\<lambda>((a, b), (a', b')). ((a, a'), (b, b'))) (prod_filter F G)"
     show *: "\<forall>\<^sub>F (x, y) in ?Z. rel_prod R S x y" using F G
-      by(auto simp add: eventually_filtermap split_beta eventually_prod_filter)
+      by(auto simp add: eventually_filtermap case_prod_beta eventually_prod_filter)
     show "map_filter_on {(x, y). ?RS x y} fst ?Z = ?F"
       using F G
       apply(clarsimp simp add: filter_eq_iff eventually_map_filter_on *)
-      apply(simp add: eventually_filtermap split_beta eventually_prod_filter)
+      apply(simp add: eventually_filtermap case_prod_beta eventually_prod_filter)
       apply(subst eventually_map_filter_on; simp)+
       apply(rule iffI; clarsimp)
       subgoal for P P' P''
@@ -2066,7 +2066,7 @@ proof(intro rel_funI; elim rel_filter.cases; hypsubst)
     show "map_filter_on {(x, y). ?RS x y} snd ?Z = ?G"
       using F G
       apply(clarsimp simp add: filter_eq_iff eventually_map_filter_on *)
-      apply(simp add: eventually_filtermap split_beta eventually_prod_filter)
+      apply(simp add: eventually_filtermap case_prod_beta eventually_prod_filter)
       apply(subst eventually_map_filter_on; simp)+
       apply(rule iffI; clarsimp)
       subgoal for P P' P''

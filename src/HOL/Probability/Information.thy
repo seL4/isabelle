@@ -699,7 +699,7 @@ proof (subst mutual_information_distr[OF _ _ simple_distributed[OF X] _ simple_d
     by auto
   with fin show "(\<integral> x. ?f x \<partial>(count_space (X ` space M) \<Otimes>\<^sub>M count_space (Y ` space M))) =
     (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / (Px x * Py y)))"
-    by (auto simp add: pair_measure_count_space lebesgue_integral_count_space_finite sum.If_cases split_beta'
+    by (auto simp add: pair_measure_count_space lebesgue_integral_count_space_finite sum.If_cases case_prod_beta'
              intro!: sum.cong)
 qed (insert X Y XY, auto simp: simple_distributed_def)
 
@@ -945,7 +945,7 @@ proof -
   also have "\<dots> = (\<integral>(x,y,z). Pxyz (x,y,z) * log b (Pxz (x,z) / (Px x * Pz z)) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))"
     using b_gt_1 Pxz Px Pz
     by (subst distributed_transform_integral[OF Pxyz _ Pxz _, where T="\<lambda>(x, y, z). (x, z)"])
-       (auto simp: split_beta' space_pair_measure)
+       (auto simp: case_prod_beta' space_pair_measure)
   finally have mi_eq:
     "mutual_information b S P X Z = (\<integral>(x,y,z). Pxyz (x,y,z) * log b (Pxz (x,z) / (Px x * Pz z)) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))" .
 
@@ -980,7 +980,7 @@ proof -
     apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz _ Pxyz])
     apply (auto simp: space_pair_measure)
     apply (subst Bochner_Integration.integral_diff[symmetric])
-    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
+    apply (auto intro!: integral_cong_AE simp: case_prod_beta' simp del: Bochner_Integration.integral_diff)
     done
 
   let ?P = "density (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) Pxyz"
@@ -1010,7 +1010,7 @@ proof -
        (auto intro!: nn_integral_mono simp: space_pair_measure ennreal_mult[symmetric])
   also have "\<dots> = (\<integral>\<^sup>+(y, z). (\<integral>\<^sup>+ x. ennreal (Pxz (x, z)) * ennreal (Pyz (y, z) / Pz z) \<partial>S) \<partial>(T \<Otimes>\<^sub>M P))"
     by (subst STP.nn_integral_snd[symmetric])
-       (auto simp add: split_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
+       (auto simp add: case_prod_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+x. ennreal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
   proof -
     have D: "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
@@ -1047,7 +1047,7 @@ proof -
       by (subst (asm) emeasure_density) (auto cong: nn_integral_cong)
   qed
   then have pos: "(\<integral>\<^sup>+x. ?f x \<partial>?P) \<noteq> 0"
-    by (subst nn_integral_density) (simp_all add: split_beta')
+    by (subst nn_integral_density) (simp_all add: case_prod_beta')
 
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
     by (subst nn_integral_0_iff_AE) (auto simp: space_pair_measure ennreal_neg)
@@ -1055,7 +1055,7 @@ proof -
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
     apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
     using ae
-    apply (auto simp: split_beta')
+    apply (auto simp: case_prod_beta')
     done
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
@@ -1084,7 +1084,7 @@ proof -
       by (auto simp: space_pair_measure less_le)
     show "integrable ?P ?f"
       unfolding real_integrable_def
-      using fin neg by (auto simp: split_beta')
+      using fin neg by (auto simp: case_prod_beta')
     have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
       by (auto simp: log_mult log_divide field_simps)
@@ -1157,7 +1157,7 @@ proof -
   also have "\<dots> = (\<integral>(x,y,z). Pxyz (x,y,z) * log b (Pxz (x,z) / (Px x * Pz z)) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))"
     using b_gt_1 Pxz Pxz_nn Pxyz Pxyz_nn
     by (subst distributed_transform_integral[OF Pxyz _ Pxz, where T="\<lambda>(x, y, z). (x, z)"])
-       (auto simp: split_beta')
+       (auto simp: case_prod_beta')
   finally have mi_eq:
     "mutual_information b S P X Z = (\<integral>(x,y,z). Pxyz (x,y,z) * log b (Pxz (x,z) / (Px x * Pz z)) \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P))" .
 
@@ -1218,7 +1218,7 @@ proof -
     unfolding conditional_mutual_information_def mi_eq
     apply (subst mutual_information_distr[OF S TP Px Px_nn Pyz Pyz_nn Pxyz Pxyz_nn]; simp add: space_pair_measure)
     apply (subst Bochner_Integration.integral_diff[symmetric])
-      apply (auto intro!: integral_cong_AE simp: split_beta' simp del: Bochner_Integration.integral_diff)
+      apply (auto intro!: integral_cong_AE simp: case_prod_beta' simp del: Bochner_Integration.integral_diff)
     done
 
   let ?P = "density (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) Pxyz"
@@ -1246,7 +1246,7 @@ proof -
   also have "\<dots> = (\<integral>\<^sup>+(y, z). \<integral>\<^sup>+ x. ennreal (Pxz (x, z)) * ennreal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^sub>M P)"
     using Px_nn Pz_nn Pxz_nn Pyz_nn Pxyz_nn
     by (subst STP.nn_integral_snd[symmetric])
-       (auto simp add: split_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
+       (auto simp add: case_prod_beta' ennreal_mult[symmetric] space_pair_measure intro!: nn_integral_cong)
   also have "\<dots> = (\<integral>\<^sup>+x. ennreal (Pyz x) * 1 \<partial>T \<Otimes>\<^sub>M P)"
   proof -
     have *: "(\<integral>\<^sup>+ x. ennreal (Pxz (x, b)) * ennreal (Pyz (a, b) / Pz b) \<partial>S) = ennreal (Pyz (a, b))"
@@ -1268,7 +1268,7 @@ proof -
   have "(\<integral>\<^sup>+ x. ?f x \<partial>?P) \<noteq> 0"
     using Pxyz_nn
     apply (subst nn_integral_density)
-    apply (simp_all add: split_beta'  ennreal_mult'[symmetric] cong: nn_integral_cong)
+    apply (simp_all add: case_prod_beta'  ennreal_mult'[symmetric] cong: nn_integral_cong)
   proof
     let ?g = "\<lambda>x. ennreal (if Pxyz x = 0 then 0 else Pxz (fst x, snd (snd x)) * Pyz (snd x) / Pz (snd (snd x)))"
     assume "(\<integral>\<^sup>+ x. ?g x \<partial>(S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P)) = 0"
@@ -1289,12 +1289,12 @@ proof -
   have neg: "(\<integral>\<^sup>+ x. - ?f x \<partial>?P) = 0"
     using Pz_nn Pxz_nn Pyz_nn Pxyz_nn
     by (intro nn_integral_0_iff_AE[THEN iffD2])
-       (auto simp: split_beta' AE_density space_pair_measure intro!: AE_I2 ennreal_neg)
+       (auto simp: case_prod_beta' AE_density space_pair_measure intro!: AE_I2 ennreal_neg)
 
   have I3: "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
     apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ Bochner_Integration.integrable_diff[OF I1 I2]])
     using ae
-    by (auto simp: split_beta')
+    by (auto simp: case_prod_beta')
 
   have "- log b 1 \<le> - log b (integral\<^sup>L ?P ?f)"
   proof (intro le_imp_neg_le Transcendental.log_mono[OF b_gt_1])
@@ -1316,7 +1316,7 @@ proof -
       by (insert Pxyz_nn Pyz_nn Pz_nn Pxz_nn, auto simp: space_pair_measure less_le)
     show "integrable ?P ?f"
       unfolding real_integrable_def
-      using fin neg by (auto simp: split_beta')
+      using fin neg by (auto simp: case_prod_beta')
     have "integrable (S \<Otimes>\<^sub>M T \<Otimes>\<^sub>M P) (\<lambda>x. Pxyz x * - log b (?f x))"
       apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
       using Pz_nn Pxz_nn Pyz_nn Pxyz_nn ae2 ae3 ae4 
@@ -1385,7 +1385,7 @@ proof (subst conditional_mutual_information_generic_eq[OF _ _ _ _ _
   have "(\<lambda>(x, y, z). ?i x y z) = (\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x, Z x)) ` space M then ?j (fst x) (fst (snd x)) (snd (snd x)) else 0)"
     by (auto intro!: ext)
   then show "(\<integral> (x, y, z). ?i x y z \<partial>?P) = (\<Sum>(x, y, z)\<in>(\<lambda>x. (X x, Y x, Z x)) ` space M. ?j x y z)"
-    by (auto intro!: sum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite sum.If_cases split_beta')
+    by (auto intro!: sum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite sum.If_cases case_prod_beta')
 qed (insert Pz Pyz Pxz Pxyz, auto intro: measure_nonneg)
 
 lemma (in information_space) conditional_mutual_information_nonneg:
@@ -1458,7 +1458,7 @@ proof -
     apply (auto simp: distributed_distr_eq_density[OF Pxy] space_pair_measure
                 intro!: integral_cong_AE)
     done
-  then show ?thesis by (simp add: split_beta')
+  then show ?thesis by (simp add: case_prod_beta')
 qed
 
 lemma (in information_space) conditional_entropy_eq_entropy:
@@ -1512,7 +1512,7 @@ proof -
   finally show ?thesis
     using conditional_entropy_generic_eq[OF S T Py Py_nn Pxy Pxy_nn, simplified]
       entropy_distr[OF Pxy **, simplified] e_eq
-    by (simp add: split_beta')
+    by (simp add: case_prod_beta')
 qed
 
 lemma (in information_space) conditional_entropy_eq_entropy_simple:
@@ -1553,7 +1553,7 @@ proof (subst conditional_entropy_generic_eq[OF _ _
     by auto
   from Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
     - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
-    by (auto intro!: sum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite eq sum.If_cases split_beta')
+    by (auto intro!: sum.cong simp add: \<open>?P = ?C\<close> lebesgue_integral_count_space_finite simple_distributed_finite eq sum.If_cases case_prod_beta')
 qed (use Y XY in auto)
 
 lemma (in information_space) conditional_mutual_information_eq_conditional_entropy:

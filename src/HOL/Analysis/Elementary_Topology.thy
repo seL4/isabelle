@@ -2067,7 +2067,7 @@ proof -
     by (auto simp: vimage_def W0_def)
   have "open {..<e}" by simp
   have "continuous_on (U \<times> C) psi"
-    by (auto intro!: continuous_intros simp: psi_def split_beta')
+    by (auto intro!: continuous_intros simp: psi_def case_prod_beta')
   then obtain W where W: "open W" "W \<inter> U \<times> C = W0 \<inter> U \<times> C"
     unfolding W0_eq
     by (metis \<open>open {..<e}\<close> continuous_on_open_invariant inf_right_idem) 

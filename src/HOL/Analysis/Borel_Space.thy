@@ -340,7 +340,7 @@ lemma borel_eq_sigmaI2:
   assumes F: "\<And>i j. (i, j) \<in> A \<Longrightarrow> F i j \<in> sets borel"
   shows "borel = sigma UNIV ((\<lambda>(i, j). F i j) ` A)"
   using assms
-  by (smt (verit, del_insts) borel_eq_sigmaI1 image_iff prod.collapse split_beta)
+  by (smt (verit, del_insts) borel_eq_sigmaI1 image_iff prod.collapse case_prod_beta)
 
 lemma borel_eq_sigmaI3:
   fixes F :: "'i \<Rightarrow> 'j \<Rightarrow> 'a::topological_space set" and X :: "'a::topological_space set set"
