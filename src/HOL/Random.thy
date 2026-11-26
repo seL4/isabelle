@@ -72,7 +72,7 @@ proof -
   then have
     "nat_of_natural (fst (range (natural_of_nat (length xs)) s)) < length xs" by (simp add: less_natural_def)
   then show ?thesis
-    by (simp add: split_beta select_def)
+    by (simp add: case_prod_beta select_def)
 qed
 
 primrec pick :: "(natural \<times> 'a) list \<Rightarrow> natural \<Rightarrow> 'a" where

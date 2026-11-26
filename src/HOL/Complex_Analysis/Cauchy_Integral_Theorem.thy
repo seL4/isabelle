@@ -310,7 +310,7 @@ proof -
                      (fst (snd (three.f n))) (snd (snd (three.f n)))"
          "\<And>n. At (fst (three.f n)) (fst (snd (three.f n))) (snd (snd (three.f n))) n"
       using three.At three.Follows
-      by (simp_all add: split_beta')
+      by (simp_all add: case_prod_beta')
   qed auto
 qed
 

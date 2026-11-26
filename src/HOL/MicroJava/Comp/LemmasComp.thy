@@ -24,7 +24,7 @@ lemma c_hupd_conv:
   by (simp add: c_hupd_def)
 
 lemma gl_c_hupd [simp]: "(gl (c_hupd h xs)) = (gl xs)"
-  by (simp add: gl_def c_hupd_def split_beta)
+  by (simp add: gl_def c_hupd_def case_prod_beta)
 
 lemma c_hupd_xcpt_invariant [simp]: "gx (c_hupd h' (xo, st)) = xo"
   by (cases st) (simp only: c_hupd_conv gx_conv)
@@ -68,7 +68,7 @@ qed
 lemma comp_unique: "unique (comp G) = unique G"
   apply (simp add: comp_def)
   apply (rule unique_map_fst)
-  apply (simp add: compClass_def split_beta)
+  apply (simp add: compClass_def case_prod_beta)
   done
 
 
@@ -88,7 +88,7 @@ lemma comp_class_None:
 "(class G C = None) = (class (comp G) C = None)"
   apply (simp add: class_def comp_def compClass_def)
   apply (simp add: map_of_in_set)
-  apply (simp add: image_comp [symmetric] o_def split_beta)
+  apply (simp add: image_comp [symmetric] o_def case_prod_beta)
   done
 
 lemma comp_is_class: "is_class (comp G) C = is_class G C"
@@ -138,13 +138,13 @@ lemma comp_cast_ok: "cast_ok (comp G) = cast_ok G"
 
 
 lemma compClass_fst [simp]: "(fst (compClass G C)) = (fst C)"
-  by (simp add: compClass_def split_beta)
+  by (simp add: compClass_def case_prod_beta)
 
 lemma compClass_fst_snd [simp]: "(fst (snd (compClass G C))) = (fst (snd C))"
-  by (simp add: compClass_def split_beta)
+  by (simp add: compClass_def case_prod_beta)
 
 lemma compClass_fst_snd_snd [simp]: "(fst (snd (snd (compClass G C)))) = (fst (snd (snd C)))"
-  by (simp add: compClass_def split_beta)
+  by (simp add: compClass_def case_prod_beta)
 
 lemma comp_wf_fdecl [simp]: "wf_fdecl (comp G) fd = wf_fdecl G fd"
   by (cases fd) (simp add: wf_fdecl_def comp_is_type)
@@ -153,21 +153,21 @@ lemma comp_wf_fdecl [simp]: "wf_fdecl (comp G) fd = wf_fdecl G fd"
 lemma compClass_forall [simp]:
   "(\<forall>x\<in>set (snd (snd (snd (compClass G C)))). P (fst x) (fst (snd x))) =
   (\<forall>x\<in>set (snd (snd (snd C))). P (fst x) (fst (snd x)))"
-  by (simp add: compClass_def compMethod_def split_beta)
+  by (simp add: compClass_def compMethod_def case_prod_beta)
 
 lemma comp_wf_mhead: "wf_mhead (comp G) S rT =  wf_mhead G S rT"
-  by (simp add: wf_mhead_def split_beta comp_is_type)
+  by (simp add: wf_mhead_def case_prod_beta comp_is_type)
 
 lemma comp_ws_cdecl:
   "ws_cdecl (TranslComp.comp G) (compClass G C) = ws_cdecl G C"
-  apply (simp add: ws_cdecl_def split_beta comp_is_class comp_subcls1)
+  apply (simp add: ws_cdecl_def case_prod_beta comp_is_class comp_subcls1)
   apply (simp (no_asm_simp) add: comp_wf_mhead)
-  apply (simp add: compClass_def compMethod_def split_beta unique_map_fst)
+  apply (simp add: compClass_def compMethod_def case_prod_beta unique_map_fst)
   done
 
 
 lemma comp_wf_syscls: "wf_syscls (comp G) = wf_syscls G"
-  apply (simp add: wf_syscls_def comp_def compClass_def split_beta cong: image_cong_simp)
+  apply (simp add: wf_syscls_def comp_def compClass_def case_prod_beta cong: image_cong_simp)
   apply (simp add: image_comp cong: image_cong_simp)
   done
 
@@ -302,11 +302,11 @@ lemma comp_method [rule_format (no_asm)]:
                      g="(Fun.comp (\<lambda>(s, m). (s, Object, m)) (compMethod G Object))"
                   in map_of_map_fst)
        defer  (* inj \<dots> *)
-       apply (simp add: inj_on_def split_beta)
-      apply (simp add: split_beta compMethod_def)
+       apply (simp add: inj_on_def case_prod_beta)
+      apply (simp add: case_prod_beta compMethod_def)
      apply (simp add: map_of_map [symmetric])
-     apply (simp add: split_beta)
-     apply (simp add: Fun.comp_def split_beta)
+     apply (simp add: case_prod_beta)
+     apply (simp add: Fun.comp_def case_prod_beta)
      apply (subgoal_tac "(\<lambda>x::(vname list \<times> fdecl list \<times> stmt \<times> expr) mdecl.
                         (fst x, Object,
                          snd (compMethod G Object
@@ -320,7 +320,7 @@ lemma comp_method [rule_format (no_asm)]:
      apply (intro strip)
      apply (subgoal_tac "(inv (\<lambda>(s, m). (s, Object, m)) (S, Object, snd x)) = (S, snd x)")
       apply (simp only:)
-      apply (simp add: compMethod_def split_beta)
+      apply (simp add: compMethod_def case_prod_beta)
      apply (rule inv_f_eq)
       defer
       defer
@@ -331,19 +331,19 @@ lemma comp_method [rule_format (no_asm)]:
       apply (subgoal_tac "inj (\<lambda>(s, m). (s, Ca, m))")
        apply (drule_tac g="(Fun.comp (\<lambda>(s, m). (s, Ca, m)) (compMethod G Ca))" and xs=ms
                     and k=S in map_of_map_fst)
-         apply (simp add: split_beta)
-        apply (simp add: compMethod_def split_beta)
+         apply (simp add: case_prod_beta)
+        apply (simp add: compMethod_def case_prod_beta)
        apply (case_tac "(map_of (map (\<lambda>(s, m). (s, Ca, m)) ms) S)")
         apply simp
-       apply (simp add: split_beta map_of_map)
+       apply (simp add: case_prod_beta map_of_map)
        apply (elim exE conjE)
        apply (drule_tac t=a in sym)
        apply (subgoal_tac "(inv (\<lambda>(s, m). (s, Ca, m)) (S, a)) = (S, snd a)")
         apply simp
         apply (subgoal_tac "\<forall>x\<in>set ms. fst ((Fun.comp (\<lambda>(s, m). (s, Ca, m)) (compMethod G Ca)) x) = fst x")
-         prefer 2 apply (simp (no_asm_simp) add: compMethod_def split_beta)
+         prefer 2 apply (simp (no_asm_simp) add: compMethod_def case_prod_beta)
         apply (simp add: map_of_map2)
-        apply (simp (no_asm_simp) add: compMethod_def split_beta)
+        apply (simp (no_asm_simp) add: compMethod_def case_prod_beta)
 
        \<comment> \<open>remaining subgoals\<close>
        apply (auto intro: inv_f_eq simp add: inj_on_def is_class_def)
@@ -354,7 +354,7 @@ lemma comp_method [rule_format (no_asm)]:
 lemma comp_wf_mrT: "\<lbrakk> ws_prog G; is_class G D\<rbrakk> \<Longrightarrow> 
   wf_mrT (TranslComp.comp G) (C, D, fs, map (compMethod G a) ms) =
   wf_mrT G (C, D, fs, ms)"
-  apply (simp add: wf_mrT_def compMethod_def split_beta)
+  apply (simp add: wf_mrT_def compMethod_def case_prod_beta)
   apply (simp add: comp_widen)
   apply (rule iffI)
    apply (intro strip)

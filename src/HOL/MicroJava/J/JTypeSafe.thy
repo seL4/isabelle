@@ -6,7 +6,7 @@ section \<open>Type Safety Proof\<close>
 
 theory JTypeSafe imports Eval Conform begin
 
-declare split_beta [simp]
+declare case_prod_beta [simp]
 
 lemma NewC_conforms: 
 "[|h a = None; (x,(h, l))::\<preceq>(G, lT); wf_prog wf_mb G; is_class G C|] ==>  
@@ -407,7 +407,7 @@ apply( drule non_npD)
 apply auto
 done
 
-declare split_beta [simp del]
+declare case_prod_beta [simp del]
 declare fun_upd_apply [simp]
 declare wf_prog_ws_prog [simp del]
 

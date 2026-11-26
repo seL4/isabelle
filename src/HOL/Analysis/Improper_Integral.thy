@@ -1363,7 +1363,7 @@ next
           have fh_tag: "f x = h x" if "(x,K) \<in> T" for x K
             using T fh that by (meson tag_in_interval)
           then have fh: "(\<Sum>(x,K) \<in> T. content K *\<^sub>R f x) = (\<Sum>(x,K) \<in> T. content K *\<^sub>R h x)"
-            by (metis (mono_tags, lifting) split_cong sum.cong)
+            by (metis (mono_tags, lifting) case_prod_cong sum.cong)
           show ?thesis
             unfolding fh int_f
           proof (rule less_trans [OF \<gamma>1])

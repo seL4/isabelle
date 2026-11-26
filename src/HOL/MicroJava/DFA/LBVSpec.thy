@@ -138,7 +138,7 @@ lemma (in lbv) merge_Cons [simp]:
   "merge c pc (l#ls) x = merge c pc ls (if fst l=pc+1 then snd l +_f x
                                         else if snd l <=_r (c!fst l) then x
                                         else \<top>)"
-  by (simp add: mrg_def split_beta)
+  by (simp add: mrg_def case_prod_beta)
 
 lemma (in lbv) merge_Err [simp]:
   "snd`set ss \<subseteq> A \<Longrightarrow> merge c pc ss \<top> = \<top>"

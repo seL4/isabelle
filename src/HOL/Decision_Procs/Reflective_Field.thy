@@ -322,7 +322,7 @@ lemma (in field) split_aux_correct:
     peval xs e\<^sub>2 =
     peval xs (PExpr2 (PMul (snd (snd (split_aux e\<^sub>1 n e\<^sub>2))) (fst (snd (split_aux e\<^sub>1 n e\<^sub>2)))))"
   by (induct e\<^sub>1 n e\<^sub>2 rule: split_aux_induct)
-    (auto simp add: split_beta
+    (auto simp add: case_prod_beta
        nat_pow_distrib nat_pow_pow nat_pow_mult m_ac
        npemul_correct npepow_correct isin_correct'
        split: option.split)
@@ -451,14 +451,14 @@ next
     from 1 FAdd have "feval xs (FAdd e1 e2) =
       (?common \<otimes> (peval xs (Num e1) \<otimes> ?right \<oplus> peval xs (Num e2) \<otimes> ?left)) \<oslash>
       (?common \<otimes> (?left \<otimes> (?right \<otimes> ?common)))"
-      by (simp add: split_beta split nonzero_union add_frac_eq r_distr m_ac)
+      by (simp add: case_prod_beta split nonzero_union add_frac_eq r_distr m_ac)
     also from 1 FAdd have "\<dots> = peval xs (Num (FAdd e1 e2)) \<oslash> peval xs (Denom (FAdd e1 e2))"
-      by (simp add: split_beta split nonzero_union npeadd_correct npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npeadd_correct npemul_correct integral_iff)
     finally show ?case .
   next
     case 2
     with FAdd show ?case
-      by (simp add: split_beta split nonzero_union npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npemul_correct integral_iff)
   }
 next
   case (FSub e1 e2)
@@ -472,14 +472,14 @@ next
     have "feval xs (FSub e1 e2) =
       (?common \<otimes> (peval xs (Num e1) \<otimes> ?right \<ominus> peval xs (Num e2) \<otimes> ?left)) \<oslash>
       (?common \<otimes> (?left \<otimes> (?right \<otimes> ?common)))"
-      by (simp add: split_beta split nonzero_union diff_frac_eq r_diff_distr m_ac)
+      by (simp add: case_prod_beta split nonzero_union diff_frac_eq r_diff_distr m_ac)
     also from 1 FSub have "\<dots> = peval xs (Num (FSub e1 e2)) \<oslash> peval xs (Denom (FSub e1 e2))"
-      by (simp add: split_beta split nonzero_union npesub_correct npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npesub_correct npemul_correct integral_iff)
     finally show ?case .
   next
     case 2
     with FSub show ?case
-      by (simp add: split_beta split nonzero_union npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npemul_correct integral_iff)
   }
 next
   case (FMul e1 e2)
@@ -497,26 +497,26 @@ next
     from 1 FMul have "feval xs (FMul e1 e2) =
       ((?common\<^sub>1 \<otimes> ?common\<^sub>2) \<otimes> (?left\<^sub>1 \<otimes> ?left\<^sub>2)) \<oslash>
       ((?common\<^sub>1 \<otimes> ?common\<^sub>2) \<otimes> (?right\<^sub>2 \<otimes> ?right\<^sub>1))"
-      by (simp add: split_beta split nonzero_union
+      by (simp add: case_prod_beta split nonzero_union
         nonzero_divide_divide_eq_left m_ac)
     also from 1 FMul have "\<dots> = peval xs (Num (FMul e1 e2)) \<oslash> peval xs (Denom (FMul e1 e2))"
-      by (simp add: split_beta split nonzero_union npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npemul_correct integral_iff)
     finally show ?case .
   next
     case 2
     with FMul show ?case
-      by (simp add: split_beta split nonzero_union npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union npemul_correct integral_iff)
   }
 next
   case (FNeg e)
   {
     case 1
     with FNeg show ?case
-      by (simp add: split_beta npeneg_correct)
+      by (simp add: case_prod_beta npeneg_correct)
   next
     case 2
     with FNeg show ?case
-      by (simp add: split_beta)
+      by (simp add: case_prod_beta)
   }
 next
   case (FDiv e1 e2)
@@ -535,26 +535,26 @@ next
     have "feval xs (FDiv e1 e2) =
       ((?common\<^sub>1 \<otimes> ?common\<^sub>2) \<otimes> (?left\<^sub>1 \<otimes> ?right\<^sub>2)) \<oslash>
       ((?common\<^sub>1 \<otimes> ?common\<^sub>2) \<otimes> (?left\<^sub>2 \<otimes> ?right\<^sub>1))"
-      by (simp add: split_beta split nonzero_union nonzero_insert
+      by (simp add: case_prod_beta split nonzero_union nonzero_insert
         nonzero_divide_divide_eq m_ac)
     also from 1 FDiv have "\<dots> = peval xs (Num (FDiv e1 e2)) \<oslash> peval xs (Denom (FDiv e1 e2))"
-      by (simp add: split_beta split nonzero_union nonzero_insert npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union nonzero_insert npemul_correct integral_iff)
     finally show ?case .
   next
     case 2
     with FDiv show ?case
-      by (simp add: split_beta split nonzero_union nonzero_insert npemul_correct integral_iff)
+      by (simp add: case_prod_beta split nonzero_union nonzero_insert npemul_correct integral_iff)
   }
 next
   case (FPow e n)
   {
     case 1
     with FPow show ?case
-      by (simp add: split_beta nonzero_power_divide npepow_correct)
+      by (simp add: case_prod_beta nonzero_power_divide npepow_correct)
   next
     case 2
     with FPow show ?case
-      by (simp add: split_beta npepow_correct)
+      by (simp add: case_prod_beta npepow_correct)
   }
 qed
 

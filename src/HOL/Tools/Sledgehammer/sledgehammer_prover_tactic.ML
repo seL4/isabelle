@@ -74,6 +74,8 @@ fun meth_of "algebra" = Algebra_Method
   | meth_of "simp" = Simp_Method
   | meth_of _ = Metis_Method (NONE, NONE, [])
 
+local
+
 fun collapse_whitespace (s : string) : string = implode_space (String.tokens Char.isSpace s)
 
 fun string_of_tactic_outcome (outcome : atp_failure option) : string =
@@ -83,40 +85,87 @@ fun string_of_tactic_outcome (outcome : atp_failure option) : string =
   | SOME _ => "gave_up")
 
 val class_width = fold (Integer.max o size) Try0.native_classes 0
-val kind_width = size "direct"
 
-fun make_fact_lines (facts : Try0.xref Try0.facts) : string list =
+fun dest_facts ({unclassified, classified} : Try0.xref Try0.facts) :
+    (string * string * string) list =
   let
-    fun make_fact_line class kind xref =
-      implode_space ["fact", StringCvt.padRight #" " class_width class,
-        StringCvt.padRight #" " kind_width kind,
-        collapse_whitespace (Try0_Util.string_of_xref xref)]
-    fun make_usings_directs_lines class {usings, directs} =
-      map (make_fact_line class "using") usings @ map (make_fact_line class "direct") directs
+    fun add_fact class kind xref =
+      cons (class, kind, collapse_whitespace (Try0_Util.string_of_xref xref))
+    fun add_usings_directs class {usings, directs} =
+      fold_rev (add_fact class "using") usings o fold_rev (add_fact class "direct") directs
   in
-    maps (uncurry make_usings_directs_lines) (Symtab.dest (#classified facts)) @
-    make_usings_directs_lines "-" (#unclassified facts)
+    []
+    |> add_usings_directs "-" unclassified
+    |> Symtab.fold_rev (uncurry add_usings_directs) classified
   end
+
+fun add_column (width : int) (str : string) : Bytes.T -> Bytes.T =
+  if size str > width then
+    Bytes.add " " o Bytes.add str
+  else
+    Bytes.add (StringCvt.padRight #" " (width + 1) str)
+
+fun add_fact_lines (input_facts : Try0.xref Try0.facts) (output_facts : Try0.xref Try0.facts)
+    (bytes : Bytes.T) : Bytes.T =
+  let
+    val inputs = dest_facts input_facts
+    val outputs = dest_facts output_facts
+    fun make_names facts = Symtab.build (fold (fn (_, _, name) => Symtab.insert_set name) facts)
+    val input_names = make_names inputs
+    val output_names = make_names outputs
+    fun add_fact_line marks (class, kind, name) bytes =
+      bytes
+      |> Bytes.add marks
+      |> add_column class_width class
+      |> add_column 6 kind
+      |> Bytes.add name
+      |> Bytes.add "\n"
+    fun add_output_line (fact as (_, _, name)) =
+      add_fact_line (if Symtab.defined input_names name then "in out " else "-  out ") fact
+    fun add_removed_input_line (fact as (_, _, name)) =
+      if Symtab.defined output_names name then I else add_fact_line "in -   " fact
+  in
+    bytes
+    |> fold add_output_line outputs
+    |> fold add_removed_input_line inputs
+  end
+
+in
 
 fun write_fact_classification_log (ctxt : Proof.context) (prover : string) (mode : mode)
     (max_facts : int) (classifier_time : Time.time) (method_time : Time.time)
-    (outcome : atp_failure option) (command : string) (facts : Try0.xref Try0.facts) : unit =
+    (outcome : atp_failure option) (command : string) (input_facts : Try0.xref Try0.facts)
+    (output_facts : Try0.xref Try0.facts) : unit =
   let
     val command = collapse_whitespace (Protocol_Message.clean_output command)
-    val slice_fields =
-      [Context.theory_long_name (Proof_Context.theory_of ctxt), prover, str_of_mode mode,
-       string_of_int max_facts, string_of_int (Time.toMicroseconds classifier_time),
-       string_of_int (Time.toMicroseconds method_time), string_of_tactic_outcome outcome] @
-      (if command = "" then [] else [command])
+    fun add_field field bytes = bytes |> Bytes.add " " |> Bytes.add field
+    fun add_time_field time bytes =
+      bytes |> add_field (string_of_int (Time.toMicroseconds time)) |> Bytes.add "\194\181s" (*µs*)
+    fun add_slice_line bytes =
+      bytes
+      |> Bytes.add "slice"
+      |> add_field (Context.theory_long_name (Proof_Context.theory_of ctxt))
+      |> add_field prover
+      |> add_field (str_of_mode mode)
+      |> add_field (string_of_int max_facts)
+      |> add_time_field classifier_time
+      |> add_time_field method_time
+      |> add_field (string_of_tactic_outcome outcome)
+      |> (if command = "" then I else add_field command)
+      |> Bytes.add "\n"
     val file_name =
       Config.get ctxt fact_classification_prefix ^ "__" ^ prover ^ "_" ^ string_of_int max_facts ^
       "__" ^ serial_string ()
     val dir =
       Isabelle_System.make_directory (Path.explode (Config.get ctxt fact_classification_dest_dir))
-    val lines = implode_space ("slice" :: slice_fields) :: make_fact_lines facts
   in
-    File.write (dir + Path.basic file_name) (cat_lines lines ^ "\n")
+    Bytes.empty
+    |> add_slice_line
+    |> add_fact_lines input_facts output_facts
+    |> Bytes.write (dir + Path.ext "log" (Path.basic file_name))
   end
+
+end
 
 local
 
@@ -197,9 +246,10 @@ fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
           split_list (map_filter with_xref (sort_by (fst o fst) locals))
         val (referable_global_facts, directs) =
           split_list (map_filter with_xref (sort_by (fst o fst) globals))
+        val input_facts = Try0.unclassified_facts {usings = usings, directs = directs}
       in
-        (Try0.unclassified_facts {usings = usings, directs = directs}
-         |> Try0.classify_facts state, referable_local_facts, referable_global_facts)
+        (input_facts, Try0.classify_facts state input_facts, referable_local_facts,
+         referable_global_facts)
       end
 
     val slice_facts = Synchronized.var "slice_facts" []
@@ -240,13 +290,14 @@ fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
                 (case classification of
                   NONE => (facts, (SOME GaveUp, ""), [], [], NONE)
                 | SOME ({elapsed = classifier_time, ...},
-                    (classified_facts, referable_local_facts, referable_global_facts)) =>
+                    (input_facts, classified_facts, referable_local_facts,
+                     referable_global_facts)) =>
                     let
                       val ({elapsed = method_time, ...}, (outcome, command)) =
                         Timing.timing run_proof_method classified_facts
                     in
                       (facts, (outcome, command), referable_local_facts, referable_global_facts,
-                       SOME (classifier_time, method_time, classified_facts))
+                       SOME (classifier_time, method_time, input_facts, classified_facts))
                     end)
               end
 
@@ -259,10 +310,10 @@ fun run_tactic_prover mode ({max_facts, slices, timeout, ...} : params)
                "run_time". *)
             val () =
               (case classification of
-                SOME (classifier_time, method_time, classified_facts) =>
+                SOME (classifier_time, method_time, input_facts, classified_facts) =>
                   if log_classification then
                     write_fact_classification_log ctxt name mode slice_max_facts classifier_time
-                      method_time outcome command classified_facts
+                      method_time outcome command input_facts classified_facts
                   else
                     ()
               | NONE => ())

@@ -410,12 +410,12 @@ proof (induct P c arbitrary: l rule: cfactor.induct)
 next
   case (2 i P c)
   then show ?case
-    by (simp add: mkPinj_ci split_beta)
+    by (simp add: mkPinj_ci case_prod_beta)
 next
   case (3 P i Q c)
   from 3(1) 3(2) [OF refl prod.collapse] 3(3)
   show ?case
-    by (simp add: mkPX_ci r_distr a_ac m_ac split_beta)
+    by (simp add: mkPX_ci r_distr a_ac m_ac case_prod_beta)
 qed
 
 fun mfactor :: "pol \<Rightarrow> mon \<Rightarrow> pol \<times> pol"
@@ -472,7 +472,7 @@ next
 next
   case (Pinj_Minj i P j M)
   then show ?case
-    by (simp add: mkPinj_ci split_beta)
+    by (simp add: mkPinj_ci case_prod_beta)
 next
   case (Pinj_MX i P j M)
   then show ?case
@@ -481,7 +481,7 @@ next
   case (PX_Minj P i Q j M)
   from PX_Minj(1,2) PX_Minj(3) [OF _ refl prod.collapse] PX_Minj(4)
   show ?case
-    by (simp add: mkPX_ci Minj_pred_correct [simplified] r_distr a_ac m_ac split_beta)
+    by (simp add: mkPX_ci Minj_pred_correct [simplified] r_distr a_ac m_ac case_prod_beta)
 next
   case (PX_MX P i Q j M)
   from \<open>in_carrier l\<close>
@@ -499,7 +499,7 @@ next
     (head l [^] (i - j) \<otimes> head l [^] j)"
     by (simp add: m_ac)
   from PX_MX \<open>in_carrier l\<close> show ?case
-    by (simp add: mkPX_ci mkMinj_correct l_distr eq1 eq2 split_beta nat_pow_mult)
+    by (simp add: mkPX_ci mkMinj_correct l_distr eq1 eq2 case_prod_beta nat_pow_mult)
       (simp add: a_ac m_ac)
 qed
 
@@ -613,7 +613,7 @@ declare pnsubstl.simps [simp del]
 
 lemma (in cring) ponesubst_correct:
   "in_carrier l \<Longrightarrow> ponesubst P1 M P2 = Some P3 \<Longrightarrow> Imon l M = Ipol l P2 \<Longrightarrow> Ipol l P1 = Ipol l P3"
-  by (auto simp add: ponesubst_def split_beta mfactor_correct [of l P1 M]
+  by (auto simp add: ponesubst_def case_prod_beta mfactor_correct [of l P1 M]
     add_ci mul_ci split: pol.split_asm if_split_asm)
 
 lemma (in cring) pnsubst1_correct:

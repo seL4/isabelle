@@ -1092,7 +1092,7 @@ fun mk_rel_coinduct_tac ctxt CIHs in_rels in_Jrels helper_indss helper_coind1s h
           CONJ_WRAP' (fn helper_ind =>
             EVERY' [rtac ctxt (helper_ind RS rev_mp), REPEAT_DETERM_N n o assume_tac ctxt,
               REPEAT_DETERM_N n o etac ctxt thin_rl, rtac ctxt impI,
-              REPEAT_DETERM o resolve_tac ctxt @{thms subsetI CollectI iffD2[OF split_beta]},
+              REPEAT_DETERM o resolve_tac ctxt @{thms subsetI CollectI iffD2[OF case_prod_beta]},
               dtac ctxt @{thm bspec}, assume_tac ctxt, REPEAT_DETERM o eresolve_tac ctxt [allE, mp, conjE],
               etac ctxt (refl RSN (2, conjI))])
           helper_inds,

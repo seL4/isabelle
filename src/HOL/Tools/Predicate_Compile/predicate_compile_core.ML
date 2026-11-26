@@ -1086,7 +1086,7 @@ fun create_intro_elim_rule ctxt mode defthm mode_id funT pred =
     val introtrm = Logic.list_implies (predpropI :: param_eqs, funpropI)
     val simprules =
       [defthm, @{thm pred.sel},
-        @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm prod.collapse}]
+        @{thm "case_prod_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}, @{thm prod.collapse}]
     val unfolddef_tac =
       Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt |> Simplifier.add_simps simprules) 1
     val introthm = Goal.prove ctxt

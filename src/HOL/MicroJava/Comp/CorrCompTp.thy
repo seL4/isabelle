@@ -23,7 +23,7 @@ definition local_env :: "[java_mb prog, cname, sig, vname list,(vname \<times> t
      let (mn, pTs) = S in (G,(map_of lvars)(pns[\<mapsto>]pTs, This\<mapsto>Class C))"
 
 lemma local_env_fst [simp]: "fst (local_env G C S pns lvars) = G"
-  by (simp add: local_env_def split_beta)
+  by (simp add: local_env_def case_prod_beta)
 
 
 lemma wt_class_expr_is_class:
@@ -51,7 +51,7 @@ lemma index_in_bounds:
   "length pns = length pTs \<Longrightarrow>
   snd (local_env G C (mn, pTs) pns lvars) vname = Some T
        \<Longrightarrow> index (pns, lvars, blk, res) vname < length (inited_LT C pTs lvars)"
-  apply (simp add: local_env_snd index_def split_beta)
+  apply (simp add: local_env_snd index_def case_prod_beta)
   apply (case_tac "vname = This")
    apply (simp add: inited_LT_def)
   apply simp
@@ -209,12 +209,12 @@ lemma sttp_of_comb [simp]: "sttp_of ((f1 \<box> f2) sttp) = sttp_of (f2 (sttp_of
 
 lemma mt_of_comb: "(mt_of ((f1 \<box> f2) sttp)) = 
   (mt_of (f1 sttp)) @ (mt_of (f2 (sttp_of (f1 sttp))))"
-  by (simp add: comb_def split_beta)
+  by (simp add: comb_def case_prod_beta)
 
 
 lemma mt_of_comb_length [simp]: "\<lbrakk> n1 = length (mt_of (f1 sttp)); n1 \<le> n \<rbrakk>
   \<Longrightarrow> (mt_of ((f1 \<box> f2) sttp) ! n) = (mt_of (f2 (sttp_of (f1 sttp))) ! (n - n1))"
-  by (simp add: comb_def nth_append split_beta)
+  by (simp add: comb_def nth_append case_prod_beta)
 
 
 lemma compTpExpr_Exprs_LT_ST: "
@@ -246,7 +246,7 @@ lemma compTpExpr_Exprs_LT_ST: "
            apply (intro strip)
            apply (drule Cast_invers, clarify)
            apply ((drule_tac x=ST in spec), (drule spec)+, (drule mp, assumption)+)
-           apply (simp add: replST_def split_beta)
+           apply (simp add: replST_def case_prod_beta)
 
           (* Lit *)
           apply (intro strip)
@@ -541,7 +541,7 @@ definition offset_xctable :: "[nat, exception_table] \<Rightarrow> exception_tab
 lemma match_xcentry_offset [simp]: "
   match_exception_entry G cn (pc + n) (offset_xcentry n ee) = 
   match_exception_entry G cn pc ee"
-  by (simp add: match_exception_entry_def offset_xcentry_def split_beta)
+  by (simp add: match_exception_entry_def offset_xcentry_def case_prod_beta)
 
 lemma match_xctable_offset: "
   (match_exception_table G cn (pc + n) (offset_xctable n et)) =
@@ -549,7 +549,7 @@ lemma match_xctable_offset: "
   apply (induct et)
    apply (simp add: offset_xctable_def)+
   apply (case_tac "match_exception_entry G cn pc a")
-   apply (simp add: offset_xcentry_def split_beta)+
+   apply (simp add: offset_xcentry_def case_prod_beta)+
   done
 
 
@@ -562,7 +562,7 @@ lemma match_offset [simp]: "
 lemma match_any_offset [simp]: "
   match_any G (pc + n) (offset_xctable n et) = match_any G pc et"
   apply (induct et)
-   apply (simp add: offset_xctable_def offset_xcentry_def split_beta)+
+   apply (simp add: offset_xctable_def offset_xcentry_def case_prod_beta)+
   done
 
 lemma app_mono_pc: "\<lbrakk> app i G mxs rT pc et s; pc'= pc + n \<rbrakk> 
@@ -686,7 +686,7 @@ lemma start_sttp_resp_comb_nil [simp]: "start_sttp_resp comb_nil"
 
 lemma start_sttp_resp_cons_comb_cons [simp]: "start_sttp_resp_cons f 
   \<Longrightarrow> start_sttp_resp_cons (f \<box> f')"
-  apply (simp add: start_sttp_resp_cons_def comb_def split_beta)
+  apply (simp add: start_sttp_resp_cons_def comb_def case_prod_beta)
   apply (rule allI)
   apply (drule_tac x=sttp in spec)
   apply auto
@@ -708,32 +708,32 @@ lemma start_sttp_resp_cons_nochangeST [simp]: "start_sttp_resp_cons nochangeST"
   by (simp add: start_sttp_resp_cons_def nochangeST_def)
 
 lemma start_sttp_resp_cons_pushST [simp]: "start_sttp_resp_cons (pushST Ts)"
-  by (simp add: start_sttp_resp_cons_def pushST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def pushST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_dupST [simp]: "start_sttp_resp_cons dupST"
-  by (simp add: start_sttp_resp_cons_def dupST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def dupST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_dup_x1ST [simp]: "start_sttp_resp_cons dup_x1ST"
-  by (simp add: start_sttp_resp_cons_def dup_x1ST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def dup_x1ST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_popST [simp]: "start_sttp_resp_cons (popST n)"
-  by (simp add: start_sttp_resp_cons_def popST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def popST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_replST [simp]: "start_sttp_resp_cons (replST n tp)"
-  by (simp add: start_sttp_resp_cons_def replST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def replST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_storeST [simp]: "start_sttp_resp_cons (storeST i tp)"
-  by (simp add: start_sttp_resp_cons_def storeST_def split_beta)
+  by (simp add: start_sttp_resp_cons_def storeST_def case_prod_beta)
 
 lemma start_sttp_resp_cons_compTpExpr [simp]: "start_sttp_resp_cons (compTpExpr jmb G ex)"
   apply (induct ex)
           apply simp+
-      apply (simp add: start_sttp_resp_cons_def comb_def pushST_def split_beta) (* LAcc *)
+      apply (simp add: start_sttp_resp_cons_def comb_def pushST_def case_prod_beta) (* LAcc *)
      apply simp+
   done
 
 lemma start_sttp_resp_cons_compTpInit [simp]: "start_sttp_resp_cons (compTpInit jmb lv)"
-  by (simp add: compTpInit_def split_beta)
+  by (simp add: compTpInit_def case_prod_beta)
 
 
 lemma start_sttp_resp_nochangeST [simp]: "start_sttp_resp nochangeST"
@@ -778,7 +778,7 @@ subsection "length of compExpr/ compTpExprs"
 
 lemma length_comb [simp]:  "length (mt_of ((f1 \<box> f2) sttp)) = 
   length (mt_of (f1 sttp)) + length (mt_of (f2 (sttp_of (f1 sttp))))"
-  by (simp add: comb_def split_beta)
+  by (simp add: comb_def case_prod_beta)
 
 
 lemma length_comb_nil [simp]: "length (mt_of (comb_nil sttp)) = 0"
@@ -788,22 +788,22 @@ lemma length_nochangeST [simp]: "length (mt_of (nochangeST sttp)) = 1"
   by (simp add: nochangeST_def)
 
 lemma length_pushST [simp]: "length (mt_of (pushST Ts sttp)) = 1"
-  by (simp add: pushST_def split_beta)
+  by (simp add: pushST_def case_prod_beta)
 
 lemma length_dupST [simp]: "length (mt_of (dupST sttp)) = 1"
-  by (simp add: dupST_def split_beta)
+  by (simp add: dupST_def case_prod_beta)
 
 lemma length_dup_x1ST [simp]: "length (mt_of (dup_x1ST sttp)) = 1"
-  by (simp add: dup_x1ST_def split_beta)
+  by (simp add: dup_x1ST_def case_prod_beta)
 
 lemma length_popST [simp]: "length (mt_of (popST n sttp)) = 1"
-  by (simp add: popST_def split_beta)
+  by (simp add: popST_def case_prod_beta)
 
 lemma length_replST [simp]: "length (mt_of (replST n tp sttp)) = 1"
-  by (simp add: replST_def split_beta)
+  by (simp add: replST_def case_prod_beta)
 
 lemma length_storeST [simp]: "length (mt_of (storeST i tp sttp)) = 1"
-  by (simp add: storeST_def split_beta)
+  by (simp add: storeST_def case_prod_beta)
 
 
 lemma length_compTpExpr_Exprs [rule_format]: "
@@ -812,7 +812,7 @@ lemma length_compTpExpr_Exprs [rule_format]: "
   apply (rule compat_expr_expr_list.induct)
             apply (simp_all)[3]
          apply (rename_tac binop a b, case_tac binop)
-          apply (auto simp add: pushST_def split_beta)
+          apply (auto simp add: pushST_def case_prod_beta)
   done
 
 lemma length_compTpExpr: "length (mt_of (compTpExpr jmb G ex sttp)) = length (compExpr jmb ex)"
@@ -826,11 +826,11 @@ lemma length_compTpStmt [rule_format]: "
   by (rule stmt.induct) (auto simp: length_compTpExpr)
 
 lemma length_compTpInit: "length (mt_of (compTpInit jmb lv sttp)) = length (compInit jmb lv)"
-  by (simp add: compTpInit_def compInit_def split_beta)
+  by (simp add: compTpInit_def compInit_def case_prod_beta)
 
 lemma length_compTpInitLvars [rule_format]: 
   "\<forall> sttp. length (mt_of (compTpInitLvars jmb lvars sttp)) = length (compInitLvars jmb lvars)"
-  by (induct lvars, (simp add: compInitLvars_def length_compTpInit split_beta)+)
+  by (induct lvars, (simp add: compInitLvars_def length_compTpInit case_prod_beta)+)
 
 
   (* ********************************************************************** *)
@@ -957,11 +957,11 @@ lemma bc_mt_corresp_comb: "
 lemma bc_mt_corresp_zero [simp]:
   "\<lbrakk> length (mt_of (f sttp)) = length bc; start_sttp_resp f\<rbrakk>
   \<Longrightarrow> bc_mt_corresp bc f sttp cG rT mxr 0"
-  apply (simp add: bc_mt_corresp_def start_sttp_resp_def split_beta)
+  apply (simp add: bc_mt_corresp_def start_sttp_resp_def case_prod_beta)
   apply (erule disjE)
    apply (simp add: max_ssize_def max_of_list_def ssize_sto_def split: prod.split)
   apply (intro strip)
-  apply (simp add: start_sttp_resp_cons_def split_beta)
+  apply (simp add: start_sttp_resp_cons_def case_prod_beta)
   apply (drule_tac x=sttp in spec, erule exE)
   apply simp
   apply (rule check_type_mono, assumption)
@@ -981,7 +981,7 @@ lemma mt_sttp_flatten_length [simp]: "n = (length (mt_of (f sttp)))
 
 lemma mt_sttp_flatten_comb: "(mt_sttp_flatten ((f1 \<box> f2) sttp)) = 
   (mt_of (f1 sttp)) @ (mt_sttp_flatten (f2 (sttp_of (f1 sttp))))"
-  by (simp add: mt_sttp_flatten_def comb_def split_beta)
+  by (simp add: mt_sttp_flatten_def comb_def case_prod_beta)
 
 lemma mt_sttp_flatten_comb_length [simp]: "\<lbrakk> n1 = length (mt_of (f1 sttp)); n1 \<le> n \<rbrakk>
   \<Longrightarrow> (mt_sttp_flatten ((f1 \<box> f2) sttp) ! n) = (mt_sttp_flatten (f2 (sttp_of (f1 sttp))) ! (n - n1))"
@@ -992,7 +992,7 @@ lemma mt_sttp_flatten_comb_zero [simp]:
   apply (simp only: start_sttp_resp_def)
   apply (erule disjE)
    apply (simp add: comb_nil_def mt_sttp_flatten_def)
-  apply (simp add: start_sttp_resp_cons_def mt_sttp_flatten_def split_beta)
+  apply (simp add: start_sttp_resp_cons_def mt_sttp_flatten_def case_prod_beta)
   apply (drule_tac x=sttp in spec)
   apply (erule exE)
   apply simp
@@ -2249,7 +2249,7 @@ lemma wt_method_compTpInit_corresp: "\<lbrakk> jmb = (pns,lvars,blk,res);
   bc = (compInit jmb (vn,ty)); f = (compTpInit jmb (vn,ty));
   is_type G ty \<rbrakk>
   \<Longrightarrow> bc_mt_corresp bc f (ST, LT) (comp G) rT mxr (length bc)"
-  apply (simp add: compInit_def compTpInit_def split_beta)
+  apply (simp add: compInit_def compTpInit_def case_prod_beta)
   apply (rule_tac ?bc1.0="[load_default_val ty]" and ?bc2.0="[Store (index jmb vn)]"
       in bc_mt_corresp_comb)
       apply simp+
@@ -2411,11 +2411,11 @@ lemma wt_method_comp_aux:
 
     (* length (.. f ..) = length bc *)
     apply (rule conjI)
-     apply (simp add: bc_mt_corresp_def split_beta)
+     apply (simp add: bc_mt_corresp_def case_prod_beta)
 
     (* check_bounded *)
     apply (rule conjI)
-     apply (simp add: bc_mt_corresp_def split_beta check_bounded_def)
+     apply (simp add: bc_mt_corresp_def case_prod_beta check_bounded_def)
      apply (erule conjE)+
      apply (intro strip)
      apply (subgoal_tac "pc < (length bc) \<or> pc = length bc")
@@ -2436,7 +2436,7 @@ lemma wt_method_comp_aux:
 
     (* wt_start *)
     apply (rule conjI)
-     apply (simp add: wt_start_def start_sttp_resp_cons_def split_beta)
+     apply (simp add: wt_start_def start_sttp_resp_cons_def case_prod_beta)
      apply (drule_tac x=sttp0 in spec) apply (erule exE)
      apply (simp add: mt_sttp_flatten_def start_ST_def start_LT_def)
 
@@ -2446,13 +2446,13 @@ lemma wt_method_comp_aux:
      apply (erule disjE)
 
       (* pc < (length bc) *)
-      apply (simp (no_asm_use) add: bc_mt_corresp_def mt_sttp_flatten_def split_beta)
+      apply (simp (no_asm_use) add: bc_mt_corresp_def mt_sttp_flatten_def case_prod_beta)
       apply (erule conjE)+
       apply (drule mp, assumption)+
       apply (erule conjE)+
       apply (drule spec, drule mp, assumption)
       apply (simp add: nth_append)
-      apply (simp (no_asm_simp) add: comb_def split_beta nochangeST_def)
+      apply (simp (no_asm_simp) add: comb_def case_prod_beta nochangeST_def)
 
      (* pc = length bc *)
      apply (simp add: nth_append)
@@ -2461,12 +2461,12 @@ lemma wt_method_comp_aux:
     apply arith
 
    (* subgoals *)
-   apply (simp (no_asm_use) add: bc_mt_corresp_def split_beta)
+   apply (simp (no_asm_use) add: bc_mt_corresp_def case_prod_beta)
    apply (subgoal_tac "check_type cG (length (fst sttp0)) (Suc (length pTs + mxl))
                                      (OK (Some sttp0))")
     apply ((erule conjE)+, drule mp, assumption)
     apply (simp add: nth_append)
-    apply (simp (no_asm_simp) add: comb_def nochangeST_def split_beta)
+    apply (simp (no_asm_simp) add: comb_def nochangeST_def case_prod_beta)
    apply (simp (no_asm_simp))
 
   apply (rule check_type_start, assumption+)
@@ -2502,7 +2502,7 @@ theorem wt_method_comp: "
       apply (subgoal_tac "\<exists>E. (E = (local_env G C (mn, pTs) pns lvars) \<and> E \<turnstile> blk \<surd> \<and>
                               (\<exists>T. E\<turnstile>res::T \<and> G\<turnstile>T\<preceq>rT))")
        apply (erule exE, (erule conjE)+)+
-       apply (simp add: compMethod_def compTpMethod_def split_beta)
+       apply (simp add: compMethod_def compTpMethod_def case_prod_beta)
        apply (rule_tac T=T and LT="inited_LT C pTs lvars" and ST=start_ST in wt_method_comp_aux)
 
                 (* bc *)
@@ -2608,13 +2608,13 @@ theorem wt_prog_comp: "wf_java_prog G  \<Longrightarrow> wt_jvm_prog (comp G) (c
 
    (* wf_cdecl_mdecl *)
    apply (simp add: wf_cdecl_mdecl_def)
-   apply (simp add: split_beta)
+   apply (simp add: case_prod_beta)
    apply (intro strip)
 
    (* show wt_method \<dots> *)
    apply (subgoal_tac "\<exists>sig rT mb. x = (sig, rT, mb)")
     apply (erule exE)+
-    apply (simp (no_asm_simp) add: compMethod_def split_beta)
+    apply (simp (no_asm_simp) add: compMethod_def case_prod_beta)
     apply (erule conjE)+
     apply (drule_tac x="(sig, rT, mb)" in bspec)
      apply simp
@@ -2622,11 +2622,11 @@ theorem wt_prog_comp: "wf_java_prog G  \<Longrightarrow> wt_jvm_prog (comp G) (c
          apply assumption+
       apply simp
      apply (simp (no_asm_simp) add: compTp_def)
-     apply (simp (no_asm_simp) add: compMethod_def split_beta)
+     apply (simp (no_asm_simp) add: compMethod_def case_prod_beta)
      apply (frule WellForm.methd) apply assumption+
       apply simp
      apply simp
-    apply (simp add: compMethod_def split_beta)
+    apply (simp add: compMethod_def case_prod_beta)
    apply auto
   done
 

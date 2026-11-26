@@ -110,7 +110,7 @@ fun reports_of_token keywords tok =
 in
 
 fun read_thy st = Toplevel.theory_of st
-  handle Toplevel.UNDEF => Pure_Syn.bootstrap_thy;
+  handle Toplevel.UNDEF => Bootstrap_Syntax.thy;
 
 fun read keywords thy master_dir init blobs_info span =
   let

@@ -67,10 +67,39 @@ no class target syntax is applied.  Minor INCOMPATIBILITY.
   - Added argument "log_classifications" to the action "sledgehammer" to
     write the fact classifications, timings, and outcomes of the tactic
     provers to files in the output directory.
+  - Added argument "keep_states" to the action "sledgehammer" to write the
+    proof state of each goal to a file in the output directory.
   - Added option -e to "isabelle mirabelle" to evaluate ML files before
     initializing the actions, e.g. to register custom actions or fact
     classifiers. Context-dependent registrations, such as fact classifiers,
     must be wrapped in Mirabelle.add_goal_setup to reach each goal.
+
+* Theory "HOL.Product_Type":
+  - Renamed lemmas. The old names are still available as legacy bindings.
+      Collect_split_mono_strong ~> Collect_case_prod_mono_strong
+      split_comp_eq ~> case_prod_comp_eq
+      split_eta_SetCompr ~> case_prod_eta_SetCompr
+      split_eta_SetCompr2 ~> case_prod_eta_SetCompr2
+      split_part ~> case_prod_part
+      The_split_eq ~> The_case_prod_eq
+
+* Theory "HOL.Fun_Def":
+  - Moved lemma to theory "HOL.Product_Type" and renamed it. The old name
+    is still available as a legacy binding. Minor INCOMPATIBILITY.
+      split_cong ~> case_prod_cong
+
+* Theory "HOL.Equiv_Relations":
+  - Moved lemma to theory "HOL.Product_Type" and renamed it. The old name
+    is still available as a legacy binding. Minor INCOMPATIBILITY.
+      UN_UN_split_split_eq ~> UN_UN_case_prod_case_prod_eq
+
+* Theory "HOL.List":
+  - Renamed lemmas. The old names are still available as legacy bindings.
+      inj_split_Cons ~> inj_case_prod_Cons
+
+* Theory "HOL-Library.Quotient_Product":
+  - Renamed lemmas. The old names are still available as legacy bindings.
+      split_prs ~> case_prod_prs
 
 
 *** ML ***

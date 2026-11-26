@@ -2419,7 +2419,7 @@ proof -
   moreover have "closed_map (prod_topology X Y) Y (fst o prod.swap)"
   proof (rule closed_map_compose)
     show "closed_map (prod_topology X Y) (prod_topology Y X) prod.swap"
-      by (metis (no_types, lifting) homeomorphic_imp_closed_map homeomorphic_map_eq homeomorphic_map_swap prod.swap_def split_beta)
+      by (metis (no_types, lifting) homeomorphic_imp_closed_map homeomorphic_map_eq homeomorphic_map_swap prod.swap_def case_prod_beta)
     show "closed_map (prod_topology Y X) Y fst"
       by (simp add: closed_map_fst assms)
   qed

@@ -2877,7 +2877,7 @@ proof (safe intro!: has_derivativeI tendstoI, goal_cases)
 
   from fy_cont[THEN tendstoD, OF \<open>e > 0\<close>]
   have "\<forall>\<^sub>F (x', y') in at (x, y) within X \<times> Y. dist (fy x' y') (fy x y) < e"
-    by (auto simp: split_beta')
+    by (auto simp: case_prod_beta')
   from this[unfolded eventually_at] obtain d' where
     "d' > 0"
     "\<And>x' y'. x' \<in> X \<Longrightarrow> y' \<in> Y \<Longrightarrow> (x', y') \<noteq> (x, y) \<Longrightarrow> dist (x', y') (x, y) < d' \<Longrightarrow>
@@ -3021,7 +3021,7 @@ next
   obtain fxb where "fx = blinfun_apply fxb"
     by (metis bounded_linear_Blinfun_apply)
   then show "bounded_linear (\<lambda>(tx, ty). fx tx + blinfun_apply (fy x y) ty)"
-    by (auto intro!: bounded_linear_intros simp: split_beta')
+    by (auto intro!: bounded_linear_intros simp: case_prod_beta')
 qed
 
 

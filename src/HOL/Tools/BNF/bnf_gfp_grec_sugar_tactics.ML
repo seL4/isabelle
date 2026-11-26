@@ -71,7 +71,7 @@ fun mk_cong_intro_ctr_or_friend_tac ctxt ctr_or_friend_def extra_simps cong_alg_
     etac ctxt subst));
 
 val shared_simps =
-  @{thms map_prod_simp map_sum.simps sum.case prod.case_eq_if split_beta' prod.sel
+  @{thms map_prod_simp map_sum.simps sum.case prod.case_eq_if case_prod_beta' prod.sel
       sum.disc(1)[THEN eq_True[THEN iffD2]] sum.disc(2)[THEN eq_False[THEN iffD2]] sum.sel
       isl_map_sum map_sum_sel if_True if_False if_True_False Let_def[abs_def] o_def[abs_def] id_def
       BNF_Composition.id_bnf_def};

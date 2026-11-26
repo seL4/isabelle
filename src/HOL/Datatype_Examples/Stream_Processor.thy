@@ -182,7 +182,7 @@ definition \<theta> :: "('p,'a) F * 'b \<Rightarrow> ('p,'a * 'b) F" where
 
 (* The strength laws for \<theta>: *)
 lemma \<theta>_natural: "F id (map_prod f g) o \<theta> = \<theta> o map_prod (F id f) g"
-  unfolding \<theta>_def F.map_comp comp_def id_apply convol_def map_prod_def split_beta fst_conv snd_conv ..
+  unfolding \<theta>_def F.map_comp comp_def id_apply convol_def map_prod_def case_prod_beta fst_conv snd_conv ..
 
 definition assl :: "'a * ('b * 'c) \<Rightarrow> ('a * 'b) * 'c" where
   "assl abc = ((fst abc, fst (snd abc)), snd (snd abc))"

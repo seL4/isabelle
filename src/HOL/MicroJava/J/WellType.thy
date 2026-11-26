@@ -205,7 +205,7 @@ lemma wf_java_prog_wf_java_mdecl: "\<lbrakk>
 apply (simp only: wf_prog_def) 
 apply (erule conjE)+
 apply (drule bspec, assumption)
-apply (simp add: wf_cdecl_mdecl_def split_beta)
+apply (simp add: wf_cdecl_mdecl_def case_prod_beta)
 done
 
 

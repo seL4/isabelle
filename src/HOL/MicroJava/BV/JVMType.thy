@@ -135,7 +135,7 @@ qed
 lemma sup_state_conv:
   "(G \<turnstile> s1 <=s s2) == 
   (G \<turnstile> map OK (fst s1) <=l map OK (fst s2)) \<and> (G \<turnstile> snd s1 <=l snd s2)"
-  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def split_beta)
+  by (auto simp add: sup_state_def stk_convert lesub_def Product.le_def case_prod_beta)
 
 
 lemma subtype_refl [simp]:

@@ -249,7 +249,7 @@ fun mk_rel_mono_strong0_tac ctxt in_rel set_maps =
     hyp_subst_tac ctxt 1 THEN
     EVERY' [rtac ctxt exI, rtac ctxt @{thm conjI[OF CollectI conjI[OF refl refl]]},
       CONJ_WRAP' (fn thm =>
-        (etac ctxt (@{thm Collect_split_mono_strong} OF [thm, thm]) THEN' assume_tac ctxt))
+        (etac ctxt (@{thm Collect_case_prod_mono_strong} OF [thm, thm]) THEN' assume_tac ctxt))
       set_maps] 1;
 
 fun mk_rel_transfer_tac ctxt in_rel rel_map rel_mono_strong =

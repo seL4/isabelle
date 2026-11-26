@@ -1917,7 +1917,7 @@ lemma image_mset_cong: "(\<And>x. x \<in># M \<Longrightarrow> f x = g x) \<Long
 
 lemma image_mset_cong_pair:
   "(\<forall>x y. (x, y) \<in># M \<longrightarrow> f x y = g x y) \<Longrightarrow> {#f x y. (x, y) \<in># M#} = {#g x y. (x, y) \<in># M#}"
-  by (metis image_mset_cong split_cong)
+  by (metis image_mset_cong case_prod_cong)
 
 lemma image_mset_const_eq:
   "{#c. a \<in># M#} = replicate_mset (size M) c"

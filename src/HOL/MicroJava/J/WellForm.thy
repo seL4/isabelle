@@ -77,7 +77,7 @@ lemma wf_cdecl_mrT_cdecl_mdecl:
   "(wf_cdecl wf_mb G c) = (ws_cdecl G c \<and> wf_mrT G c \<and> wf_cdecl_mdecl wf_mb G c)"
 apply (rule iffI)
 apply (simp add: wf_cdecl_def ws_cdecl_def wf_mrT_def wf_cdecl_mdecl_def 
-  wf_mdecl_def wf_mhead_def split_beta)+
+  wf_mdecl_def wf_mhead_def case_prod_beta)+
 done
 
 lemma wf_cdecl_ws_cdecl [intro]: "wf_cdecl wf_mb G cd \<Longrightarrow> ws_cdecl G cd"
@@ -100,7 +100,7 @@ apply clarify
 apply (drule_tac x="(C,c)" in bspec, fast dest: map_of_SomeD)
 apply (drule_tac x="(C,c)" in bspec, fast dest: map_of_SomeD)
 apply (simp add: wf_cdecl_def ws_cdecl_def wf_mdecl_def
-  wf_cdecl_mdecl_def wf_mrT_def split_beta)
+  wf_cdecl_mdecl_def wf_mrT_def case_prod_beta)
 done
 
 lemma class_wf_struct: 
@@ -272,7 +272,7 @@ apply (simp only: field_def)
 apply (frule fields_rec, assumption)
 apply (rule HOL.trans)
 apply (simp add: o_def)
-apply (simp (no_asm_use) add: split_beta split_def o_def)
+apply (simp (no_asm_use) add: case_prod_beta split_def o_def)
 done
 
 lemma method_Object [simp]:
@@ -288,7 +288,7 @@ lemma fields_Object [simp]: "\<lbrakk> ((vn, C), T) \<in> set (fields (G, Object
 apply (frule class_Object)
 apply clarify
 apply (subgoal_tac "fields (G, Object) = map (\<lambda>(fn,ft). ((fn,Object),ft)) fs")
-apply (simp add: image_iff split_beta)
+apply (simp add: image_iff case_prod_beta)
 apply auto
 apply (rule trans)
 apply (rule fields_rec, assumption+)

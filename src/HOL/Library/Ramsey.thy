@@ -1014,7 +1014,7 @@ next
     show ?thesis
     proof (intro exI conjI)
       from pg show "?gy ` {n. ?gt n = s'} \<subseteq> YY"
-        by (auto simp add: Let_def split_beta)
+        by (auto simp add: Let_def case_prod_beta)
       from infeqs' show "infinite (?gy ` {n. ?gt n = s'})"
         by (blast intro: inj_gy [THEN inj_on_subset] dest: finite_imageD)
       show "s' < s" by (rule less')

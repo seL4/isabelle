@@ -300,8 +300,8 @@ val name_thm1 = Global_Theory.name_thm Global_Theory.official1;
 val name_thm2 = Global_Theory.name_thm Global_Theory.unofficial2;
 
 fun thm_def (name, pos) thm lthy =
-  if #1 name <> "" andalso Proofterm.zproof_enabled (Proofterm.get_proofs_level ()) then
-    Local_Theory.background_theory_result (Thm.store_zproof (name, pos) thm) lthy
+  if #1 name <> "" andalso Proofterm.pure_proof_enabled (Proofterm.get_proofs_level ()) then
+    Local_Theory.background_theory_result (Thm.store_pure_proof (name, pos) thm) lthy
   else (thm, lthy);
 
 fun thm_definition (name_pos, thm) lthy =

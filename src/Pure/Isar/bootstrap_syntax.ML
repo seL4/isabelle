@@ -1,16 +1,16 @@
-(*  Title:      Pure/pure_syn.ML
+(*  Title:      Pure/Isar/bootstrap_syntax.ML
     Author:     Makarius
 
 Outer syntax for bootstrapping: commands that are accessible outside a
 regular theory context.
 *)
 
-signature PURE_SYN =
+signature BOOTSTRAP_SYNTAX =
 sig
-  val bootstrap_thy: theory
+  val thy: theory
 end;
 
-structure Pure_Syn: PURE_SYN =
+structure Bootstrap_Syntax: BOOTSTRAP_SYNTAX =
 struct
 
 fun document_heading (name, pos) =
@@ -54,7 +54,7 @@ val _ =
     (Scan.succeed Toplevel.end_context);
 
 
-val bootstrap_thy = Theory.get_pure_bootstrap ();
+val thy = Theory.get_pure_bootstrap ();
 
 val _ = Theory.setup (Config.put_global Outer_Syntax.bootstrap false);
 

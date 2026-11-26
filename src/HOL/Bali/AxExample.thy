@@ -91,7 +91,7 @@ apply   (tactic "ax_tac \<^context> 1")
       (* just for clarification: *)
 apply   (rule_tac Q' = "Normal (\<lambda>Var:(v, f) u ua. fst (snd (avar tprg (Intg 2) v u)) = Some (Xcpt (Std IndOutBound)))" in conseq2)
 prefer 2
-apply    (clarsimp simp add: split_beta)
+apply    (clarsimp simp add: case_prod_beta)
 apply   (tactic "ax_tac \<^context> 1" (* FVar *))
 apply    (tactic "ax_tac \<^context> 2" (* StatRef *))
 apply   (rule ax_derivs.Done [THEN conseq1])

@@ -402,7 +402,7 @@ lemma has_integral_const [intro]:
   shows "((\<lambda>x. c) has_integral (content (cbox a b) *\<^sub>R c)) (cbox a b)"
   using eventually_division_filter_tagged_division[of "cbox a b"]
      additive_content_tagged_division[of _ a b]
-  by (auto simp: has_integral_cbox split_beta' scaleR_sum_left[symmetric]
+  by (auto simp: has_integral_cbox case_prod_beta' scaleR_sum_left[symmetric]
            elim!: eventually_mono intro!: tendsto_cong[THEN iffD1, OF _ tendsto_const])
 
 lemma has_integral_const_real [intro]:
@@ -463,7 +463,7 @@ proof -
   interpret bounded_linear h using h .
   show ?thesis
     unfolding has_integral_cbox using tendsto [OF f [unfolded has_integral_cbox]]
-    by (simp add: sum scaleR split_beta')
+    by (simp add: sum scaleR case_prod_beta')
 qed
 
 lemma has_integral_linear:
@@ -637,7 +637,7 @@ lemma has_integral_add_cbox:
   shows "((\<lambda>x. f x + g x) has_integral (k + l)) (cbox a b)"
   using assms
     unfolding has_integral_cbox
-    by (simp add: split_beta' scaleR_add_right sum.distrib[abs_def] tendsto_add)
+    by (simp add: case_prod_beta' scaleR_add_right sum.distrib[abs_def] tendsto_add)
 
 lemma has_integral_add:
   fixes f :: "'n::euclidean_space \<Rightarrow> 'a::real_normed_vector"
@@ -6419,7 +6419,7 @@ proof cases
 
   note [continuous_intros] =
     continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
-      unfolded split_beta fst_conv snd_conv]
+      unfolded case_prod_beta fst_conv snd_conv]
 
   show ?thesis
     unfolding continuous_on_def
@@ -6432,7 +6432,7 @@ proof cases
     from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x \<in> U\<close> \<open>0 < e\<close>]
     obtain X0 where X0: "x \<in> X0" "open X0"
       and fx_bound: "\<And>y t. y \<in> X0 \<inter> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> norm (f y t - f x t) \<le> e"
-      unfolding split_beta fst_conv snd_conv dist_norm
+      unfolding case_prod_beta fst_conv snd_conv dist_norm
       by metis
     have "\<forall>\<^sub>F y in at x within U. y \<in> X0 \<inter> U"
       using X0(1) X0(2) eventually_at_topological by auto
@@ -6474,7 +6474,7 @@ proof cases
   then have ne: "cbox a b \<noteq> {}" by auto
   note [continuous_intros] =
     continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
-      unfolded split_beta fst_conv snd_conv]
+      unfolded case_prod_beta fst_conv snd_conv]
   show ?thesis
   proof (intro has_derivativeI bounded_linear_scaleR_left tendstoI, fold norm_conv_dist)
     have cont_f1: "\<And>t. t \<in> cbox a b \<Longrightarrow> continuous_on U (\<lambda>x. f x t)"
@@ -6487,7 +6487,7 @@ proof cases
     from continuous_on_prod_compactE[OF cont_fx compact_cbox \<open>x0 \<in> U\<close> \<open>e > 0\<close>]
     obtain X0 where X0: "x0 \<in> X0" "open X0"
       and fx_bound: "\<And>x t. x \<in> X0 \<inter> U \<Longrightarrow> t \<in> cbox a b \<Longrightarrow> norm (fx x t - fx x0 t) \<le> e"
-      unfolding split_beta fst_conv snd_conv
+      unfolding case_prod_beta fst_conv snd_conv
       by (metis dist_norm)
 
     note eventually_closed_segment[OF \<open>open X0\<close> \<open>x0 \<in> X0\<close>, of U]
@@ -6560,12 +6560,12 @@ lemma leibniz_rule_vector_derivative:
 proof -
   note [continuous_intros] =
     continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
-      unfolded split_beta fst_conv snd_conv]
+      unfolded case_prod_beta fst_conv snd_conv]
   show ?thesis
     unfolding has_vector_derivative_eq_has_derivative_blinfun
   proof (rule has_derivative_eq_rhs [OF leibniz_rule[OF _ integrable_f2 _ U]])
     show "continuous_on (U \<times> cbox a b) (\<lambda>(x, t). blinfun_scaleR_left (fx x t))"
-      using cont_fx by (auto simp: split_beta intro!: continuous_intros)
+      using cont_fx by (auto simp: case_prod_beta intro!: continuous_intros)
     show "blinfun_apply (integral (cbox a b) (\<lambda>t. blinfun_scaleR_left (fx x0 t))) =
           blinfun_apply (blinfun_scaleR_left (integral (cbox a b) (fx x0)))"
     by (subst integral_linear[symmetric])
@@ -6588,7 +6588,7 @@ lemma leibniz_rule_field_derivative:
 proof -
   note [continuous_intros] =
     continuous_on_compose2[OF cont_fx, where f="\<lambda>y. Pair x y" for x,
-      unfolded split_beta fst_conv snd_conv]
+      unfolded case_prod_beta fst_conv snd_conv]
   have *: "blinfun_mult_right (integral (cbox a b) (fx x0)) =
     integral (cbox a b) (\<lambda>t. blinfun_mult_right (fx x0 t))"
     by (subst integral_linear[symmetric])
@@ -6598,7 +6598,7 @@ proof -
     unfolding has_field_derivative_eq_has_derivative_blinfun
   proof (rule has_derivative_eq_rhs [OF leibniz_rule[OF _ integrable_f2 _ U, where fx="\<lambda>x t. blinfun_mult_right (fx x t)"]])
     show "continuous_on (U \<times> cbox a b) (\<lambda>(x, t). blinfun_mult_right (fx x t))"
-      using cont_fx by (auto simp: split_beta intro!: continuous_intros)
+      using cont_fx by (auto simp: case_prod_beta intro!: continuous_intros)
     show "blinfun_apply (integral (cbox a b) (\<lambda>t. blinfun_mult_right (fx x0 t))) =
           blinfun_apply (blinfun_mult_right (integral (cbox a b) (fx x0)))"
       by (subst integral_linear[symmetric])

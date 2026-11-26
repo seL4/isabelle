@@ -692,7 +692,7 @@ lemmas has_derivative_snd [derivative_intros] = bounded_linear.has_derivative [O
 
 lemma has_derivative_split [derivative_intros]:
   "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
-  unfolding split_beta' .
+  unfolding case_prod_beta' .
 
 
 subsubsection\<^marker>\<open>tag unimportant\<close> \<open>Vector derivatives involving pairs\<close>

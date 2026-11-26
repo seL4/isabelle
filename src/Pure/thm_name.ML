@@ -39,7 +39,7 @@ struct
 
 (* type T *)
 
-type T = string * int;
+type T = Pure_Logic.thm_name;
 val ord = prod_ord string_ord int_ord;
 
 structure Set = Set(type key = T val ord = ord);

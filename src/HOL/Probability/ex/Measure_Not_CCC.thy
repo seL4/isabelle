@@ -144,7 +144,7 @@ lemma measurable_eq_pair: "(\<lambda>(y, x). x = y) \<in> measurable (COCOUNT \<
 lemma ce: False
 proof -
   have "{(y, x) \<in> space (COCOUNT \<Otimes>\<^sub>M POW). x = y} \<in> sets (COCOUNT \<Otimes>\<^sub>M POW)"
-    using measurable_eq_pair unfolding pred_def by (simp add: split_beta')
+    using measurable_eq_pair unfolding pred_def by (simp add: case_prod_beta')
   also have "{(y, x) \<in> space (COCOUNT \<Otimes>\<^sub>M POW). x = y} = (SIGMA j:UNIV. {j})"
     by (auto simp: space_pair_measure COCOUNT_def)
   finally obtain X F J where "countable (J::real set)"

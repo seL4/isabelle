@@ -35,7 +35,7 @@ val neq_eq_eq_contradict = @{thm neq_eq_eq_contradict};
 val if_split = @{thm if_split};
 val if_split_asm = @{thm if_split_asm};
 val split_connectI = @{thms allI impI conjI};
-val unfold_lets = @{thms Let_def[abs_def] split_beta}
+val unfold_lets = @{thms Let_def[abs_def] case_prod_beta}
 
 fun exhaust_inst_as_projs ctxt frees thm =
   let

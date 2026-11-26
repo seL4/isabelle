@@ -1659,7 +1659,7 @@ proof -
             snd_map_prod)
     qed(auto intro: b.ccpo_Sup_least chain_empty)
     ultimately show "?ord (?rhs1, ?rhs2) ?lhs"
-      by(simp add: rel_prod_conv split_beta)
+      by(simp add: rel_prod_conv case_prod_beta)
   qed
   finally show ?thesis by simp
 qed
@@ -1721,7 +1721,7 @@ lemma mcont_snd: "mcont (prod_lub luba lubb) (rel_prod orda ordb) lubb ordb snd"
 lemma mcont2mcont_snd [cont_intro, simp]:
   "mcont lub ord (prod_lub luba lubb) (rel_prod orda ordb) t
   \<Longrightarrow> mcont lub ord lubb ordb (\<lambda>x. snd (t x))"
-by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel split_beta prod_lub_def image_image)
+by(auto intro!: mcontI monotoneI contI dest: mcont_monoD mcont_contD simp add: rel_prod_sel case_prod_beta prod_lub_def image_image)
 
 lemma monotone_Pair:
   "\<lbrakk> monotone ord orda f; monotone ord ordb g \<rbrakk>

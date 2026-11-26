@@ -3477,7 +3477,7 @@ class open_uniformity = "open" + uniformity +
 begin
 
 subclass topological_space
-  by standard (force elim: eventually_mono eventually_elim2 simp: split_beta' open_uniformity)+
+  by standard (force elim: eventually_mono eventually_elim2 simp: case_prod_beta' open_uniformity)+
 
 end
 
@@ -3648,7 +3648,7 @@ lemma uniformly_continuous_onD:
   "uniformly_continuous_on s f \<Longrightarrow> eventually E uniformity \<Longrightarrow>
     eventually (\<lambda>(x, y). x \<in> s \<longrightarrow> y \<in> s \<longrightarrow> E (f x, f y)) uniformity"
   by (simp add: uniformly_continuous_on_uniformity filterlim_iff
-      eventually_inf_principal split_beta' mem_Times_iff imp_conjL)
+      eventually_inf_principal case_prod_beta' mem_Times_iff imp_conjL)
 
 lemma uniformly_continuous_on_const[continuous_intros]: "uniformly_continuous_on s (\<lambda>x. c)"
   by (auto simp: uniformly_continuous_on_uniformity filterlim_iff uniformity_refl)
@@ -3661,7 +3661,7 @@ lemma uniformly_continuous_on_compose:
     uniformly_continuous_on s (\<lambda>x. f (g x))"
   using filterlim_compose[of "\<lambda>(x, y). (f x, f y)" uniformity
       "uniformity_on (g`s)"  "\<lambda>(x, y). (g x, g y)" "uniformity_on s"]
-  by (simp add: split_beta' uniformly_continuous_on_uniformity
+  by (simp add: case_prod_beta' uniformly_continuous_on_uniformity
       filterlim_inf filterlim_principal eventually_inf_principal mem_Times_iff)
 
 lemma uniformly_continuous_imp_continuous:

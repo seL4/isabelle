@@ -322,7 +322,7 @@ proof -
       unfolding set_lebesgue_integral_def
       by (rule Bochner_Integration.integral_cong) (auto split: split_indicator)
     also have "\<dots> = (CLINT x | M n. (CLBINT t:{-u..u}. 1 - iexp (t * x)))"
-      using Mn3 by (subst P.Fubini_integral) (auto simp: indicator_times split_beta' set_integrable_def set_lebesgue_integral_def)
+      using Mn3 by (subst P.Fubini_integral) (auto simp: indicator_times case_prod_beta' set_integrable_def set_lebesgue_integral_def)
     also have "\<dots> = (CLINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
       using \<open>u > 0\<close> by (intro Bochner_Integration.integral_cong, auto simp add: * simp del: of_real_mult)
     also have "\<dots> = (LINT x | M n. (if x = 0 then 0 else 2 * (u  - sin (u * x) / x)))"
@@ -333,7 +333,7 @@ proof -
     proof -
       have "complex_integrable (M n) (\<lambda>x. CLBINT t:{-u..u}. 1 - iexp (snd (x, t) * fst (x, t)))"
         using Mn3 unfolding set_integrable_def set_lebesgue_integral_def
-        by (intro P.integrable_fst) (simp add: indicator_times split_beta')
+        by (intro P.integrable_fst) (simp add: indicator_times case_prod_beta')
       hence "complex_integrable (M n) (\<lambda>x. if x = 0 then 0 else 2 * (u  - sin (u * x) / x))"
         using \<open>u > 0\<close>
         unfolding set_integrable_def

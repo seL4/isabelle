@@ -57,7 +57,7 @@ lemma measurable_pair_measureI:
 
 lemma measurable_split_replace[measurable (raw)]:
   "(\<lambda>x. f x (fst (g x)) (snd (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. case_prod (f x) (g x)) \<in> measurable M N"
-  unfolding split_beta' .
+  unfolding case_prod_beta' .
 
 lemma measurable_Pair[measurable (raw)]:
   assumes f: "f \<in> measurable M M1" and g: "g \<in> measurable M M2"

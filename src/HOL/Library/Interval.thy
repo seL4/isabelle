@@ -437,7 +437,7 @@ proof -
   let ?mult = "\<lambda>(x, y). x * y"
   let ?XY = "set_of X \<times> set_of Y"
   have cont: "continuous_on ?XY ?mult"
-    by (auto intro!: tendsto_eq_intros simp: continuous_on_def split_beta')
+    by (auto intro!: tendsto_eq_intros simp: continuous_on_def case_prod_beta')
   have conn: "connected (?mult ` ?XY)"
     by (rule connected_continuous_image[OF cont]) auto
   have "lower (X * Y) \<in> ?mult ` ?XY" "upper (X * Y) \<in> ?mult ` ?XY"
