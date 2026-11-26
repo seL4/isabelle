@@ -9,8 +9,8 @@ sig
   val compat_prefs : BNF_LFP_Compat.preference list
   val strip_imp : term -> (term list * term)
   val reflect_bool : bool -> term
-  val define_functions : ((term list -> term list) * (typ -> term) * thm list) -> string
-    -> string list -> string list -> typ list -> Proof.context -> Proof.context
+  val define_functions : ((term list -> term list) * (typ -> term) * thm list) -> string list 
+    -> string list -> typ list -> Proof.context -> Proof.context
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
@@ -380,7 +380,7 @@ fun termination_tac (mk_single_measure, simps) ctxt =
 fun pat_completeness_auto ctxt =
   Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt
 
-fun define_functions (mk_equations, mk_single_measure, simps) prfx argnames names Ts lthy =
+fun define_functions (mk_equations, mk_single_measure, simps) argnames names Ts lthy =
   if not (Config.get lthy quick_and_dirty) then
     let
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
@@ -408,7 +408,7 @@ fun define_functions (mk_equations, mk_single_measure, simps) prfx argnames name
       in
         lthy
         |> fold_map (fn (name, eq) => Local_Theory.note
-             (((Binding.qualify true prfx o Binding.qualify true name) (Binding.name "simps"), []), [eq]))
+             (((Binding.qualify true name) (Binding.name "simps"), []), [eq]))
                (names ~~ eqs) 
         |-> (fn notes => Code.declare_default_eqns (map (rpair true) (maps snd notes)))
       end)

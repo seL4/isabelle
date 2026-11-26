@@ -192,8 +192,9 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
       thy
       |> Class.instantiation (tycos, vs, \<^sort>\<open>narrowing\<close>)
       |> Quickcheck_Common.define_functions
-        (fn narrowings => mk_equations descr vs narrowings, mk_single_measure, [less_int_pred])
-        prfx [] narrowingsN (map narrowingT (Ts @ Us))
+        (fn narrowings =>
+          mk_equations descr vs narrowings, mk_single_measure, [less_int_pred]) [] narrowingsN
+            (map narrowingT (Ts @ Us))
       |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
     else thy
   end
