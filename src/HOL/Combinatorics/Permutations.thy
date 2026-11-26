@@ -304,6 +304,11 @@ lemma permutes_inv_inv:
   unfolding fun_eq_iff permutes_inv_eq[OF assms] permutes_inv_eq[OF permutes_inv[OF assms]]
   by blast
 
+lemma (in comm_monoid_set) permutes_identity:
+  assumes "p permutes S"
+  shows "F (\<lambda>x. g(p x)) S = F g S"
+  by (simp add: assms permutes_imp_bij reindex_bij_betw)
+
 lemma permutes_invI:
   assumes perm: "p permutes S"
     and inv: "\<And>x. x \<in> S \<Longrightarrow> p' (p x) = x"
