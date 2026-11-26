@@ -9,8 +9,8 @@ sig
   val compat_prefs : BNF_LFP_Compat.preference list
   val strip_imp : term -> (term list * term)
   val reflect_bool : bool -> term
-  val define_functions : ((term list -> term list) * ((typ -> term) * thm list) option)
-    -> string -> string list -> string list -> typ list -> Proof.context -> Proof.context
+  val define_functions : ((term list -> term list) * (typ -> term) * thm list) -> string
+    -> string list -> string list -> typ list -> Proof.context -> Proof.context
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
@@ -380,27 +380,27 @@ fun termination_tac (mk_single_measure, simps) ctxt =
 fun pat_completeness_auto ctxt =
   Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt
 
-fun define_functions (mk_equations, termination_args) prfx argnames names Ts =
-  if is_some termination_args then
+fun define_functions (mk_equations, mk_single_measure, simps) prfx argnames names Ts lthy =
+  if not (Config.get lthy quick_and_dirty) then
     let
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
-      val tac = termination_tac (the termination_args)
+      val tac = termination_tac (mk_single_measure, simps)
     in
       Function.add_function {verbose = false}
         (map (fn (name, T) => (Binding.concealed (Binding.name name), SOME T, NoSyn))
           (names ~~ Ts))
         (map (fn t => (((Binding.concealed Binding.empty, []), t), [], [])) eqs_t)
-        Function_Common.default_config pat_completeness_auto
-      #> snd
-      #> (fn lthy => Function.prove_termination NONE (tac lthy) lthy)
-      #> snd
+        Function_Common.default_config pat_completeness_auto lthy
+      |> snd
+      |> (fn lthy => Function.prove_termination NONE (tac lthy) lthy)
+      |> snd
     end
   else
     fold_map (fn (name, T) => Local_Theory.define
         ((Binding.concealed (Binding.name name), NoSyn),
           (apfst Binding.concealed Binding.empty_atts, mk_undefined T))
-      #> apfst fst) (names ~~ Ts)
-    #> (fn (consts, lthy) =>
+      #> apfst fst) (names ~~ Ts) lthy
+    |> (fn (consts, lthy) =>
       let
         val eqs_t = mk_equations consts
         val eqs = map (fn eq => Goal.prove lthy argnames [] eq
