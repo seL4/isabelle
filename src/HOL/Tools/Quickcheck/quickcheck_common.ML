@@ -9,7 +9,7 @@ sig
   val compat_prefs : BNF_LFP_Compat.preference list
   val strip_imp : term -> (term list * term)
   val reflect_bool : bool -> term
-  val define_functions : ((term list -> term list) * (Proof.context -> tactic) option)
+  val define_functions : ((term list -> term list) * ((typ -> term) * thm list) option)
     -> string -> string list -> string list -> typ list -> Proof.context -> Proof.context
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
@@ -351,13 +351,40 @@ fun generator_test_goal_terms generator ctxt catch_code_errors insts goals =
 
 (* defining functions *)
 
+fun mk_measure f =
+  let val Type (\<^type_name>\<open>fun\<close>, [T, \<^typ>\<open>nat\<close>]) = fastype_of f 
+  in
+    Const (\<^const_name>\<open>Wellfounded.measure\<close>,
+      (T --> \<^typ>\<open>nat\<close>) --> HOLogic.mk_setT (HOLogic.mk_prodT (T, T)))
+    $ f
+  end
+
+fun mk_sumcases rT f (Type (\<^type_name>\<open>Sum_Type.sum\<close>, [TL, TR])) =
+  let
+    val lt = mk_sumcases rT f TL
+    val rt = mk_sumcases rT f TR
+  in Sum_Tree.mk_sumcase TL TR rT lt rt end
+  | mk_sumcases _ f T = f T
+
+fun mk_termination_measure mk_single_measure T =
+  let val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
+  in mk_measure (mk_sumcases \<^typ>\<open>nat\<close> mk_single_measure T') end
+
+fun termination_tac (mk_single_measure, simps) ctxt = 
+  Function_Relation.relation_tac ctxt (mk_termination_measure mk_single_measure) 1
+  THEN resolve_tac ctxt @{thms wf_measure} 1
+  THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
+    (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
+      (@{thms in_measure comp_def snd_conv nat_mono_iff sum.case} @ simps)) 1))
+
 fun pat_completeness_auto ctxt =
   Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt
 
-fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
-  if is_some termination_tac then
+fun define_functions (mk_equations, termination_args) prfx argnames names Ts =
+  if is_some termination_args then
     let
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
+      val tac = termination_tac (the termination_args)
     in
       Function.add_function {verbose = false}
         (map (fn (name, T) => (Binding.concealed (Binding.name name), SOME T, NoSyn))
@@ -365,7 +392,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
         (map (fn t => (((Binding.concealed Binding.empty, []), t), [], [])) eqs_t)
         Function_Common.default_config pat_completeness_auto
       #> snd
-      #> (fn lthy => Function.prove_termination NONE (the termination_tac lthy) lthy)
+      #> (fn lthy => Function.prove_termination NONE (tac lthy) lthy)
       #> snd
     end
   else

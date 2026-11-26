@@ -47,24 +47,6 @@ val full_support = Attrib.setup_config_bool \<^binding>\<open>quickcheck_full_su
 val quickcheck_pretty = Attrib.setup_config_bool \<^binding>\<open>quickcheck_pretty\<close> (K true)
 
 
-(** general term functions **)
-
-fun mk_measure f =
-  let val Type (\<^type_name>\<open>fun\<close>, [T, \<^typ>\<open>nat\<close>]) = fastype_of f 
-  in
-    Const (\<^const_name>\<open>Wellfounded.measure\<close>,
-      (T --> \<^typ>\<open>nat\<close>) --> HOLogic.mk_setT (HOLogic.mk_prodT (T, T)))
-    $ f
-  end
-
-fun mk_sumcases rT f (Type (\<^type_name>\<open>Sum_Type.sum\<close>, [TL, TR])) =
-  let
-    val lt = mk_sumcases rT f TL
-    val rt = mk_sumcases rT f TR
-  in Sum_Tree.mk_sumcase TL TR rT lt rt end
-  | mk_sumcases _ f T = f T
-
-
 (** abstract syntax **)
 
 fun termifyT T = HOLogic.mk_prodT (T, \<^typ>\<open>unit \<Rightarrow> Code_Evaluation.term\<close>)
@@ -213,17 +195,6 @@ fun mk_single_measure T =
   HOLogic.mk_comp
     (\<^term>\<open>Code_Numeral.nat_of_natural\<close>, Const (\<^const_name>\<open>Product_Type.snd\<close>, T --> \<^typ>\<open>natural\<close>))
 
-fun mk_termination_measure T =
-  let val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
-  in mk_measure (mk_sumcases \<^typ>\<open>nat\<close> mk_single_measure T') end
-
-fun termination_tac ctxt = 
-  Function_Relation.relation_tac ctxt mk_termination_measure 1
-  THEN resolve_tac ctxt @{thms wf_measure} 1
-  THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
-    (ctxt |> put_simpset HOL_basic_ss |> Simplifier.add_simps
-      (@{thms in_measure comp_def snd_conv nat_mono_iff sum.case} @ [less_int_pred])) 1))
-
 
 (** instantiating generator classes **)
 
@@ -241,7 +212,8 @@ fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
       thy
       |> Class.instantiation (tycos, vs, sort)
       |> Quickcheck_Common.define_functions
-          (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
+          (fn functerms =>
+            mk_equations functerms (descr, vs, Ts @ Us), SOME (mk_single_measure, [less_int_pred]))
           prfx argnames fullnames (map mk_T (Ts @ Us))
       |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
     end
