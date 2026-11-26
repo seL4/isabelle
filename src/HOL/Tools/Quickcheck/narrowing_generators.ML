@@ -166,13 +166,22 @@ fun mk_equations descr vs narrowings =
       |> (map o apfst) Type
       |> map (fn (T, cs) => map (mk_consexpr T) cs)
       |> map mk_rhs
-    val lhss = narrowings
-    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+    fun mk_eq (lhs, rhs) =
+      let val eq = HOLogic.mk_eq (lhs $ Bound 0, rhs $ Bound 0)
+      in Logic.list_all ([("d", \<^typ>\<open>integer\<close>)], HOLogic.mk_Trueprop eq) end
+    val eqs = map mk_eq (narrowings ~~ rhss)
   in eqs end
 
 fun contains_recursive_type_under_function_types xs =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
     (case Old_Datatype_Aux.strip_dtyp dT of (_ :: _, Old_Datatype_Aux.DtRec _) => true | _ => false)))) xs
+
+val less_int_pred =
+  @{lemma "0 \<le> j \<and> j < i \<Longrightarrow> Code_Numeral.nat_of_integer j < Code_Numeral.nat_of_integer i"
+    for i j :: integer
+    by (simp add: nat_of_integer_def less_integer_def less_eq_integer_def)}
+
+fun mk_single_measure _ = \<^term>\<open>Code_Numeral.nat_of_integer\<close>
 
 fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
@@ -183,7 +192,7 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
       thy
       |> Class.instantiation (tycos, vs, \<^sort>\<open>narrowing\<close>)
       |> Quickcheck_Common.define_functions
-        (fn narrowings => mk_equations descr vs narrowings, NONE)
+        (fn narrowings => mk_equations descr vs narrowings, SOME (mk_single_measure, [less_int_pred]))
         prfx [] narrowingsN (map narrowingT (Ts @ Us))
       |> Class.prove_instantiation_exit (fn ctxt => Class.intro_classes_tac ctxt [])
     else thy
